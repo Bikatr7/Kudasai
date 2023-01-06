@@ -16,13 +16,26 @@
     "Kojima": "鬼島",
     "Naoe": "直江",
     "Kamogawa": "鴨川",
-    "Mika": "美香"
+    "Mika": "美香",
+    "Sonezaki": "曽根崎",
+    "Kisarazu": "木更津",
+    "Souya": "宗谷",
+    "Ohba": "大場",
+    "Ishida": "石田"
   },
 
   "full_names": {
+    "Sakayangagi Narimori": [
+      "坂柳",
+      "成守"
+    ],
+    "Suzukake Tanji": [
+      "鈴懸",
+      "鍛治"
+    ],
     "Tsukishiro Tokinari": [
       "月城",
-      "常成 "
+      "常成"
     ],
     "Isomaru Youkou": [
       "磯丸",

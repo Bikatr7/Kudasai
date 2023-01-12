@@ -144,7 +144,7 @@ def replace_name(character, replace=Names.FULL_NAME, no_honorific=Names.ALL_NAME
         if not VERBOSE or total == 0: ## if VERBOSE is False or total is equal to 0
             continue ## skip the rest of the loop
         
-        print(f'    {name_en} :{total} (', end='') ## print a formatted string with name_en and total interpolated, and end the line with ' ('
+        print(f'    {name_en} : {total} (', end='') ## print a formatted string with name_en and total interpolated, and end the line with ' ('
         print(", ".join(f'{x}-{data[x]}' for x in filter(lambda x: data[x]>0, data)), end=')\n') ## print a string created by joining a list of strings created by applying the function f'{x}-{data[x]}' to each element in a filtered version of the data dictionary using the filter function with the function lambda x: data[x]>0 as the filtering function, and end the line with ')\n'
 
 #-------------------start of main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -178,7 +178,9 @@ def replace(): ## defines the replace function
     ## (title, json_key, is_name, replace_name, no_honorific)
     
     replacement_rules = [ ## creates a list of tuples containing the replacement rules
-    ('Punctuation', 'Kutouten', False, None, None), ## tuple for replacing special words
+    ('Punctuation', 'kutouten', False, None, None), ## tuple for replacing special words
+    ('Words','single_words',False,None,None),
+    ('Phrases','phrases',False,None,None),
     ('Full Names', 'full_names', True,Names.ALL_NAMES, Names.FULL_NAME), ## tuple for replacing remaining names
     ('Single Names', 'single_names', True, Names.LAST_NAME, Names.LAST_NAME), ## tuple for replacing single names
     ('Name Like', 'name_like', True, Names.LAST_NAME, Names.NONE), ## tuple for replacing name-like words
@@ -209,7 +211,7 @@ def replace(): ## defines the replace function
                 for k, v in rep[json_key].items(): # Iterate through dictionary at rep[json_key]
                     n = replace_single_word(k, v) # Replace single word in text
                     if(n > 0): # If a replacement was made
-                        print(f'    {k} → {v}:{n}') # Print number of replacements made
+                        print(f'    ({k} → {v}) : {n}') # Print number of replacements made
             except KeyError: # If a KeyError is encountered
                 continue # Go to the next iteration of the loop
       
@@ -224,7 +226,7 @@ def replace(): ## defines the replace function
 
 if(__name__ == '__main__'): ## checks sys arguments and if less than 3 or called outside cmd prints usage statement
     if(len(sys.argv) < 3): # If there are less than 3 command line arguments
-        print(f'Usage: {sys.argv[0]} input_file replacement_json') # Print usage statement
+        print(f'Usage: {sys.argv[0]} input_txt_file replacement.json') # Print usage statement
         exit(0) # Exit the program
 
     os.system('cls')

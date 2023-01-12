@@ -12,6 +12,14 @@
     "氏": "shi"
   },
 
+  "single_words": {
+    "β": "Beta"
+  },
+
+  "phrases": {
+    "ホワイトルーム": "White Room"
+  },
+
   "single_names": {
     "Kojima": "鬼島",
     "Naoe": "直江",
@@ -299,7 +307,7 @@
     ]
   },
 
-  "Kutouten": {
+  "kutouten": {
     "「": "\"",
     "」": "\"",
     "。": ".",

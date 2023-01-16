@@ -179,8 +179,8 @@ def replace(): ## defines the replace function
     
     replacement_rules = [ ## creates a list of tuples containing the replacement rules
     ('Punctuation', 'kutouten', False, None, None), ## tuple for replacing special words
-    ('Words','single_words',False,None,None),
     ('Phrases','phrases',False,None,None),
+    ('Words','single_words',False,None,None),
     ('Full Names', 'full_names', True,Names.ALL_NAMES, Names.FULL_NAME), ## tuple for replacing remaining names
     ('Single Names', 'single_names', True, Names.LAST_NAME, Names.LAST_NAME), ## tuple for replacing single names
     ('Name Like', 'name_like', True, Names.LAST_NAME, Names.NONE), ## tuple for replacing name-like words

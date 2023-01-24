@@ -18,4 +18,4 @@
 
 ## After steps are completed, the output file will be in the same location as the input .txt file (same path) but with -Kudasai appended to it.
 
-## Any questions, please email Seinuve@gmail.com
+## Any questions or bugs, please email Seinuve@gmail.com

@@ -54,17 +54,97 @@
   },
 
   "full_names": {
-    "Sakayanagi Narimori": [
-      "坂柳",
-      "成守"
+    "Amasawa Ichika": [
+      "天沢",
+      "一夏"
     ],
-    "Suzukake Tanji": [
-      "鈴懸",
-      "鍛治"
+    "Amikura Mako": [
+      "網倉",
+      "麻子"
     ],
-    "Tsukishiro Tokinari": [
-      "月城",
-      "常成"
+    "Andou Sayo" : [
+      "安藤",
+      "紗代"
+    ],
+    "Asahina Nazuna": [
+      "朝比奈",
+      "なずな"
+    ],
+    "Asama Hisashi": [
+      "浅間",
+      "久"
+    ],
+    "Ayanokouji Atsuomi": [
+      "綾小路",
+      "篤臣"
+    ],
+    "Ayanokouji Kiyotaka": [
+      "綾小路",
+      "清隆"
+    ],
+    "Chabashira Sae": [
+      "茶柱",
+      "佐枝"
+    ],
+    "Hamaguchi Tetsuya": [
+      "浜口",
+      "哲也"
+    ],
+    "Hasebe Haruka": [
+      "長谷部",
+      "波瑠加"
+    ],
+    "Hashimoto Masayoshi": [
+      "橋本",
+      "正義"
+    ],
+    "Himeno Yuki":[
+      "姫野",
+      "ユキ"
+    ],
+    "Hirata Yousuke": [
+      "平田",
+      "洋介"
+    ],
+    "Hondou Ryoutarou": [
+      "本堂",
+      "遼太郎"
+    ],
+    "Horikita Manabu": [
+      "堀北",
+      "学"
+    ],
+    "Horikita Suzune": [
+      "堀北",
+      "鈴音"
+    ],
+    "Hoshinomiya Chie": [
+      "星之宮",
+      "知恵"
+    ],
+    "Housen Kazuomi": [
+      "宝泉",
+      "和臣"
+    ],
+    "Ibuki Mio": [
+      "伊吹",
+      "澪"
+    ],
+    "Ichinose Honami": [
+      "一之瀬",
+      "帆波"
+    ],
+    "Ike Kanji": [
+      "池",
+      "寛治"
+    ],
+    "Inogashira Kokoro": [
+      "井の頭",
+      "心"
+    ],
+    "Ishizaki Daichi": [
+      "石崎",
+      "大地"
     ],
     "Isomaru Youkou": [
       "磯丸",
@@ -74,257 +154,233 @@
       "鴨川",
       "俊三"
     ],
-    "Naoe Jinnosuke": [
-      "直江",
-      "仁之助"
-    ],
-    "Asama Hisashi": [
-      "浅間",
-      "久"
-    ],
-    "Ayanokouji Kiyotaka": [
-      "綾小路",
-      "清隆"
-    ],
-    "Ayanokouji Atsuomi": [
-      "綾小路",
-      "篤臣"
-    ],
-    "Horikita Suzune": [
-      "堀北",
-      "鈴音"
-    ],
-    "Sakura Airi": [
-      "佐倉",
-      "愛里"
-    ],
-    "Sakayanagi Arisu": [
-      "坂柳",
-      "有栖"
-    ],
-    "Hasebe Haruka": [
-      "長谷部",
-      "波瑠加"
-    ],
-    "Ichinose Honami": [
-      "一之瀬",
-      "帆波"
-    ],
-    "Hirata Yousuke": [
-      "平田",
-      "洋介"
-    ],
-    "Kiryuuin Fuuka": [
-      "鬼龍院",
-      "楓花"
-    ],
-    "Yamada Albert": [
-      "山田",
-      "アルベルト"
-    ],
-    "Satou Maya": [
-      "佐藤",
-      "麻耶"
-    ],
-    "Matsushita Chiaki": [
-      "松下",
-      "千秋"
-    ],
-    "Karuizawa Kei": [
-      "軽井沢",
-      "恵"
-    ],
-    "Chabashira Sae": [
-      "茶柱",
-      "佐枝"
-    ],
-    "Hoshinomiya Chie": [
-      "星之宮",
-      "知恵"
-    ],
-    "Amasawa Ichika": [
-      "天沢",
-      "一夏"
-    ],
-    "Ishizaki Daichi": [
-      "石崎",
-      "大地"
-    ],
-    "Ryuuen Kakeru": [
-      "龍園",
-      "翔"
-    ],
-    "Katsuragi Kouhei": [
-      "葛城",
-      "康平"
-    ],
-    "Shiina Hiyori": [
-      "椎名",
-      "ひより"
-    ],
-    "Kiriyama Ikuto": [
-      "桐山",
-      "生叶"
-    ],
-    "Onodera Kayano": [
-      "小野寺",
-      "かや乃"
-    ],
-    "Housen Kazuomi": [
-      "宝泉",
-      "和臣"
-    ],
-    "Sudou Ken": [
-      "須藤",
-      "健"
-    ],
-    "Komiya Kyougo": [
-      "小宮",
-      "叶吾"
-    ],
-    "Hashimoto Masayoshi": [
-      "橋本",
-      "正義"
-    ],
-    "Ibuki Mio": [
-      "伊吹",
-      "澪"
-    ],
-    "Nagumo Miyabi": [
-      "南雲",
-      "雅"
-    ],
-    "Kouenji Rokusuke": [
-      "高円寺",
-      "六助"
-    ],
-    "Shinohara Satsuki": [
-      "篠原",
-      "さつき"
-    ],
-    "Yukimura Teruhiko": [
-      "幸村",
-      "輝彦"
-    ],
-    "Utomiya Riku": [
-      "宇都宮",
-      "陸"
-    ],
-    "Kanzaki Ryuuji": [
-      "神崎",
-      "隆二"
-    ],
-    "Nanase Tsubasa": [
-      "七瀬",
-      "翼"
-    ],
-    "Kikyou Kushida": [
-      "桔梗",
-      "櫛田"
-    ],
-    "Tachibana Akane": [
-      "橘",
-      "茜"
-    ],
-    "Miyake Akito": [
-      "三宅",
-      "明人"
-    ],
-    "Shiranami Chihiro": [
-      "白波",
-      "千尋"
-    ],
-    "Yamauchi Haruki": [
-      "山内",
-      "春樹"
-    ],
-    "Kitou Hayato": [
-      "鬼頭",
-      "隼"
-    ],
-    "Sotomura Hideo": [
-      "外村",
-      "秀雄"
-    ],
-    "Ike Kanji": [
-      "池",
-      "寛治"
-    ],
-    "Shiba Katsunori": [
-      "司馬",
-      "克典"
-    ],
-    "Sakagami Kazuma": [
-      "坂上",
-      "数馬"
-    ],
-    "Inogashira Kokoro": [
-      "井の頭",
-      "心"
-    ],
-    "Okitani Kyousuke": [
-      "沖谷",
-      "京介"
-    ],
-    "Tsubaki Sakurako": [
-      "椿",
-      "桜子"
-    ],
-    "Amikura Mako": [
-      "網倉",
-      "麻子"
-    ],
-    "Horikita Manabu": [
-      "堀北",
-      "学"
-    ],
     "Kamuro Masumi": [
       "神室",
       "真澄"
-    ],
-    "Wan Mei-Yui": [
-      "王",
-      "美雨"
-    ],
-    "Asahina Nazuna": [
-      "朝比奈",
-      "なずな"
-    ],
-    "Mori Nene": [
-      "森",
-      "寧々"
-    ],
-    "Kondou Reo": [
-      "近藤",
-      "玲音"
     ],
     "Kaneda Satoru": [
       "金田",
       "悟"
     ],
-    "Manabe Shiho": [
-      "真鍋",
-      "志保"
+    "Kanzaki Ryuuji": [
+      "神崎",
+      "隆二"
     ],
-    "Yagami Takuya": [
-      "八神",
-      "拓也"
+    "Karuizawa Kei": [
+      "軽井沢",
+      "恵"
     ],
-    "Mashima Tomonari": [
-      "真嶋",
-      "智也"
+    "Katsuragi Kouhei": [
+      "葛城",
+      "康平"
     ],
-    "Totsuka Yahiko": [
-      "戸塚",
-      "弥彦"
+    "Kazuomi Housen": [
+      "和臣",
+      "宝泉"
+    ],
+    "Kikyou Kushida": [
+      "桔梗",
+      "櫛田"
+    ],
+    "Kinoshita Minori" : [
+      "木下",
+      "美野里"
+    ],
+    "Kiriyama Ikuto": [
+      "桐山",
+      "生叶"
+    ],
+    "Kiryuuin Fuuka": [
+      "鬼龍院",
+      "楓花"
+    ],
+    "Kitou Hayato": [
+      "鬼頭",
+      "隼"
+    ],
+    "Kobashi Yume": [
+      "小橋",
+      "夢"
+    ],
+    "Komiya Kyougo": [
+      "小宮",
+      "叶吾"
+    ],
+    "Kondou Reo": [
+      "近藤",
+      "玲音"
+    ],
+    "Kouenji Rokusuke": [
+      "高円寺",
+      "六助"
+    ],
+    "Kouji Machida": [
+      "浩二",
+      "町田"
     ],
     "Kusuda Yukitsu": [
       "楠田",
       "ゆきつ"
     ],
-    "Kobashi Yume": [
-      "小橋",
-      "夢"
+    "Manabe Shiho": [
+      "真鍋",
+      "志保"
+    ],
+    "Mashima Tomonari": [
+      "真嶋",
+      "智也"
+    ],
+    "Matsushita Chiaki": [
+      "松下",
+      "千秋"
+    ],
+    "Miyake Akito": [
+      "三宅",
+      "明人"
+    ],
+    "Mori Nene": [
+      "森",
+      "寧々"
+    ],
+    "Morofuji Rika" : [
+      "諸藤",
+      "リカ"
+    ],
+    "Nagumo Miyabi": [
+      "南雲",
+      "雅"
+    ],
+    "Nanase Tsubasa": [
+      "七瀬",
+      "翼"
+    ],
+    "Naoe Jinnosuke": [
+      "直江",
+      "仁之助"
+    ],
+    "Nishino Takeko" : [
+      "西野",
+      "武子"
+    ],
+    "Okitani Kyousuke": [
+      "沖谷",
+      "京介"
+    ],
+    "Onodera Kayano": [
+      "小野寺",
+      "かや乃"
+    ],
+    "Ryuuen Kakeru": [
+      "龍園",
+      "翔"
+    ],
+    "Sakagami Kazuma": [
+      "坂上",
+      "数馬"
+    ],
+    "Sakayanagi Arisu": [
+      "坂柳",
+      "有栖"
+    ],
+    "Sakayanagi Narimori": [
+      "坂柳",
+      "成守"
+    ],
+    "Sakura Airi": [
+      "佐倉",
+      "愛里"
+    ],
+    "Satou Maya": [
+      "佐藤",
+      "麻耶"
+    ],
+    "Shiba Katsunori": [
+      "司馬",
+      "克典"
+    ],
+    "Shibata Sou" : [
+      "柴田",
+      "颯"
+    ],
+    "Shiina Hiyori": [
+      "椎名",
+      "ひより"
+    ],
+    "Shinohara Satsuki": [
+      "篠原",
+      "さつき"
+    ],
+    "Shiranami Chihiro": [
+      "白波",
+      "千尋"
+    ],
+    "Sotomura Hideo": [
+      "外村",
+      "秀雄"
+    ],
+    "Sudou Ken": [
+      "須藤",
+      "健"
+    ],
+    "Suzukake Tanji": [
+      "鈴懸",
+      "鍛治"
+    ],
+    "Tachibana Akane": [
+      "橘",
+      "茜"
+    ],
+    "Tokitou Hiroya": [
+      "時任",
+      "裕也"
+    ],
+    "Totsuka Yahiko": [
+      "戸塚",
+      "弥彦"
+    ],
+    "Tsubaki Sakurako": [
+      "椿",
+      "桜子"
+    ],
+    "Tsukishiro Tokinari": [
+      "月城",
+      "常成"
+    ],
+    "Utomiya Riku": [
+      "宇都宮",
+      "陸"
+    ],
+    "Wan Mei-Yui": [
+      "王",
+      "美雨"
+    ],
+    "Yabu Nanami" : [
+      "藪",
+      "菜々美"
+    ],
+    "Yagami Takuya": [
+      "八神",
+      "拓也"
+    ],
+    "Yamada Albert": [
+      "山田",
+      "アルベルト"
+    ],
+    "Yamamura Miki": [
+      "山村",
+      "美紀"
+    ],
+    "Yamashita Saki" : [
+      "鈴代",
+      "紗弓"
+    ],
+    "Yamauchi Haruki": [
+      "山内",
+      "春樹"
+    ],
+    "Yukimura Teruhiko": [
+      "幸村",
+      "輝彦"
     ]
   }
 

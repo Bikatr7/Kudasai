@@ -1,6 +1,6 @@
 ## Kudasai
 
-## Used to Make Translation Easier by automatically replacing characters in the japanese text with their english equals
+## Used to make Classroom of the Elite translation easier by automatically replacing characters in the japanese text with their english equals
 
 ## CmdLineArgs
 ## Argument 1 - Path to .txt file that needs to be edited

@@ -26,4 +26,4 @@ Step 5 : Press enter
 
 After steps are completed, the output file will be in the same location as the input .txt file (same path) but with -Kudasai appended to it, Kudasai's output will also be at the same location but with "-Kudasai-Output" Appended
 
-Any questions or bugs, please email Seinuve@gmail.com
+## Any questions or bugs, please email Seinuve@gmail.com

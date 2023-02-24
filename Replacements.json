@@ -19,7 +19,10 @@
   },
 
   "phrases": {
-    "ケヤキモール" : "Keyaki Mall"
+    "ケヤキモール" : "Keyaki Mall",
+    "高育" : "ANHS",
+    "高度育成高等学校": "Advanced Nuturing High School",
+    "東京都高度育成高等学校":"Tokyo Metropolitan Advanced Nurturing High School"
   },
 
   "kutouten": {
@@ -52,7 +55,8 @@
     "Ishida": "石田",
     "Shiro": "志朗",
     "Yamanaka": "山中",
-    "Keisei" : "啓誠"
+    "Keisei" : "啓誠",
+    "Mii" : "みー"
 
   },
 

@@ -5,6 +5,8 @@ Orginal Author: thevoidzero#4686
 Refactored and Maintained by : Seinu#7854
 Contrbutions by : SnOrT NeSqUiK™#9775
 
+Run pip commands listed in requirements.txt before running Kudasai
+
 Python Version : 3.7.6-3.11.1
 
 Used to make Classroom of the Elite translation easier by automatically replacing characters in the japanese text with their english equivalents
@@ -25,7 +27,7 @@ Step 3 : Copy path of .txt file you want to alter to cmd and type a space
 Step 4 : Copy path of Replacements.json to cmd
 Step 5 : Press enter
 
-After steps are completed, the output file will be in the same location as the input .txt file (same path) but with -Kudasai appended to it, Kudasai's output will also be at the same location but with "-Kudasai-Output" Appended
+After steps are completed, the output file will be in the same location as the input .txt file (same path) but with -Kudasai appended to it, Kudasai's output will also be at the same location but with "-Kudasai-Output" appended
 
 Any questions or bugs, please email Seinuve@gmail.com
 
@@ -35,7 +37,8 @@ import sys
 import json 
 import os 
 import time 
-import itertools 
+import itertools
+import MeCab
 
 from enum import Flag 
 from collections import namedtuple 
@@ -77,6 +80,42 @@ def output_file_names(inputFile): ## returns the file path for the output file
     kudasaiPath, fileType = os.path.splitext(inputFile) 
     
     return f'{kudasaiPath}-Kudasai{fileType}',f'{kudasaiPath}-Kudasai-Output{fileType}' ## returns the paths for kudasai output and kudasai results
+
+#-------------------start of replace_single_kani()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def replace_single_kanji(jap, replacement): ## replaces a single kanji in the text
+    
+    global japaneseText, totalReplacements
+
+    tagger = MeCab.Tagger('-Ochasen')
+    
+    i = 0
+    
+    numOccurences = japaneseText.count(jap) 
+    
+    if(numOccurences == 0): 
+        return 0
+
+    japLines = japaneseText.split('\n')
+
+    while(i < len(japLines)):
+        if(jap in japLines[i]):
+            result = tagger.parse(japLines[i])
+
+            lines = result.split('\n')
+
+            for line in lines:
+                if line != 'EOS':
+                    parts = line.split('\t')
+                    if(len(parts) >= 4 and parts[0] == jap and (parts[3][:2] == '名詞' or parts[3] == '固有名詞')):
+                        totalReplacements += japLines[i].count(jap)
+                        japLines[i] = japLines[i].replace(jap,replacement)
+                        
+        i+=1
+
+    japaneseText = '\n'.join(japLines)
+                  
+    return numOccurences
 
 #-------------------start of replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -150,9 +189,13 @@ def replace_name(character,replace=Names.FULL_NAME,noHonorific=Names.ALL_NAMES,r
                 f'{eng}-{honorificEnglish}'
             )
 
-        if noHonor:
-            if len(jap) > 1 or not SINGLE_KANJI_FILTER:
+        if(noHonor == True):
+            if(len(jap) > 1 or not SINGLE_KANJI_FILTER):
                 data['NA'] = replace_single_word(jap, eng)
+
+            elif(len(jap) == 1 and SINGLE_KANJI_FILTER == True):
+                data['NA'] = replace_single_kanji(jap,eng)
+                
 
         total = sum(data.values())
 
@@ -166,7 +209,7 @@ def replace_name(character,replace=Names.FULL_NAME,noHonorific=Names.ALL_NAMES,r
         print(", ".join(map(lambda x: f'{x}-{data[x]}',
                             filter(lambda x: data[x]>0, data))), end=')\n')
         
-        replacementText += '(' + ', '.join([f'{key}-{value}' for key, value in data.items() if value > 0]) + ')\n'
+        replacementText += ', '.join([f'{key}-{value}' for key, value in data.items() if value > 0]) + ')\n'
 
 #-------------------start of replace()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -266,8 +309,12 @@ def main(inputFile, jsonFile):
 if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called outside cmd prints usage statement
     if(len(sys.argv) < 3): 
 
-        f = open(os.getcwd() + "\README.md","r",encoding="utf-8")
-        print(f.read() + "\n")
+        try:
+            f = open(os.getcwd() + "\README.md","r",encoding="utf-8")
+            print(f.read() + "\n")
+            f.close()
+        except:
+            pass
 
         print(f'\nUsage: {sys.argv[0]} input_txt_file replacement.json\n') 
         

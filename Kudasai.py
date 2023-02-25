@@ -38,17 +38,19 @@ import json
 import os 
 import time 
 import itertools
-import MeCab
+import spacy
 
 from enum import Flag 
 from collections import namedtuple 
 
 #-------------------start of globals---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Character = namedtuple('Character', 'jp_name en_name') 
+Character = namedtuple('Character', 'jp_name en_name')
+
+nlp = spacy.load("ja_core_news_lg") # large model
 
 VERBOSE = True 
-SINGLE_KANJI_FILTER = True ## filters out single kanji when replacing names
+SINGLE_KANJI_FILTER = True ## filters out single kanji or uses specific function to deal with it when replacing names
 JAPANESE_NAME_SEPERATORS = ["・", ""] 
 
 japaneseText = ''
@@ -72,7 +74,7 @@ class Names(Flag):
 
 #-------------------start of output_file_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def output_file_names(inputFile): ## returns the file path for the output file
+def output_file_names(inputFile): ## returns the file path for the output files
     
     """
     spits out output file with -Kudasai ender
@@ -81,41 +83,33 @@ def output_file_names(inputFile): ## returns the file path for the output file
     
     return f'{kudasaiPath}-Kudasai{fileType}',f'{kudasaiPath}-Kudasai-Output{fileType}' ## returns the paths for kudasai output and kudasai results
 
-#-------------------start of replace_single_kani()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------start of replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def replace_single_kanji(jap, replacement): ## replaces a single kanji in the text
-    
+
     global japaneseText, totalReplacements
 
-    tagger = MeCab.Tagger('-Ochasen')
-    
     i = 0
-    
-    numOccurences = japaneseText.count(jap) 
-    
-    if(numOccurences == 0): 
-        return 0
+    nameCount = 0
 
     japLines = japaneseText.split('\n')
 
     while(i < len(japLines)):
         if(jap in japLines[i]):
-            result = tagger.parse(japLines[i])
 
-            lines = result.split('\n')
+            sentence = nlp(japLines[i])
 
-            for line in lines:
-                if line != 'EOS':
-                    parts = line.split('\t')
-                    if(len(parts) >= 4 and parts[0] == jap and (parts[3][:2] == '名詞' or parts[3] == '固有名詞')):
-                        totalReplacements += japLines[i].count(jap)
-                        japLines[i] = japLines[i].replace(jap,replacement)
-                        
+            for entity in sentence.ents:
+                if(entity.text == jap and entity.label_ == "PERSON"):
+                    nameCount += 1
+                    japLines[i] = japLines[i].replace(jap,replacement)
+
         i+=1
 
     japaneseText = '\n'.join(japLines)
-                  
-    return numOccurences
+    totalReplacements += nameCount
+    
+    return nameCount
 
 #-------------------start of replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

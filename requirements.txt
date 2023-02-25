@@ -1,4 +1,2 @@
-pip install mecab-python3
-pip install unidic-lite mecab-python3
-pip install spacy
-python -m spacy download ja_core_news_md
+pip install spacy[jp]
+python -m spacy download ja_core_news_lg

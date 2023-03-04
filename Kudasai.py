@@ -7,9 +7,9 @@ Contrbutions by : SnOrT NeSqUiK™#9775
 
 Run pip commands listed in requirements.txt before running Kudasai
 
-Python Version : 3.7.6-3.11.1
+Python Version : 3.7.6-3.11.2
 
-Used to make Classroom of the Elite translation easier by automatically replacing characters in the japanese text with their english equivalents
+Used to make Classroom of the Elite translation easier by preprocessing the japanese text
 
 Dervied from https://github.com/Atreyagaurav/mtl-related-scripts
 
@@ -23,7 +23,7 @@ To use
 
 Step 1 : Open Cmd
 Step 2 : Copy path of Kudasai.py to cmd and type a space
-Step 3 : Copy path of .txt file you want to alter to cmd and type a space
+Step 3 : Copy path of .txt file you want to preprocess to cmd and type a space
 Step 4 : Copy path of Replacements.json to cmd
 Step 5 : Press enter
 
@@ -39,7 +39,9 @@ import os
 import time 
 import itertools
 import spacy
+import deepl
 
+from time import sleep
 from enum import Flag 
 from collections import namedtuple 
 
@@ -74,14 +76,26 @@ class Names(Flag):
 
 #-------------------start of output_file_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def output_file_names(inputFile): ## returns the file path for the output files
+def output_file_names(): ## returns the file path for the output files
     
     """
-    spits out output file with -Kudasai ender
+    spits out output file paths
     """
-    kudasaiPath, fileType = os.path.splitext(inputFile) 
     
-    return f'{kudasaiPath}-Kudasai{fileType}',f'{kudasaiPath}-Kudasai-Output{fileType}' ## returns the paths for kudasai output and kudasai results
+    dirPath = str(os.getcwd()) + "\Desktop\KudasaiOutput"
+
+    if(os.path.isdir(dirPath) == False):
+        os.mkdir(dirPath, 0o666)
+
+    sleep(0.1)
+
+    preprocessPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\preprocessedText.txt"
+    outputPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\output.txt"
+    debugPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\tlDebug.txt"
+    jePath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\jeCheck.txt"
+    translatedPath = debugFile = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\translatedText.txt"
+    
+    return  preprocessPath,outputPath,debugPath,jePath,translatedPath
 
 #-------------------start of replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -102,7 +116,7 @@ def replace_single_kanji(jap, replacement): ## replaces a single kanji in the te
             for entity in sentence.ents:
                 if(entity.text == jap and entity.label_ == "PERSON"):
                     nameCount += 1
-                    japLines[i] = japLines[i].replace(jap,replacement)
+                    japLines[i] = japLines[i][:entity.start_char] + replacement + japLines[i][entity.end_char:]
 
         i+=1
 
@@ -188,7 +202,7 @@ def replace_name(character,replace=Names.FULL_NAME,noHonorific=Names.ALL_NAMES,r
                 data['NA'] = replace_single_word(jap, eng)
 
             elif(len(jap) == 1 and SINGLE_KANJI_FILTER == True):
-                data['NA'] = replace_single_kanji(jap,eng)
+                data['NA'] = replace_single_kanji(jap, eng)
                 
 
         total = sum(data.values())
@@ -214,6 +228,7 @@ def replace():
     
     replacementRules = [ 
     ('Punctuation', 'kutouten', False, None, None), 
+    ('Unicode','unicode',False, None, None),
     ('Phrases','phrases',False,None,None),
     ('Words','single_words',False,None,None),
     ('Full Names', 'full_names', True,Names.ALL_NAMES, Names.FULL_NAME),
@@ -287,16 +302,25 @@ def main(inputFile, jsonFile):
     
     replace() 
     
-    outputFile,replacement_file = output_file_names(inputFile) 
+    preprocessPath,outputPath,debugPath,jePath,translatedPath = output_file_names()
 
-    with open(outputFile, 'w+', encoding='utf-8') as file: 
-        file.write(japaneseText) ## writes the contents of the updated text to the file
+    with open(preprocessPath, 'w+', encoding='utf-8') as file: 
+        file.write(japaneseText) ## writes the contents of the preprocessed text to the file
 
-    with open(replacement_file, 'w+', encoding='utf-8') as file: 
+    with open(outputPath, 'w+', encoding='utf-8') as file: 
         file.write(replacementText) ## writes the contents of kudasai's results to the file
 
-    print("\n\nResults have been written to : " + outputFile)
-    print("\nKudasai replacement output has been written to : " + replacement_file)
+    with open(debugPath, 'w+', encoding='utf-8') as file: 
+        file.truncate(0)
+
+    with open(jePath, 'w+', encoding='utf-8') as file: 
+        file.truncate(0)
+
+    with open(translatedPath, 'w+', encoding='utf-8') as file: 
+        file.truncate(0)
+
+    print("\n\nResults have been written to : " + preprocessPath)
+    print("\nKudasai replacement output has been written to : " + outputPath)
 
 #-------------------start of sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -6,9 +6,9 @@ Contrbutions by : SnOrT NeSqUiK™#9775
 
 Run pip commands listed in requirements.txt before running Kudasai
 
-Python Version : 3.7.6-3.11.1
+Python Version : 3.7.6-3.11.2
 
-Used to make Classroom of the Elite translation easier by automatically replacing characters in the japanese text with their english equivalents
+Used to make Classroom of the Elite translation easier by preprocessing the japanese text
 
 Dervied from https://github.com/Atreyagaurav/mtl-related-scripts
 
@@ -22,7 +22,7 @@ To use
 
 Step 1 : Open Cmd
 Step 2 : Copy path of Kudasai.py to cmd and type a space
-Step 3 : Copy path of .txt file you want to alter to cmd and type a space
+Step 3 : Copy path of .txt file you want to preprocess to cmd and type a space
 Step 4 : Copy path of Replacements.json to cmd
 Step 5 : Press enter
 

@@ -4,21 +4,21 @@ import os
 import time
 
 from time import sleep
+from deepl.exceptions import QuotaExceededException
 
 '''
 Unnamed prototype for automated deepL translation.
 
-This is still very much a work in progress and is by no means efficent at all, so please don't crticise me too much.
+This is still very much a work in progress and is by no means efficient at all, so please don't criticize me too much.
 
-Known issues:
-『』 or '' (How Kudasai handles them) are completly broken and appear all over the place, sometimes switching to ""
-~ placement is not always accurate
-puncutation spacing is not accurate
+Known issues and limitations:
+punctuation spacing is not always accurate
 capitalization is an issue in sentences that have multiple parts
-Since this is being translated one sentence at a time, the translation is typically less accurate compared to translating in bulk, howver, doing it one line at a time seems to completly eliminate sentence duplications and additions.
-Script requires kudasai to be ran first or KudasaiOutput folder to be present on desktop
+Since this is being translated one sentence at a time, the translation is typically less accurate compared to translating in bulk, however, doing it one line at a time seems to completely eliminate sentence duplications and additions.
+Script requires Kudasai to be ran first or KudasaiOutput folder to be present on desktop
 paths are currently hardcoded for ease of testing
 '''
+
 
 #-------------------start of initalize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,17 +104,27 @@ def seperate(sentence): ## seperates sentences based of puncutation
                         sentencePunc.append(sentence[i] + sentence[i+1])
                         i+=1
                         buildString = ""
-                elif(i+2 < len(sentence) and sentence[i] == "-" and sentence[i+1] == "-" and sentence[i+2] == "-"): ## if next punc is "---"
-                        sentenceParts.append(buildString)
-                        sentencePunc.append(sentence[i] + sentence[i+1] + sentence[i+2])
-                        i+=2
-                        buildString = ""
                 elif(i+3 < len(sentence) and sentence[i] == "." and sentence[i+1] == "." and sentence[i+2] == "." and sentence[i+3] == "!"): ## if next punc is "...!"
                         sentenceParts.append(buildString)
                         sentencePunc.append(sentence[i] + sentence[i+1] + sentence[i+2] + sentence[i+3])
                         i+=3
                         buildString = ""
-                elif(i+2 < len(sentence) and sentence[i] == "." and sentence[i+1] == "." and sentence[i+2] == "."): ## if next punc is "...?"
+                elif(i+3 < len(sentence) and sentence[i] == "." and sentence[i+1] == "." and sentence[i+2] == "." and sentence[i+3] == "?"): ## if next punc is "...?"
+                        sentenceParts.append(buildString)
+                        sentencePunc.append(sentence[i] + sentence[i+1] + sentence[i+2] + sentence[i+3])
+                        i+=3
+                        buildString = ""
+                elif(i+3 < len(sentence) and sentence[i] == "-" and sentence[i+1] == "-" and sentence[i+2] == "-" and sentence[i+3] == "."): ## if next punc is "---."
+                        sentenceParts.append(buildString)
+                        sentencePunc.append(sentence[i] + sentence[i+1] + sentence[i+2] + sentence[i+3])
+                        i+=2
+                        buildString = ""
+                elif(i+2 < len(sentence) and sentence[i] == "-" and sentence[i+1] == "-" and sentence[i+2] == "-"): ## if next punc is "---"
+                        sentenceParts.append(buildString)
+                        sentencePunc.append(sentence[i] + sentence[i+1] + sentence[i+2])
+                        i+=2
+                        buildString = ""
+                elif(i+2 < len(sentence) and sentence[i] == "." and sentence[i+1] == "." and sentence[i+2] == "."): ## if next punc is "..."
                         sentenceParts.append(buildString)
                         sentencePunc.append(sentence[i] + sentence[i+1] + sentence[i+2])
                         i+=2
@@ -145,36 +155,74 @@ def seperate(sentence): ## seperates sentences based of puncutation
 def translate(translator,sentenceParts,sentencePunc): ## for translating each part of a sentence
 
         i = 0
+        ii = 0
 
         finalSentence = ""
         tildeActive = False
+        singleQuoteActive = False
 
         while(i < len(sentenceParts)):
+
                 if("~" in sentenceParts[i]): ## if tilde is present in part, delete it and set tidle active to true, so we can add it in a bit
                         sentenceParts[i] = sentenceParts[i].replace("~","")
                         tildeActive = True
 
+                if("'" in sentenceParts[i]):
+                      Str = sentenceParts[i]
+                      subStart = Str.index("'")
+                      subEnd = 0
+                      quote = ""
+
+                      ii = subStart
+                      while(ii < len(Str)):
+                            if(Str[ii] == "'"):
+                                  subEnd = ii
+                            ii+=1
+                        
+                      quote = Str[subStart+1:subEnd]
+                      sentenceParts[i] = Str[:subStart+1] + "quote" + Str[subEnd:]
+
+                      singleQuoteActive = True
+
                 try:
-                        results = str(translator.translate_text(sentenceParts[i], target_lang="EN-US")) ## translates part to english-us
+                        results = str(translator.translate_text(sentenceParts[i], source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
 
                         translatedPart = results.rstrip(''.join(c for c in string.punctuation if c not in "'\"")) ## basically removes all puncuation  because we are (trying) to handle that ourselves
+                        translatedPart = translatedPart.rstrip(' ') ## basically removes all puncuation  because we are (trying) to handle that ourselves
+
 
                         if(tildeActive == True): ## here we re-add the tilde, (note not always accurate but mostly is)
-                            translatedPart += "~"
-                            tildeActive = False
-                            
+                              translatedPart += "~"
+                              tildeActive = False
+
+                        if(singleQuoteActive == True):
+                                quote = str(translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
+
+                                quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\"")) ## basically removes all puncuation  because we are (trying) to handle that ourselves
+                                quote = quote.rstrip(' ') ## basically removes all puncuation  because we are (trying) to handle that ourselves
+
+                                if(quote[-2] not in string.punctuation and sentencePunc[-1] == None): ## this is for adding a period if it's missing 
+                                        quote += "."
+                                        
+                                translatedPart = translatedPart.replace("'quote'","'" + quote + "'",1)
+                        
                         if(sentencePunc[i] != None): ## typically when a sentencePunc is none, it's almost always supposed to be a period
                                 finalSentence +=  translatedPart + sentencePunc[i]
-                                if(sentencePunc[i] == "."): ## for spacing (not accurate at all outside of periods)
+                                if(sentencePunc[i] == "." and len(sentencePunc) > 1): ## for spacing (not accurate at all outside of periods)
                                         finalSentence += " "
                         else:
                                 finalSentence +=  translatedPart
+
+                except QuotaExceededException:
+                        print("\nDeepL API quota exceeeded\n")
+
+                        os.system('pause')
+                        exit()
                         
                 except: ## this will trigger if deepL tries to translate an empty string or an extra line
-                        finalSentence += " "
+                        finalSentence += ""
                 
                 i+=1
-
 
         return finalSentence
 
@@ -228,11 +276,13 @@ while(i < len(japaneseText)):
 
         finalSentence.append(translate(translator,sentenceParts,sentencePunc))
 
-        if(len(finalSentence[i]) > 0 and finalSentence[i] != " " and finalSentence[i][-2] not in string.punctuation and sentencePunc[-1] == None): ## this is for adding a period if it's missing 
+        if(len(finalSentence[i]) > 0 and finalSentence[i] != "" and finalSentence[i][-2] not in string.punctuation and sentencePunc[-1] == None): ## this is for adding a period if it's missing 
                 finalSentence[i] = finalSentence[i] + "."
         
-        if(specialPunc[0] == True): ## readds quotes
+        if(specialPunc[0] == True): ## re-adds quotes
               finalSentence[i] =  '"' + finalSentence[i] + '"'
+        elif('"' in finalSentence[i]):
+                finalSentence[i] = finalSentence[i].replace('"',"'")
 
         debugWrite(r"C:\Users\Tetra\Desktop\KudasaiOutput\tlDebug.txt","\nTranslated and Reassembled Sentence : " + finalSentence[i])
         debugWrite(r"C:\Users\Tetra\Desktop\KudasaiOutput\tlDebug.txt","-----------------------------------------------\n")

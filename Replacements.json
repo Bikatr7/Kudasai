@@ -47,9 +47,7 @@
     "お兄": "Onii",
     "兄": "Nii",
     "お姉": "Onee",
-    "姉": "Nee",
-    "Wan-sama": "king"
-    
+    "姉": "Nee"    
   },
 
   "single_names": {
@@ -63,7 +61,8 @@
     "Shiro": "志朗",
     "Keisei" : "啓誠",
     "Mii" : "みー",
-    "Anzai" : "安在"
+    "Anzai" : "安在",
+    "king": "Wan-sama"
 
   },
 

@@ -33,7 +33,7 @@ def initalize_translator(textToTranslate): ## creates translator object and sets
                 print("Used saved api key in C:\ProgramData\Kudasai\apiKey.txt")
 
         except: ## else try to get api key manually
-                apikey = input("Please enter the deepL api key you have :  ")
+                apiKey = input("Please enter the deepL api key you have :  ")
 
                 try: ## if valid save the api key
 

@@ -397,5 +397,7 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
 
     os.system('cls')
 
+    os.system("title " + "Kudasai")
+
     main(sys.argv[1], sys.argv[2]) # Call main function with the first and second command line arguments as the input file and replacement JSON, respectively
 

@@ -45,6 +45,10 @@ import os
 import time 
 import itertools
 import spacy
+import requests
+import subprocess
+import zipfile
+import shutil
 
 sys.path.insert(0, os.getcwd())
 
@@ -316,6 +320,10 @@ def main(inputFile, jsonFile):
     """
     reads the text from `inputFile`, replaces names and honorifics in the text based on the data in `jsonFile`, and writes the resulting text to a file with "-Kudasai" appended to the inputFile name
     """
+
+    check_update()
+
+    os.system('pause')
     
     global japaneseText, replacementJson, totalReplacements, replacementText 
     
@@ -376,8 +384,54 @@ def run_kaiseki(preprocessPath):
         commence_translation(translator,japaneseText)
     except Exception as e:
         print("Uncaught error has been raised in initalizeTranslator(), error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+
+
+#-------------------start of check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def check_update():
+    
+    REPO_URL = "https://github.com/Seinuve/Kudasai"
+    SCRIPT_PATH = os.path.abspath(__file__)
+
+    CURRENT_VERSION = "V1.3.0"
+
+    response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
+    latestVersion = response.json()["tag_name"]
+
+    if(latestVersion !=CURRENT_VERSION):
         
+        downloadUrl = f"{REPO_URL}/archive/refs/tags/{latestVersion}.zip"
+
+        response = requests.get(downloadUrl)
         
+        with open("temp.zip", "wb") as f:
+            f.write(response.content)
+
+        with zipfile.ZipFile("temp.zip", "r") as zip_ref:
+            zip_ref.extractall("temp")
+
+        for root, dirs, files in os.walk("temp"):
+            for name in files:
+                file_path = os.path.join(root, name)
+                relative_path = os.path.relpath(file_path, "temp")
+                os.replace(file_path, relative_path)
+            for name in dirs:
+                dir_path = os.path.join(root, name)
+                relative_path = os.path.relpath(dir_path, "temp")
+                if not os.path.exists(relative_path):
+                    os.mkdir(relative_path)
+
+        os.remove("temp.zip")
+        shutil.rmtree("temp")
+
+        print("Update Complete\nPlease relaunch Kudasai\n")
+        os.system('pause')
+        exit()
+
+    else:
+        print("You have the latest Version")
+
+
 #-------------------start of sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called outside cmd prints usage statement

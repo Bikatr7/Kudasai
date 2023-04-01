@@ -1,4 +1,3 @@
 pip install spacy[jp]
 python -m spacy download ja_core_news_lg
 pip install deepl
-pip install PyGithub

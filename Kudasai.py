@@ -5,6 +5,8 @@ Original Author: thevoidzero#4686
 Refactored and Maintained by: Seinu#7854
 Contributions by: SnOrT NeSqUiK™#9775
 
+Windows only.
+
 Run the pip commands listed in requirements.txt before running Kudasai.
 
 Python Version: 3.7.6-3.11.2
@@ -31,9 +33,9 @@ To use
 
 Step 1: Open CMD
 Step 2: Copy the path of Kudasai.py to cmd and type a space.
-Step 3: Copy the path of .txt file you want to preprocess to cmd and type a space.
+Step 3: Copy the path of .txt file you want to preprocess to cmd and type a space
 Step 4: Copy the path of replacements.json to CMD
-Step 5: Press enter.
+Step 5: Press enter
 
 Any questions or bugs, please email Seinuve@gmail.com
 
@@ -45,6 +47,7 @@ import os
 import time 
 import itertools
 import spacy
+import requests
 
 sys.path.insert(0, os.getcwd())
 
@@ -64,7 +67,7 @@ VERBOSE = True
 SINGLE_KANJI_FILTER = True ## filters out single kanji or uses specific function to deal with it when replacing names
 USE_KAISEKI = True
 
-JAPANESE_NAME_SEPERATORS = ["・", ""] 
+JAPANESE_NAME_SEPARATORS = ["・", ""] 
 
 japaneseText = ''
 replacementText = ''
@@ -85,6 +88,27 @@ class Names(Flag):
     FIRST_AND_LAST = 6 
     ALL_NAMES = 7 
 
+#-------------------start of check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def check_update():
+
+    try:
+    
+        CURRENT_VERSION = "V1.3.2"
+
+        response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
+        latestVersion = response.json()["tag_name"]
+
+        if(latestVersion != CURRENT_VERSION):
+            print("There is a new update for Kudasai (" + latestVersion + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n")
+
+        os.system('pause')
+        os.system('cls')
+
+        return True
+
+    except:
+        return False
 #-------------------start of output_file_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def output_file_names(): ## returns the file path for the output files
@@ -150,15 +174,15 @@ def replace_single_word(word, replacement): ## replaces all single words in the 
     
     global japaneseText, totalReplacements 
     
-    numOccurences = japaneseText.count(word) 
+    numOccurrences = japaneseText.count(word) 
     
-    if(numOccurences == 0): 
+    if(numOccurrences == 0): 
         return 0 
 
     japaneseText = japaneseText.replace(word, replacement) 
-    totalReplacements += numOccurences 
+    totalReplacements += numOccurrences 
     
-    return numOccurences 
+    return numOccurrences 
 
 #-------------------start of loop_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -175,9 +199,9 @@ def loop_names(character, replace=Names.FULL_NAME, honorific=Names.ALL_NAMES):
         assert len(japaneseNames) == len(englishNames) ## checks if the number of elements in japaneseNames is equal to the number of elements in englishNames
 
     except AssertionError:
-        print("Character lengths do not match : \n") 
+        print("Character lengths do not match for : ") 
         print(character) 
-        print("\nPlease correct character disrepency in JSON\n")
+        print("\nPlease correct character discrepancy in JSON\n")
 
         os.system('pause')
         exit()
@@ -187,9 +211,9 @@ def loop_names(character, replace=Names.FULL_NAME, honorific=Names.ALL_NAMES):
         combinations = itertools.chain(*(itertools.combinations(indices, i) for i in range(2, len(indices)+1))) ## create a chain of combinations of indices, starting with combinations of length 2 up to the length of indices
         
         for comb in combinations: 
-            for seperator in JAPANESE_NAME_SEPERATORS: 
+            for separator in JAPANESE_NAME_SEPARATORS: 
                 yield (" ".join(map(lambda i: englishNames[i], comb)), ## yield a tuple containing the following elements:
-                       seperator.join(map(lambda i: japaneseNames[i], comb)), ## a string created by joining the elements in comb using the map function to apply the function lambda i: englishNames[i] to each element in comb and then joining the resulting list with spaces, 
+                       separator.join(map(lambda i: japaneseNames[i], comb)), ## a string created by joining the elements in comb using the map function to apply the function lambda i: englishNames[i] to each element in comb and then joining the resulting list with spaces, 
                        Names.FULL_NAME in honorific) ## a boolean indicating whether FULL_NAME is in honorific
     
     if(Names.FIRST_NAME in replace): 
@@ -301,8 +325,8 @@ def replace():
 
     timeEnd = time.time() 
 
-    print("\nTotal Replacments " + str(totalReplacements))
-    replacementText += "\nTotal Replacments " + str(totalReplacements)
+    print("\nTotal Replacements " + str(totalReplacements))
+    replacementText += "\nTotal Replacements " + str(totalReplacements)
 
     print("\nTime Taken " + str(timeEnd-timeStart))
     replacementText += "\nTime Taken " + str(timeEnd-timeStart)
@@ -312,9 +336,11 @@ def replace():
 #-------------------start of main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def main(inputFile, jsonFile):
+
+    connection = check_update()
     
     """
-    reads the text from `inputFile`, replaces names and honorifics in the text based on the data in `jsonFile`, and writes the resulting text to a file with "-Kudasai" appended to the inputFile name
+    reads the text from `inputFile`, replaces names and honorifics in the text based on the data in `jsonFile`, and writes the results to the folder "KudasaiInput"
     """
     
     global japaneseText, replacementJson, totalReplacements, replacementText 
@@ -356,12 +382,20 @@ def main(inputFile, jsonFile):
     print("\n\nResults have been written to : " + preprocessPath)
     print("\nKudasai replacement output has been written to : " + outputPath + "\n")
 
-    if(USE_KAISEKI == True):
+    if(USE_KAISEKI == True and connection == True):
         run_kaiseki(preprocessPath)
+    else:
+        print("\nInvalid Connection")
+        os.system('pause')
 
-#-------------------start of run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def run_kaiseki(preprocessPath):
+
+    """
+    Handles the optional auto translation using the deepL api if enabled
+    """
 
     os.system('pause')
     os.system('cls')
@@ -370,12 +404,11 @@ def run_kaiseki(preprocessPath):
 
     sleep(2)
 
-    translator,japaneseText = initalize_translator(preprocessPath)
+    translator,japaneseText = initialize_translator(preprocessPath)
 
-    try:
-        commence_translation(translator,japaneseText)
-    except Exception as e:
-        print("Uncaught error has been raised in initalizeTranslator(), error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+
+    commence_translation(translator,japaneseText)
+
 
 #-------------------start of sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -383,16 +416,15 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
     if(len(sys.argv) < 3): 
 
         try:
-            f = open(os.getcwd() + "\README.md","r",encoding="utf-8")
-            print(f.read() + "\n")
-            f.close()
+            with open(os.getcwd() + "\README.md", "r",encoding="utf-8") as file:
+                print(file.read() + "\n")
         except:
             pass
 
         print(f'\nUsage: {sys.argv[0]} input_txt_file replacement.json\n') 
         
         os.system('pause')
-        exit(0) 
+        exit() 
 
     os.system('cls')
 

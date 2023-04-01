@@ -1,8 +1,11 @@
+"""
 Kudasai.py
 
 Original Author: thevoidzero#4686
 Refactored and Maintained by: Seinu#7854
 Contributions by: SnOrT NeSqUiK™#9775
+
+Windows only.
 
 Run the pip commands listed in requirements.txt before running Kudasai.
 
@@ -30,8 +33,8 @@ To use
 
 Step 1: Open CMD
 Step 2: Copy the path of Kudasai.py to cmd and type a space.
-Step 3: Copy the path of .txt file you want to preprocess to cmd and type a space.
+Step 3: Copy the path of .txt file you want to preprocess to cmd and type a space
 Step 4: Copy the path of replacements.json to CMD
-Step 5: Press enter.
+Step 5: Press enter
 
 Any questions or bugs, please email Seinuve@gmail.com

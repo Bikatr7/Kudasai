@@ -101,9 +101,8 @@ def check_update():
 
         if(latestVersion != CURRENT_VERSION):
             print("There is a new update for Kudasai (" + latestVersion + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n")
-
-        os.system('pause')
-        os.system('cls')
+            os.system('pause')
+            os.system('cls')
 
         return True
 

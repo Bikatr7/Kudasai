@@ -3,6 +3,7 @@ import string
 import os
 import time
 import re
+import base64
 
 
 from time import sleep
@@ -28,18 +29,18 @@ def initialize_translator(textToTranslate):
         """
         
         try:
-                with open(r'C:\\ProgramData\\Kudasai\\apiKey.txt', 'r', encoding='utf-8') as file:  ## get saved api key if exists
-                    apiKey = file.read()
+                with open(r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt', 'r', encoding='utf-8') as file:  ## get saved api key if exists
+                    apiKey = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
                 translator = deepl.Translator(apiKey)
 
-                print("Used saved api key in C:\\ProgramData\\Kudasai\\apiKey.txt")
+                print("Used saved api key in C:\\ProgramData\\Kudasai\\DeeplApiKey.txt")
 
-        except: ## else try to get api key manually
-                apiKey = input("Please enter the deepL api key you have :  ")
+        except Exception as e: ## else try to get api key manually
+                apiKey = input("Please enter the deepL api key you have : ")
 
                 try: ## if valid save the api key
-
+ 
                         translator = deepl.Translator(apiKey)
 
                         if(os.path.isdir(r'C:\\ProgramData\\Kudasai') == False):
@@ -48,11 +49,11 @@ def initialize_translator(textToTranslate):
 
                         sleep(.1)
                             
-                        if(os.path.exists(r'C:\\ProgramData\\Kudasai\\apiKey.txt') == False):
-                           print("r'C:\\ProgramData\\Kudasai\\apiKey.txt' was created due to lack of the file")
+                        if(os.path.exists(r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt') == False):
+                           print("r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt.txt' was created due to lack of the file")
 
-                           with open(r'C:\\ProgramData\\Kudasai\\apiKey.txt', 'w+', encoding='utf-8') as key: 
-                                    key.write(apiKey)
+                           with open(r'C:\\ProgramData\\Kudasai\DeeplApiKey.txt', 'w+', encoding='utf-8') as key: 
+                                    key.write(base64.b64encode(apiKey.encode('utf-8')).decode('utf-8'))
 
                         sleep(.1)
                    
@@ -289,7 +290,6 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
                         if(i != len(sentencePunctuation)-1):
                                finalSentence += " "
                                
-
                 except QuotaExceededException:
 
                         print("\nDeepL API quota exceeded\n")

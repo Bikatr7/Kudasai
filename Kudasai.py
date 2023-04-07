@@ -49,12 +49,11 @@ import itertools
 import spacy
 import requests
 
-sys.path.insert(0, os.getcwd())
-
-from Kaiseki import *
 from time import sleep
 from enum import Flag 
 from collections import namedtuple 
+
+from Models import Kaiseki 
 
 
 #-------------------start of globals---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -116,20 +115,21 @@ def output_file_names(): ## returns the file path for the output files
     spits out output file paths and creates dir for them
     """
     
-    dirPath = str(os.getcwd()) + "\Desktop\KudasaiOutput"
+    dirPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput"
 
     if(os.path.isdir(dirPath) == False):
         os.mkdir(dirPath, 0o666)
 
     sleep(0.1)
 
+    errorPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\errors.txt"
     preprocessPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\preprocessedText.txt"
     outputPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\output.txt"
     debugPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\tlDebug.txt"
     jePath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\jeCheck.txt"
-    translatedPath = debugPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\translatedText.txt"
+    translatedPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\translatedText.txt"
     
-    return  preprocessPath,outputPath,debugPath,jePath,translatedPath
+    return preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath
 
 #-------------------start of replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -361,7 +361,7 @@ def main(inputFile, jsonFile):
 
     replace() 
     
-    preprocessPath,outputPath,debugPath,jePath,translatedPath = output_file_names()
+    preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath = output_file_names()
 
     with open(preprocessPath, 'w+', encoding='utf-8') as file: 
         file.write(japaneseText) ## writes the contents of the preprocessed text to the file
@@ -376,6 +376,9 @@ def main(inputFile, jsonFile):
         file.truncate(0)
 
     with open(translatedPath, 'w+', encoding='utf-8') as file: 
+        file.truncate(0)
+
+    with open(errorPath, 'w+', encoding='utf-8') as file: 
         file.truncate(0)
 
     print("\n\nResults have been written to : " + preprocessPath)
@@ -403,11 +406,9 @@ def run_kaiseki(preprocessPath):
 
     sleep(2)
 
-    translator,japaneseText = initialize_translator(preprocessPath)
+    translator,japaneseText = Kaiseki.initialize_translator(preprocessPath)
 
-
-    commence_translation(translator,japaneseText)
-
+    Kaiseki.commence_translation(translator,japaneseText)
 
 #-------------------start of sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

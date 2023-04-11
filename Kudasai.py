@@ -16,10 +16,13 @@ Used to make Classroom of the Elite translation easier by preprocessing the Japa
 Derived from https://github.com/Atreyagaurav/mtl-related-scripts
 
 CmdLineArgs
+
 Argument 1: Path to a .txt file that needs to be preprocessed
 Argument 2: Path to JSON Criteria
 
-Output: KudasaiOutput (folder on the desktop)
+Output: 
+
+KudasaiOutput (folder on the desktop)
 
 KudasaiOutput contains:
 
@@ -27,7 +30,8 @@ jeCheck.txt (a txt file for j-e checkers to cross-check sentences that were tran
 output.txt (a txt file containing Kudasai's output, basically what Kudasai replaced)
 preprocessedText.txt (a txt file containing the results of Kudasai's preprocessing)
 tlDebug.txt (a txt file containing debug material for the developer)
-translatedText.txt (a txt file containing the results of Kaiseki.py, the auto translation module)
+translatedText.txt (a txt file containing the results of your chosen auto translation module)
+errorText.txt (a txt file containing the errors that occurred during auto translation (if any))
 
 To use
 
@@ -36,8 +40,13 @@ Step 2: Copy the path of Kudasai.py to cmd and type a space.
 Step 3: Copy the path of .txt file you want to preprocess to cmd and type a space
 Step 4: Copy the path of replacements.json to CMD
 Step 5: Press enter
+Step 6: Follow Instructions to use auto-translation
 
 Any questions or bugs, please email Seinuve@gmail.com
+
+Security:
+
+api keys are stored locally and they are obfuscated.
 
 """
 
@@ -54,19 +63,20 @@ from enum import Flag
 from collections import namedtuple 
 
 from Models import Kaiseki 
+from Models import Kijiku
+
 
 
 #-------------------start of globals---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Character = namedtuple('Character', 'japName engName')
 
-ner = spacy.load("ja_core_news_lg") # large model
+ner = spacy.load("ja_core_news_lg") # large model for japanese NER (named entity recognition)
 
 VERBOSE = True 
 SINGLE_KANJI_FILTER = True ## filters out single kanji or uses specific function to deal with it when replacing names
-USE_KAISEKI = True
 
-JAPANESE_NAME_SEPARATORS = ["・", ""] 
+JAPANESE_NAME_SEPARATORS = ["・", ""] ## japanese names are separated by the　・ or not at all
 
 japaneseText = ''
 replacementText = ''
@@ -77,7 +87,7 @@ replacementJson = dict()
 
 #-------------------start of Names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class Names(Flag): 
+class Names(Flag):  ## name markers
     NONE = 0 
     FULL_NAME = 1 
     FIRST_NAME = 2 
@@ -90,6 +100,10 @@ class Names(Flag):
 #-------------------start of check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def check_update():
+
+    """
+    determines if Kudasai has a new latest release using requests
+    """
 
     try:
     
@@ -105,8 +119,9 @@ def check_update():
 
         return True
 
-    except:
-        return False
+    except: ## used to determine if user has an internet connection
+
+        return False 
 #-------------------start of output_file_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def output_file_names(): ## returns the file path for the output files
@@ -168,7 +183,7 @@ def replace_single_kanji(jap, replacement): ## replaces a single kanji in the te
 def replace_single_word(word, replacement): ## replaces all single words in the japanese text with their english equivalents
 
     """
-    replaces single words in the japanese text
+    replaces single words/names in the japanese text
     """
     
     global japaneseText, totalReplacements 
@@ -332,6 +347,75 @@ def replace():
 
     return japaneseText ## Return the modified text
 
+#-------------------start-of-determine_translation_automation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def determine_translation_automation(preprocessPath):
+
+    """
+    determines which translation module the user wants to use and calls it
+    """
+
+    print("Please choose an auto translation model")
+    print("\n1.Kaiseki - DeepL based line by line translation (Not very accurate by itself) (Free if using trial) (Good with punctuation)")
+    print("\n2.Kijiku - OpenAI based batch translator (Very accurate) (Pricey) ($0.002 per 1k Tokens)\n")
+    
+    mode = input()
+
+    if(mode == "1"):
+        run_kaiseki(preprocessPath)
+    
+    elif(mode == "2"):
+        run_kijiku(preprocessPath)
+
+    else:
+        exit()
+
+#-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def run_kaiseki(preprocessPath):
+
+    """
+    Handles the optional auto translation using the deepL api if enabled
+    """
+
+    os.system('cls')
+    
+    print("Commencing Automated Translation\n")
+
+    sleep(2)
+
+    translator,japaneseText = Kaiseki.initialize_translator(preprocessPath)
+
+    Kaiseki.commence_translation(translator,japaneseText)
+
+#-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def run_kijiku(preprocessPath):
+
+    """
+    Handles the optional auto translation using the gpt/openai api if enabled
+    """
+
+    os.system('cls')
+
+    japaneseText,kijikuRules = Kijiku.initialize_text(preprocessPath)
+
+    print("\nAre these settings okay? (1 for yes or 2 for no) : \n\n")
+
+    print(kijikuRules)
+
+    if(input() == 1):
+        pass
+    else:
+        Kijiku.change_settings(kijikuRules)
+    
+
+    print("Commencing Automated Translation\n")
+
+    sleep(2)
+
+    Kijiku.commence_translation(japaneseText)
+
 #-------------------start of main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def main(inputFile, jsonFile):
@@ -383,32 +467,12 @@ def main(inputFile, jsonFile):
 
     print("\n\nResults have been written to : " + preprocessPath)
     print("\nKudasai replacement output has been written to : " + outputPath + "\n")
-
-    if(USE_KAISEKI == True and connection == True):
-        run_kaiseki(preprocessPath)
-    else:
-        print("\nInvalid Connection")
-        os.system('pause')
-
-
-#-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def run_kaiseki(preprocessPath):
-
-    """
-    Handles the optional auto translation using the deepL api if enabled
-    """
-
-    os.system('pause')
+    
+    os.system('pause /P "Press any key to auto translate..."')
     os.system('cls')
     
-    print("Commencing Automated Translation\n")
-
-    sleep(2)
-
-    translator,japaneseText = Kaiseki.initialize_translator(preprocessPath)
-
-    Kaiseki.commence_translation(translator,japaneseText)
+    if(connection == True):
+        determine_translation_automation(preprocessPath)
 
 #-------------------start of sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

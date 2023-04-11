@@ -17,7 +17,7 @@ Original Author: Seinu#7854
 
 Known issues and limitations:
 capitalization can be an issue in sentences that have multiple parts
-Since this is being translated one sentence at a time, the translation is typically less accurate compared to translating in bulk, however, doing it one line at a time seems to completely eliminate sentence duplications and additions.
+Since this is being translated one sentence at a time, the translation is less accurate compared to translating in bulk, however, doing it one line at a time seems to completely eliminate sentence duplications and additions.
 '''
 
 #-------------------start of initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -307,6 +307,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
                                 finalSentence += "ERROR"
                                 errorActive = True
                                 error = str(e)
+
                 i+=1
 
         if(errorActive == True):
@@ -318,8 +319,9 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
 
 def output_results():
 
-        global debugText,jeCheckText,finalText
+        global debugText,jeCheckText,finalText,errorText
         
+        errorPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\errors.txt"
         debugPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\tlDebug.txt"
         jePath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\jeCheck.txt"
         resultsPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\translatedText.txt"
@@ -332,6 +334,9 @@ def output_results():
 
         with open(resultsPath, 'w+', encoding='utf-8') as file:
                 file.writelines(finalText)
+
+        with open(errorPath, 'w+', encoding='utf-8') as file:
+                file.writelines(errorText)
 
         print("\n\nDebug text have been written to : " + debugPath)
         print("\nJ->E text have been written to : " + jePath)
@@ -346,8 +351,8 @@ def commence_translation(translator,japaneseText):
                 sentencePunctuation = []
                 specialPunctuation = [] ## [0] = "" [1] = ~ [2] = '' in sentence but not entire sentence [3] = '' but entire sentence
 
-                global debugText,jeCheckText,finalText
-                debugText,jeCheckText,finalText = [],[],[]
+                global debugText,jeCheckText,finalText,errorText
+                debugText,jeCheckText,finalText,errorText = [],[],[],[]
 
                 i = 0
 
@@ -409,10 +414,10 @@ def commence_translation(translator,japaneseText):
 
                 timeEnd = time.time()
 
-                print("Minutes Elapsed : " + str(round((timeEnd - timeStart)/ 60,2)) + "\n")
+                print("\nMinutes Elapsed : " + str(round((timeEnd - timeStart)/ 60,2)) + "\n")
 
                 os.system('pause')
                 
         except Exception as e:
-               print("Uncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+               print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
                output_results()

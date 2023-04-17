@@ -15,9 +15,6 @@ Kaiseki.py
 
 Original Author: Seinu#7854
 
-Known issues and limitations:
-capitalization can be an issue in sentences that have multiple parts
-Since this is being translated one sentence at a time, the translation is less accurate compared to translating in bulk, however, doing it one line at a time seems to completely eliminate sentence duplications and additions.
 '''
 
 #-------------------start of initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -25,7 +22,16 @@ Since this is being translated one sentence at a time, the translation is less a
 def initialize_translator(textToTranslate):
 
         """
+
         Creates the deepL translator object and a list full of the sentences we need to translate.
+
+        Parameters:
+        textToTranslate (string - path) path to the text we are translating
+
+        Returns:
+        translator (object - deepL) deepL translator object
+        japaneseText (list - japanese) a list of japanese lines we are translating
+
         """
         
         try:
@@ -84,7 +90,17 @@ def initialize_translator(textToTranslate):
 def separate(sentence): 
 
         """
+        
         Separates a sentence into parts based of punctuation.
+
+        Parameters:
+        sentence (string - japanese) a sentence(line) of japanese text
+
+        Returns:
+        sentenceParts (list - japanese) a list of parts of text which is derived from sentence
+        sentencePunctuation (list - punctuation) a list of punctuation found in sentence
+        specialPunctuation (list - booleans) a list of booleans indicating whether "special" punctuation exist in the sentence
+
         """
 
         sentenceParts = []
@@ -219,7 +235,18 @@ def separate(sentence):
 def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): ## for translating each part of a sentence
 
         """
+
         Translates individual sentence parts and quotes
+
+        Parameters:
+        translator (object - deepL) a deepL translator object
+        sentenceParts (list - japanese) a list of parts of text which is derived from sentence
+        sentencePunctuation (list - punctuation) a list of punctuation found in sentence
+        specialPunctuation (list - booleans) a list of booleans indicating whether "special" punctuation exist in the sentence
+
+        Returns:
+        finalSentence (string - english) a fully translated and reassembled version of sentence
+
         """
 
         i = 0
@@ -319,6 +346,18 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
 
 def output_results():
 
+        '''
+
+        Outputs results to several txt files
+
+        Parameters:
+        None
+
+        Returns:
+        None
+
+        '''
+
         global debugText,jeCheckText,finalText,errorText
         
         errorPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\errors.txt"
@@ -345,6 +384,19 @@ def output_results():
 #-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def commence_translation(translator,japaneseText):
+
+        """
+        
+        Uses all the other functions to translate the text provided
+
+        Parameters:
+        translator (object - deepL) a deepL translator object
+        japaneseText (list - japanese) a list of japanese lines to translate
+
+        Returns: 
+        None
+
+        """
 
         try:
                 sentenceParts = []

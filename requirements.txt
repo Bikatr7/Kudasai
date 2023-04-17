@@ -1,5 +1,8 @@
 pip install spacy[jp]
+pip install spacy[en]
 python -m spacy download ja_core_news_lg
+python -m spacy download en_core_web_lg
 pip install deepl
 pip install openai
 pip install backoff
+pip install requests

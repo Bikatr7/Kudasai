@@ -122,6 +122,8 @@ def reset_kijiku_rules():
 
     with open(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', 'w+', encoding='utf-8') as file:
         json.dump(default,file)
+
+    os.system('cls')
      
 #-------------------start of initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -189,6 +191,8 @@ def initialize_text(textToTranslate):
                 
     with open(textToTranslate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate
                 text = [line.strip() for line in file.readlines()]
+
+    os.system('cls')
 
     try:
 
@@ -279,7 +283,7 @@ def generate_prompt(index,promptSize):
                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is english... skipping\n-----------------------------------------------\n\n")
             
             else:
-                prompt.append(sentence)
+                prompt.append(sentence + "\n")
   
         else:
             return prompt, index
@@ -310,7 +314,7 @@ def translate(systemMessage,userMessage,MODEL,kijikuRules):
 
     ## max_tokens and logit bias are currently excluded due to a lack of need, and the fact that i am lazy
 
-    global debugText
+    global debugText,jeCheckText
 
     response = openai.ChatCompletion.create(
         model=MODEL,
@@ -333,6 +337,8 @@ def translate(systemMessage,userMessage,MODEL,kijikuRules):
 
     debugText.append("\nResponse from GPT was : \n" + output)
          
+    jeCheckText.append("\n-------------------------\n"+ str(userMessage["content"]) + "\n\n")
+    
     return output
 
 #-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -373,6 +379,7 @@ def redistribute(translatedText,sentence_fragmenter_mode):
                 continue
 
             resultText.append(sentence)
+            jeCheckText.append(sentence + '\n')
     
     else:
 
@@ -383,7 +390,7 @@ def redistribute(translatedText,sentence_fragmenter_mode):
         
         for sentence in sentences:
             resultText.append(sentence)
-
+            jeCheckText.append(sentence + '\n')
 
 #-------------------start-of-buildMessages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -429,7 +436,22 @@ def buildMessages(systemMessage,message_mode,promptSize):
         messages.append(model_msg)
 
     debugText.append("Messages : \n\n")
-    debugText.append(str(messages))
+
+    i = 0
+
+    for message in messages:
+
+        i+=1
+
+        if(i % 2 == 0):
+
+            debugText.append(str(message) + "\n\n")
+      
+        else:
+
+            debugText.append(str(message) + "\n")
+
+
 
     return messages
      
@@ -439,7 +461,7 @@ def estimate_cost(messages, model="gpt-3.5-turbo-0301"):
     '''
 
     attempts to estimate cost, (no idea how accurate)
-
+ 
     Parameters:
     messages (dict - messages) the assembled messages that will be given to the model
     model (string - constant) a constant that represents which model we will be using
@@ -474,7 +496,7 @@ def estimate_cost(messages, model="gpt-3.5-turbo-0301"):
         tokensPerName = 1
 
     else:
-        raise NotImplementedError(f"""estimate_cost() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+        raise NotImplementedError(f"""Kudasai does not support : {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
     
     numTokens = 0
 
@@ -492,7 +514,7 @@ def estimate_cost(messages, model="gpt-3.5-turbo-0301"):
     numTokens += 3  # every reply is primed with <|start|>assistant<|message|>
     minCost = (float(numTokens) / 1000.00) * costPer1000Tokens
 
-    debugText.append("\n\n\nEstimated Tokens in Messages : " + str(numTokens))
+    debugText.append("\nEstimated Tokens in Messages : " + str(numTokens))
     debugText.append("\nEstimated Minimum Cost : " + str(minCost) + '\n')
 
     return numTokens,minCost
@@ -555,7 +577,7 @@ def commence_translation(japaneseText):
             os.system('cls')
 
             print("Trying " + str(i+2) + " of " + str(len(messages)))
-            debugText.append("\n\nTrying " + str(i+2) + " of " + str(len(messages)) + "\n")
+            debugText.append("\n\n-------------------------\nTrying " + str(i+2) + " of " + str(len(messages)) + "\n-------------------------\n")
 
             translatedText = translate(messages[i],messages[i+1],MODEL,kijikuRules)
 
@@ -570,7 +592,6 @@ def commence_translation(japaneseText):
         timeEnd = time.time()
 
         print("\nMinutes Elapsed : " + str(round((timeEnd - timeStart)/ 60,2)) + "\n")
-
 
     except Exception as e:
         print("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")

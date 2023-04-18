@@ -115,7 +115,7 @@ def check_update():
 
     try:
     
-        CURRENT_VERSION = "V1.4.0" ## hardcoded current vers
+        CURRENT_VERSION = "v1.4.0" ## hardcoded current vers
 
         response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
         latestVersion = response.json()["tag_name"]
@@ -510,12 +510,12 @@ def run_kijiku(preprocessPath):
 
     os.system('cls')
 
+    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+    ctypes.windll.user32.ShowWindow(hwnd, 9)
+
     print("Commencing Automated Translation\n")
 
     sleep(2)
-
-    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
-    ctypes.windll.user32.ShowWindow(hwnd, 9)
 
     Kijiku.commence_translation(japaneseText)
 

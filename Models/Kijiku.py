@@ -492,6 +492,7 @@ def estimate_cost(messages, model="gpt-3.5-turbo-0301"):
         tokensPerName = -1  # if there's a name, the role is omitted
 
     elif(model == "gpt-4-0314"):
+        costPer1000Tokens = 0.006
         tokensPerMessage = 3
         tokensPerName = 1
 

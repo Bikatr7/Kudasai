@@ -212,7 +212,7 @@ def initialize_text(textToTranslate):
 
 #-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def output_results():
+def output_results(scriptDir):
         
     '''
 
@@ -228,11 +228,16 @@ def output_results():
 
     global debugText,jeCheckText,resultText,errorText
         
-    debugPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\tlDebug.txt"
-    jePath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\jeCheck.txt"
-    errorPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\errors.txt"
-    resultsPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\translatedText.txt"
+    outputDir = os.path.join(scriptDir, "KudasaiOutput")
 
+    if(not os.path.exists(outputDir)):
+        os.mkdir(outputDir)
+
+    debugPath = os.path.join(outputDir, "tlDebug.txt")
+    jePath = os.path.join(outputDir, "jeCheck.txt")
+    errorPath = os.path.join(outputDir, "errors.txt")
+    resultsPath = os.path.join(outputDir, "translatedText.txt")
+    
     with open(debugPath, 'w+', encoding='utf-8') as file:
         file.writelines(debugText)
 
@@ -522,7 +527,7 @@ def estimate_cost(messages, model="gpt-3.5-turbo-0301"):
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(japaneseText):
+def commence_translation(japaneseText,scriptDir):
 
     """
         
@@ -588,7 +593,7 @@ def commence_translation(japaneseText):
 
         resultText = list(map(lambda x: x + '\n', resultText))
 
-        output_results()
+        output_results(scriptDir)
 
         timeEnd = time.time()
 
@@ -596,6 +601,6 @@ def commence_translation(japaneseText):
 
     except Exception as e:
         print("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-        output_results()
+        output_results(scriptDir)
 
 

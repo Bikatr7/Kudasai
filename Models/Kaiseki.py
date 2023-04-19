@@ -344,7 +344,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
 
 #-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def output_results():
+def output_results(scriptDir):
 
         '''
 
@@ -360,10 +360,15 @@ def output_results():
 
         global debugText,jeCheckText,finalText,errorText
         
-        errorPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\errors.txt"
-        debugPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\tlDebug.txt"
-        jePath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\jeCheck.txt"
-        resultsPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\translatedText.txt"
+        outputDir = os.path.join(scriptDir, "KudasaiOutput")
+
+        if(not os.path.exists(outputDir)):
+               os.mkdir(outputDir)
+
+        debugPath = os.path.join(outputDir, "tlDebug.txt")
+        jePath = os.path.join(outputDir, "jeCheck.txt")
+        errorPath = os.path.join(outputDir, "errors.txt")
+        resultsPath = os.path.join(outputDir, "translatedText.txt")
 
         with open(debugPath, 'w+', encoding='utf-8') as file:
                 file.writelines(debugText)
@@ -383,7 +388,7 @@ def output_results():
 
 #-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(translator,japaneseText):
+def commence_translation(translator,japaneseText,scriptDir):
 
         """
         
@@ -462,7 +467,7 @@ def commence_translation(translator,japaneseText):
                         print(str(i) + "/" + str(len(japaneseText)) + " completed.")
 
 
-                output_results()
+                output_results(scriptDir)
 
                 timeEnd = time.time()
 
@@ -472,4 +477,4 @@ def commence_translation(translator,japaneseText):
                 
         except Exception as e:
                print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-               output_results()
+               output_results(scriptDir)

@@ -134,9 +134,8 @@ def check_update():
 #-------------------start-of-output_file_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def output_file_names():
-    
-    """
 
+    """
     spits out output file paths and creates directory for them
     
     Parameters:
@@ -149,24 +148,21 @@ def output_file_names():
     jePath (string - path) where the text for the j-e checkers is stored
     translatedPath (string - path) where the text translated by Kijiku/Kaiseki is stored
     errorPath (string - path) where the errors are stored (if any)
-
     """
+    scriptDir = os.path.dirname(os.path.abspath(__file__))
+    outputDir = os.path.join(scriptDir, "KudasaiOutput")
+
+    if(not os.path.exists(outputDir)):
+        os.mkdir(outputDir)
+
+    preprocessPath = os.path.join(outputDir, "preprocessedText.txt")
+    outputPath = os.path.join(outputDir, "output.txt")
+    debugPath = os.path.join(outputDir, "tlDebug.txt")
+    jePath = os.path.join(outputDir, "jeCheck.txt")
+    translatedPath = os.path.join(outputDir, "translatedText.txt")
+    errorPath = os.path.join(outputDir, "errors.txt")
     
-    dirPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput"
-
-    if(os.path.isdir(dirPath) == False):
-        os.mkdir(dirPath, 0o666)
-
-    sleep(0.1)
-
-    preprocessPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\preprocessedText.txt"
-    outputPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\output.txt"
-    debugPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\tlDebug.txt"
-    jePath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\jeCheck.txt"
-    translatedPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\translatedText.txt"
-    errorPath = str(os.getcwd()) + "\\Desktop\\KudasaiOutput\\errors.txt"
-    
-    return preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath
+    return preprocessPath, outputPath, debugPath, jePath, translatedPath, errorPath,scriptDir
 
 #-------------------start-of-replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -420,7 +416,7 @@ def replace():
 
 #-------------------start-of-determine_translation_automation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def determine_translation_automation(preprocessPath):
+def determine_translation_automation(preprocessPath,scriptDir):
 
     """
 
@@ -441,17 +437,17 @@ def determine_translation_automation(preprocessPath):
     mode = input()
 
     if(mode == "1"):
-        run_kaiseki(preprocessPath)
+        run_kaiseki(preprocessPath,scriptDir)
     
     elif(mode == "2"):
-        run_kijiku(preprocessPath)
+        run_kijiku(preprocessPath,scriptDir)
 
     else:
         exit()
 
 #-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def run_kaiseki(preprocessPath):
+def run_kaiseki(preprocessPath,scriptDir):
 
     """
 
@@ -473,11 +469,11 @@ def run_kaiseki(preprocessPath):
 
     translator,japaneseText = Kaiseki.initialize_translator(preprocessPath)
 
-    Kaiseki.commence_translation(translator,japaneseText)
+    Kaiseki.commence_translation(translator,japaneseText,scriptDir)
 
 #-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def run_kijiku(preprocessPath):
+def run_kijiku(preprocessPath,scriptDir):
 
     """
 
@@ -517,7 +513,7 @@ def run_kijiku(preprocessPath):
 
     sleep(2)
 
-    Kijiku.commence_translation(japaneseText)
+    Kijiku.commence_translation(japaneseText,scriptDir)
 
 #-------------------start of main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -557,7 +553,7 @@ def main(inputFile, jsonFile):
 
     replace() 
     
-    preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath = output_file_names()
+    preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath,scriptDir = output_file_names()
 
     with open(preprocessPath, 'w+', encoding='utf-8') as file: 
         file.write(japaneseText) ## writes the contents of the preprocessed text to the file
@@ -584,7 +580,7 @@ def main(inputFile, jsonFile):
     os.system('cls')
     
     if(connection == True):
-        determine_translation_automation(preprocessPath)
+        determine_translation_automation(preprocessPath,scriptDir)
 
 #-------------------start of sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

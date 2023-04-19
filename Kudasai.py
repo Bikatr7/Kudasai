@@ -115,7 +115,7 @@ def check_update():
 
     try:
     
-        CURRENT_VERSION = "v1.4.0" ## hardcoded current vers
+        CURRENT_VERSION = "v1.4.1" ## hardcoded current vers
 
         response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
         latestVersion = response.json()["tag_name"]

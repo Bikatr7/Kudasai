@@ -351,7 +351,7 @@ def output_results(scriptDir):
         Outputs results to several txt files
 
         Parameters:
-        None
+        scriptDir (string - path) the path of the directory that holds Kudasai.py
 
         Returns:
         None
@@ -397,6 +397,7 @@ def commence_translation(translator,japaneseText,scriptDir):
         Parameters:
         translator (object - deepL) a deepL translator object
         japaneseText (list - japanese) a list of japanese lines to translate
+        scriptDir (string - path) the path of the directory that holds Kudasai.py
 
         Returns: 
         None

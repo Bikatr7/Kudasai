@@ -7,22 +7,84 @@ Contributions by: SnOrT NeSqUiK™#9775
 
 Windows only.
 
-Run the pip commands listed in requirements.txt before running Kudasai.
-
 Python Version: 3.7.6-3.11.2
 
-Used to make Classroom of the Elite translation easier by preprocessing the Japanese text (optional auto translation using deepL API).
+Used to make Classroom of the Elite translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
 Derived from https://github.com/Atreyagaurav/mtl-related-scripts
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+Run the pip commands listed in requirements.txt before running Kudasai.
+
+Please note that issues can occur when trying to install these dependencies:
+
+python -m spacy download ja_core_news_lg
+python -m spacy download en_core_web_lg
+
+if these do not work, either reinstall spacy or try:
+
+pip install en_core_web_lg
+pip install ja_core_news_lg
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
 
 CmdLineArgs
 
 Argument 1: Path to a .txt file that needs to be preprocessed
 Argument 2: Path to JSON Criteria
 
+Note:
+For the json it has to be a specific format, you can see several examples in the 'Replacements' Folder or an outline below
+
+{
+  "honorifics": {
+    "さん": "san",
+    "くん": "kun"
+  },
+
+  "single_words": {
+    "β": "Beta"
+  },
+
+  "unicode": {
+    "\u3000": " "
+  },
+
+  "phrases": {
+    "ケヤキモール" : "Keyaki Mall",
+    "高育" : "ANHS"
+  },
+
+  "kutouten": {
+    "「": "\"",
+    "」": "\"",
+    "『": "'",
+    "』": "'",
+    "、": ","
+  },
+
+  "name_like": {
+    "お兄": "Onii",
+  },
+
+  "single_names": {
+    "Kijima": "鬼島",
+    "king": "Wan-sama"
+
+  },
+
+  "full_names": {
+    "Amasawa Ichika": ["天沢","一夏"]
+  }
+
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
 Output: 
 
-KudasaiOutput (folder on the desktop)
+KudasaiOutput (folder created where this script (Kudasai.py) is located)
 
 KudasaiOutput contains:
 
@@ -32,6 +94,8 @@ preprocessedText.txt (a txt file containing the results of Kudasai's preprocessi
 tlDebug.txt (a txt file containing debug material for the developer)
 translatedText.txt (a txt file containing the results of your chosen auto translation module)
 errorText.txt (a txt file containing the errors that occurred during auto translation (if any))
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
 
 To use
 
@@ -44,9 +108,19 @@ Step 6: Follow internal instructions to use auto-translation
 
 Any questions or bugs, please email Seinuve@gmail.com
 
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
 Security:
 
 api keys are stored locally in ProgramData and are obfuscated.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+Util:
+
+Util folder has a script called Token Counter.py that lets you estimated the number of tokens/cost in a file/string
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
 
 """
 

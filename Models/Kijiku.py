@@ -219,7 +219,7 @@ def output_results(scriptDir):
     Outputs results to several txt files
 
     Parameters:
-    None
+    scriptDir (string - path) the path of the directory that holds Kudasai.py
 
     Returns:
     None
@@ -265,6 +265,7 @@ def generate_prompt(index,promptSize):
 
     Parameters:
     index (int - number) an int representing where we currently are in the text file
+    promptSize (int - number) an int representing how many lines the prompt will have
 
     Returns:
     prompt (list - string) a list of japanese lines that will be assembled into messages
@@ -356,6 +357,7 @@ def redistribute(translatedText,sentence_fragmenter_mode):
 
     Parameters:
     translatedText (string - response) a string that gpt gives to us
+    sentence_fragmenter_mode (int - number) an int (1 or 2) representing which mode of sentence fragmenting will be done
 
     Returns:
     None
@@ -460,8 +462,9 @@ def buildMessages(systemMessage,message_mode,promptSize):
 
     return messages
      
-#-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-def estimate_cost(messages, model="gpt-3.5-turbo-0301"):
+#-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def estimate_cost(messages, model):
 
     '''
 
@@ -535,6 +538,7 @@ def commence_translation(japaneseText,scriptDir):
 
     Parameters:
     japaneseText (list - japanese) a list of japanese lines that we need to translate
+    scriptDir (string - path) the path of the directory that holds Kudasai.py
 
     Returns: 
     None

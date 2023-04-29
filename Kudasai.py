@@ -216,12 +216,12 @@ def output_file_names():
     None
 
     Returns:
-    preprocessPath (string - path) where the preprocessed text is stored
-    outputPath (string - path) where the output/results is stored
-    debugPath (string - path) where the debug text is stored
-    jePath (string - path) where the text for the j-e checkers is stored
-    translatedPath (string - path) where the text translated by Kijiku/Kaiseki is stored
-    errorPath (string - path) where the errors are stored (if any)
+    preprocessPath (string) where the preprocessed text is stored
+    outputPath (string) where the output/results is stored
+    debugPath (string) where the debug text is stored
+    jePath (string) where the text for the j-e checkers is stored
+    translatedPath (string) where the text translated by Kijiku/Kaiseki is stored
+    errorPath (string) where the errors are stored (if any)
     """
     scriptDir = os.path.dirname(os.path.abspath(__file__))
     outputDir = os.path.join(scriptDir, "KudasaiOutput")
@@ -247,11 +247,11 @@ def replace_single_kanji(jap, replacement): ## replaces a single kanji in the te
     uses ner (Named Entity Recognition) from the spacy module to replace names that are composed of a single kanji in the japanese text
 
     Parameters:
-    jap (string - kanji) holds a japanese word to be replaced
-    replacement (string - english) holds the replacement for jap
+    jap (string) holds a japanese word to be replaced
+    replacement (string) holds the replacement for jap
 
     Returns:
-    nameCount (int - number) how many names were replaced 
+    nameCount (int) how many names were replaced 
 
     """
 
@@ -288,11 +288,11 @@ def replace_single_word(word, replacement):
     replaces single words/names in the japanese text
 
     Parameters:
-    word (string - japanese) word to be replaced
-    replacement (string - english) replacement for the word
+    word (string) word to be replaced
+    replacement (string) replacement for the word
 
     Returns:
-    numOccurrences (int - number) number of occurrences for word
+    numOccurrences (int) number of occurrences for word
 
     """
     
@@ -317,12 +317,12 @@ def loop_names(character, replace=Names.FULL_NAME, honorific=Names.ALL_NAMES):
     generates tuples of English and Japanese names to be replaced, along with a boolean indicating whether honorifics should be kept or removed
 
     Parameters:
-    character (namedtuple - ('character', japName engName) ) represents a japanese word/name along with it's replacements
-    replace  (name - flag) how a name should be replaced
-    honorific (name - flag) how a honorific should be replaced
+    character (object- namedtuple - ('character', japName engName) ) represents a japanese word/name along with it's replacements
+    replace  (object- name) how a name should be replaced
+    honorific (objectname) how a honorific should be replaced
 
     Returns:
-    unnamed tuple (tuple - name) names to be replaced along with honorific flag
+    tuple (string, string, bool) tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed
 
     """
     
@@ -365,9 +365,9 @@ def replace_name(character,replace=Names.FULL_NAME,noHonorific=Names.ALL_NAMES,r
     replaces names in the japanese text based off of tuples returned by loop_names
 
     Parameters
-    character (namedtuple - ('character', japName engName) ) represents a japanese word/name along with it's replacements
-    replace  (name - flag) how a name should be replaced
-    noHonorific (name - flag) if a name has honorific or not
+    character (object - namedtuple - ('character', japName engName) ) represents a japanese word/name along with it's replacements
+    replace  (object - name) how a name should be replaced
+    noHonorific (object - name) if a name has honorific or not
     replacedNames (dict - string) a list of replaced names and their occurrences 
 
     Returns:
@@ -424,7 +424,7 @@ def replace():
     None
 
     Returns:
-    japaneseText (string - japanese) the text that will be modified
+    japaneseText (string) the text that will be modified
 
     """
 
@@ -497,7 +497,7 @@ def determine_translation_automation(preprocessPath,scriptDir):
     determines which translation module the user wants to use and calls it
 
     Parameters:
-    preprocessPath (string - path) path to where the preprocessed text was stored
+    preprocessPath (string) path to where the preprocessed text was stored
 
     Returns:
     None
@@ -528,7 +528,7 @@ def run_kaiseki(preprocessPath,scriptDir):
     Handles the optional auto translation using the deepL api if enabled
 
     Parameters:
-    preprocessPath (string - path) path to where the preprocessed text was stored
+    preprocessPath (string) path to where the preprocessed text was stored
 
     Returns:
     None
@@ -554,7 +554,7 @@ def run_kijiku(preprocessPath,scriptDir):
     Handles the optional auto translation using the gpt/openai api if enabled
 
     Parameters:
-    preprocessPath (string - path) path to where the preprocessed text was stored
+    preprocessPath (string) path to where the preprocessed text was stored
 
     Returns:
     None
@@ -598,8 +598,8 @@ def main(inputFile, jsonFile):
     reads the text from `inputFile`, replaces names and honorifics in the text based on the data in `jsonFile`, and writes the results to the folder "KudasaiInput"
 
     Parameters:
-    inputFile (string - path) path to the txt file we are preprocessing
-    jsonFile (string - path) path to the json file whose "rules" we are following
+    inputFile (string) path to the txt file we are preprocessing
+    jsonFile (string) path to the json file whose "rules" we are following
 
     Returns:
     None
@@ -616,7 +616,7 @@ def main(inputFile, jsonFile):
     try:
 
         with open(jsonFile, 'r', encoding='utf-8') as file: ## opens the jsonFile in read mode with utf-8 encoding
-            replacementJson = json.load(file) ## loads the contents of the file as a JSON object and assigns it to the variable replacementJson
+            replacementJson = json.load(file) ## loads the contents of the file as a JSON objectand assigns it to the variable replacementJson
     
     except:
 

@@ -26,12 +26,12 @@ def initialize_translator(textToTranslate):
         Creates the deepL translator object and a list full of the sentences we need to translate.
 
         Parameters:
-        textToTranslate (string - path) path to the text we are translating
+        textToTranslate (string) path to the text we are translating
 
         Returns:
-        translator (object - deepL) deepL translator object
-        japaneseText (list - japanese) a list of japanese lines we are translating
-
+        translator (object - deepL.translator) the deepL translator object
+        japaneseText (list - japanese) a list of sentences to translate
+        
         """
         
         try:
@@ -94,12 +94,12 @@ def separate(sentence):
         Separates a sentence into parts based of punctuation.
 
         Parameters:
-        sentence (string - japanese) a sentence(line) of japanese text
+        sentence (string) a sentence(line) of japanese text
 
         Returns:
-        sentenceParts (list - japanese) a list of parts of text which is derived from sentence
-        sentencePunctuation (list - punctuation) a list of punctuation found in sentence
-        specialPunctuation (list - booleans) a list of booleans indicating whether "special" punctuation exist in the sentence
+        sentenceParts (list - string) a list of parts of text which is derived from sentence
+        sentencePunctuation (list - string) a list of punctuation found in sentence
+        specialPunctuation (list - boolean) a list of booleans indicating whether "special" punctuation exist in the sentence
 
         """
 
@@ -239,13 +239,13 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
         Translates individual sentence parts and quotes
 
         Parameters:
-        translator (object - deepL) a deepL translator object
-        sentenceParts (list - japanese) a list of parts of text which is derived from sentence
-        sentencePunctuation (list - punctuation) a list of punctuation found in sentence
-        specialPunctuation (list - booleans) a list of booleans indicating whether "special" punctuation exist in the sentence
+        translator (object - deepL.Translator) a deepL translator object
+        sentenceParts (list - string) a list of parts of text which is derived from sentence
+        sentencePunctuation (list - string) a list of punctuation found in sentence
+        specialPunctuation (list - boolean) a list of booleans indicating whether "special" punctuation exist in the sentence
 
         Returns:
-        finalSentence (string - english) a fully translated and reassembled version of sentence
+        finalSentence (string) a fully translated and reassembled version of sentence
 
         """
 
@@ -351,7 +351,7 @@ def output_results(scriptDir):
         Outputs results to several txt files
 
         Parameters:
-        scriptDir (string - path) the path of the directory that holds Kudasai.py
+        scriptDir (string) the path of the directory that holds Kudasai.py
 
         Returns:
         None
@@ -395,9 +395,9 @@ def commence_translation(translator,japaneseText,scriptDir):
         Uses all the other functions to translate the text provided
 
         Parameters:
-        translator (object - deepL) a deepL translator object
-        japaneseText (list - japanese) a list of japanese lines to translate
-        scriptDir (string - path) the path of the directory that holds Kudasai.py
+        translator (object - deepL.translator) a deepL translator object
+        japaneseText (list - string) a list of japanese lines to translate
+        scriptDir (string) the path of the directory that holds Kudasai.py
 
         Returns: 
         None

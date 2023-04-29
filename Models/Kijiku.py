@@ -26,7 +26,7 @@ def change_settings(kijikuRules):
     changes the settings located in the kijikuRules json
 
     Parameters:
-    kijikuRules (dict - rules) a dictionary of the rules kijiku will follow
+    kijikuRules (dict - string) a dictionary of the rules kijiku will follow
 
     Returns:
     None
@@ -134,10 +134,10 @@ def initialize_text(textToTranslate):
     Set the open api key and create a list full of the sentences we need to translate.
     
     Parameters:
-    textToTranslate (string - path) a path to the text kijiku will translate
+    textToTranslate (string) a path to the text kijiku will translate
     
     Returns:
-    text (list - japanese) a list of japanese lines we need to translate
+    text (list - string) a list of japanese lines we need to translate
 
     """
         
@@ -219,7 +219,7 @@ def output_results(scriptDir):
     Outputs results to several txt files
 
     Parameters:
-    scriptDir (string - path) the path of the directory that holds Kudasai.py
+    scriptDir (string) the path of the directory that holds Kudasai.py
 
     Returns:
     None
@@ -264,12 +264,12 @@ def generate_prompt(index,promptSize):
     generates prompts but skips punctuation or plain english
 
     Parameters:
-    index (int - number) an int representing where we currently are in the text file
-    promptSize (int - number) an int representing how many lines the prompt will have
+    index (int) an int representing where we currently are in the text file
+    promptSize (int) an int representing how many lines the prompt will have
 
     Returns:
     prompt (list - string) a list of japanese lines that will be assembled into messages
-    index (int - number) an updated int representing where we currently are in the text file
+    index (int) an updated int representing where we currently are in the text file
 
     '''
 
@@ -308,13 +308,13 @@ def translate(systemMessage,userMessage,MODEL,kijikuRules):
     translates system and user message
 
     Parameters:
-    systemMessage (string - message) a string that gives instructions to the gpt chat model
-    userMessage (string - message) a string that gpt will alter based on the systemMessage
-    MODEL (string - constant) a constant that represents which model we will be using
-    kijikuRules (dict - rules) a dictionary of rules that kijiku follows as it translates
+    systemMessage (string) a string that gives instructions to the gpt chat model
+    userMessage (string) a string that gpt will alter based on the systemMessage
+    MODEL (string) a constant that represents which model we will be using
+    kijikuRules (dict - string) a dictionary of rules that kijiku follows as it translates
 
     Returns:
-    output (string - response) a string that gpt gives to us
+    output (string) a string that gpt gives to us
 
     '''
 
@@ -356,8 +356,8 @@ def redistribute(translatedText,sentence_fragmenter_mode):
     puts translated text back into text file
 
     Parameters:
-    translatedText (string - response) a string that gpt gives to us
-    sentence_fragmenter_mode (int - number) an int (1 or 2) representing which mode of sentence fragmenting will be done
+    translatedText (string) a string that gpt gives to us
+    sentence_fragmenter_mode (int) an int (1 or 2) representing which mode of sentence fragmenting will be done
 
     Returns:
     None
@@ -407,11 +407,11 @@ def buildMessages(systemMessage,message_mode,promptSize):
     builds messages dict for ai
 
     Parameters:
-    systemMessage (string - message) a string that gives instructions to the gpt chat model
-    mode (int - mode) the method of assembling the messages
+    systemMessage (string) a string that gives instructions to the gpt chat model
+    mode (int) the method of assembling the messages
 
     Returns:
-    messages (dict - messages) the assembled messages that will be given to the model
+    messages (dict - string) the assembled messages that will be given to the model
     '''
 
     global text,debugText
@@ -471,12 +471,12 @@ def estimate_cost(messages, model):
     attempts to estimate cost, (no idea how accurate)
  
     Parameters:
-    messages (dict - messages) the assembled messages that will be given to the model
-    model (string - constant) a constant that represents which model we will be using
+    messages (dict - string) the assembled messages that will be given to the model
+    model (string) a constant that represents which model we will be using
 
     Returns:
-    numTokens (int - number) the estimated number of tokens in the messages
-    cost (double - money) the estimated cost of translating messages
+    numTokens (int) the estimated number of tokens in the messages
+    cost (double) the estimated cost of translating messages
 
     '''
     
@@ -537,8 +537,8 @@ def commence_translation(japaneseText,scriptDir):
     Uses all the other functions to translate the text provided
 
     Parameters:
-    japaneseText (list - japanese) a list of japanese lines that we need to translate
-    scriptDir (string - path) the path of the directory that holds Kudasai.py
+    japaneseText (list - string) a list of japanese lines that we need to translate
+    scriptDir (string) the path of the directory that holds Kudasai.py
 
     Returns: 
     None

@@ -15,8 +15,8 @@ def estimate_cost(text, model):
     model (string  represents which model we will be using
 
     Returns:
-    numTokens (int - number) the estimated number of tokens in the text
-    cost (double - money) the estimated cost of translating text
+    numTokens (int) the estimated number of tokens in the text
+    cost (double) the estimated cost of translating text
 
     '''
 

@@ -107,10 +107,15 @@ errorText.txt (a txt file containing the errors that occurred during auto transl
 To use
 
 Step 1: Open CMD
+
 Step 2: Copy the path of Kudasai.py to cmd and type a space.
+
 Step 3: Copy the path of .txt file you want to preprocess to cmd and type a space
+
 Step 4: Copy the path of replacements.json to CMD
+
 Step 5: Press enter
+
 Step 6: Follow internal instructions to use auto-translation
 
 Any questions or bugs, please email Seinuve@gmail.com

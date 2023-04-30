@@ -2,7 +2,9 @@
 Kudasai.py
 
 Original Author: thevoidzero#4686
+
 Refactored and Maintained by: Seinu#7854
+
 Contributions by: SnOrT NeSqUiK™#9775
 
 Windows only.
@@ -89,10 +91,15 @@ KudasaiOutput (folder created where this script (Kudasai.py) is located)
 KudasaiOutput contains:
 
 jeCheck.txt (a txt file for j-e checkers to cross-check sentences that were translated by deepL)
+
 output.txt (a txt file containing Kudasai's output, basically what Kudasai replaced)
+
 preprocessedText.txt (a txt file containing the results of Kudasai's preprocessing)
+
 tlDebug.txt (a txt file containing debug material for the developer)
+
 translatedText.txt (a txt file containing the results of your chosen auto translation module)
+
 errorText.txt (a txt file containing the errors that occurred during auto translation (if any))
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -100,10 +107,15 @@ errorText.txt (a txt file containing the errors that occurred during auto transl
 To use
 
 Step 1: Open CMD
+
 Step 2: Copy the path of Kudasai.py to cmd and type a space.
+
 Step 3: Copy the path of .txt file you want to preprocess to cmd and type a space
+
 Step 4: Copy the path of replacements.json to CMD
+
 Step 5: Press enter
+
 Step 6: Follow internal instructions to use auto-translation
 
 Any questions or bugs, please email Seinuve@gmail.com

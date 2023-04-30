@@ -2,6 +2,31 @@ import sys
 import os
 import tiktoken
 
+from time import sleep
+
+#-------------------start-of-count_characters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def count_characters(text):
+
+    '''
+
+    counts the number of characters in a string, (seems accurate)
+ 
+    Parameters:
+    text (string) the text that will be counting characters for
+
+    Returns:
+    numCharacters (int) the number of characters in the text
+
+    '''
+
+    os.system('cls')
+
+    numCharacters = len(text)
+
+    return numCharacters
+
+
 #-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def estimate_cost(text, model):
@@ -33,10 +58,12 @@ def estimate_cost(text, model):
 
     if(model == "gpt-3.5-turbo"):
         print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+        sleep(1)
         return estimate_cost(text, model="gpt-3.5-turbo-0301")
     
     elif(model == "gpt-4"):
         print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
+        sleep(1)
         return estimate_cost(text, model="gpt-4-0314")
     
     elif(model == "gpt-3.5-turbo-0301"):
@@ -65,9 +92,11 @@ def main(txtFile):
     model = input("Please enter model : ")
 
     numTokens,minCost = estimate_cost(text,model)
+    numCharacters = count_characters(text)
 
     print("\nEstimated Number of Tokens in Text : " + str(numTokens))
-    print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
+    print("Estimated Minimum Cost of Translation : " + str(minCost))
+    print("Number of Characters in Text : " + str(numCharacters) + "\n")
 
     os.system('pause')
 

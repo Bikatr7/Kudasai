@@ -19,46 +19,52 @@ Original Author: Seinu#7854
 
 #-------------------start of initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def initialize_translator(textToTranslate):
+def initialize_translator(textToTranslate,configDir):
 
         """
 
-        Creates the deepL translator object and a list full of the sentences we need to translate.
+        Initializes the translator object and gets the text to translate.
 
         Parameters:
-        textToTranslate (string) path to the text we are translating
+        textToTranslate (string) the path to the text file to translate
+        configDir (string) the path to the config folder
 
         Returns:
-        translator (object - deepL.translator) the deepL translator object
-        japaneseText (list - japanese) a list of sentences to translate
+        translator (object - deepl.Translator) the translator object
+        japaneseText (list - string) a list of the text to translate
         
         """
         
         try:
-                with open(r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt', 'r', encoding='utf-8') as file:  ## get saved api key if exists
+                with open(os.path.join(configDir,'DeeplApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
                     apiKey = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
                 translator = deepl.Translator(apiKey)
 
-                print("Used saved api key in C:\\ProgramData\\Kudasai\\DeeplApiKey.txt")
+                print("Used saved api key in " + os.path.join(configDir,'DeeplApiKey.txt'))
 
         except Exception as e: ## else try to get api key manually
-                apiKey = input("Please enter the deepL api key you have : ")
+
+                if(os.path.isfile("C:\\ProgramData\\Kudasai\\DeeplApiKey.txt") == True):
+                        os.remove("C:\\ProgramData\\Kudasai\\DeeplApiKey.txt")
+                        print("r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt' was deleted due to Kudasai switching to user storage\n\n")
+
+                apiKey = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the deepL api key you have : ")
 
                 try: ## if valid save the api key
  
                         translator = deepl.Translator(apiKey)
 
-                        if(os.path.isdir(r'C:\\ProgramData\\Kudasai') == False):
-                            os.mkdir('C:\\ProgramData\\Kudasai', 0o666)
-                            print("r'C:\\ProgramData\\Kudasai' created due to lack of the folder")
+                        if(os.path.isdir(configDir) == False):
+                            os.mkdir(configDir, 0o666)
+                            print(configDir + " was created due to lack of the folder")
 
                         sleep(.1)
                             
-                        if(os.path.exists(r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt') == False):
-                           print("r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt.txt' was created due to lack of the file")
+                        if(os.path.exists(os.path.join(configDir,'DeeplApiKey.txt')) == False):
+                           print(os.path.join(configDir,'DeeplApiKey.txt') + " was created due to lack of the file")
 
-                           with open(r'C:\\ProgramData\\Kudasai\DeeplApiKey.txt', 'w+', encoding='utf-8') as key: 
+                           with open(os.path.join(configDir,'DeeplApiKey.txt'), 'w+', encoding='utf-8') as key: 
                                     key.write(base64.b64encode(apiKey.encode('utf-8')).decode('utf-8'))
 
                         sleep(.1)
@@ -67,7 +73,7 @@ def initialize_translator(textToTranslate):
                      
                         os.system('cls')
                         
-                        print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\n")
+                        print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKudasai will now exit.\n")
                         os.system('pause')
                         
                         exit()
@@ -75,11 +81,11 @@ def initialize_translator(textToTranslate):
                 except Exception as e: ## other error, alert user and raise it
                         os.system('cls')
                         
-                        print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
+                        print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKudasai will now exit.\n")
                         os.system('pause')
 
-                        raise e
-                
+                        exit()
+
         with open(textToTranslate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate
                 japaneseText = [line.strip() for line in file.readlines()]
 
@@ -232,7 +238,7 @@ def separate(sentence):
 
 #-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): ## for translating each part of a sentence
+def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir): ## for translating each part of a sentence
 
         """
 
@@ -243,6 +249,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
         sentenceParts (list - string) a list of parts of text which is derived from sentence
         sentencePunctuation (list - string) a list of punctuation found in sentence
         specialPunctuation (list - boolean) a list of booleans indicating whether "special" punctuation exist in the sentence
+        scriptDir (string) the directory of the script
 
         Returns:
         finalSentence (string) a fully translated and reassembled version of sentence
@@ -323,7 +330,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
 
                         os.system('pause')
 
-                        output_results()
+                        output_results(scriptDir)
                         exit()
                         
                 except ValueError as e:
@@ -339,6 +346,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation): 
 
         if(errorActive == True):
                 debugText.append("\nError is : " + error)
+                errorText.append("\nError is : " + error)
                
         return finalSentence
 
@@ -367,8 +375,8 @@ def output_results(scriptDir):
 
         debugPath = os.path.join(outputDir, "tlDebug.txt")
         jePath = os.path.join(outputDir, "jeCheck.txt")
-        errorPath = os.path.join(outputDir, "errors.txt")
         resultsPath = os.path.join(outputDir, "translatedText.txt")
+        errorPath = os.path.join(outputDir, "errors.txt")
 
         with open(debugPath, 'w+', encoding='utf-8') as file:
                 file.writelines(debugText)
@@ -384,7 +392,8 @@ def output_results(scriptDir):
 
         print("\n\nDebug text have been written to : " + debugPath)
         print("\nJ->E text have been written to : " + jePath)
-        print("\nTranslated text has been written to : " + resultsPath + "\n")
+        print("\nTranslated text has been written to : " + resultsPath)
+        print("\nErrors have been written to : " + errorPath + "\n")
 
 #-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -438,7 +447,7 @@ def commence_translation(translator,japaneseText,scriptDir):
                         
                                 sentenceParts,sentencePunctuation,specialPunctuation = separate(sentence)
 
-                                finalText.append(translate(translator,sentenceParts,sentencePunctuation,specialPunctuation))
+                                finalText.append(translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir))
 
                                 if(len(finalText[i]) > 0 and finalText[i] != "" and finalText[i][-2] not in string.punctuation and sentencePunctuation[-1] == None): ## this is for adding a period if it's missing 
                                         finalText[i] = finalText[i] + "."

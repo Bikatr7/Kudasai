@@ -189,7 +189,7 @@ def check_update():
 
     try:
     
-        CURRENT_VERSION = "v1.4.2" ## hardcoded current vers
+        CURRENT_VERSION = "v1.4.3" ## hardcoded current vers
 
         response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
         latestVersion = response.json()["tag_name"]
@@ -225,9 +225,13 @@ def output_file_names():
     """
     scriptDir = os.path.dirname(os.path.abspath(__file__))
     outputDir = os.path.join(scriptDir, "KudasaiOutput")
+    configDir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
 
     if(not os.path.exists(outputDir)):
         os.mkdir(outputDir)
+
+    if(not os.path.exists(configDir)):
+        os.mkdir(configDir)
 
     preprocessPath = os.path.join(outputDir, "preprocessedText.txt")
     outputPath = os.path.join(outputDir, "output.txt")
@@ -236,7 +240,7 @@ def output_file_names():
     translatedPath = os.path.join(outputDir, "translatedText.txt")
     errorPath = os.path.join(outputDir, "errors.txt")
     
-    return preprocessPath, outputPath, debugPath, jePath, translatedPath, errorPath,scriptDir
+    return preprocessPath, outputPath, debugPath, jePath, translatedPath, errorPath,scriptDir,configDir
 
 #-------------------start-of-replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -319,7 +323,7 @@ def loop_names(character, replace=Names.FULL_NAME, honorific=Names.ALL_NAMES):
     Parameters:
     character (object- namedtuple - ('character', japName engName) ) represents a japanese word/name along with it's replacements
     replace  (object- name) how a name should be replaced
-    honorific (objectname) how a honorific should be replaced
+    honorific (object - name) how a honorific should be replaced
 
     Returns:
     tuple (string, string, bool) tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed
@@ -490,7 +494,7 @@ def replace():
 
 #-------------------start-of-determine_translation_automation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def determine_translation_automation(preprocessPath,scriptDir):
+def determine_translation_automation(preprocessPath,scriptDir,configDir):
 
     """
 
@@ -498,6 +502,8 @@ def determine_translation_automation(preprocessPath,scriptDir):
 
     Parameters:
     preprocessPath (string) path to where the preprocessed text was stored
+    scriptDir (string) path to where the script is
+    configDir (string) path to where the config is
 
     Returns:
     None
@@ -511,17 +517,17 @@ def determine_translation_automation(preprocessPath,scriptDir):
     mode = input()
 
     if(mode == "1"):
-        run_kaiseki(preprocessPath,scriptDir)
+        run_kaiseki(preprocessPath,scriptDir,configDir)
     
     elif(mode == "2"):
-        run_kijiku(preprocessPath,scriptDir)
+        run_kijiku(preprocessPath,scriptDir,configDir)
 
     else:
         exit()
 
 #-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def run_kaiseki(preprocessPath,scriptDir):
+def run_kaiseki(preprocessPath,scriptDir,configDir):
 
     """
 
@@ -541,13 +547,13 @@ def run_kaiseki(preprocessPath,scriptDir):
 
     sleep(2)
 
-    translator,japaneseText = Kaiseki.initialize_translator(preprocessPath)
+    translator,japaneseText = Kaiseki.initialize_translator(preprocessPath,configDir)
 
     Kaiseki.commence_translation(translator,japaneseText,scriptDir)
 
 #-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def run_kijiku(preprocessPath,scriptDir):
+def run_kijiku(preprocessPath,scriptDir,configDir):
 
     """
 
@@ -566,7 +572,7 @@ def run_kijiku(preprocessPath,scriptDir):
 
     os.system('cls')
 
-    japaneseText,kijikuRules = Kijiku.initialize_text(preprocessPath)
+    japaneseText,kijikuRules = Kijiku.initialize_text(preprocessPath,configDir)
 
     print("\nAre these settings okay? (1 for yes or 2 for no) : \n\n")
 
@@ -576,7 +582,7 @@ def run_kijiku(preprocessPath,scriptDir):
     if(input("\n") == "1"):
         pass
     else:
-        Kijiku.change_settings(kijikuRules)
+        Kijiku.change_settings(kijikuRules,configDir)
 
     os.system('cls')
 
@@ -587,7 +593,7 @@ def run_kijiku(preprocessPath,scriptDir):
 
     sleep(2)
 
-    Kijiku.commence_translation(japaneseText,scriptDir)
+    Kijiku.commence_translation(japaneseText,scriptDir,configDir)
 
 #-------------------start of main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -616,7 +622,7 @@ def main(inputFile, jsonFile):
     try:
 
         with open(jsonFile, 'r', encoding='utf-8') as file: ## opens the jsonFile in read mode with utf-8 encoding
-            replacementJson = json.load(file) ## loads the contents of the file as a JSON objectand assigns it to the variable replacementJson
+            replacementJson = json.load(file) ## loads the contents of the file as a JSON object and assigns it to the variable replacementJson
     
     except:
 
@@ -627,7 +633,7 @@ def main(inputFile, jsonFile):
 
     replace() 
     
-    preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath,scriptDir = output_file_names()
+    preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath,scriptDir,configDir = output_file_names()
 
     with open(preprocessPath, 'w+', encoding='utf-8') as file: 
         file.write(japaneseText) ## writes the contents of the preprocessed text to the file
@@ -654,7 +660,7 @@ def main(inputFile, jsonFile):
     os.system('cls')
     
     if(connection == True):
-        determine_translation_automation(preprocessPath,scriptDir)
+        determine_translation_automation(preprocessPath,scriptDir,configDir)
 
 #-------------------start of sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -662,13 +668,7 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
 
     if(len(sys.argv) < 3): 
 
-        try:
-            with open(os.getcwd() + "\README.md", "r",encoding="utf-8") as file:
-                print(file.read() + "\n")
-        except:
-            pass
-
-        print(f'\nUsage: {sys.argv[0]} input_txt_file replacement.json\n') 
+        print(f'\nUsage: {sys.argv[0]} input_txt_file replacement.json\nSee README.md for more information.\n') 
         
         os.system('pause')
         exit() 

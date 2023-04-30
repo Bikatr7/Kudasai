@@ -7,8 +7,11 @@ import tiktoken
 import time
 import json
 import spacy
+import shutil
 
 from time import sleep
+
+from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
 
 '''
 Kijiku.py
@@ -19,14 +22,15 @@ Original Author: Seinu#7854
 
 #-------------------start of change_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def change_settings(kijikuRules):
+def change_settings(kijikuRules,configDir):
 
     """
 
-    changes the settings located in the kijikuRules json
+    Allows the user to change the settings of the KijikuRules.json file
 
     Parameters:
     kijikuRules (dict - string) a dictionary of the rules kijiku will follow
+    configDir (string) the path to the config directory
 
     Returns:
     None
@@ -55,18 +59,18 @@ def change_settings(kijikuRules):
         print("\nsentence_fragmenter_mode : 1 or 2 (1 - via regex and other nonsense, 2 - via spacy ) the api returns a result on a single line, so this determines the way Kijiku fragments the sentences.")
         print("\n\nCurrent settings:\n\n")
 
-        for key,value in kijikuRules["open ai settings"].items():
+        for key,value in kijikuRules["open ai settings"].items(): ## print out the current settings
              print(key + " : " + str(value))
 
         action = input("\nEnter the name of the setting you want to change, type d to reset to default, or type 'q' to continue: ").lower()
 
-        if(action == "q"):
+        if(action == "q"): ## if the user wants to quit, do so
             break
 
-        elif(action == "d"):
-            reset_kijiku_rules()
+        elif(action == "d"): ## if the user wants to reset to default, do so
+            reset_kijiku_rules(configDir)
 
-            with open(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', 'r', encoding='utf-8') as file:
+            with open(os.path.join(configDir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
                 kijikuRules = json.load(file) 
 
 
@@ -81,12 +85,12 @@ def change_settings(kijikuRules):
 
             kijikuRules["open ai settings"][action] = newValue
 
-    with open(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', 'w+', encoding='utf-8') as file:
+    with open(os.path.join(configDir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
         json.dump(kijikuRules, file)
 
 #-------------------start of reset_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def reset_kijiku_rules():
+def reset_kijiku_rules(configDir):
 
     """
 
@@ -120,14 +124,14 @@ def reset_kijiku_rules():
     }
     }
 
-    with open(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', 'w+', encoding='utf-8') as file:
+    with open(os.path.join(configDir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
         json.dump(default,file)
 
     os.system('cls')
      
 #-------------------start of initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def initialize_text(textToTranslate):
+def initialize_text(textToTranslate,configDir):
 
     """
 
@@ -135,6 +139,7 @@ def initialize_text(textToTranslate):
     
     Parameters:
     textToTranslate (string) a path to the text kijiku will translate
+    configDir (string) a path to the config directory
     
     Returns:
     text (list - string) a list of japanese lines we need to translate
@@ -142,36 +147,40 @@ def initialize_text(textToTranslate):
     """
         
     try:
-        with open(r'C:\\ProgramData\\Kudasai\\GPTApiKey.txt', 'r', encoding='utf-8') as file:  ## get saved api key if exists
+        with open(os.path.join(configDir,'GPTApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
             apiKey = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
         openai.api_key = apiKey
 
-        print("Used saved api key in C:\\ProgramData\\Kudasai\\GPTApiKey.txt")
+        print("Used saved api key in " + os.path.join(configDir,'GPTApiKey.txt')) ## if valid save the api key
 
-    except (FileNotFoundError,openai.error.AuthenticationError): ## else try to get api key manually
+    except (FileNotFoundError,AuthenticationError): ## else try to get api key manually
+            
+            if(os.path.isfile("C:\\ProgramData\\Kudasai\\GPTApiKey.txt") == True): ## if the api key is in the old location, delete it
+                os.remove("C:\\ProgramData\\Kudasai\\GPTApiKey.txt")
+                print("r'C:\\ProgramData\\Kudasai\\GPTApiKey.txt' was deleted due to Kudasai switching to user storage\n")
                 
-            apiKey = input("Please enter the openai api key you have : ")
+            apiKey = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the openapi key you have : ")
 
             try: ## if valid save the api key
  
                 openai.api_key = apiKey
 
-                if(os.path.isdir(r'C:\\ProgramData\\Kudasai') == False):
-                    os.mkdir('C:\\ProgramData\\Kudasai', 0o666)
-                    print("r'C:\\ProgramData\\Kudasai' created due to lack of the folder")
+                if(os.path.isdir(configDir) == False):
+                    os.mkdir(configDir, 0o666)
+                    print(configDir + " created due to lack of the folder")
 
                     sleep(.1)
                             
-                    if(os.path.exists(r'C:\\ProgramData\\Kudasai\\GPTApiKey.txt') == False):
-                        print("r'C:\\ProgramData\\Kudasai\\GPTApiKey.txt' was created due to lack of the file")
+                if(os.path.isfile(os.path.join(configDir,'GPTApiKey.txt')) == False):
+                    print(os.path.join(configDir,'GPTApiKey.txt') + " was created due to lack of the file")
 
-                        with open(r'C:\\ProgramData\\Kudasai\\GPTApiKey.txt', 'w+', encoding='utf-8') as key: 
-                            key.write(base64.b64encode(apiKey.encode('utf-8')).decode('utf-8'))
+                    with open(os.path.join(configDir,'GPTApiKey.txt'), 'w+', encoding='utf-8') as key: 
+                        key.write(base64.b64encode(apiKey.encode('utf-8')).decode('utf-8'))
 
                     sleep(.1)
                    
-            except openai.error.AuthenticationError: ## if invalid key exit
+            except AuthenticationError: ## if invalid key exit
                      
                 os.system('cls')
                         
@@ -196,16 +205,24 @@ def initialize_text(textToTranslate):
 
     try:
 
-        with open(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', 'r', encoding='utf-8') as file:
+        if(os.path.isfile(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json') == True): ## if the kijiku rules are in the old location, copy them to the new one and delete the old one
+            shutil.copyfile(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', os.path.join(configDir,'Kijiku Rules.json'))
+
+            os.remove(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json')
+            print("r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json' was deleted due to Kudasai switching to user storage\n\nYour settings have been copied to " + configDir + "\n\n")
+            sleep(1)
+            os.system('cls')
+
+        with open(os.path.join(configDir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
             kijikuRules = json.load(file) 
 
         return text, kijikuRules
 
     except:
          
-        reset_kijiku_rules()
+        reset_kijiku_rules(configDir)
 
-        with open(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', 'r', encoding='utf-8') as file:
+        with open(os.path.join(configDir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
             kijikuRules = json.load(file) 
 
         return text, kijikuRules
@@ -230,7 +247,7 @@ def output_results(scriptDir):
         
     outputDir = os.path.join(scriptDir, "KudasaiOutput")
 
-    if(not os.path.exists(outputDir)):
+    if(not os.path.join(outputDir)):
         os.mkdir(outputDir)
 
     debugPath = os.path.join(outputDir, "tlDebug.txt")
@@ -300,7 +317,7 @@ def generate_prompt(index,promptSize):
 
 #-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-@backoff.on_exception(backoff.expo, (openai.error.ServiceUnavailableError, openai.error.RateLimitError, openai.error.Timeout, openai.error.APIError, openai.error.APIConnectionError))
+@backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError))
 def translate(systemMessage,userMessage,MODEL,kijikuRules):
 
     '''
@@ -339,7 +356,8 @@ def translate(systemMessage,userMessage,MODEL,kijikuRules):
 
     )
 
-    output = response['choices'][0]['message']['content']
+    ## note, pylance flags this as a 'GeneralTypeIssue', however i see nothing wrong with it, and it works fine
+    output = response['choices'][0]['message']['content'] # type: ignore
 
     debugText.append("\nResponse from GPT was : \n" + output)
          
@@ -530,7 +548,7 @@ def estimate_cost(messages, model):
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(japaneseText,scriptDir):
+def commence_translation(japaneseText,scriptDir,configDir):
 
     """
         
@@ -555,7 +573,7 @@ def commence_translation(japaneseText,scriptDir):
         debugText.append("Kijiku Activated\n\n")
         debugText.append("Settings are as follows : \n\n")
 
-        with open(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', 'r', encoding='utf-8') as file:
+        with open(os.path.join(configDir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
             kijikuRules = json.load(file) 
 
         for key,value in kijikuRules["open ai settings"].items():

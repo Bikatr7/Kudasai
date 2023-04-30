@@ -4,5 +4,6 @@
         "Kōhei",
         "lowkey",
         "sensei"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }

@@ -55,8 +55,11 @@ def change_settings(kijikuRules,configDir):
         print("\nlogit_bias : Modify the likelihood of specified tokens appearing in the completion. Do not change this.")
         print("\nsystem_message : Instructions to the model. Do not change this unless you know what you're doing.")
         print("\nmessage_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treating as a user message. 1 is recommend for gpt-4 otherwise either works.")
-        print("\nnum_lines : the number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications occur with higher lines.")
-        print("\nsentence_fragmenter_mode : 1 or 2 (1 - via regex and other nonsense, 2 - via spacy ) the api returns a result on a single line, so this determines the way Kijiku fragments the sentences.")
+        print("\nnum_lines : the number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines.")
+        print("\nsentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all.")
+        
+        print("\n\nPlease note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them.")
+
         print("\n\nCurrent settings:\n\n")
 
         for key,value in kijikuRules["open ai settings"].items(): ## print out the current settings
@@ -97,7 +100,7 @@ def reset_kijiku_rules(configDir):
     resets the kijikuRules json to default
 
     Parameters:
-    None
+    configDir (string) the path to the config directory
 
     Returns:
     None
@@ -299,12 +302,16 @@ def generate_prompt(index,promptSize):
 
         if(len(prompt) < promptSize):
 
-            if(bool(re.match(r'^[\W_\s\n-]+$', sentence))):
+            if("△▼△▼△▼△" in sentence):
+                prompt.append(sentence + '\n')
+                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
+
+            elif(bool(re.match(r'^[\W_\s\n-]+$', sentence))):
                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
            
             elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence))):
                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is english... skipping\n-----------------------------------------------\n\n")
-            
+
             else:
                 prompt.append(sentence + "\n")
   
@@ -359,7 +366,9 @@ def translate(systemMessage,userMessage,MODEL,kijikuRules):
     ## note, pylance flags this as a 'GeneralTypeIssue', however i see nothing wrong with it, and it works fine
     output = response['choices'][0]['message']['content'] # type: ignore
 
-    debugText.append("\nResponse from GPT was : \n" + output)
+    debugText.append("\nPrompt was : \n" + userMessage["content"] + "\n")
+
+    debugText.append("-------------------------\nResponse from GPT was : \n\n" + output + "\n")
          
     jeCheckText.append("\n-------------------------\n"+ str(userMessage["content"]) + "\n\n")
     
@@ -374,14 +383,14 @@ def redistribute(translatedText,sentence_fragmenter_mode):
     puts translated text back into text file
 
     Parameters:
-    translatedText (string) a string that gpt gives to us
-    sentence_fragmenter_mode (int) an int (1 or 2) representing which mode of sentence fragmenting will be done
+    translatedText (string) a string that is the result of gpt's translation
+    sentence_fragmenter_mode (int) 1, 2, or 3 representing the mode of sentence fragmenter
 
     Returns:
     None
 
     '''
-    global resultText
+    global resultText,jeCheckText,debugText
 
     if(sentence_fragmenter_mode == 1):
 
@@ -389,6 +398,8 @@ def redistribute(translatedText,sentence_fragmenter_mode):
 
         patched_sentences = []
         built_string = None
+
+        debugText.append("\n-------------------------\nDistributed result was : \n\n")
 
         for sentence in sentences:
             if(sentence.startswith("\"") and not sentence.endswith("\"") and built_string is None):
@@ -405,31 +416,45 @@ def redistribute(translatedText,sentence_fragmenter_mode):
 
             resultText.append(sentence)
             jeCheckText.append(sentence + '\n')
-    
-    else:
+            debugText.append(sentence + '\n')
+
+    elif(sentence_fragmenter_mode == 2):
 
         nlp = spacy.load("en_core_web_lg")
 
         doc = nlp(translatedText)
         sentences = [sent.text.strip() for sent in doc.sents]
         
+        debugText.append("\n-------------------------\nDistributed result was : \n\n")
+
         for sentence in sentences:
             resultText.append(sentence)
             jeCheckText.append(sentence + '\n')
+            debugText.append(sentence + '\n')
+
+    elif(sentence_fragmenter_mode == 3):
+        
+        resultText.append(translatedText)
+        jeCheckText.append(translatedText + '\n')
+        debugText.append("\n-------------------------\nDistributed result was : \n\n" + translatedText + "\n")
+
 
 #-------------------start-of-buildMessages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def buildMessages(systemMessage,message_mode,promptSize):
 
     '''
+
     builds messages dict for ai
 
     Parameters:
     systemMessage (string) a string that gives instructions to the gpt chat model
-    mode (int) the method of assembling the messages
+    message_mode (int) the method of assembling the messages
+    promptSize (int) the size of the prompt that will be given to the model
 
     Returns:
     messages (dict - string) the assembled messages that will be given to the model
+
     '''
 
     global text,debugText
@@ -460,7 +485,7 @@ def buildMessages(systemMessage,message_mode,promptSize):
 
         messages.append(model_msg)
 
-    debugText.append("Messages : \n\n")
+    debugText.append("\nMessages\n-------------------------\n\n")
 
     i = 0
 
@@ -476,8 +501,6 @@ def buildMessages(systemMessage,message_mode,promptSize):
 
             debugText.append(str(message) + "\n")
 
-
-
     return messages
      
 #-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -486,7 +509,7 @@ def estimate_cost(messages, model):
 
     '''
 
-    attempts to estimate cost, (no idea how accurate)
+    attempts to estimate cost.
  
     Parameters:
     messages (dict - string) the assembled messages that will be given to the model
@@ -552,12 +575,13 @@ def commence_translation(japaneseText,scriptDir,configDir):
 
     """
         
-    Uses all the other functions to translate the text provided
+    Uses all the other functions to translate the text provided by Kudasai
 
     Parameters:
     japaneseText (list - string) a list of japanese lines that we need to translate
     scriptDir (string) the path of the directory that holds Kudasai.py
-
+    configDir (string) the path of the directory that holds Kijiku Rules.json
+    
     Returns: 
     None
 
@@ -589,7 +613,7 @@ def commence_translation(japaneseText,scriptDir,configDir):
 
         os.system('cls')
 
-        debugText.append("\nStarting\n-------------------------\n")
+        debugText.append("\nStarting Prompt Building\n-------------------------\n")
 
         messages = buildMessages(systemMessage,message_mode,promptSize)
 
@@ -599,6 +623,8 @@ def commence_translation(japaneseText,scriptDir,configDir):
         print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
 
         os.system('pause /P "Press any key to continue with translation..."')
+
+        debugText.append("\nStarting Translation\n-------------------------")
 
         while(i+2 <= len(messages)):
 
@@ -622,7 +648,11 @@ def commence_translation(japaneseText,scriptDir,configDir):
         print("\nMinutes Elapsed : " + str(round((timeEnd - timeStart)/ 60,2)) + "\n")
 
     except Exception as e:
+
         print("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+
+        errorText.append("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+
         output_results(scriptDir)
 
 

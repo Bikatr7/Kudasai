@@ -9,6 +9,7 @@ import base64
 from time import sleep
 from deepl.exceptions import QuotaExceededException
 from deepl.exceptions import AuthorizationException
+from Models import Kijiku
 
 '''
 Kaiseki.py
@@ -481,7 +482,7 @@ def commence_translation(translator,japaneseText,scriptDir):
 
                 timeEnd = time.time()
 
-                print("\nMinutes Elapsed : " + str(round((timeEnd - timeStart)/ 60,2)) + "\n")
+                print("\nTime Elapsed : " + Kijiku.get_elapsed_time(timeStart, timeEnd))
 
                 os.system('pause')
                 

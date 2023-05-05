@@ -20,6 +20,33 @@ Original Author: Seinu#7854
 
 '''
 
+#-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def get_elapsed_time(start, end):
+
+    """
+
+    calculates elapsed time
+
+    Parameters:
+    start (float): start time
+    end (float): end time
+
+    Returns:
+    str: elapsed time
+
+    """
+
+    if(end-start < 60.0):
+        return str(round(end-start, 2)) + " seconds"
+    
+    elif(end-start < 3600.0):
+        return str(round((end-start)/60, 2)) + " minutes"
+    
+    else:
+        return str(round((end-start)/3600, 2)) + " hours"
+
+
 #-------------------start of change_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def change_settings(kijikuRules,configDir):
@@ -255,8 +282,8 @@ def output_results(scriptDir):
 
     debugPath = os.path.join(outputDir, "tlDebug.txt")
     jePath = os.path.join(outputDir, "jeCheck.txt")
-    errorPath = os.path.join(outputDir, "errors.txt")
     resultsPath = os.path.join(outputDir, "translatedText.txt")
+    errorPath = os.path.join(outputDir, "errors.txt")
     
     with open(debugPath, 'w+', encoding='utf-8') as file:
         file.writelines(debugText)
@@ -394,41 +421,46 @@ def redistribute(translatedText,sentence_fragmenter_mode):
 
     if(sentence_fragmenter_mode == 1):
 
-        sentences = re.findall(r"(.+?(?:\"|\'|-|~|!|\?|%|\(|\)|\.\.\.|\.|---))(?:\s|$)", translatedText)
+        sentences = re.findall(r"(.*?(?:(?:\"|\'|-|~|!|\?|%|\(|\)|\.\.\.|\.|---|\[|\])))(?:\s|$)", translatedText)
 
         patched_sentences = []
-        built_string = None
+        buildString = None
 
         debugText.append("\n-------------------------\nDistributed result was : \n\n")
 
         for sentence in sentences:
-            if(sentence.startswith("\"") and not sentence.endswith("\"") and built_string is None):
-                built_string = sentence
+            if(sentence.startswith("\"") and not sentence.endswith("\"") and buildString is None):
+                buildString = sentence
                 continue
-            elif(not sentence.startswith("\"") and sentence.endswith("\"") and built_string is not None):
-                built_string += f" {sentence}"
-                patched_sentences.append(built_string)
-                built_string = None
+            elif(not sentence.startswith("\"") and sentence.endswith("\"") and buildString is not None):
+                buildString += f" {sentence}"
+                patched_sentences.append(buildString)
+                buildString = None
                 continue
-            elif(built_string is not None):
-                built_string += f" {sentence}"
+            elif(buildString is not None):
+                buildString += f" {sentence}"
                 continue
 
-            resultText.append(sentence)
+            resultText.append(sentence + '\n')
             jeCheckText.append(sentence + '\n')
             debugText.append(sentence + '\n')
+
+        for i in range(len(resultText)):
+            if resultText[i] in patched_sentences:
+                index = patched_sentences.index(resultText[i])
+                resultText[i] = patched_sentences[index]
 
     elif(sentence_fragmenter_mode == 2):
 
         nlp = spacy.load("en_core_web_lg")
 
         doc = nlp(translatedText)
-        sentences = [sent.text.strip() for sent in doc.sents]
+        sentences = [sent.text for sent in doc.sents]
         
         debugText.append("\n-------------------------\nDistributed result was : \n\n")
 
         for sentence in sentences:
-            resultText.append(sentence)
+            resultText.append(sentence + '\n')
             jeCheckText.append(sentence + '\n')
             debugText.append(sentence + '\n')
 
@@ -586,6 +618,7 @@ def commence_translation(japaneseText,scriptDir,configDir):
     None
 
     """
+    
 
     try:
      
@@ -635,24 +668,22 @@ def commence_translation(japaneseText,scriptDir,configDir):
 
             translatedText = translate(messages[i],messages[i+1],MODEL,kijikuRules)
 
-            redistribute(translatedText.strip(),sentence_fragmenter_mode)
+            redistribute(translatedText,sentence_fragmenter_mode)
 
             i+=2
-
-        resultText = list(map(lambda x: x + '\n', resultText))
 
         output_results(scriptDir)
 
         timeEnd = time.time()
 
-        print("\nMinutes Elapsed : " + str(round((timeEnd - timeStart)/ 60,2)) + "\n")
+        print("\nTime Elapsed : " + get_elapsed_time(timeStart, timeEnd))
 
     except Exception as e:
 
         print("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
         errorText.append("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-
+        
         output_results(scriptDir)
 
 

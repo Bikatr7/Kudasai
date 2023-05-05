@@ -443,7 +443,7 @@ def replace():
     ('Words','single_words',False,None,None),
     ('Full Names', 'full_names', True,Names.ALL_NAMES, Names.FULL_NAME),
     ('Single Names', 'single_names', True, Names.FIRST_AND_LAST, Names.FIRST_AND_LAST),
-    ('Name Like', 'name_like', True, Names.LAST_NAME, Names.NONE),
+    ('Name Like', 'name_like', True, Names.ALL_NAMES, Names.NONE),
     ]
 
     replacementRules = {rule[1]: rule[2] for rule in replacementRules} ## creates a dictionary with the keys being the second element of each tuple in replacementRules and the values being the third element of each tuple in replacementRules
@@ -466,6 +466,8 @@ def replace():
 
                     char = Character(" ".join(eng), jap)
 
+                    print(str(Character) + '\n')
+
                     replace_name(char, replaceNameParam, noHonorific, replacedNames) ## Replace names in text
 
             except KeyError: 
@@ -485,10 +487,10 @@ def replace():
     timeEnd = time.time() 
 
     print("\nTotal Replacements " + str(totalReplacements))
-    replacementText += "\nTotal Replacements " + str(totalReplacements)
+    replacementText += "\nTotal Replacements  : " + str(totalReplacements)
 
-    print("\nTime Taken " + str(timeEnd-timeStart))
-    replacementText += "\nTime Taken " + str(timeEnd-timeStart)
+    print("\nTime Elapsed " + Kijiku.get_elapsed_time(timeStart, timeEnd))
+    replacementText += "\nTime Elapsed : " + Kijiku.get_elapsed_time(timeStart, timeEnd)
 
     return japaneseText ## Return the modified text
 
@@ -513,6 +515,7 @@ def determine_translation_automation(preprocessPath,scriptDir,configDir):
     print("Please choose an auto translation model")
     print("\n1.Kaiseki - DeepL based line by line translation (Not very accurate by itself) (Free if using trial) (Good with punctuation)")
     print("\n2.Kijiku - OpenAI based batch translator (Very accurate) (Pricey) ($0.002 per 1k Tokens)\n")
+    print("\n3.Exit\n")
     
     mode = input()
 

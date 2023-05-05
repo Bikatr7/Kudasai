@@ -60,7 +60,8 @@
     "お兄": "Onii",
     "兄": "Nii",
     "お姉": "Onee",
-    "姉": "Nee"    
+    "Nee": "姉",
+    "姉" : "Nee"
   },
 
   "single_names": {

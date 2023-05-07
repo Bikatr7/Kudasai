@@ -94,7 +94,7 @@ def main(txtFile):
     numTokens,minCost = estimate_cost(text,model)
     numCharacters = count_characters(text)
 
-    print("\nEstimated Number of Tokens in Text : " + str(numTokens))
+    print("Estimated Number of Tokens in Text : " + str(numTokens))
     print("Estimated Minimum Cost of Translation : " + str(minCost))
     print("Number of Characters in Text : " + str(numCharacters) + "\n")
 

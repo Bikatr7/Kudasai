@@ -57,28 +57,23 @@
   },
 
   "name_like": {
-    "お兄": "Onii",
-    "兄": "Nii",
-    "お姉": "Onee",
-    "Nee": "姉",
-    "姉" : "Nee"
   },
 
   "single_names": {
-    "Kijima": "鬼島",
-    "Mika": "美香",
-    "Sonezaki": "曽根崎",
-    "Kisarazu": "木更津",
-    "Sōya": "宗谷",
-    "Ohba": "大場",
-    "Ishida": "石田",
-    "Shiro": "志朗",
-    "Keisei" : "啓誠",
-    "Mii" : "みー",
-    "Anzai" : "安在",
-    "king": "Wan-sama"
-
+    "Kijima": ["鬼島"],
+    "Mika": ["美香"],
+    "Sonezaki": ["曽根崎"],
+    "Kisarazu": ["木更津"],
+    "Sōya": ["宗谷"],
+    "Ohba": ["大場"],
+    "Ishida": ["石田"],
+    "Shiro": ["志朗"],
+    "Keisei": ["啓誠"],
+    "Mii": ["みー"],
+    "Anzai": ["安在"],
+    "king": ["Wan-sama"]
   },
+
 
   "full_names": {
     "Amasawa Ichika": ["天沢","一夏"],

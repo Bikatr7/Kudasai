@@ -333,7 +333,7 @@ def generate_prompt(index,promptSize):
                 prompt.append(sentence + '\n')
                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
 
-            elif(bool(re.match(r'^[\W_\s\n-]+$', sentence))):
+            elif bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]):
                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
            
             elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence))):
@@ -466,10 +466,8 @@ def redistribute(translatedText,sentence_fragmenter_mode):
 
     elif(sentence_fragmenter_mode == 3):
         
-        resultText.append(translatedText)
+        resultText.append(translatedText + '\n')
         jeCheckText.append(translatedText + '\n')
-        debugText.append("\n-------------------------\nDistributed result was : \n\n" + translatedText + "\n")
-
 
 #-------------------start-of-buildMessages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

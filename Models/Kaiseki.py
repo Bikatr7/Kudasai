@@ -432,13 +432,17 @@ def commence_translation(translator,japaneseText,scriptDir):
                         
                         debugText.append("Initial Sentence : " + sentence)
 
-                        if(bool(re.match(r'^[\W_\s-]+$', sentence)) == True):
-                                debugText.append("\nSentence is punctuation... skipping translation\n-----------------------------------------------\n\n")
+                        if("△▼△▼△▼△" in sentence):
+                                finalText.append(sentence + "\n")
+                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
+
+                        elif bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]):
+                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
                                 finalText.append(sentence + "\n")
 
-                        elif(bool(re.match(r'^[A-Za-z0-9\s\.,\?!]+$', sentence)) == True):
-                               debugText.append("\nSentence is english... skipping translation\n-----------------------------------------------\n\n")
-                               finalText.append(sentence + "\n")
+                        elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence))):
+                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is english... skipping\n-----------------------------------------------\n\n")
+                                finalText.append(sentence + "\n")
 
                         elif(len(sentence) == 0 or sentence.isspace() == True):
                                 debugText.append("\nSentence is empty... skipping translation\n-----------------------------------------------\n\n")

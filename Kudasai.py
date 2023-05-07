@@ -9,7 +9,7 @@ Windows only.
 
 Python Version: 3.7.6-3.11.2
 
-Used to make Classroom of the Elite translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
+Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
 Derived from https://github.com/Atreyagaurav/mtl-related-scripts
 
@@ -65,12 +65,12 @@ For the json it has to be a specific format, you can see several examples in the
   },
 
   "name_like": {
-    "お兄": "Onii",
+    "お兄": ["Onii"],
   },
 
   "single_names": {
-    "Kijima": "鬼島",
-    "king": "Wan-sama"
+    "Kijima": ["鬼島"],
+    "king": ["Wan-sama"]
 
   },
 
@@ -112,7 +112,7 @@ Any questions or bugs, please email Seinuve@gmail.com
 
 Security:
 
-api keys are stored locally in ProgramData and are obfuscated.
+api keys are stored locally in the user folder and are obfuscated.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -147,13 +147,13 @@ Character = namedtuple('Character', 'japName engName')
 
 ner = spacy.load("ja_core_news_lg") # large model for japanese NER (named entity recognition)
 
-VERBOSE = True ## lowkey forgot what this does
 SINGLE_KANJI_FILTER = True ## filters out single kanji or uses specific function to deal with it when replacing names
 
 JAPANESE_NAME_SEPARATORS = ["・", ""] ## japanese names are separated by the　・ or not at all
 
 japaneseText = ''
 replacementText = ''
+errorText = []
 
 totalReplacements = 0 
 
@@ -189,7 +189,7 @@ def check_update():
 
     try:
     
-        CURRENT_VERSION = "v1.4.3" ## hardcoded current vers
+        CURRENT_VERSION = "v1.4.4" ## hardcoded current vers
 
         response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
         latestVersion = response.json()["tag_name"]
@@ -201,7 +201,7 @@ def check_update():
 
         return True
 
-    except: ## used to determine if user lacks an internet connection or posses another issue that would cause the automated mtl to fail
+    except: ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail
 
         return False 
     
@@ -227,10 +227,10 @@ def output_file_names():
     outputDir = os.path.join(scriptDir, "KudasaiOutput")
     configDir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
 
-    if(not os.path.exists(outputDir)):
+    if(os.path.exists(outputDir) == False):
         os.mkdir(outputDir)
 
-    if(not os.path.exists(configDir)):
+    if(os.path.exists(configDir) == False):
         os.mkdir(configDir)
 
     preprocessPath = os.path.join(outputDir, "preprocessedText.txt")
@@ -244,7 +244,7 @@ def output_file_names():
 
 #-------------------start-of-replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def replace_single_kanji(jap, replacement): ## replaces a single kanji in the text
+def replace_single_kanji(jap, replacement): 
 
     """
 
@@ -255,7 +255,7 @@ def replace_single_kanji(jap, replacement): ## replaces a single kanji in the te
     replacement (string) holds the replacement for jap
 
     Returns:
-    nameCount (int) how many names were replaced 
+    nameCount (int) how many words were replaced 
 
     """
 
@@ -314,7 +314,7 @@ def replace_single_word(word, replacement):
 
 #-------------------start-of-loop_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def loop_names(character, replace=Names.FULL_NAME, honorific=Names.ALL_NAMES):
+def loop_names(character, replace, honorific):
     
     """
 
@@ -362,7 +362,7 @@ def loop_names(character, replace=Names.FULL_NAME, honorific=Names.ALL_NAMES):
 
 #-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def replace_name(character,replace=Names.FULL_NAME,noHonorific=Names.ALL_NAMES,replacedNames=dict()):
+def replace_name(character,replace,noHonorific,replacedNames,json_key):
 
     """
 
@@ -405,7 +405,7 @@ def replace_name(character,replace=Names.FULL_NAME,noHonorific=Names.ALL_NAMES,r
 
         replacedNames[jap] = total
 
-        if(not VERBOSE or total == 0):
+        if(total == 0):
             continue
 
         print(f'{eng} : {total} (', end='')
@@ -432,7 +432,7 @@ def replace():
 
     """
 
-    global japaneseText, replacementRules, replacementText
+    global japaneseText, replacementJson, replacementText,errorText
 
     ## (title, jsonKey, isName, replace_name, noHonorific)
     
@@ -441,36 +441,34 @@ def replace():
     ('Unicode','unicode',False, None, None),
     ('Phrases','phrases',False,None,None),
     ('Words','single_words',False,None,None),
-    ('Full Names', 'full_names', True,Names.ALL_NAMES, Names.FULL_NAME),
-    ('Single Names', 'single_names', True, Names.FIRST_AND_LAST, Names.FIRST_AND_LAST),
+    ('Full Names', 'full_names', True,Names.ALL_NAMES, Names.ALL_NAMES),
+    ('Single Names', 'single_names', True, Names.ALL_NAMES, Names.ALL_NAMES),
     ('Name Like', 'name_like', True, Names.ALL_NAMES, Names.NONE),
     ]
 
-    replacementRules = {rule[1]: rule[2] for rule in replacementRules} ## creates a dictionary with the keys being the second element of each tuple in replacementRules and the values being the third element of each tuple in replacementRules
-    
-    replacedNames = {} 
+    replacedNames = dict()
 
     timeStart = time.time() 
 
-    for jsonKey, isName in replacementRules.items(): ## Iterate through replacementRules dictionary
+    for rule in replacementRules: ## Iterate through replacementRules
 
-        if isName == True: ## Replace names or single words depending on the value of isName
+        title, jsonKey, isName, replaceNameParam, noHonorific = rule ## Unpack rule into variables
 
-            replaceNameParam = Names.ALL_NAMES 
-            noHonorific = Names.ALL_NAMES 
+        if(isName == True): ## Replace names or single words depending on the value of isName
             
             try:
-                for jap, eng in replacementJson[jsonKey].items(): ## Iterate through dictionary 
-                    if not isinstance(eng, list):  ## makes eng into a list
-                        eng = [eng]
+                for eng, jap in replacementJson[jsonKey].items(): ## Iterate through dictionary 
 
-                    char = Character(" ".join(eng), jap)
+                    if(isinstance(jap, list) == False):  ## makes eng into a list if not already
+                        jap = [jap]
 
-                    print(str(Character) + '\n')
+                    char = Character(" ".join(jap), eng)
 
-                    replace_name(char, replaceNameParam, noHonorific, replacedNames) ## Replace names in text
+                    replace_name(char, replaceNameParam, noHonorific, replacedNames,isName) ## Replace names in text
 
-            except KeyError: 
+            except Exception as E: 
+                errorText.append(str(E) + '\n')
+                errorText.append("Exception with : " + jsonKey  + '\n')
                 continue ## Go to the next iteration of the loop
 
         else: 
@@ -481,7 +479,9 @@ def replace():
                         print(str(jap) + " → " + str(eng) + " : " + str(numReplacements))
                         replacementText += str(jap) + " → " + str(eng) + " : " + str(numReplacements) + "\n"
 
-            except KeyError: 
+            except Exception as E: 
+                errorText.append(str(E) + '\n')
+                errorText.append("Exception with : " + jsonKey  + '\n')
                 continue ## Go to the next iteration of the loop
 
     timeEnd = time.time() 
@@ -604,7 +604,7 @@ def main(inputFile, jsonFile):
 
     """
 
-    reads the text from `inputFile`, replaces names and honorifics in the text based on the data in `jsonFile`, and writes the results to the folder "KudasaiInput"
+    reads the text from `inputFile`, replaces names and honorifics in the text based on the data in `jsonFile`, and writes the results to the folder "KudasaiOutput"
 
     Parameters:
     inputFile (string) path to the txt file we are preprocessing
@@ -615,7 +615,7 @@ def main(inputFile, jsonFile):
 
     """
     
-    global japaneseText, replacementJson, totalReplacements, replacementText 
+    global japaneseText, replacementJson, totalReplacements, replacementText,errorText 
 
     connection = check_update()
     
@@ -654,7 +654,7 @@ def main(inputFile, jsonFile):
         file.truncate(0)
 
     with open(errorPath, 'w+', encoding='utf-8') as file: 
-        file.truncate(0)
+        file.writelines(errorText) ## writes the contents of kudasai's errors to the file
 
     print("\n\nResults have been written to : " + preprocessPath)
     print("\nKudasai replacement output has been written to : " + outputPath + "\n")
@@ -676,9 +676,9 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
         os.system('pause')
         exit() 
 
-    os.system('cls')
+    os.system('cls') 
 
-    os.system("title " + "Kudasai")
+    os.system("title " + "Kudasai") 
 
     main(sys.argv[1], sys.argv[2]) # Call main function with the first and second command line arguments as the input file and replacement JSON, respectively
 

@@ -1,4 +1,3 @@
-"""
 Kudasai.py
 
 Original Author: thevoidzero#4686
@@ -11,7 +10,7 @@ Windows only.
 
 Python Version: 3.7.6-3.11.2
 
-Used to make Japanese translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
+Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
 Derived from https://github.com/Atreyagaurav/mtl-related-scripts
 
@@ -67,12 +66,12 @@ For the json it has to be a specific format, you can see several examples in the
   },
 
   "name_like": {
-    "お兄": "Onii",
+    "お兄": ["Onii"],
   },
 
   "single_names": {
-    "Kijima": "鬼島",
-    "king": "Wan-sama"
+    "Kijima": ["鬼島"],
+    "king": ["Wan-sama"]
 
   },
 
@@ -133,5 +132,3 @@ Util:
 Util folder has a script called Token Counter.py that lets you estimated the number of tokens/cost in a file/string
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-"""

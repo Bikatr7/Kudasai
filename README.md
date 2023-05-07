@@ -1,8 +1,8 @@
-Kudasai.py
+Kudasai
 
 Original Author: thevoidzero#4686
 
-Refactored and Maintained by: Seinu#7854
+Refactored, Maintained, Added to by: Seinu#7854
 
 Contributions by: SnOrT NeSqUiK™#9775
 
@@ -35,7 +35,20 @@ CmdLineArgs
 Argument 1: Path to a .txt file that needs to be preprocessed
 Argument 2: Path to JSON Criteria
 
-Note:
+An example of how to run Kudasai.py from cmd:
+
+C:\Users\Tetra\Documents\Repositories\Kudasai\Kudasai.py "C:\Users\Tetra\Desktop\arc 8 chapter 9.txt" "C:\Users\Tetra\Documents\Repositories\Kudasai\Replacements\Rezero Replacements.json"
+
+Where:
+
+C:\Users\Tetra\Documents\Repositories\Kudasai\Kudasai.py is the path to Kudasai.py
+C:\users\Tetra\Desktop\arc 8 chapter 9.txt is the path to the .txt file that needs to be preprocessed
+C:\Users\Tetra\Documents\Repositories\Kudasai\Replacements\Rezero Replacements.json is the path to the JSON Criteria
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+JSON Criteria
+
 For the json it has to be a specific format, you can see several examples in the 'Replacements' Folder or an outline below
 
 {

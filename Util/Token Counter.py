@@ -6,17 +6,17 @@ from time import sleep
 
 #-------------------start-of-count_characters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def count_characters(text):
+def count_characters(text:str):
 
     '''
 
-    counts the number of characters in a string, (seems accurate)
+    counts the number of characters in a string\n
  
-    Parameters:
-    text (string) the text that will be counting characters for
+    Parameters:\n
+    text (string) the text that will be counting characters for\n
 
-    Returns:
-    numCharacters (int) the number of characters in the text
+    Returns:\n
+    numCharacters (int) the number of characters in the text\n
 
     '''
 
@@ -26,22 +26,21 @@ def count_characters(text):
 
     return numCharacters
 
-
 #-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def estimate_cost(text, model):
+def estimate_cost(text:str, model:str):
     
     '''
 
-    attempts to estimate cost and number of tokens in a string, (seems accurate)
+    attempts to estimate cost and number of tokens in a string\n
  
-    Parameters:
-    text (string) the text that will be counting tokens for
-    model (string  represents which model we will be using
+    Parameters:\n
+    text (string) the text that will be counting tokens for\n
+    model (string)  represents which model we will be using\n
 
-    Returns:
-    numTokens (int) the estimated number of tokens in the text
-    cost (double) the estimated cost of translating text
+    Returns:\n
+    numTokens (int) the estimated number of tokens in the text\n
+    cost (double) the estimated cost of translating text\n
 
     '''
 
@@ -83,8 +82,20 @@ def estimate_cost(text, model):
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+def main(txtFile:str):
 
-def main(txtFile):
+    '''
+
+    main function\n
+
+    Parameters:\n
+    txtFile (string) the text file that will be counting tokens for\n
+
+    Returns:\n
+    None\n
+    
+    '''
+
 
     with open(txtFile, 'r', encoding='utf-8') as file: 
         text = file.read()

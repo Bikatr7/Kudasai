@@ -10,8 +10,9 @@ import spacy
 import shutil
 
 from time import sleep
-
 from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
+
+from Util import associated_functions
 
 '''
 Kijiku.py
@@ -20,47 +21,20 @@ Original Author: Seinu#7854
 
 '''
 
-#-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------start-of-change_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def get_elapsed_time(start, end):
-
-    """
-
-    calculates elapsed time
-
-    Parameters:
-    start (float): start time
-    end (float): end time
-
-    Returns:
-    str: elapsed time
+def change_settings(kijikuRules:dict ,configDir:str) -> None:
 
     """
 
-    if(end-start < 60.0):
-        return str(round(end-start, 2)) + " seconds"
-    
-    elif(end-start < 3600.0):
-        return str(round((end-start)/60, 2)) + " minutes"
-    
-    else:
-        return str(round((end-start)/3600, 2)) + " hours"
+    Allows the user to change the settings of the KijikuRules.json file\n
 
+    Parameters:\n
+    kijikuRules (dict - string) a dictionary of the rules kijiku will follow\n
+    configDir (string) the path to the config directory\n
 
-#-------------------start of change_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def change_settings(kijikuRules,configDir):
-
-    """
-
-    Allows the user to change the settings of the KijikuRules.json file
-
-    Parameters:
-    kijikuRules (dict - string) a dictionary of the rules kijiku will follow
-    configDir (string) the path to the config directory
-
-    Returns:
-    None
+    Returns:\n
+    None\n
 
     """
      
@@ -94,7 +68,7 @@ def change_settings(kijikuRules,configDir):
 
         action = input("\nEnter the name of the setting you want to change, type d to reset to default, or type 'q' to continue: ").lower()
 
-        if(action == "q"): ## if the user wants to quit, do so
+        if(action == "q"): ## if the user wants to continue, do so
             break
 
         elif(action == "d"): ## if the user wants to reset to default, do so
@@ -118,19 +92,19 @@ def change_settings(kijikuRules,configDir):
     with open(os.path.join(configDir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
         json.dump(kijikuRules, file)
 
-#-------------------start of reset_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------start-of-reset_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def reset_kijiku_rules(configDir):
+def reset_kijiku_rules(configDir:str) -> None:
 
     """
 
-    resets the kijikuRules json to default
+    resets the kijikuRules json to default\n
 
-    Parameters:
-    configDir (string) the path to the config directory
+    Parameters:\n
+    configDir (string) the path to the config directory\n
 
-    Returns:
-    None
+    Returns:\n
+    None\n
 
     """
      
@@ -159,20 +133,21 @@ def reset_kijiku_rules(configDir):
 
     os.system('cls')
      
-#-------------------start of initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------start-of-initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def initialize_text(textToTranslate,configDir):
+def initialize_text(textToTranslate:str, configDir:str) -> tuple[list[str],dict]: 
 
     """
 
-    Set the open api key and create a list full of the sentences we need to translate.
+    Set the open api key and create a list full of the sentences we need to translate.\n
     
-    Parameters:
-    textToTranslate (string) a path to the text kijiku will translate
-    configDir (string) a path to the config directory
+    Parameters:\n
+    textToTranslate (string) a path to the text kijiku will translate\n
+    configDir (string) a path to the config directory\n
     
-    Returns:
-    text (list - string) a list of japanese lines we need to translate
+    Returns:\n
+    text (list - string) a list of japanese lines we need to translate\n
+    kijikuRules (dict) a dictionary of the rules for kijiku\n
 
     """
         
@@ -233,7 +208,7 @@ def initialize_text(textToTranslate,configDir):
 
     os.system('cls')
 
-    try:
+    try: ## try to load the kijiku rules
 
         if(os.path.isfile(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json') == True): ## if the kijiku rules are in the old location, copy them to the new one and delete the old one
             shutil.copyfile(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', os.path.join(configDir,'Kijiku Rules.json'))
@@ -248,7 +223,7 @@ def initialize_text(textToTranslate,configDir):
 
         return text, kijikuRules
 
-    except:
+    except: ## if the kijiku rules don't exist, create them
          
         reset_kijiku_rules(configDir)
 
@@ -257,66 +232,21 @@ def initialize_text(textToTranslate,configDir):
 
         return text, kijikuRules
 
-#-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def output_results(scriptDir):
-        
-    '''
-
-    Outputs results to several txt files
-
-    Parameters:
-    scriptDir (string) the path of the directory that holds Kudasai.py
-
-    Returns:
-    None
-
-    '''
-
-    global debugText,jeCheckText,resultText,errorText
-        
-    outputDir = os.path.join(scriptDir, "KudasaiOutput")
-
-    if(not os.path.join(outputDir)):
-        os.mkdir(outputDir)
-
-    debugPath = os.path.join(outputDir, "tlDebug.txt")
-    jePath = os.path.join(outputDir, "jeCheck.txt")
-    resultsPath = os.path.join(outputDir, "translatedText.txt")
-    errorPath = os.path.join(outputDir, "errors.txt")
-    
-    with open(debugPath, 'w+', encoding='utf-8') as file:
-        file.writelines(debugText)
-
-    with open(jePath, 'w+', encoding='utf-8') as file: 
-        file.writelines(jeCheckText)
-
-    with open(resultsPath, 'w+', encoding='utf-8') as file:
-        file.writelines(resultText)
-
-    with open(errorPath, 'w+', encoding='utf-8') as file:
-        file.writelines(errorText)
-
-    print("\n\nDebug text have been written to : " + debugPath)
-    print("\nJ->E text have been written to : " + jePath)
-    print("\nTranslated text has been written to : " + resultsPath)
-    print("\nError Text has been written to : " + errorPath)
-
 #-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def generate_prompt(index,promptSize):
+def generate_prompt(index:int, promptSize:int) -> tuple[list,int]:
 
     '''
 
-    generates prompts but skips punctuation or plain english
+    generates prompts but skips punctuation or plain english\n
 
-    Parameters:
-    index (int) an int representing where we currently are in the text file
-    promptSize (int) an int representing how many lines the prompt will have
+    Parameters:\n
+    index (int) an int representing where we currently are in the text file\n
+    promptSize (int) an int representing how many lines the prompt will have\n
 
-    Returns:
-    prompt (list - string) a list of japanese lines that will be assembled into messages
-    index (int) an updated int representing where we currently are in the text file
+    Returns:\n
+    prompt (list - string) a list of japanese lines that will be assembled into messages\n
+    index (int) an updated int representing where we currently are in the text file\n
 
     '''
 
@@ -352,20 +282,20 @@ def generate_prompt(index,promptSize):
 #-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError))
-def translate(systemMessage,userMessage,MODEL,kijikuRules):
+def translate(systemMessage:dict, userMessage:dict, MODEL:str,kijikuRules:dict) -> str:
 
     '''
 
-    translates system and user message
+    translates system and user message\n
 
-    Parameters:
-    systemMessage (string) a string that gives instructions to the gpt chat model
-    userMessage (string) a string that gpt will alter based on the systemMessage
-    MODEL (string) a constant that represents which model we will be using
-    kijikuRules (dict - string) a dictionary of rules that kijiku follows as it translates
+    Parameters:\n
+    systemMessage (dict - string) a dictionary that contains the system message\n
+    userMessage (dict - string) a dictionary that contains the user message\n
+    MODEL (string) a constant that represents which model we will be using\n
+    kijikuRules (dict - string) a dictionary of rules that kijiku follows as it translates\n
 
-    Returns:
-    output (string) a string that gpt gives to us
+    Returns:\n
+    output (string) a string that gpt gives to us\n
 
     '''
 
@@ -403,7 +333,7 @@ def translate(systemMessage,userMessage,MODEL,kijikuRules):
 
 #-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def redistribute(translatedText,sentence_fragmenter_mode):
+def redistribute(translatedText:str, sentence_fragmenter_mode:int) -> None:
 
     '''
 
@@ -419,7 +349,7 @@ def redistribute(translatedText,sentence_fragmenter_mode):
     '''
     global resultText,jeCheckText,debugText
 
-    if(sentence_fragmenter_mode == 1):
+    if(sentence_fragmenter_mode == 1): # mode 1 is the default mode, uses regex and other nonsense to split sentences
 
         sentences = re.findall(r"(.*?(?:(?:\"|\'|-|~|!|\?|%|\(|\)|\.\.\.|\.|---|\[|\])))(?:\s|$)", translatedText)
 
@@ -450,7 +380,7 @@ def redistribute(translatedText,sentence_fragmenter_mode):
                 index = patched_sentences.index(resultText[i])
                 resultText[i] = patched_sentences[index]
 
-    elif(sentence_fragmenter_mode == 2):
+    elif(sentence_fragmenter_mode == 2): # mode 2 uses spacy to split sentences
 
         nlp = spacy.load("en_core_web_lg")
 
@@ -464,14 +394,14 @@ def redistribute(translatedText,sentence_fragmenter_mode):
             jeCheckText.append(sentence + '\n')
             debugText.append(sentence + '\n')
 
-    elif(sentence_fragmenter_mode == 3):
+    elif(sentence_fragmenter_mode == 3): # mode 3 just assumes gpt formatted it properly
         
         resultText.append(translatedText + '\n')
         jeCheckText.append(translatedText + '\n')
 
 #-------------------start-of-buildMessages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def buildMessages(systemMessage,message_mode,promptSize):
+def buildMessages(systemMessage:str, message_mode:int, promptSize:int) -> list[dict]:
 
     '''
 
@@ -483,7 +413,7 @@ def buildMessages(systemMessage,message_mode,promptSize):
     promptSize (int) the size of the prompt that will be given to the model
 
     Returns:
-    messages (dict - string) the assembled messages that will be given to the model
+    messages (list - dict - string) the assembled messages that will be given to the model, it's a list of dicts that contain strings
 
     '''
 
@@ -535,19 +465,19 @@ def buildMessages(systemMessage,message_mode,promptSize):
      
 #-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def estimate_cost(messages, model):
+def estimate_cost(messages, model) -> tuple[int, float]:
 
     '''
 
-    attempts to estimate cost.
+    attempts to estimate cost.\n
  
-    Parameters:
-    messages (dict - string) the assembled messages that will be given to the model
-    model (string) a constant that represents which model we will be using
+    Parameters:\n
+    messages (dict - string) the assembled messages that will be given to the model\n
+    model (string) a constant that represents which model we will be using\n
 
-    Returns:
-    numTokens (int) the estimated number of tokens in the messages
-    cost (double) the estimated cost of translating messages
+    Returns:\n
+    numTokens (int) the estimated number of tokens in the messages\n
+    cost (double) the estimated cost of translating messages\n
 
     '''
     
@@ -601,23 +531,22 @@ def estimate_cost(messages, model):
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(japaneseText,scriptDir,configDir):
+def commence_translation(japaneseText,scriptDir,configDir) -> None:
 
     """
         
-    Uses all the other functions to translate the text provided by Kudasai
+    Uses all the other functions to translate the text provided by Kudasai\n
 
-    Parameters:
-    japaneseText (list - string) a list of japanese lines that we need to translate
-    scriptDir (string) the path of the directory that holds Kudasai.py
-    configDir (string) the path of the directory that holds Kijiku Rules.json
+    Parameters:\n
+    japaneseText (list - string) a list of japanese lines that we need to translate\n
+    scriptDir (string) the path of the directory that holds Kudasai.py\n
+    configDir (string) the path of the directory that holds Kijiku Rules.json\n
     
-    Returns: 
-    None
+    Returns:\n
+    None\n
 
     """
     
-
     try:
      
         global debugText,jeCheckText,errorText,resultText,text
@@ -670,18 +599,18 @@ def commence_translation(japaneseText,scriptDir,configDir):
 
             i+=2
 
-        output_results(scriptDir)
+        associated_functions.output_results(scriptDir,debugText,jeCheckText,resultText,errorText)
 
         timeEnd = time.time()
 
-        print("\nTime Elapsed : " + get_elapsed_time(timeStart, timeEnd))
+        print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
 
-    except Exception as e:
+    except Exception as e: 
 
         print("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
         errorText.append("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
         
-        output_results(scriptDir)
+        associated_functions.output_results(scriptDir,debugText,jeCheckText,resultText,errorText)
 
 

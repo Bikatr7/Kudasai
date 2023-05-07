@@ -7,9 +7,12 @@ import base64
 
 
 from time import sleep
+
 from deepl.exceptions import QuotaExceededException
 from deepl.exceptions import AuthorizationException
-from Models import Kijiku
+from deepl import Translator
+
+from Util import associated_functions
 
 '''
 Kaiseki.py
@@ -18,21 +21,21 @@ Original Author: Seinu#7854
 
 '''
 
-#-------------------start of initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------start-of-initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def initialize_translator(textToTranslate,configDir):
+def initialize_translator(textToTranslate:str, configDir:str) -> tuple[Translator, list[str]]:
 
         """
 
-        Initializes the translator object and gets the text to translate.
+        Initializes the translator object and gets the text to translate.\n
 
-        Parameters:
-        textToTranslate (string) the path to the text file to translate
-        configDir (string) the path to the config folder
+        Parameters:\n
+        textToTranslate (string) the path to the text file to translate\n
+        configDir (string) the path to the config folder\n
 
-        Returns:
-        translator (object - deepl.Translator) the translator object
-        japaneseText (list - string) a list of the text to translate
+        Returns:\n
+        translator (object - Translator) the translator object\n
+        japaneseText (list - string) a list of the text to translate\n
         
         """
         
@@ -40,7 +43,7 @@ def initialize_translator(textToTranslate,configDir):
                 with open(os.path.join(configDir,'DeeplApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
                     apiKey = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-                translator = deepl.Translator(apiKey)
+                translator = Translator(apiKey)
 
                 print("Used saved api key in " + os.path.join(configDir,'DeeplApiKey.txt'))
 
@@ -54,7 +57,7 @@ def initialize_translator(textToTranslate,configDir):
 
                 try: ## if valid save the api key
  
-                        translator = deepl.Translator(apiKey)
+                        translator = Translator(apiKey)
 
                         if(os.path.isdir(configDir) == False):
                             os.mkdir(configDir, 0o666)
@@ -92,21 +95,21 @@ def initialize_translator(textToTranslate,configDir):
 
         return translator,japaneseText
 
-#-------------------start of separate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------start-of-separate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  
-def separate(sentence): 
+def separate(sentence) -> tuple[list[str], list[str], list[bool]]: 
 
         """
         
-        Separates a sentence into parts based of punctuation.
+        Separates a sentence into parts based of punctuation.\n
 
-        Parameters:
-        sentence (string) a sentence(line) of japanese text
+        Parameters:\n
+        sentence (string) a sentence(line) of japanese text\n
 
-        Returns:
-        sentenceParts (list - string) a list of parts of text which is derived from sentence
-        sentencePunctuation (list - string) a list of punctuation found in sentence
-        specialPunctuation (list - boolean) a list of booleans indicating whether "special" punctuation exist in the sentence
+        Returns:\n
+        sentenceParts (list - string) a list of parts of text which is derived from sentence\n
+        sentencePunctuation (list - string) a list of punctuation found in sentence\n
+        specialPunctuation (list - boolean) a list of booleans indicating whether "special" punctuation exist in the sentence\n
 
         """
 
@@ -331,7 +334,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,sc
 
                         os.system('pause')
 
-                        output_results(scriptDir)
+                        associated_functions.output_results(scriptDir,debugText,jeCheckText,finalText,errorText)
                         exit()
                         
                 except ValueError as e:
@@ -351,54 +354,9 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,sc
                
         return finalSentence
 
-#-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def output_results(scriptDir):
-
-        '''
-
-        Outputs results to several txt files
-
-        Parameters:
-        scriptDir (string) the path of the directory that holds Kudasai.py
-
-        Returns:
-        None
-
-        '''
-
-        global debugText,jeCheckText,finalText,errorText
-        
-        outputDir = os.path.join(scriptDir, "KudasaiOutput")
-
-        if(not os.path.exists(outputDir)):
-               os.mkdir(outputDir)
-
-        debugPath = os.path.join(outputDir, "tlDebug.txt")
-        jePath = os.path.join(outputDir, "jeCheck.txt")
-        resultsPath = os.path.join(outputDir, "translatedText.txt")
-        errorPath = os.path.join(outputDir, "errors.txt")
-
-        with open(debugPath, 'w+', encoding='utf-8') as file:
-                file.writelines(debugText)
-
-        with open(jePath, 'w+', encoding='utf-8') as file: 
-                file.writelines(jeCheckText)
-
-        with open(resultsPath, 'w+', encoding='utf-8') as file:
-                file.writelines(finalText)
-
-        with open(errorPath, 'w+', encoding='utf-8') as file:
-                file.writelines(errorText)
-
-        print("\n\nDebug text have been written to : " + debugPath)
-        print("\nJ->E text have been written to : " + jePath)
-        print("\nTranslated text has been written to : " + resultsPath)
-        print("\nErrors have been written to : " + errorPath + "\n")
-
 #-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(translator,japaneseText,scriptDir):
+def commence_translation(translator:Translator, japaneseText:list[str],scriptDir:str) -> None:
 
         """
         
@@ -482,14 +440,14 @@ def commence_translation(translator,japaneseText,scriptDir):
                         print(str(i) + "/" + str(len(japaneseText)) + " completed.")
 
 
-                output_results(scriptDir)
+                associated_functions.output_results(scriptDir,debugText,jeCheckText,finalText,errorText)
 
                 timeEnd = time.time()
 
-                print("\nTime Elapsed : " + Kijiku.get_elapsed_time(timeStart, timeEnd))
+                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
 
                 os.system('pause')
                 
         except Exception as e:
                print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-               output_results(scriptDir)
+               associated_functions.output_results(scriptDir,debugText,jeCheckText,finalText,errorText)

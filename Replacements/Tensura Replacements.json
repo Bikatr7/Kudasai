@@ -1,0 +1,110 @@
+{
+
+  "honorifics": {
+    "さん": "san",
+    "くん": "kun",
+    "ちゃん": "chan",
+    "せんぱい":  "senpai",
+    "上": "ue",
+    "氏": "shi",
+    "君": "kun",
+    "様": "sama",
+    "先輩": "senpai",
+    "後輩": "kōhai",
+    "先生": "sensei",
+    "殿": "dono"
+  },
+
+  "single_words": {
+    "イングラシア" : "Ingracia",
+    "魔物" : "Monster"
+  },
+
+  "unicode": {
+    "\u3000": " ", 
+    "\u2026":"..."
+  },
+
+  "phrases": {
+    "開国祭" : "Founder's Festival",
+    "獣魔術" : "Beast Magic",
+    "獣魔" : "Beast Demon",
+    "万能感知" :"Universal Detect",
+    "思考加速" : "Thought Acceleration",
+    "霊子崩壊" : "Disintegration",
+    "万能糸" : "Universal Thread",
+    "智慧之王": "Lord of Wisdom",
+    "ヴェルドラ流闘殺法" : "Veldora-Style Killing Arts",
+    "Holy Magic" : "神聖魔法",
+    "Elemental Magic" : "元素魔法",
+    "Spatial Motion" : "空間移動"
+
+
+  },
+  
+  "kutouten": {
+    "「": "\"",
+    "」": "\"",
+    "『": "'",
+    "』": "'",
+    "《":"«",
+    "》":"»",
+    "、": ",",
+    "─": "-",
+    "～":"~",
+    "！":"!",
+    "？":"?",
+    "％":"%",
+    "（":"(",
+    "）":")",
+    "……。":"...",
+    "…。":"...",
+    "。": ".",
+    "・":".",
+    "…………":"...",
+    "……": "...",
+    "･･･":"...",
+    "......":"...",
+    ".....":"...",
+    "....":"...",
+    "---.":"---"
+  },
+
+  "name_like": {
+
+  },
+
+  "single_names": {
+    "Kenya" :"ケンヤ",
+    "Hinata": "ヒナタ",
+    "Ryota": "リョウタ",
+    "Alice": "アリス",
+    "Chloe" : "クロエ",
+    "Gail" : "ゲイル",
+    "Rimuru": "リムル",
+    "Veldora":"ヴェルドラ",
+    "Yukki":"ユウキ",
+    "Luminous":"ルミナス",
+    "Ramiris":"ラミリス",
+    "Shuna" : "シュナ",
+    "Benimaru" : "ベニマル",
+    "Souei" : "ソウエイ",
+    "Gabil" : "ガビル",
+    "Hakurou" : "ハクロウ",
+    "Gobta" : "ゴブタ",
+    "Beretta" : "ベレッタ",
+    "Shion": "シオン",
+    "Kaijin" : "カイジン",
+    "Diablo" : "ディアブロ",
+    "Treyni" : "トレイニー"
+
+
+
+  },
+
+  "full_names": {
+
+  
+  }
+  
+}

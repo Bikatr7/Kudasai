@@ -2,7 +2,7 @@ Kudasai
 
 Original Author: thevoidzero#4686
 
-Refactored, Maintained, Added to by: Seinu#7854
+Refactored, Maintained, and Added to by: Seinu#7854
 
 Contributions by: SnOrT NeSqUiK™#9775
 
@@ -33,6 +33,7 @@ pip install ja_core_news_lg
 CmdLineArgs
 
 Argument 1: Path to a .txt file that needs to be preprocessed
+
 Argument 2: Path to JSON Criteria
 
 An example of how to run Kudasai.py from cmd:
@@ -42,8 +43,11 @@ C:\Users\Tetra\Documents\Repositories\Kudasai\Kudasai.py "C:\Users\Tetra\Desktop
 Where:
 
 C:\Users\Tetra\Documents\Repositories\Kudasai\Kudasai.py is the path to Kudasai.py
+
 C:\users\Tetra\Desktop\arc 8 chapter 9.txt is the path to the .txt file that needs to be preprocessed
+
 C:\Users\Tetra\Documents\Repositories\Kudasai\Replacements\Rezero Replacements.json is the path to the JSON Criteria
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -143,5 +147,11 @@ api keys are stored locally in the user folder and are obfuscated.
 Util:
 
 Util folder has a script called Token Counter.py that lets you estimated the number of tokens/cost in a file/string
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+GUI:
+
+GUI.py is a GUI Interface for Kudasai.py, it does not include Kijiku or Kaiseki currently, and is solely for providing a visual interface for preprocessing.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------

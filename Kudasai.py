@@ -23,6 +23,7 @@ Character = namedtuple('Character', 'japName engName') ## represents a japanese 
 ner = spacy.load("ja_core_news_lg") # large model for japanese NER (named entity recognition)
 
 SINGLE_KANJI_FILTER = True ## filters out single kanji or uses specific function to deal with it when replacing names
+fromGui = False ## determines if Kudasai is being run from the GUI or not
 
 JAPANESE_NAME_SEPARATORS = ["・", ""] ## japanese names are separated by the ・ or not at all
 
@@ -265,7 +266,7 @@ def replace_name(character:Character, replace:Names, noHonorific:Names, replaced
 
     """
 
-    global replacementText
+    global replacementText,fromGui 
     
     for eng, jap, noHonor in loop_names(character, replace, noHonorific): ## if name already replaced, skip
         if(jap in replacedNames):
@@ -291,8 +292,9 @@ def replace_name(character:Character, replace:Names, noHonorific:Names, replaced
 
         replacedNames[jap] = total
 
-        if(total == 0): ## if no replacements happened, skip display
+        if(total == 0 or fromGui): ## if no replacements happened or calling from GUI, skip display
             continue
+
 
         print(f'{eng} : {total} (', end='')
         replacementText += f'{eng} : {total} ('
@@ -318,7 +320,7 @@ def replace() -> str:
 
     """
 
-    global japaneseText, replacementJson, replacementText,errorText
+    global japaneseText, replacementJson, replacementText,errorText,fromGui 
 
     ## (title, jsonKey, isName, replace_name, noHonorific)
     
@@ -370,13 +372,15 @@ def replace() -> str:
                 errorText.append("Exception with : " + jsonKey  + '\n')
                 continue ## Go to the next iteration of the loop
 
-    timeEnd = time.time() 
+    timeEnd = time.time()
 
-    print("\nTotal Replacements " + str(totalReplacements))
-    replacementText += "\nTotal Replacements  : " + str(totalReplacements)
+    if(not fromGui): 
 
-    print("\nTime Elapsed " + associated_functions.get_elapsed_time(timeStart, timeEnd))
-    replacementText += "\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd)
+        print("\nTotal Replacements " + str(totalReplacements))
+        replacementText += "\nTotal Replacements  : " + str(totalReplacements)
+
+        print("\nTime Elapsed " + associated_functions.get_elapsed_time(timeStart, timeEnd))
+        replacementText += "\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd)
 
     return japaneseText 
 
@@ -490,7 +494,7 @@ def run_kijiku(preprocessPath:str, scriptDir:str, configDir:str) -> None:
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def main(inputFile:str, jsonFile:str) -> None:
+def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
 
     """
 
@@ -499,15 +503,20 @@ def main(inputFile:str, jsonFile:str) -> None:
     Parameters:\n
     inputFile (string) path to the txt file we are preprocessing\n
     jsonFile (string) path to the json file whose "rules" we are following\n
+    isGui (bool) whether or not the program was called from the GUI\n
 
     Returns:\n
     None\n
 
     """
     
-    global japaneseText, replacementJson, totalReplacements, replacementText,errorText 
+    global japaneseText, replacementJson, totalReplacements, replacementText,errorText,fromGui 
 
-    connection = check_update()
+    connection = None
+    fromGui = isGui
+
+    if(fromGui == False):
+        connection = check_update()
     
     with open(inputFile, 'r', encoding='utf-8') as file: 
         japaneseText = file.read()
@@ -546,14 +555,15 @@ def main(inputFile:str, jsonFile:str) -> None:
     with open(errorPath, 'w+', encoding='utf-8') as file: 
         file.writelines(errorText) 
 
-    print("\n\nResults have been written to : " + preprocessPath)
-    print("\nKudasai replacement output has been written to : " + outputPath + "\n")
-    
-    os.system('pause /P "Press any key to auto translate..."')
-    os.system('cls')
-    
-    if(connection == True):
-        determine_translation_automation(preprocessPath,scriptDir,configDir)
+    if(not fromGui):
+        print("\n\nResults have been written to : " + preprocessPath)
+        print("\nKudasai replacement output has been written to : " + outputPath + "\n")
+        
+        os.system('pause /P "Press any key to auto translate..."')
+        os.system('cls')
+        
+        if(connection == True):
+            determine_translation_automation(preprocessPath,scriptDir,configDir)
 
 #-------------------start-of-sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -570,5 +580,5 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
 
     os.system("title " + "Kudasai") 
 
-    main(sys.argv[1], sys.argv[2]) # Call main function with the first and second command line arguments as the input file and replacement JSON, respectively
+    main(sys.argv[1], sys.argv[2],isGui=False) # Call main function with the first and second command line arguments as the input file and replacement JSON, respectively
 

@@ -259,7 +259,7 @@ def generate_prompt(index:int, promptSize:int) -> tuple[list,int]:
 
         if(len(prompt) < promptSize):
 
-            if("△▼△▼△▼△" in sentence):
+            if(any(char in sentence for char in ["▼", "△", "◇", "»"])):
                 prompt.append(sentence + '\n')
                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
 

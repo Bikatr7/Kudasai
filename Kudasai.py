@@ -103,7 +103,11 @@ def output_file_names() -> tuple[str,str,str,str,str,str,str,str]:
 
     scriptDir = os.path.dirname(os.path.abspath(__file__))
     outputDir = os.path.join(scriptDir, "KudasaiOutput")
-    configDir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
+
+    if(os.name == 'nt'):  # Windows
+        configDir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
+    else:  # Linux
+        configDir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
 
     if(os.path.exists(outputDir) == False):
         os.mkdir(outputDir)
@@ -490,7 +494,7 @@ def run_kijiku(preprocessPath:str, scriptDir:str, configDir:str) -> None:
 
     sleep(2)
 
-    Kijiku.commence_translation(japaneseText,scriptDir,configDir)
+    Kijiku.commence_translation(japaneseText,scriptDir,configDir,fromGui=False)
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

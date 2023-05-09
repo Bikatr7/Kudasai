@@ -260,7 +260,7 @@ def generate_prompt(index:int, promptSize:int) -> tuple[List[str],int]:
 
         if(len(prompt) < promptSize):
 
-            if(any(char in sentence for char in ["▼", "△", "◇", "»"])):
+            if(any(char in sentence for char in ["▼", "△", "◇"])):
                 prompt.append(sentence + '\n')
                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
 
@@ -532,7 +532,7 @@ def estimate_cost(messages, model) -> tuple[int, float]:
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(japaneseText,scriptDir,configDir) -> None:
+def commence_translation(japaneseText,scriptDir,configDir,fromGui) -> None:
 
     """
         
@@ -550,8 +550,8 @@ def commence_translation(japaneseText,scriptDir,configDir) -> None:
     
     try:
      
-        global debugText,jeCheckText,errorText,resultText,text
-        debugText,jeCheckText,errorText,resultText,text = [],[],[],[],japaneseText
+        global debugText,jeCheckText,errorText,resultText,text,isGui
+        debugText,jeCheckText,errorText,resultText,text,isGui = [],[],[],[],japaneseText,fromGui
 
         i = 0
 
@@ -583,7 +583,8 @@ def commence_translation(japaneseText,scriptDir,configDir) -> None:
         print("\nEstimated Number of Tokens in Text : " + str(numTokens))
         print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
 
-        associated_functions.pause_console("Press any key to continue with translation...")
+        if(isGui == False):
+            associated_functions.pause_console("Press any key to continue with translation...")
 
         debugText.append("\nStarting Translation\n-------------------------")
 

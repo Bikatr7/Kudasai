@@ -78,6 +78,7 @@
   },
 
   "phrases": {
+    "親竜王国":"Dragon Kingdom",
     "雲龍": "Cloud Dragon",
     "血命の儀": "Lifeblood Ritual",
     "魔女教": "Witch Cult",
@@ -198,6 +199,7 @@
   },
 
   "single_names": {
+    "Abel" : ["アベル"],
     "Al": ["アル"],
     "Aldebaran": ["アルデバラン"],
     "Alcor": ["アルコル"],

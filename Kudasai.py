@@ -72,8 +72,8 @@ def check_update() -> bool:
 
         if(latestVersion != CURRENT_VERSION):
             print("There is a new update for Kudasai (" + latestVersion + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n")
-            os.system('pause')
-            os.system('cls')
+            associated_functions.pause_console()
+            associated_functions.clear_console()
 
         return True
 
@@ -224,7 +224,7 @@ def loop_names(character:Character, replace:Names, honorific:Names) -> Generator
         print(character) 
         print("\nPlease correct character discrepancy in JSON\n")
 
-        os.system('pause')
+        associated_functions.pause_console()
         exit()
     
     if(Names.FULL_NAME in replace):
@@ -436,7 +436,7 @@ def run_kaiseki(preprocessPath:str, scriptDir:str, configDir:str) -> None:
 
     """
 
-    os.system('cls')
+    associated_functions.clear_console()
     
     print("Commencing Automated Translation\n")
 
@@ -467,7 +467,7 @@ def run_kijiku(preprocessPath:str, scriptDir:str, configDir:str) -> None:
     hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## minimize console window
     ctypes.windll.user32.ShowWindow(hwnd, 3) 
 
-    os.system('cls')
+    associated_functions.clear_console()
 
     japaneseText,kijikuRules = Kijiku.initialize_text(preprocessPath,configDir)
 
@@ -481,7 +481,7 @@ def run_kijiku(preprocessPath:str, scriptDir:str, configDir:str) -> None:
     else:
         Kijiku.change_settings(kijikuRules,configDir)
 
-    os.system('cls')
+    associated_functions.clear_console()
 
     hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
     ctypes.windll.user32.ShowWindow(hwnd, 9)
@@ -529,7 +529,7 @@ def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
     except:
 
         print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-        os.system('pause')
+        associated_functions.pause_console()
 
         exit()
 
@@ -560,7 +560,7 @@ def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
         print("\nKudasai replacement output has been written to : " + outputPath + "\n")
         
         os.system('pause /P "Press any key to auto translate..."')
-        os.system('cls')
+        associated_functions.clear_console()
         
         if(connection == True):
             determine_translation_automation(preprocessPath,scriptDir,configDir)
@@ -573,10 +573,10 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
 
         print(f'\nUsage: {sys.argv[0]} input_txt_file replacement.json\nSee README.md for more information.\n') 
         
-        os.system('pause')
+        associated_functions.pause_console()
         exit() 
 
-    os.system('cls') 
+    associated_functions.clear_console() 
 
     os.system("title " + "Kudasai") 
 

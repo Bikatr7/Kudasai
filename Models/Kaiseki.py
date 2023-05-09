@@ -1,4 +1,3 @@
-import deepl
 import string
 import os
 import time
@@ -7,10 +6,12 @@ import base64
 
 
 from time import sleep
+from typing import List
 
 from deepl.exceptions import QuotaExceededException
 from deepl.exceptions import AuthorizationException
 from deepl import Translator
+
 
 from Util import associated_functions
 
@@ -23,7 +24,7 @@ Original Author: Seinu#7854
 
 #-------------------start-of-initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def initialize_translator(textToTranslate:str, configDir:str) -> tuple[Translator, list[str]]:
+def initialize_translator(textToTranslate:str, configDir:str) -> tuple[Translator, List[str]]:
 
         """
 
@@ -75,18 +76,18 @@ def initialize_translator(textToTranslate:str, configDir:str) -> tuple[Translato
                    
                 except AuthorizationException: ## if invalid key exit
                      
-                        os.system('cls')
+                        associated_functions.clear_console()
                         
                         print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKudasai will now exit.\n")
-                        os.system('pause')
+                        associated_functions.pause_console()
                         
                         exit()
 
                 except Exception as e: ## other error, alert user and raise it
-                        os.system('cls')
+                        associated_functions.clear_console()
                         
                         print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKudasai will now exit.\n")
-                        os.system('pause')
+                        associated_functions.pause_console()
 
                         exit()
 
@@ -97,7 +98,7 @@ def initialize_translator(textToTranslate:str, configDir:str) -> tuple[Translato
 
 #-------------------start-of-separate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  
-def separate(sentence) -> tuple[list[str], list[str], list[bool]]: 
+def separate(sentence) -> tuple[List[str], List[str], List[bool]]: 
 
         """
         
@@ -332,7 +333,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,sc
 
                         print("\nDeepL API quota exceeded\n")
 
-                        os.system('pause')
+                        associated_functions.pause_console()
 
                         associated_functions.output_results(scriptDir,debugText,jeCheckText,finalText,errorText)
                         exit()
@@ -356,7 +357,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,sc
 
 #-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(translator:Translator, japaneseText:list[str],scriptDir:str) -> None:
+def commence_translation(translator:Translator, japaneseText:List[str],scriptDir:str) -> None:
 
         """
         
@@ -435,7 +436,7 @@ def commence_translation(translator:Translator, japaneseText:list[str],scriptDir
                         
                         i+=1
                         
-                        os.system('cls')
+                        associated_functions.clear_console()
                         
                         print(str(i) + "/" + str(len(japaneseText)) + " completed.")
 
@@ -446,7 +447,7 @@ def commence_translation(translator:Translator, japaneseText:list[str],scriptDir
 
                 print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
 
-                os.system('pause')
+                associated_functions.pause_console()
                 
         except Exception as e:
                print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")

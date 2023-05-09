@@ -2,6 +2,8 @@ import sys
 import os
 import tiktoken
 
+import associated_functions
+
 from time import sleep
 
 #-------------------start-of-count_characters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -20,7 +22,7 @@ def count_characters(text:str):
 
     '''
 
-    os.system('cls')
+    associated_functions.clear_console()
 
     numCharacters = len(text)
 
@@ -44,7 +46,7 @@ def estimate_cost(text:str, model:str):
 
     '''
 
-    os.system('cls')
+    associated_functions.clear_console()
     
     try:
 
@@ -109,7 +111,7 @@ def main(txtFile:str):
     print("Estimated Minimum Cost of Translation : " + str(minCost))
     print("Number of Characters in Text : " + str(numCharacters) + "\n")
 
-    os.system('pause')
+    associated_functions.pause_console()
 
 #-------------------start-of-sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -119,10 +121,10 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 2 or called 
 
         print(f'\nUsage: {sys.argv[0]} input_txt_file\n') 
         
-        os.system('pause')
+        associated_functions.pause_console()
         exit() 
 
-    os.system('cls')
+    associated_functions.clear_console()
 
     os.system("title " + "Token Counter")
 

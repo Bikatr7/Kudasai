@@ -6,9 +6,11 @@ Refactored, Maintained, and Added to by: Seinu#7854
 
 Contributions by: SnOrT NeSqUiK™#9775
 
-Windows only.
+Built for Windows, Doesn't use an os specific library, so it should work on other OS's, but it is untested.
 
-Python Version: 3.7.6-3.11.2
+Python Version: 3.8-3.11.2
+
+It should work with 3.8, although it is untested. I recommend using 3.9+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
@@ -58,6 +60,7 @@ For the json it has to be a specific format, you can see several examples in the
 {
   "honorifics": {
     "さん": "san",
+
     "くん": "kun"
   },
 
@@ -71,15 +74,21 @@ For the json it has to be a specific format, you can see several examples in the
 
   "phrases": {
     "ケヤキモール" : "Keyaki Mall",
+
     "高育" : "ANHS"
   },
 
   "kutouten": {
     "「": "\"",
+
     "」": "\"",
+
     "『": "'",
+
     "』": "'",
+
     "、": ","
+
   },
 
   "name_like": {
@@ -88,6 +97,7 @@ For the json it has to be a specific format, you can see several examples in the
 
   "single_names": {
     "Kijima": ["鬼島"],
+    
     "king": ["Wan-sama"]
 
   },

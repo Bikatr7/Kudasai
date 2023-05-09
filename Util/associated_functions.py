@@ -1,8 +1,49 @@
 import os
 
+from typing import List
+
+#-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def clear_console() -> None:
+
+    """
+
+    clears the console\n
+
+    Parameters:\n
+    None\n
+
+    Returns:\n
+    None\n
+
+    """
+
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+#-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def pause_console(message="Press any key to continue . . ."):
+
+    """
+
+    pauses the console\n
+
+    Parameters:\n
+    message (string) the message that will be displayed when the console is paused\n
+
+    Returns:\n
+    None\n
+
+    """
+
+    if(os.name == 'nt'):  # Windows
+        os.system('pause /P f{message}')
+    else: 
+        input(message)
+
 #-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def get_elapsed_time(start:float, end:float):
+def get_elapsed_time(start:float, end:float) -> str:
 
     """
 
@@ -32,7 +73,7 @@ def get_elapsed_time(start:float, end:float):
 
 #-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def output_results(scriptDir:str, debugText:list[str], jeCheckText:list[str], finalText:list[str], errorText:list[str]):
+def output_results(scriptDir:str, debugText:List[str], jeCheckText:List[str], finalText:List[str], errorText:List[str]) -> None:
 
         '''
 

@@ -10,6 +10,7 @@ import spacy
 import shutil
 
 from time import sleep
+from typing import List
 from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
 
 from Util import associated_functions
@@ -40,7 +41,7 @@ def change_settings(kijikuRules:dict ,configDir:str) -> None:
      
     while(True):
 
-        os.system('cls')
+        associated_functions.clear_console()
 
         print("See https://platform.openai.com/docs/api-reference/chat/create for further details\n")
 
@@ -131,11 +132,11 @@ def reset_kijiku_rules(configDir:str) -> None:
     with open(os.path.join(configDir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
         json.dump(default,file)
 
-    os.system('cls')
+    associated_functions.clear_console()
      
 #-------------------start-of-initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def initialize_text(textToTranslate:str, configDir:str) -> tuple[list[str],dict]: 
+def initialize_text(textToTranslate:str, configDir:str) -> tuple[List[str],dict]: 
 
     """
 
@@ -187,26 +188,26 @@ def initialize_text(textToTranslate:str, configDir:str) -> tuple[list[str],dict]
                    
             except AuthenticationError: ## if invalid key exit
                      
-                os.system('cls')
+                associated_functions.clear_console()
                         
                 print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\n")
-                os.system('pause')
+                associated_functions.pause_console()
                         
                 exit()
 
             except Exception as e: ## other error, alert user and raise it
 
-                os.system('cls')
+                associated_functions.clear_console()
                         
                 print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
-                os.system('pause')
+                associated_functions.pause_console()
 
                 raise e
                 
     with open(textToTranslate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate
                 text = [line.strip() for line in file.readlines()]
 
-    os.system('cls')
+    associated_functions.clear_console()
 
     try: ## try to load the kijiku rules
 
@@ -216,7 +217,7 @@ def initialize_text(textToTranslate:str, configDir:str) -> tuple[list[str],dict]
             os.remove(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json')
             print("r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json' was deleted due to Kudasai switching to user storage\n\nYour settings have been copied to " + configDir + "\n\n")
             sleep(1)
-            os.system('cls')
+            associated_functions.clear_console()
 
         with open(os.path.join(configDir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
             kijikuRules = json.load(file) 
@@ -234,7 +235,7 @@ def initialize_text(textToTranslate:str, configDir:str) -> tuple[list[str],dict]
 
 #-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def generate_prompt(index:int, promptSize:int) -> tuple[list,int]:
+def generate_prompt(index:int, promptSize:int) -> tuple[List[str],int]:
 
     '''
 
@@ -401,7 +402,7 @@ def redistribute(translatedText:str, sentence_fragmenter_mode:int) -> None:
 
 #-------------------start-of-buildMessages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def buildMessages(systemMessage:str, message_mode:int, promptSize:int) -> list[dict]:
+def buildMessages(systemMessage:str, message_mode:int, promptSize:int) -> List[dict]:
 
     '''
 
@@ -571,7 +572,7 @@ def commence_translation(japaneseText,scriptDir,configDir) -> None:
 
         timeStart = time.time()
 
-        os.system('cls')
+        associated_functions.clear_console()
 
         debugText.append("\nStarting Prompt Building\n-------------------------\n")
 
@@ -582,13 +583,13 @@ def commence_translation(japaneseText,scriptDir,configDir) -> None:
         print("\nEstimated Number of Tokens in Text : " + str(numTokens))
         print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
 
-        os.system('pause /P "Press any key to continue with translation..."')
+        associated_functions.pause_console("Press any key to continue with translation...")
 
         debugText.append("\nStarting Translation\n-------------------------")
 
         while(i+2 <= len(messages)):
 
-            os.system('cls')
+            associated_functions.clear_console()
 
             print("Trying " + str(i+2) + " of " + str(len(messages)))
             debugText.append("\n\n-------------------------\nTrying " + str(i+2) + " of " + str(len(messages)) + "\n-------------------------\n")

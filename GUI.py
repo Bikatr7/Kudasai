@@ -1,6 +1,8 @@
 import tkinter as tk
 import os
 
+from typing import List
+
 import Kudasai
 
 class KudasaiGUI:
@@ -35,7 +37,7 @@ class KudasaiGUI:
 
 #-------------------start-of-get_json_options()-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def get_json_options(self) -> tuple[list[str], list[str]]:
+    def get_json_options(self) -> tuple[List[str], List[str]]:
 
         """
 
@@ -130,7 +132,7 @@ class KudasaiGUI:
 
 #-------------------start-of-create_json_option_menu()---------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def create_json_option_menu(self, jsonFiles:list[str]) -> None:
+    def create_json_option_menu(self, jsonFiles:List[str]) -> None:
 
         """
 
@@ -219,7 +221,7 @@ class KudasaiGUI:
 
         Kudasai.main(os.path.join(self.configDir,"guiTemp.txt"), self.jsonPaths[self.jsonFiles.index(self.selected_option.get())],isGui=True)
 
-        with open(os.path.join(self.scriptDir,"KudasaiOutput\\preprocessedText.txt"), "r+", encoding="utf-8") as file:
+        with open(os.path.join(os.path.join(self.scriptDir,"KudasaiOutput"), "preprocessedText.txt"), "r+", encoding="utf-8") as file:
             text = file.read()
 
         self.label.config(text=text, justify=tk.LEFT, anchor=tk.NW)

@@ -91,7 +91,6 @@ For the json it has to be a specific format, you can see several examples in the
 
   "single_names": {
     "Kijima": ["鬼島"],
-  
     "king": ["Wan-sama"]
 
   },

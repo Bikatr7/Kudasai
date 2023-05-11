@@ -18,7 +18,19 @@ Derived from https://github.com/Atreyagaurav/mtl-related-scripts
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-Run the pip commands listed in requirements.txt before running Kudasai.
+Dependencies:
+
+spacy[jp]
+spacy[en]
+ja_core_news_lg
+en_core_web_lg
+deepl
+openai
+backoff
+requests
+tiktoken
+
+or see requirements.txt
 
 Please note that issues can occur when trying to install these dependencies:
 
@@ -51,7 +63,6 @@ C:\users\Tetra\Desktop\arc 8 chapter 9.txt is the path to the .txt file that nee
 C:\Users\Tetra\Documents\Repositories\Kudasai\Replacements\Rezero Replacements.json is the path to the JSON Criteria
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 JSON Criteria
 
@@ -156,5 +167,13 @@ Util folder has a script called Token Counter.py that lets you estimated the num
 GUI:
 
 GUI.py is a GUI Interface for Kudasai.py, it does not include Kijiku or Kaiseki currently, and is solely for providing a visual interface for preprocessing.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+Naming Conventions:
+
+Kudasai.py - Main Script (Preprocessing) - ください　- Please
+Kijiku.py - openai translation module - 基軸 - Foundation
+Kaiseki.py - deepl translation module - 解析 - Parsing
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------

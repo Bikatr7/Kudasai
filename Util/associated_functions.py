@@ -73,7 +73,7 @@ def get_elapsed_time(start:float, end:float) -> str:
 
 #-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def output_results(scriptDir:str, debugText:List[str], jeCheckText:List[str], finalText:List[str], errorText:List[str]) -> None:
+def output_results(scriptDir:str, configDir:str, debugText:List[str], jeCheckText:List[str], finalText:List[str], errorText:List[str],fromGui) -> None:
 
         '''
 
@@ -113,6 +113,16 @@ def output_results(scriptDir:str, debugText:List[str], jeCheckText:List[str], fi
         with open(errorPath, 'w+', encoding='utf-8') as file:
                 file.writelines(errorText)
 
+
+        if(fromGui):
+            with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                file.write("Debug text have been written to : " + debugPath + "\n\n")
+                file.write("J->E text have been written to : " + jePath + "\n\n")
+                file.write("Translated text has been written to : " + resultsPath + "\n\n")
+                file.write("Errors have been written to : " + errorPath + "\n\n")
+
+            return
+        
         print("\n\nDebug text have been written to : " + debugPath)
         print("\nJ->E text have been written to : " + jePath)
         print("\nTranslated text has been written to : " + resultsPath)

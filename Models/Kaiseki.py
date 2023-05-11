@@ -243,7 +243,7 @@ def separate(sentence) -> tuple[List[str], List[str], List[bool]]:
 
 #-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir): ## for translating each part of a sentence
+def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir,configDir,fromGui): ## for translating each part of a sentence
 
         """
 
@@ -335,7 +335,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,sc
 
                         associated_functions.pause_console()
 
-                        associated_functions.output_results(scriptDir,debugText,jeCheckText,finalText,errorText)
+                        associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,finalText,errorText,fromGui)
                         exit()
                         
                 except ValueError as e:
@@ -357,7 +357,7 @@ def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,sc
 
 #-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(translator:Translator, japaneseText:List[str],scriptDir:str) -> None:
+def commence_translation(translator:Translator, japaneseText:List[str],scriptDir:str,configDir,fromGui) -> None:
 
         """
         
@@ -411,7 +411,7 @@ def commence_translation(translator:Translator, japaneseText:List[str],scriptDir
                         
                                 sentenceParts,sentencePunctuation,specialPunctuation = separate(sentence)
 
-                                finalText.append(translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir))
+                                finalText.append(translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir,configDir,fromGui))
 
                                 if(len(finalText[i]) > 0 and finalText[i] != "" and finalText[i][-2] not in string.punctuation and sentencePunctuation[-1] == None): ## this is for adding a period if it's missing 
                                         finalText[i] = finalText[i] + "."
@@ -441,14 +441,23 @@ def commence_translation(translator:Translator, japaneseText:List[str],scriptDir
                         print(str(i) + "/" + str(len(japaneseText)) + " completed.")
 
 
-                associated_functions.output_results(scriptDir,debugText,jeCheckText,finalText,errorText)
+                associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,finalText,errorText,fromGui)
 
                 timeEnd = time.time()
 
-                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
+                if(fromGui):
+                        with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                                file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd) + "\n\n")
+                
+                else:
+                       print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
 
-                associated_functions.pause_console()
+
                 
         except Exception as e:
-               print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-               associated_functions.output_results(scriptDir,debugText,jeCheckText,finalText,errorText)
+                if(fromGui):
+                        with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                                file.write("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+
+                print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+                associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,finalText,errorText,fromGui)

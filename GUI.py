@@ -1,13 +1,12 @@
-import tkinter as tk
 import os
+import tkinter as tk
 
 import Kudasai
 
 from typing import List
-from tkinter import ttk
-from time import sleep
+from tkinter import scrolledtext
 
-from Models import Kijiku
+from Models import Kijiku, Kaiseki
 
 
 class KudasaiGUI:
@@ -16,22 +15,26 @@ class KudasaiGUI:
 
     def __init__(self) -> None:
 
-        self.mainWindow = tk.Tk()
-        self.mainWindow.title("Kudasai GUI")
-        self.mainWindow.configure(bg="#202020")
-        self.mainWindow.geometry("1200x600")
+        os.system("title " + "Kudasai Console")
 
         self.text_color = "#FFFFFF"
         self.primaryColor = "#000000"
         self.secondaryColor = "#202020"
 
-        self.scriptDir = os.path.dirname(os.path.abspath(__file__))
+        self.mainWindow = tk.Tk()
+        self.mainWindow.title("Kudasai GUI")
+        self.mainWindow.configure(bg="#202020")
+        self.mainWindow.geometry("1200x600")
+        self.mainWindow.resizable(False, False) # Prevents resizing of window
+
+        self.mainWindow.protocol("WM_DELETE_WINDOW", self.on_main_window_close) # Calls on_main_window_close() when the main window is closed
 
         if(os.name == 'nt'):  # Windows
             self.configDir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
         else:  # Linux
             self.configDir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
 
+        self.scriptDir = os.path.dirname(os.path.abspath(__file__))
 
         self.jsonFiles = []
         self.jsonPaths = []
@@ -39,25 +42,145 @@ class KudasaiGUI:
         self.modelFiles = []
         self.modelPaths = []
 
-        self.jsonFiles, self.jsonPaths = self.get_json_options()
-        self.modelFiles, self.modelPaths = self.get_translation_mode_options()
+        self.jsonFiles, self.jsonPaths = self.get_json_options() # Get options for preprocessing mode
+        self.modelFiles, self.modelPaths = self.get_translation_mode_options() # Get options for translation mode
 
+        self.unpreprocessedTextPath = os.path.join(self.configDir,"unpreprocessedText.txt")
+        self.guiTempTranslationLogPath = os.path.join(self.configDir,"guiTempTranslationLog.txt")
+
+        self.guiTempKaisekiPath = os.path.join(self.configDir,"guiTempKaiseki.txt")
+        self.guiTempKijikuPath = os.path.join(self.configDir,"guiTempKijiku.txt")
+
+        self.kudasaiResultsPath = os.path.join(os.path.join(self.scriptDir,"KudasaiOutput"), "output.txt")
+        self.translatedTextPath = os.path.join(os.path.join(self.scriptDir,"KudasaiOutput"), "translatedText.txt")
+        self.preprocessedTextPath = os.path.join(os.path.join(self.scriptDir,"KudasaiOutput"), "preprocessedText.txt")
+
+        self.create_secondary_window()
 
         self.create_text_entry()
 
         self.create_frames()
 
         self.create_preprocess_button()
-        self.create_json_option_menu(self.jsonFiles)
+        self.create_json_option_menu()
 
         self.create_copy_button()
         self.create_translate_button()
 
-        self.create_translation_mode_menu(self.modelFiles)
+        self.create_translation_mode_menu()
 
-        self.create_progress_bar()
+        self.create_main_output_label()
 
-        self.create_output_label()
+#-------------------start-of-reset_preprocessing_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset_preprocessing_files(self) -> None:
+
+        """
+
+        Resets the files\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+        outputDir = os.path.join(self.scriptDir, "KudasaiOutput")
+        if(not os.path.exists(outputDir)):
+            os.mkdir(outputDir)
+
+        filesToTruncate = [
+            self.kudasaiResultsPath,
+            self.preprocessedTextPath
+        ]
+
+        for filePath in filesToTruncate: # Creates files if they don't exist, truncates them if they do
+            with open(filePath, 'w+') as file:
+                file.truncate(0)
+
+#-------------------start-of-reset_preprocessing_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset_translation_files(self) -> None:
+
+        """
+
+        Resets the files\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+        outputDir = os.path.join(self.scriptDir, "KudasaiOutput")
+        if(not os.path.exists(outputDir)):
+            os.mkdir(outputDir)
+
+        filesToTruncate = [
+            self.translatedTextPath,
+        ]
+
+        for filePath in filesToTruncate: # Creates files if they don't exist, truncates them if they do
+            with open(filePath, 'w+') as file:
+                file.truncate(0)
+
+#-------------------start-of-reset_preprocessing_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset_temp_files(self) -> None:
+
+        """
+
+        Resets the files\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+        outputDir = os.path.join(self.scriptDir, "KudasaiOutput")
+        if(not os.path.exists(outputDir)):
+            os.mkdir(outputDir)
+
+        filesToTruncate = [
+            self.unpreprocessedTextPath,
+            self.guiTempTranslationLogPath,
+            self.guiTempKaisekiPath,
+            self.guiTempKijikuPath,
+        ]
+
+        for filePath in filesToTruncate: # Creates files if they don't exist, truncates them if they do
+            with open(filePath, 'w+') as file:
+                file.truncate(0)
+
+#-------------------start-of-create_secondary_window()-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def create_secondary_window(self) -> None:
+
+        """
+
+        Creates the secondary window\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.secondaryWindow = tk.Tk()
+        self.secondaryWindow.title("Results")
+        self.secondaryWindow.configure(bg="#202020")
+        self.secondaryWindow.geometry("300x600")
+        self.secondaryWindow.resizable(False, False) # Prevents resizing of window
+
+        self.secondaryWindow.withdraw() # Hides the window
+
+        self.create_results_output_label()
 
 #-------------------start-of-create_text_entry()-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -78,9 +201,9 @@ class KudasaiGUI:
         self.textEntry = tk.Text(self.mainWindow, bg=self.primaryColor, fg=self.text_color, height=18, width=600)
         self.textEntry.pack(side=tk.TOP)
 
-#-------------------start-of-create_output_label()----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------start-of-create_main_output_label()----------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def create_output_label(self) -> None:
+    def create_main_output_label(self) -> None:
 
         """
 
@@ -94,23 +217,52 @@ class KudasaiGUI:
 
         """
 
-        self.label = tk.Label(self.mainWindow, bg=self.primaryColor, fg=self.text_color, height=18, width=600)
-        self.label.pack(side=tk.BOTTOM)
+        self.mainOutputLabel = scrolledtext.ScrolledText(self.mainWindow, bg=self.primaryColor, fg=self.text_color, height=18, width=600)
+        self.mainOutputLabel.pack(side=tk.BOTTOM)
+
+#-------------------start-of-create_results_output_label()-------------------------------------------------------------------------------------------------------------------------------------------
+
+    def create_results_output_label(self) -> None:
+
+        """
+
+        Creates the output label\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.secondaryOutputLabel = scrolledtext.ScrolledText(self.secondaryWindow, bg=self.primaryColor, fg=self.text_color, height=39, width=300)
+        self.secondaryOutputLabel.pack(side=tk.BOTTOM)
+
 #-------------------start-of-create_frames()---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def create_frames(self) -> None:
 
-        self.topButtonFrame = tk.Frame(self.mainWindow, bg=self.primaryColor)
+        """
+
+        Creates the frames\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.topButtonFrame = tk.Frame(self.mainWindow, bg=self.primaryColor) # Frame for the top buttons
         self.topButtonFrame.pack()
 
-        self.middleButtonFrame = tk.Frame(self.mainWindow, bg=self.primaryColor)
+        self.middleButtonFrame = tk.Frame(self.mainWindow, bg=self.primaryColor) # Frame for the middle buttons
         self.middleButtonFrame.pack()
 
-        self.bottomButtonFrame = tk.Frame(self.mainWindow, bg=self.primaryColor)
+        self.bottomButtonFrame = tk.Frame(self.mainWindow, bg=self.primaryColor) # Frame for the bottom buttons
         self.bottomButtonFrame.pack()
-
-        self.progressBarFrame = tk.Frame(self.mainWindow, bg=self.primaryColor)
-        self.progressBarFrame.pack()
 
 #-------------------start-of-create_preprocess_button()---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -171,7 +323,7 @@ class KudasaiGUI:
 
 #-------------------start-of-create_json_option_menu()---------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def create_json_option_menu(self, jsonFiles:List[str]) -> None:
+    def create_json_option_menu(self) -> None:
 
         """
 
@@ -185,21 +337,21 @@ class KudasaiGUI:
 
         """
 
-        options = jsonFiles
+        options = self.jsonFiles
         self.selectedJsonMode = tk.StringVar()  
-        self.selectedJsonMode.set(options[0])  
+        self.selectedJsonMode.set(options[0])  # Set default value
 
         jsonOptionMenu = tk.OptionMenu(self.topButtonFrame, self.selectedJsonMode, *options)
         jsonOptionMenu.configure(bg=self.primaryColor, fg=self.text_color, highlightbackground=self.primaryColor, activebackground=self.primaryColor, menu=jsonOptionMenu['menu'])  # Set colors
 
-        menu = jsonOptionMenu['menu']
-        menu.configure(bg=self.primaryColor, fg=self.text_color)
+        menu = jsonOptionMenu['menu'] 
+        menu.configure(bg=self.primaryColor, fg=self.text_color) # Set colors
 
         jsonOptionMenu.pack(side=tk.LEFT)
 
 #-------------------start-of-create_translation_mode_menu()---------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def create_translation_mode_menu(self, translationModes:List[str]) -> None:
+    def create_translation_mode_menu(self) -> None:
 
         """
 
@@ -213,65 +365,18 @@ class KudasaiGUI:
 
         """
 
-        options = translationModes
-        self.selectedTranslationMode = tk.StringVar()  
-        self.selectedTranslationMode.set(options[0])  
+        options = self.modelFiles
+        self.selectedTranslationMode = tk.StringVar()   
+        self.selectedTranslationMode.set(options[0])  # Set default value
 
         translationModeMenu = tk.OptionMenu(self.bottomButtonFrame, self.selectedTranslationMode, *options)
         translationModeMenu.configure(bg=self.primaryColor, fg=self.text_color, highlightbackground=self.primaryColor, activebackground=self.primaryColor, menu=translationModeMenu['menu'])
 
-        # Configure the menu items' background and foreground color
-
         menu = translationModeMenu['menu']
-        menu.configure(bg=self.primaryColor, fg=self.text_color)
+        menu.configure(bg=self.primaryColor, fg=self.text_color) # Set colors
 
         translationModeMenu.pack(side=tk.RIGHT)
 
-#-------------------start-of-create_progress_bar()--------------------------------------------------------------------------------------------------------------------------------------------------------
-        
-    def create_progress_bar(self) -> None:
-
-        """
-
-        Creates the progress bar\n
-
-        Parameters:\n
-        None\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        style = ttk.Style()
-        style.theme_use('clam')  # Set a theme to avoid layout errors
-        
-        style.layout(
-            "Custom.Horizontal.TProgressbar",
-            [
-                ("Horizontal.Progressbar.trough",
-                {"children": [("Horizontal.Progressbar.pbar",
-                                {"side": "left", "sticky": "ns"})],
-                "sticky": "nswe"})
-            ]
-        )
-        
-        style.configure(
-            "Custom.Horizontal.TProgressbar",
-            background=self.secondaryColor,
-            troughcolor=self.primaryColor
-        )
-
-        
-        self.progress = ttk.Progressbar(
-            self.progressBarFrame,
-            orient=tk.HORIZONTAL,
-            length=200,
-            mode='determinate',
-            style="Custom.Horizontal.TProgressbar"
-        )
-        self.progress.pack(side=tk.RIGHT)
-        
 #-------------------start-of-get_json_options()-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def get_json_options(self) -> tuple[List[str], List[str]]:
@@ -296,7 +401,7 @@ class KudasaiGUI:
 
         for fileName in os.listdir(jsonFolder):
 
-            if(fileName.endswith(".json")):
+            if(fileName.endswith(".json")): # If the file is a json file, add it to the options
                 filePath = os.path.join(jsonFolder, fileName)
                 jsonFiles.append(fileName)
                 jsonPaths.append(filePath)
@@ -326,8 +431,9 @@ class KudasaiGUI:
 
         for fileName in os.listdir(modelFolder):
 
-            if(fileName.endswith(".py") and not fileName.startswith("__init__")):
+            if(fileName.endswith(".py") and not fileName.startswith("__init__")): # If the file is a model file, add it to the options
                 filePath = os.path.join(modelFolder, fileName)
+                fileName = fileName.replace(".py", "")
                 modelFiles.append(fileName)
                 modelPaths.append(filePath)
 
@@ -348,17 +454,37 @@ class KudasaiGUI:
 
         """
 
-        text = self.textEntry.get("1.0", tk.END)
+        self.reset_temp_files() # Reset the files
+        self.reset_preprocessing_files
 
-        with open(os.path.join(self.configDir,"guiTempPreprocess.txt"), "w+", encoding="utf-8") as file:
-            file.write(text)
+        unpreprocessedText = self.textEntry.get("1.0", tk.END)
 
-        Kudasai.main(os.path.join(self.configDir,"guiTempPreprocess.txt"), self.jsonPaths[self.jsonFiles.index(self.selectedJsonMode.get())],isGui=True)
+        with open(self.unpreprocessedTextPath, "w+", encoding="utf-8") as file: # Write the text to a temporary file for Kudasai to read and preprocess
+            file.write(unpreprocessedText)
 
-        with open(os.path.join(os.path.join(self.scriptDir,"KudasaiOutput"), "preprocessedText.txt"), "r+", encoding="utf-8") as file:
-            text = file.read()
+        Kudasai.main(self.unpreprocessedTextPath, self.jsonPaths[self.jsonFiles.index(self.selectedJsonMode.get())],isGui=True) # Preprocess the text
 
-        self.label.config(text=text, justify=tk.LEFT, anchor=tk.NW)
+        with open(self.preprocessedTextPath, "r+", encoding="utf-8") as file:
+            preprocessedText = file.read() # Read the preprocessed text
+
+        with open(self.kudasaiResultsPath, "r+", encoding="utf-8") as file:
+            kudasaiResults = file.read() # Read the results
+
+        self.mainOutputLabel.delete("1.0", tk.END)
+        self.mainOutputLabel.insert(tk.END, preprocessedText) # Display the preprocessed text
+        
+        try: # Try to display the results
+            self.secondaryOutputLabel.delete("1.0", tk.END)
+            self.secondaryOutputLabel.insert(tk.END, kudasaiResults)
+
+
+        except: # if window is destroyed, create a new one
+            self.create_secondary_window()
+            self.secondaryOutputLabel.insert(tk.END, kudasaiResults)
+
+        self.secondaryWindow.deiconify() # Show the results window
+
+        self.secondaryWindow.mainloop()
 
 #-------------------start-of-translate()-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -376,29 +502,14 @@ class KudasaiGUI:
 
         """            
 
-        text = self.textEntry.get("1.0", tk.END)
+        self.reset_temp_files() # Reset the files
+        self.reset_translation_files()
+
+        if(self.selectedTranslationMode.get() == "Kijiku"):
+            self.handle_kijiku()
         
-
-        with open(os.path.join(self.configDir,"guiTempKijiku.txt"), "w+", encoding="utf-8") as file:
-            file.writelines(text)
-
-        text,_ = Kijiku.initialize_text(os.path.join(self.configDir,"guiTempKijiku.txt"),self.configDir)
-
-        Kijiku.commence_translation(text,self.scriptDir,self.configDir,fromGui=True)
-
-        with open(os.path.join(os.path.join(self.scriptDir,"KudasaiOutput"), "translatedText.txt"), "r+", encoding="utf-8") as file:
-            text = file.read()
-        
-        self.label.config(text=text, justify=tk.LEFT, anchor=tk.NW)
-
-        """
-        self.progress['maximum'] = 100
-        for i in range(101):
-            self.progress['value'] = i
-            self.progress.update()
-
-            time.sleep(0.05)
-        """
+        elif(self.selectedTranslationMode.get() == "Kaiseki"):
+            self.handle_kaiseki()
 
 #-------------------start-of-copy_output()-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -417,7 +528,122 @@ class KudasaiGUI:
         """
 
         self.mainWindow.clipboard_clear()
-        self.mainWindow.clipboard_append(self.label.cget("text"))
+        self.mainWindow.clipboard_append(self.mainOutputLabel.get("1.0", "end-1c"))
+
+#-------------------start-of-handle_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def handle_kijiku(self) -> None:
+
+        """
+
+        Handles the gui's interaction with the Kijiku model\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        untranslatedText = self.textEntry.get("1.0", tk.END) # Get the text from the text entry box
+
+        with open(self.guiTempKijikuPath, "w+", encoding="utf-8") as file: # Write the text to a temporary file for Kijiku to read and translate
+            file.write(untranslatedText)
+
+        untranslatedText,_ = Kijiku.initialize_text(self.guiTempKijikuPath,self.configDir) # Initialize the text into a list of lines, and ensure the config dictionary is up to date
+        
+        Kijiku.commence_translation(untranslatedText,self.scriptDir,self.configDir,isGui=True) # Translate the text
+
+        with open(self.translatedTextPath, "r+", encoding="utf-8") as file:
+            translatedText = file.read() # Read the translated text
+
+        with open(self.guiTempTranslationLogPath, "r+", encoding="utf-8") as file: # Write the text to a temporary file
+            kijikuResults = file.read() # Read the results
+                
+        self.mainOutputLabel.delete("1.0", tk.END)
+        self.mainOutputLabel.insert(tk.END, translatedText)
+
+        try: # Try to display the results
+            self.secondaryOutputLabel.delete("1.0", tk.END)
+            self.secondaryOutputLabel.insert(tk.END, kijikuResults)
+
+        except: # if window is destroyed, create a new one
+            self.create_secondary_window()
+            self.secondaryOutputLabel.insert(tk.END, kijikuResults)
+
+        self.secondaryWindow.deiconify() # Show the results window
+        self.secondaryWindow.mainloop()
+        
+#-------------------start-of-handle_kaiseki()--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def handle_kaiseki(self) -> None:
+
+        """
+
+        Handles the gui's interaction with the Kaiseki model\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        untranslatedText = self.textEntry.get("1.0", tk.END) # Get the text from the text entry box
+
+        with open(self.guiTempKaisekiPath, "w+", encoding="utf-8") as file: # Write the text to a temporary file for Kaiseki to read and translate
+            file.write(untranslatedText)
+
+        translator,untranslatedText = Kaiseki.initialize_translator(self.guiTempKaisekiPath,self.configDir) # Initialize the translator
+
+        Kaiseki.commence_translation(translator,untranslatedText,self.scriptDir,self.configDir,True) # Translate the text
+
+        with open(self.translatedTextPath, "r+", encoding="utf-8") as file:
+            translatedText = file.read() # Read the translated text
+
+        with open(self.guiTempTranslationLogPath, "r+", encoding="utf-8") as file: # Write the text to a temporary file
+            kaisekiResults = file.read()
+
+        self.mainOutputLabel.delete("1.0", tk.END)
+        self.mainOutputLabel.insert(tk.END, translatedText)
+
+        try: # Try to display the results
+            self.secondaryOutputLabel.delete("1.0", tk.END)
+            self.secondaryOutputLabel.insert(tk.END, kaisekiResults)
+
+        except: # if window is destroyed, create a new one
+            self.create_secondary_window()
+            self.secondaryOutputLabel.insert(tk.END, kaisekiResults)
+
+        self.secondaryWindow.deiconify() # Show the results window
+        self.secondaryWindow.mainloop()
+
+#-------------------start-of-on_main_window_close()-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def on_main_window_close(self):
+
+        """
+
+        Handles the closing of the main window\n
+
+        Parameters:\n
+        None\n
+
+        Returns:\n
+        None\n
+
+        """
+        try:
+            self.secondaryWindow.destroy()
+        except:
+            pass
+        
+        try:
+            self.mainWindow.destroy()
+        except:
+            pass
 
 #-------------------start-of-run()------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

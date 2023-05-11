@@ -68,17 +68,17 @@ def estimate_cost(text:str, model:str):
         return estimate_cost(text, model="gpt-4-0314")
     
     elif(model == "gpt-3.5-turbo-0301"):
-        cosPer1000Tokens = 0.002
+        costPer1000Tokens = 0.002
 
     elif(model == "gpt-4-0314"):
-        cosPer1000Tokens = 0.006
+        costPer1000Tokens = 0.006
 
     else:
         raise NotImplementedError(f"""Token Counter does not support : {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how text are converted to tokens.""")
     
     numTokens = len(encoding.encode(text))
 
-    minCost = (float(numTokens) / 1000.00) * cosPer1000Tokens
+    minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
 
     return numTokens, minCost
 

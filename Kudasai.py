@@ -25,7 +25,7 @@ ner = spacy.load("ja_core_news_lg") # large model for japanese NER (named entity
 SINGLE_KANJI_FILTER = True ## filters out single kanji or uses specific function to deal with it when replacing names
 fromGui = False ## determines if Kudasai is being run from the GUI or not
 
-JAPANESE_NAME_SEPARATORS = ["・", ""] ## japanese names are separated by the ・ or not at all
+JAPANESE_NAME_SEPARATORS = ["・", ""] ## how japanese names are separated in the japanese text
 
 japaneseText = ''
 replacementText = ''
@@ -59,8 +59,7 @@ def check_update() -> bool:
     None\n
 
     Returns:\n
-    None\n
-
+    True if there is user has an internet connection, False otherwise\n
     """
 
     try:
@@ -93,9 +92,9 @@ def output_file_names() -> tuple[str,str,str,str,str,str,str,str]:
 
     Returns:\n
     preprocessPath (string) where the preprocessed text is stored\n
-    outputPath (string) where the output for Kudasai is stored\n
+    outputPath (string) where the output for the Kudasai preprocessor is stored\n
     debugPath (string) where the debug text is stored\n
-    jePath (string) where the text for the j-e checkers is stored\n
+    jePath (string) where the text for the j-e checkers to review is stored\n
     translatedPath (string) where the text translated by Kijiku/Kaiseki is stored\n
     errorPath (string) where the errors are stored (if any)\n
 
@@ -109,10 +108,10 @@ def output_file_names() -> tuple[str,str,str,str,str,str,str,str]:
     else:  # Linux
         configDir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
 
-    if(os.path.exists(outputDir) == False):
+    if(not os.path.exists(outputDir)):
         os.mkdir(outputDir)
 
-    if(os.path.exists(configDir) == False):
+    if(not os.path.exists(configDir)):
         os.mkdir(configDir)
 
     preprocessPath = os.path.join(outputDir, "preprocessedText.txt")
@@ -132,14 +131,14 @@ def replace_single_kanji(kanji:str, replacement:str) -> int:
 
     uses ner (Named Entity Recognition) from the spacy module to replace names that are composed of a single kanji in the japanese text\n
 
-    may miss true positives, but will not replace false positives\n
+    may miss true positives, but should not replace false positives\n
 
     Parameters:\n
-    kanji (string) holds a japanese word to be replaced\n
-    replacement (string) holds the replacement for jap\n
+    kanji (string) japanese kanji to be replaced\n
+    replacement (string) the replacement for kanji\n
 
     Returns:\n
-    kanjiCount (int) how many kanji s were replaced\n
+    kanjiCount (int) how many kanji were replaced\n
 
     """
 
@@ -296,18 +295,18 @@ def replace_name(character:Character, replace:Names, noHonorific:Names, replaced
 
         replacedNames[jap] = total
 
-        if(total == 0 or fromGui): ## if no replacements happened or calling from GUI, skip display
+        if(total == 0): ## if no replacements happened skip display
             continue
 
-
-        print(f'{eng} : {total} (', end='')
         replacementText += f'{eng} : {total} ('
-
-        print(", ".join(map(lambda x: f'{x}-{data[x]}',
-                            filter(lambda x: data[x]>0, data))), end=')\n')
-        
         replacementText += ', '.join([f'{key}-{value}' for key, value in data.items() if value > 0]) + ')\n'
 
+        if(not fromGui):
+
+            print(f'{eng} : {total} (', end='')
+            print(", ".join(map(lambda x: f'{x}-{data[x]}',
+                                filter(lambda x: data[x]>0, data))), end=')\n')
+            
 #-------------------start-of-replace()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def replace() -> str: 
@@ -351,7 +350,7 @@ def replace() -> str:
             try:
                 for eng, jap in replacementJson[jsonKey].items(): 
 
-                    if(isinstance(jap, list) == False):  ## makes eng into a list if not already
+                    if(isinstance(jap, list) == False):  ## makes jap entries into a list if not already
                         jap = [jap]
 
                     char = Character(" ".join(jap), eng)
@@ -367,9 +366,14 @@ def replace() -> str:
             try:
                 for jap, eng in replacementJson[jsonKey].items(): 
                     numReplacements = replace_single_word(jap, eng)
-                    if(numReplacements > 0): ## If a replacement was made
-                        print(str(jap) + " → " + str(eng) + " : " + str(numReplacements))
+
+                    if(numReplacements > 0):
+
                         replacementText += str(jap) + " → " + str(eng) + " : " + str(numReplacements) + "\n"
+
+                        if(not fromGui): 
+                            print(str(jap) + " → " + str(eng) + " : " + str(numReplacements))
+                        
 
             except Exception as E: 
                 errorText.append(str(E) + '\n')
@@ -378,13 +382,13 @@ def replace() -> str:
 
     timeEnd = time.time()
 
+    replacementText += "\nTotal Replacements  : " + str(totalReplacements)
+    replacementText += "\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd)
+
     if(not fromGui): 
 
         print("\nTotal Replacements " + str(totalReplacements))
-        replacementText += "\nTotal Replacements  : " + str(totalReplacements)
-
         print("\nTime Elapsed " + associated_functions.get_elapsed_time(timeStart, timeEnd))
-        replacementText += "\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd)
 
     return japaneseText 
 
@@ -448,7 +452,7 @@ def run_kaiseki(preprocessPath:str, scriptDir:str, configDir:str) -> None:
 
     translator,japaneseText = Kaiseki.initialize_translator(preprocessPath,configDir)
 
-    Kaiseki.commence_translation(translator,japaneseText,scriptDir)
+    Kaiseki.commence_translation(translator,japaneseText,scriptDir,configDir,fromGui)
 
 #-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -494,7 +498,7 @@ def run_kijiku(preprocessPath:str, scriptDir:str, configDir:str) -> None:
 
     sleep(2)
 
-    Kijiku.commence_translation(japaneseText,scriptDir,configDir,fromGui=False)
+    Kijiku.commence_translation(japaneseText,scriptDir,configDir,isGui=False)
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -514,12 +518,18 @@ def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
 
     """
     
-    global japaneseText, replacementJson, totalReplacements, replacementText,errorText,fromGui 
+    global japaneseText, replacementJson, totalReplacements, replacementText,errorText, fromGui 
 
     connection = None
     fromGui = isGui
 
-    if(fromGui == False):
+    
+    if(fromGui): ## If the program was called from the GUI, we need to reset the global variables
+        totalReplacements = 0
+        replacementText = ""
+        errorText = []
+
+    if(not fromGui):
         connection = check_update()
     
     with open(inputFile, 'r', encoding='utf-8') as file: 
@@ -544,17 +554,20 @@ def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
     with open(preprocessPath, 'w+', encoding='utf-8') as file: 
         file.write(japaneseText) 
 
-    with open(outputPath, 'w+', encoding='utf-8') as file: 
+    with open(outputPath, 'w+', encoding='utf-8') as file:
         file.write(replacementText) 
 
-    with open(debugPath, 'w+', encoding='utf-8') as file: 
-        file.truncate(0)
+    if(not os.path.exists(debugPath)):
+        with open(jePath, 'w+', encoding='utf-8') as file:
+            pass
 
-    with open(jePath, 'w+', encoding='utf-8') as file: 
-        file.truncate(0)
+    if(not os.path.exists(jePath)):
+        with open(jePath, 'w+', encoding='utf-8') as file:
+            pass
 
-    with open(translatedPath, 'w+', encoding='utf-8') as file: 
-        file.truncate(0)
+    if(not os.path.exists(translatedPath)):
+        with open(jePath, 'w+', encoding='utf-8') as file:
+            pass
 
     with open(errorPath, 'w+', encoding='utf-8') as file: 
         file.writelines(errorText) 
@@ -568,6 +581,8 @@ def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
         
         if(connection == True):
             determine_translation_automation(preprocessPath,scriptDir,configDir)
+    else:
+        return
 
 #-------------------start-of-sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

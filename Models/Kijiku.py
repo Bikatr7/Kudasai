@@ -151,7 +151,7 @@ def initialize_text(textToTranslate:str, configDir:str) -> tuple[List[str],dict]
     kijikuRules (dict) a dictionary of the rules for kijiku\n
 
     """
-        
+
     try:
         with open(os.path.join(configDir,'GPTApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
             apiKey = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
@@ -466,7 +466,7 @@ def buildMessages(systemMessage:str, message_mode:int, promptSize:int) -> List[d
      
 #-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def estimate_cost(messages, model) -> tuple[int, float]:
+def estimate_cost(messages, model,configDir) -> None:
 
     '''
 
@@ -475,12 +475,14 @@ def estimate_cost(messages, model) -> tuple[int, float]:
     Parameters:\n
     messages (dict - string) the assembled messages that will be given to the model\n
     model (string) a constant that represents which model we will be using\n
+    configDir (string) the directory of the config file\n
 
     Returns:\n
-    numTokens (int) the estimated number of tokens in the messages\n
-    cost (double) the estimated cost of translating messages\n
+    None\n
 
     '''
+
+    global fromGui
     
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -490,11 +492,11 @@ def estimate_cost(messages, model) -> tuple[int, float]:
 
     if(model == "gpt-3.5-turbo"):
         print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
-        return estimate_cost(messages, model="gpt-3.5-turbo-0301")
+        return estimate_cost(messages, model="gpt-3.5-turbo-0301",configDir=configDir)
     
     elif(model == "gpt-4"):
         print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
-        return estimate_cost(messages, model="gpt-4-0314")
+        return estimate_cost(messages, model="gpt-4-0314",configDir=configDir)
     
     elif(model == "gpt-3.5-turbo-0301"):
         costPer1000Tokens = 0.002
@@ -523,16 +525,23 @@ def estimate_cost(messages, model) -> tuple[int, float]:
                 numTokens += tokensPerName
 
     numTokens += 3  # every reply is primed with <|start|>assistant<|message|>
-    minCost = (float(numTokens) / 1000.00) * costPer1000Tokens
+    minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
 
     debugText.append("\nEstimated Tokens in Messages : " + str(numTokens))
     debugText.append("\nEstimated Minimum Cost : " + str(minCost) + '\n')
 
-    return numTokens,minCost
+    if(not fromGui):
+        print("\nEstimated Number of Tokens in Text : " + str(numTokens))
+        print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
+    else:
+        with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+            file.write("\nEstimated Number of Tokens in Text : " + str(numTokens) + "\n")
+            file.write("\nEstimated Minimum Cost of Translation : " + str(minCost) + "\n\n")
+
 
 #-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def commence_translation(japaneseText,scriptDir,configDir,fromGui) -> None:
+def commence_translation(japaneseText,scriptDir,configDir,isGui) -> None:
 
     """
         
@@ -550,8 +559,8 @@ def commence_translation(japaneseText,scriptDir,configDir,fromGui) -> None:
     
     try:
      
-        global debugText,jeCheckText,errorText,resultText,text,isGui
-        debugText,jeCheckText,errorText,resultText,text,isGui = [],[],[],[],japaneseText,fromGui
+        global debugText,jeCheckText,errorText,resultText,text,fromGui
+        debugText,jeCheckText,errorText,resultText,text,fromGui = [],[],[],[],japaneseText,isGui
 
         i = 0
 
@@ -578,12 +587,9 @@ def commence_translation(japaneseText,scriptDir,configDir,fromGui) -> None:
 
         messages = buildMessages(systemMessage,message_mode,promptSize)
 
-        numTokens,minCost = estimate_cost(messages,MODEL)
+        estimate_cost(messages,MODEL,configDir)
 
-        print("\nEstimated Number of Tokens in Text : " + str(numTokens))
-        print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
-
-        if(isGui == False):
+        if(fromGui == False):
             associated_functions.pause_console("Press any key to continue with translation...")
 
         debugText.append("\nStarting Translation\n-------------------------")
@@ -601,18 +607,27 @@ def commence_translation(japaneseText,scriptDir,configDir,fromGui) -> None:
 
             i+=2
 
-        associated_functions.output_results(scriptDir,debugText,jeCheckText,resultText,errorText)
+        associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,resultText,errorText,fromGui)
 
         timeEnd = time.time()
 
-        print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
+        if(fromGui):
+                with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                        file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd) + "\n\n")
+        
+        else:
+                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
 
     except Exception as e: 
 
         print("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
         errorText.append("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-        
-        associated_functions.output_results(scriptDir,debugText,jeCheckText,resultText,errorText)
+
+        if(fromGui):
+            with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                file.write("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+
+        associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,resultText,errorText,fromGui)
 
 

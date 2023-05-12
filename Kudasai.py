@@ -558,7 +558,7 @@ def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
         file.write(replacementText) 
 
     if(not os.path.exists(debugPath)):
-        with open(jePath, 'w+', encoding='utf-8') as file:
+        with open(debugPath, 'w+', encoding='utf-8') as file:
             pass
 
     if(not os.path.exists(jePath)):
@@ -566,7 +566,7 @@ def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
             pass
 
     if(not os.path.exists(translatedPath)):
-        with open(jePath, 'w+', encoding='utf-8') as file:
+        with open(translatedPath, 'w+', encoding='utf-8') as file:
             pass
 
     with open(errorPath, 'w+', encoding='utf-8') as file: 

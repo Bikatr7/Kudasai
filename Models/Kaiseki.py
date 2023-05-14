@@ -12,15 +12,7 @@ from deepl.exceptions import QuotaExceededException
 from deepl.exceptions import AuthorizationException
 from deepl import Translator
 
-
 from Util import associated_functions
-
-'''
-Kaiseki.py
-
-Original Author: Seinu#7854
-
-'''
 
 #-------------------start-of-initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

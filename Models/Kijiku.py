@@ -397,7 +397,7 @@ def redistribute(translatedText:str, sentence_fragmenter_mode:int) -> None:
 
     elif(sentence_fragmenter_mode == 3): # mode 3 just assumes gpt formatted it properly
         
-        resultText.append(translatedText + '\n')
+        resultText.append(translatedText + '\n\n')
         jeCheckText.append(translatedText + '\n')
 
 #-------------------start-of-buildMessages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

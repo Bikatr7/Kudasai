@@ -383,10 +383,14 @@ def commence_translation(translator:Translator, japaneseText:List[str],scriptDir
                         
                         debugText.append("Initial Sentence : " + sentence)
 
-                        if("△▼△▼△▼△" in sentence):
-                                finalText.append(sentence + "\n")
+                        if(any(char in sentence for char in ["▼", "△", "◇"])):
+                                finalText.append(sentence + '\n')
                                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
 
+                        elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in " " for char in sentence)):
+                                finalText.append(sentence + '\n') 
+                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is part marker... leaving intact\n-----------------------------------------------\n\n")
+                
                         elif bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]):
                                 debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
                                 finalText.append(sentence + "\n")

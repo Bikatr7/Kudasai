@@ -15,7 +15,6 @@ from Util import associated_functions
 
 #-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 class Kaiseki:
 
     """
@@ -24,19 +23,19 @@ class Kaiseki:
     
     """
 
-
 #-------------------start-of-__init__()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, text_to_translate:str, config_dir:str, script_dir:str, from_gui:bool) -> None:
+    def __init__(self, config_dir:str, script_dir:str, from_gui:bool) -> None:
 
         """
 
-        Constructor for the Kaiseki class. Takes in the path to the text file to translate_sentence and the path to the config directory.\n
+        Constructor for the Kaiseki Class, Takes in the path to the config directory and the path to the main script directory as well as a boolean indicating if the translation request is from the gui or not.\n
 
         Parameters:\n
         self (object - Kaiseki) : the Kaiseki object.\n
-        text_to_translate (str) : the path to the text file to translate_sentence.\n
         config_dir (str) : the path to the config directory.\n
+        script_dir (str) : the path to the main script directory.\n
+        from_gui (bool) : if the translation request is from the gui or not.\n
 
         Returns:\n
         None\n
@@ -52,7 +51,7 @@ class Kaiseki:
         ## if the translation request is from the gui or not
         self.from_gui = from_gui
 
-        ## the text to translate_sentence
+        ## the text to translate
         self.japanese_text = []
 
         ## parts of the self.current_sentence
@@ -62,7 +61,7 @@ class Kaiseki:
         self.sentence_punctuation = []
 
         ## if the self.current_sentence contains special punctuation
-        self.special_punctuation = [] ## [0] = "" [1] = ~ [2] = '' in self.current_sentence but not entire self.current_sentence [3] = '' but entire self.current_sentence
+        self.special_punctuation = [] ## [0] = "" [1] = ~ [2] = '' in self.current_sentence but not entire self.current_sentence [3] = '' but entire self.current_sentence [3] if () in self.current_sentence
 
         ## the debugging text for developers
         self.debug_text = []
@@ -99,10 +98,9 @@ class Kaiseki:
 
         """
 
-        self.initialize(text_to_translate)
+        self.initialize(text_to_translate) ## initialize the Kaiseki object
 
-        self.commence_translation()
-
+        self.commence_translation() ## commence the translation
 
 #-------------------start-of-initialize()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -202,7 +200,6 @@ class Kaiseki:
                 
                 self.debug_text.append("Initial Sentence : " + self.current_sentence)
 
-
                 if(any(char in self.current_sentence for char in ["▼", "△", "◇"])):
                     self.translated_text.append(self.current_sentence + '\n')
                     self.debug_text.append("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
@@ -259,14 +256,14 @@ class Kaiseki:
 
             associated_functions.output_results(self.script_dir,self.config_dir,self.debug_text,self.je_check_text,self.translated_text,self.error_text,self.from_gui)
 
-            timeEnd = time.time()
+            time_end = time.time()
 
             if(self.from_gui):
                 with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
-                        file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, timeEnd) + "\n\n")
+                        file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end) + "\n\n")
             
             else:
-                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, timeEnd))
+                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end))
 
         except Exception as e:
             if(self.from_gui):
@@ -280,7 +277,8 @@ class Kaiseki:
     
     def separate_sentence(self) -> None: 
 
-        self.sentence_parts = []
+        ## resets variables for current_sentence
+        self.sentence_parts = [] 
         self.sentence_punctuation = []
         self.special_punctuation = [False,False,False,False,False] 
 
@@ -288,20 +286,25 @@ class Kaiseki:
 
         buildString = ""
 
+        ## checks if quotes are in the sentence and removes them
         if('"' in self.current_sentence):
             self.current_sentence = self.current_sentence.replace('"', '')
             self.special_punctuation[0] = True
 
+        ## checks if tildes are in the sentence
         if('~' in self.current_sentence):
             self.special_punctuation[1] = True
 
+        ## checks if apostrophes are in the sentence but not at the beginning or end
         if(self.current_sentence.count("'") == 2 and (self.current_sentence[0] != "'" and self.current_sentence[-1] != "'")):
             self.special_punctuation[2] = True
 
+        ## checks if apostrophes are in the sentence and removes them
         elif(self.current_sentence.count("'") == 2):
             self.special_punctuation[3] = True
             self.current_sentence = self.current_sentence.replace("'", "")
 
+        ## checks if parentheses are in the sentence and removes them
         if("(" in self.current_sentence and ")" in self.current_sentence):
             self.special_punctuation[4] = True
             self.current_sentence= self.current_sentence.replace("(","")
@@ -402,7 +405,7 @@ class Kaiseki:
         self.debug_text.append("\nSentence Punctuation " + str(self.sentence_punctuation))
         self.debug_text.append("\nDoes Sentence Have Special Punctuation : " + str(self.special_punctuation))
 
-        self.sentence_parts = [part.strip() for part in self.sentence_parts] ## strip the parts as well
+        self.sentence_parts = [part.strip() for part in self.sentence_parts] ## strip the sentence parts
 
 #-------------------start-of-translate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -420,58 +423,60 @@ class Kaiseki:
 
         while(i < len(self.sentence_parts)):
 
-            if(self.special_punctuation[1] == True and "~" in self.sentence_parts[i]): ## if tilde is present in part, delete it and set tilde active to true, so we can add it in a bit
+            ## if tilde is present in part, delete it and set tilde active to true, so we can add it back in a bit
+            if(self.special_punctuation[1] == True and "~" in self.sentence_parts[i]): 
                 self.sentence_parts[i] = self.sentence_parts[i].replace("~","")
                 tilde_active = True
 
+            ## a quote is present in the sentence, but not enclosing the sentence, we need to isolate it
             if(self.special_punctuation[2] == True and "'" in self.sentence_parts[i] and (self.sentence_parts[i][0] != "'" and self.sentence_parts[i][-1] != "'")): ## isolates the quote in the sentence
                 
-                Str = self.sentence_parts[i]
-                subStart = Str.index("'")
-                subEnd = 0
+                sentence = self.sentence_parts[i]
+                substring_start = sentence.index("'")
+                substring_end = 0
                 quote = ""
 
-                ii = subStart
-                while(ii < len(Str)):
-                    if(Str[ii] == "'"):
-                        subEnd = ii
+                ii = substring_start
+                while(ii < len(sentence)):
+                    if(sentence[ii] == "'"):
+                        substring_end = ii
                     ii+=1
                     
-                quote = Str[subStart+1:subEnd]
-                self.sentence_parts[i] = Str[:subStart+1] + "quote" + Str[subEnd:]
+                quote = sentence[substring_start+1:substring_end]
+                self.sentence_parts[i] = sentence[:substring_start+1] + "quote" + sentence[substring_end:]
 
                 single_quote_active = True
                 
             try:
-                    results = str(self.translator.translate_text(self.sentence_parts[i], source_lang= "JA", target_lang="EN-US")) 
+                results = str(self.translator.translate_text(self.sentence_parts[i], source_lang= "JA", target_lang="EN-US")) 
 
-                    translatedPart = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
-                    translatedPart = translatedPart.rstrip() 
+                translated_part = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
+                translated_part = translated_part.rstrip() 
 
 
-                    if(tilde_active == True): ## here we re-add the tilde, (note not always accurate but mostly is)
-                        translatedPart += "~"
-                        tilde_active = False
+                if(tilde_active == True): ## here we re-add the tilde, (note not always accurate but mostly is)
+                    translated_part += "~"
+                    tilde_active = False
 
-                    if(single_quote_active == True): ## translates the quote and readds it back to the sentence part
-                        quote = str(self.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
-                        
-                        quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
-                        quote = quote.rstrip() 
+                if(single_quote_active == True): ## translates the quote and readds it back to the sentence part
+                    quote = str(self.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
+                    
+                    quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
+                    quote = quote.rstrip() 
 
-                        translatedPart = translatedPart.replace("'quote'","'" + quote + "'",1)
+                    translated_part = translated_part.replace("'quote'","'" + quote + "'",1)
 
-                    if(len(self.sentence_punctuation) > len(self.sentence_parts)): ## if punctuation appears first and before any text, add the punctuation and remove it form the list.
-                        self.translated_sentence += self.sentence_punctuation[0]
-                        self.sentence_punctuation.pop(0)
+                if(len(self.sentence_punctuation) > len(self.sentence_parts)): ## if punctuation appears first and before any text, add the punctuation and remove it form the list.
+                    self.translated_sentence += self.sentence_punctuation[0]
+                    self.sentence_punctuation.pop(0)
 
-                    if(self.sentence_punctuation[i] != None):
-                        self.translated_sentence += translatedPart + self.sentence_punctuation[i] 
-                    else:
-                        self.translated_sentence += translatedPart 
+                if(self.sentence_punctuation[i] != None):
+                    self.translated_sentence += translated_part + self.sentence_punctuation[i] 
+                else:
+                    self.translated_sentence += translated_part 
 
-                    if(i != len(self.sentence_punctuation)-1):
-                        self.translated_sentence += " "
+                if(i != len(self.sentence_punctuation)-1):
+                    self.translated_sentence += " "
                         
             except deepl.exceptions.QuotaExceededException:
 
@@ -496,5 +501,5 @@ class Kaiseki:
 
             i+=1
 
-
         self.translated_text.append(self.translated_sentence)
+        self.translated_sentence = ""

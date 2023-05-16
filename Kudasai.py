@@ -579,16 +579,15 @@ class Kudasai:
 
         time.sleep(1)
 
-        kaiseki_client = Kaiseki.Kaiseki(self.preprocess_path, self.config_dir,self.script_dir,from_gui=False)
+        kaiseki_client = Kaiseki.Kaiseki(self.config_dir,self.script_dir,from_gui=False)
 
-        Kaiseki.Kaiseki.translate(kaiseki_client,self.preprocess_path)
-
-
+        kaiseki_client.translate(self.preprocess_path)
 
 #-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def run_kijiku(self) -> None:
         pass
+
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called outside cmd prints usage statement
@@ -606,6 +605,6 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
 
     kudasai_client = Kudasai(sys.argv[1], sys.argv[2], from_gui=False) # creates Kudasai object, passing in input file and replacement json file, and if it is being run from the GUI or not
 
-    Kudasai.preprocess(kudasai_client) # preprocesses the text
+    kudasai_client.preprocess() # preprocesses the text
 
-    Kudasai.determine_translation_automation(kudasai_client) # determines which translation module the user wants to use and calls it
+    kudasai_client.determine_translation_automation() # determines which translation module the user wants to use and calls it

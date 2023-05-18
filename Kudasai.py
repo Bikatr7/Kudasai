@@ -11,8 +11,8 @@ import spacy
 import json
 
 ## custom modules
-from Models import Kaiseki 
-from Models import Kijiku
+from Models.Kaiseki import Kaiseki 
+from Models.Kijiku import Kijiku
 from Util import associated_functions 
 
 ##-------------------start-of-ReplacementType()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ class Kudasai:
     """
 ##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, input_file:str, replacement_json:str, from_gui:bool) -> None: # constructor for Kudasai class
+    def __init__(self, from_gui:bool) -> None: # constructor for Kudasai class
 
         """
         
@@ -121,9 +121,16 @@ class Kudasai:
 
         ## total number of replacements made
         self.total_replacements = 0
-    
 
-        self.setup(input_file,replacement_json) ## calls setup function to load input file and replacement json file
+##-------------------start-of-reset()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset(self):
+
+        self.total_replacements = 0
+
+        self.error_text = []
+
+        self.replacement_text = ''
 
 ##-------------------start-of-setup()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -160,7 +167,7 @@ class Kudasai:
 
 ##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def preprocess(self) -> None:
+    def preprocess(self, input_file, replacement_json) -> None:
 
         """
 
@@ -177,13 +184,18 @@ class Kudasai:
         if(not self.from_GUI):
             self.connection = associated_functions.check_update() ## checks if there is a new update for Kudasai
 
+        self.reset() ## calls reset function to reset the Kudasai object
+
+        self.setup(input_file,replacement_json) ## calls setup function to load input file and replacement json file
+
         self.replace() ## calls replace function to handle replacements in the japanese text
 
         self.setup_needed_files() ## calls output_file_names function to set up paths and make sure needed directories exist
 
         self.write_results() ## calls write_results function to write the results of the replacement process to the output files
 
-        associated_functions.pause_console() ## pauses the console so the user can see the results
+        if(not self.from_GUI):
+            associated_functions.pause_console() ## pauses the console so the user can see the results
 
 ##-------------------start-of-replace()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -579,7 +591,7 @@ class Kudasai:
 
         time.sleep(1)
 
-        kaiseki_client = Kaiseki.Kaiseki(self.config_dir,self.script_dir,from_gui=False)
+        kaiseki_client = Kaiseki(self.config_dir,self.script_dir,from_gui=False)
 
         kaiseki_client.translate(self.preprocess_path)
 
@@ -595,17 +607,22 @@ class Kudasai:
         self (object - Kudasai) : the Kudasai object.\n
 
         Returns:\n
-        None\n
+        None\n-
 
         """
 
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## minimize console window
+        ctypes.windll.user32.ShowWindow(hwnd, 3) 
+
         associated_functions.clear_console()
+
+        kijiku_client = Kijiku(self.config_dir,self.script_dir,from_gui=False)
+
+        kijiku_client.check_settings()
 
         print("Commencing Automated Translation\n")
 
-        time.sleep(1)
-
-        kijiku_client = Kijiku.Kijiku(self.config_dir,self.script_dir,from_gui=False)
+        time.sleep(2)
 
         kijiku_client.translate(self.preprocess_path)
 
@@ -624,8 +641,8 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
 
     os.system("title " + "Kudasai") 
 
-    kudasai_client = Kudasai(sys.argv[1], sys.argv[2], from_gui=False) # creates Kudasai object, passing in input file and replacement json file, and if it is being run from the GUI or not
+    kudasai_client = Kudasai(from_gui=False) # creates Kudasai object, passing in input file and replacement json file, and if it is being run from the GUI or not
 
-    kudasai_client.preprocess() # preprocesses the text
+    kudasai_client.preprocess(sys.argv[1], sys.argv[2]) # preprocesses the text
 
     kudasai_client.determine_translation_automation() # determines which translation module the user wants to use and calls it

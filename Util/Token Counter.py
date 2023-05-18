@@ -71,7 +71,7 @@ def estimate_cost(text:str, model:str):
         costPer1000Tokens = 0.002
 
     elif(model == "gpt-4-0314"):
-        costPer1000Tokens = 0.006
+        costPer1000Tokens = 0.06
 
     else:
         raise NotImplementedError(f"""Token Counter does not support : {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how text are converted to tokens.""")

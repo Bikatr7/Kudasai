@@ -60,6 +60,10 @@ class Kijiku:
         ## the text for errors that occur during translation
         self.error_text = []
 
+        ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
+        ## model message is the text that will be translated  
+        self.messages = []
+
 #-------------------start-of-reset_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def reset_kijiku_rules(self) -> None:
@@ -315,25 +319,25 @@ class Kijiku:
 
             self.debug_text.append("\nStarting Prompt Building\n-------------------------\n")
 
-            messages = self.build_messages()
+            self.build_messages()
 
-            self.estimate_cost(messages)
+            self.estimate_cost(self.MODEL)
 
             if(self.from_gui == False):
                 associated_functions.pause_console("Press any key to continue with translation...")
 
             self.debug_text.append("\nStarting Translation\n-------------------------")
 
-            while(i+2 <= len(messages)):
+            while(i+2 <= len(self.messages)):
 
                 associated_functions.clear_console()
 
-                print("Trying " + str(i+2) + " of " + str(len(messages)))
-                self.debug_text.append("\n\n-------------------------\nTrying " + str(i+2) + " of " + str(len(messages)) + "\n-------------------------\n")
+                print("Trying " + str(i+2) + " of " + str(len(self.messages)))
+                self.debug_text.append("\n\n-------------------------\nTrying " + str(i+2) + " of " + str(len(self.messages)) + "\n-------------------------\n")
 
-                self.translate_message(messages[i],messages[i+1],self.MODEL,self.kijiku_rules)
+                translated_message = self.translate_message(self.messages[i],self.messages[i+1])
 
-                self.redistribute()
+                self.redistribute(translated_message)
 
                 i+=2
 
@@ -359,3 +363,301 @@ class Kijiku:
                     file.write("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
             associated_functions.output_results(self.script_dir,self.config_dir,self.debug_text,self.je_check_text,self.translated_text,self.error_text,self.from_gui)
+
+#-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def build_messages(self) -> None:
+
+        '''
+
+        builds messages dict for ai
+
+        Parameters:
+        systemMessage (string) a string that gives instructions to the gpt chat model
+        message_mode (int) the method of assembling the messages
+        promptSize (int) the size of the prompt that will be given to the model
+
+        Returns:
+        messages (list - dict - string) the assembled messages that will be given to the model, it's a list of dicts that contain strings
+
+        '''
+
+        i = 0
+
+        while i < len(self.japanese_text):
+            prompt, i = self.generate_prompt(i)
+
+            prompt = ''.join(prompt)
+
+            if(self.message_mode == 1):
+                system_msg = {}
+                system_msg["role"] = "system"
+                system_msg["content"] = self.system_message
+
+            else:
+                system_msg = {}
+                system_msg["role"] = "user"
+                system_msg["content"] = self.system_message
+
+            self.messages.append(system_msg)
+
+            model_msg = {}
+            model_msg["role"] = "user"
+            model_msg["content"] = prompt
+
+            self.messages.append(model_msg)
+
+        self.debug_text.append("\nMessages\n-------------------------\n\n")
+
+        i = 0
+
+        for message in self.messages:
+
+            i+=1
+
+            if(i % 2 == 0):
+
+                self.debug_text.append(str(message) + "\n\n")
+        
+            else:
+
+                self.debug_text.append(str(message) + "\n")
+
+
+#-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
+
+        '''
+
+        generates prompts but skips punctuation or plain english\n
+
+        Parameters:\n
+        index (int) an int representing where we currently are in the text file\n
+        promptSize (int) an int representing how many lines the prompt will have\n
+
+        Returns:\n
+        prompt (list - string) a list of japanese lines that will be assembled into messages\n
+        index (int) an updated int representing where we currently are in the text file\n
+
+        '''
+
+        prompt = []
+
+        while(index < len(self.japanese_text)):
+            sentence = self.japanese_text[index]
+
+            if(len(prompt) < self.prompt_size):
+
+                if(any(char in sentence for char in ["▼", "△", "◇"])):
+                    prompt.append(sentence + '\n')
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
+
+                elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
+                    prompt.append(sentence + '\n') 
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is part marker... leaving intact\n-----------------------------------------------\n\n")
+            
+                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"])):
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
+            
+                elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is english... skipping\n-----------------------------------------------\n\n")
+
+                else:
+                    prompt.append(sentence + "\n")
+    
+            else:
+                return prompt, index
+            
+            index += 1
+
+        return prompt, index
+    
+#-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def estimate_cost(self, model) -> None:
+
+        '''
+
+        attempts to estimate cost.\n
+    
+        Parameters:\n
+        messages (dict - string) the assembled messages that will be given to the model\n
+        model (string) a constant that represents which model we will be using\n
+        configDir (string) the directory of the config file\n
+
+        Returns:\n
+        None\n
+
+        '''
+        
+        try:
+            encoding = tiktoken.encoding_for_model(self.MODEL)
+        except KeyError:
+            print("Warning: model not found. Using cl100k_base encoding.")
+            encoding = tiktoken.get_encoding("cl100k_base")
+
+        if(self.MODEL == "gpt-3.5-turbo"):
+            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+            return self.estimate_cost(model="gpt-3.5-turbo-0301")
+        
+        elif(model == "gpt-4"):
+            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
+            return self.estimate_cost(model="gpt-4-0314")
+        
+        elif(model == "gpt-3.5-turbo-0301"):
+            costPer1000Tokens = 0.002
+            tokensPerMessage = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+            tokensPerName = -1  # if there's a name, the role is omitted
+
+        elif(model == "gpt-4-0314"):
+            costPer1000Tokens = 0.06
+            tokensPerMessage = 3
+            tokensPerName = 1
+
+        else:
+            raise NotImplementedError(f"""Kudasai does not support : {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+        
+        numTokens = 0
+
+        for message in self.messages:
+
+            numTokens += tokensPerMessage
+
+            for key, value in message.items():
+
+                numTokens += len(encoding.encode(value))
+
+                if(key == "name"):
+                    numTokens += tokensPerName
+
+        numTokens += 3  # every reply is primed with <|start|>assistant<|message|>
+        minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
+
+        self.debug_text.append("\nEstimated Tokens in Messages : " + str(numTokens))
+        self.debug_text.append("\nEstimated Minimum Cost : " + str(minCost) + '\n')
+
+        if(not self.from_gui):
+            print("\nEstimated Number of Tokens in Text : " + str(numTokens))
+            print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
+        else:
+            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                file.write("\nEstimated Number of Tokens in Text : " + str(numTokens) + "\n")
+                file.write("\nEstimated Minimum Cost of Translation : " + str(minCost) + "\n\n")
+
+#-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError))
+    def translate_message(self, system_message:dict, user_message:dict) -> str:
+
+        '''
+
+        translates system and user message\n
+
+        Parameters:\n
+        systemMessage (dict - string) a dictionary that contains the system message\n
+        userMessage (dict - string) a dictionary that contains the user message\n
+        MODEL (string) a constant that represents which model we will be using\n
+        kijiku_rules (dict - string) a dictionary of rules that kijiku follows as it translates\n
+
+        Returns:\n
+        output (string) a string that gpt gives to us\n
+
+        '''
+
+        ## max_tokens and logit bias are currently excluded due to a lack of need, and the fact that i am lazy
+
+        response = openai.ChatCompletion.create(
+            model=self.MODEL,
+            messages=[
+                system_message,
+                user_message,
+            ],
+
+            temperature = float(self.kijiku_rules["open ai settings"]["temp"]),
+            top_p = float(self.kijiku_rules["open ai settings"]["top_p"]),
+            n = int(self.kijiku_rules["open ai settings"]["top_p"]),
+            stream = self.kijiku_rules["open ai settings"]["stream"],
+            stop = self.kijiku_rules["open ai settings"]["stop"],
+            presence_penalty = float(self.kijiku_rules["open ai settings"]["presence_penalty"]),
+            frequency_penalty = float(self.kijiku_rules["open ai settings"]["frequency_penalty"]),
+
+        )
+
+        ## note, pylance flags this as a 'GeneralTypeIssue', however i see nothing wrong with it, and it works fine
+        output = response['choices'][0]['message']['content'] # type: ignore
+
+        self.debug_text.append("\nPrompt was : \n" + user_message["content"] + "\n")
+
+        self.debug_text.append("-------------------------\nResponse from GPT was : \n\n" + output + "\n")
+            
+        self.je_check_text.append("\n-------------------------\n"+ str(user_message["content"]) + "\n\n")
+        
+        return output
+
+#-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def redistribute(self, translated_message:str) -> None:
+
+        '''
+
+        puts translated text back into text file
+
+        Parameters:
+        translatedText (string) a string that is the result of gpt's translation
+        sentence_fragmenter_mode (int) 1, 2, or 3 representing the mode of sentence fragmenter
+
+        Returns:
+        None
+
+        '''
+
+        if(self.sentence_fragmenter_mode == 1): # mode 1 is the default mode, uses regex and other nonsense to split sentences
+
+            sentences = re.findall(r"(.*?(?:(?:\"|\'|-|~|!|\?|%|\(|\)|\.\.\.|\.|---|\[|\])))(?:\s|$)", translated_message)
+
+            patched_sentences = []
+            buildString = None
+
+            self.debug_text.append("\n-------------------------\nDistributed result was : \n\n")
+
+            for sentence in sentences:
+                if(sentence.startswith("\"") and not sentence.endswith("\"") and buildString is None):
+                    buildString = sentence
+                    continue
+                elif(not sentence.startswith("\"") and sentence.endswith("\"") and buildString is not None):
+                    buildString += f" {sentence}"
+                    patched_sentences.append(buildString)
+                    buildString = None
+                    continue
+                elif(buildString is not None):
+                    buildString += f" {sentence}"
+                    continue
+
+                self.translated_text.append(sentence + '\n')
+                self.je_check_text.append(sentence + '\n')
+                self.debug_text.append(sentence + '\n')
+
+            for i in range(len(self.translated_text)):
+                if self.translated_text[i] in patched_sentences:
+                    index = patched_sentences.index(self.translated_text[i])
+                    self.translated_text[i] = patched_sentences[index]
+
+        elif(self.sentence_fragmenter_mode == 2): # mode 2 uses spacy to split sentences
+
+            nlp = spacy.load("en_core_web_lg")
+
+            doc = nlp(translated_message)
+            sentences = [sent.text for sent in doc.sents]
+            
+            self.debug_text.append("\n-------------------------\nDistributed result was : \n\n")
+
+            for sentence in sentences:
+                self.translated_text.append(sentence + '\n')
+                self.je_check_text.append(sentence + '\n')
+                self.debug_text.append(sentence + '\n')
+
+        elif(self.sentence_fragmenter_mode == 3): # mode 3 just assumes gpt formatted it properly
+            
+            self.translated_text.append(translated_message + '\n\n')
+            self.je_check_text.append(translated_message + '\n')

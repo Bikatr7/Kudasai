@@ -586,7 +586,28 @@ class Kudasai:
 #-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def run_kijiku(self) -> None:
-        pass
+        
+        """
+        
+        runs the kijiku module for auto translation\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        associated_functions.clear_console()
+
+        print("Commencing Automated Translation\n")
+
+        time.sleep(1)
+
+        kijiku_client = Kijiku.Kijiku(self.config_dir,self.script_dir,from_gui=False)
+
+        kijiku_client.translate(self.preprocess_path)
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

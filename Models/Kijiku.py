@@ -6,6 +6,7 @@ import re
 import os
 import time
 import typing
+import ctypes
 
 ## third party modules
 import openai
@@ -62,6 +63,29 @@ class Kijiku:
 
         ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
         ## model message is the text that will be translated  
+        self.messages = []
+
+##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset(self):
+            
+        """
+
+        resets the Kijiku object\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.japanese_text = []
+        self.debug_text = []
+        self.translated_text = []
+        self.je_check_text = []
+        self.error_text = []
         self.messages = []
 
 #-------------------start-of-reset_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -175,9 +199,12 @@ class Kijiku:
         with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
             json.dump(self.kijiku_rules, file)
 
+
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def translate(self,text_to_translate:str) -> None:
+
+        self.reset()
         
         self.initialize(text_to_translate)
 
@@ -362,6 +389,8 @@ class Kijiku:
                 with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
                     file.write("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
+                associated_functions.clear_console()
+
             associated_functions.output_results(self.script_dir,self.config_dir,self.debug_text,self.je_check_text,self.translated_text,self.error_text,self.from_gui)
 
 #-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -497,7 +526,7 @@ class Kijiku:
             print("Warning: model not found. Using cl100k_base encoding.")
             encoding = tiktoken.get_encoding("cl100k_base")
 
-        if(self.MODEL == "gpt-3.5-turbo"):
+        if(model == "gpt-3.5-turbo"):
             print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
             return self.estimate_cost(model="gpt-3.5-turbo-0301")
         
@@ -661,3 +690,22 @@ class Kijiku:
             
             self.translated_text.append(translated_message + '\n\n')
             self.je_check_text.append(translated_message + '\n')
+
+##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def check_settings(self):
+
+        print("\nAre these settings okay? (1 for yes or 2 for no) : \n\n")
+
+        for key, value in self.kijiku_rules["open ai settings"].items():
+            print(key + " : " + str(value))
+
+        if(input("\n") == "1"):
+            pass
+        else:
+            self.change_settings()
+
+        associated_functions.clear_console()
+
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
+        ctypes.windll.user32.ShowWindow(hwnd, 9)

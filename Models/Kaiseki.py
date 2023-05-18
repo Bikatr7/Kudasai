@@ -80,6 +80,18 @@ class Kaiseki:
 
         ## the current translated self.current_sentence
         self.translated_sentence = ""
+
+##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def reset(self):
+
+        self.error_text = []
+        self.je_check_text = []
+        self.translated_text = []
+        self.debug_text = []
+
+        self.current_sentence = ""
+        self.translated_sentence = ""
         
 #-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -97,6 +109,8 @@ class Kaiseki:
         None\n
 
         """
+
+        self.reset()
 
         self.initialize(text_to_translate) ## initialize the Kaiseki object
 

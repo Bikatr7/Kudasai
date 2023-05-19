@@ -13,7 +13,7 @@ import deepl
 ## custom modules
 from Util import associated_functions
 
-#-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Kaiseki:
 
@@ -23,7 +23,7 @@ class Kaiseki:
     
     """
 
-#-------------------start-of-__init__()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-__init__()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def __init__(self, config_dir:str, script_dir:str, from_gui:bool) -> None:
 
@@ -83,7 +83,19 @@ class Kaiseki:
 
 ##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def reset(self):
+    def reset(self) -> None:
+
+        """
+
+        Resets the Kaiseki object.\n
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+
+        Returns:\n
+        None\n
+
+        """
 
         self.error_text = []
         self.je_check_text = []
@@ -93,7 +105,7 @@ class Kaiseki:
         self.current_sentence = ""
         self.translated_sentence = ""
         
-#-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def translate(self, text_to_translate:str):
 
@@ -116,7 +128,7 @@ class Kaiseki:
 
         self.commence_translation() ## commence the translation
 
-#-------------------start-of-initialize()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-initialize()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def initialize(self, text_to_translate:str) -> None:
         
@@ -186,7 +198,7 @@ class Kaiseki:
         with open(text_to_translate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate_sentence
             self.japanese_text = [line.strip() for line in file.readlines()]
 
-#-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def commence_translation(self) -> None:
 
@@ -268,12 +280,12 @@ class Kaiseki:
                 print(str(i) + "/" + str(len(self.japanese_text)) + " completed.")
 
 
-            associated_functions.output_results(self.script_dir,self.config_dir,self.debug_text,self.je_check_text,self.translated_text,self.error_text,self.from_gui)
+            self.output_results()
 
             time_end = time.time()
 
             if(self.from_gui):
-                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
                         file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end) + "\n\n")
             
             else:
@@ -281,15 +293,27 @@ class Kaiseki:
 
         except Exception as e:
             if(self.from_gui):
-                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
                         file.write("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
             print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-            associated_functions.output_results(self.script_dir,self.config_dir,self.debug_text,self.je_check_text,self.translated_text,self.error_text,self.from_gui)
+            self.output_results()
 
-    #-------------------start-of-separate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-separate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     def separate_sentence(self) -> None: 
+
+        """
+
+        This function separates the sentence into parts and punctuation\n
+
+        Parameters:\n
+        self (object - Kaiseki) : The Kaiseki object\n
+
+        Returns:\n
+        None\n
+        
+        """
 
         ## resets variables for current_sentence
         self.sentence_parts = [] 
@@ -421,9 +445,22 @@ class Kaiseki:
 
         self.sentence_parts = [part.strip() for part in self.sentence_parts] ## strip the sentence parts
 
-#-------------------start-of-translate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-translate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def translate_sentence(self): ## for translating each part of a sentence
+    def translate_sentence(self) -> None: ## for translating each part of a sentence
+
+        """
+
+        This function translates each part of a sentence\n
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object\n
+
+        Returns:\n
+        None
+
+        
+        """
 
 
         i = 0
@@ -498,7 +535,7 @@ class Kaiseki:
 
                 associated_functions.pause_console()
 
-                associated_functions.output_results(self.script_dir, self.config_dir, self.debug_text, self.je_check_text, self.translated_text, self.error_text, self.from_gui)
+                self.output_results()
                 exit()
                     
             except ValueError as e:
@@ -517,3 +554,56 @@ class Kaiseki:
 
         self.translated_text.append(self.translated_sentence)
         self.translated_sentence = ""
+
+##-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def output_results(self) -> None:
+
+        '''
+
+        Outputs results to several txt files\n
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+
+        Returns:\n
+        None\n
+
+        '''
+
+        self.output_dir = os.path.join(self.script_dir, "KudasaiOutput")
+        
+        if(not os.path.exists(self.output_dir)):
+            os.mkdir(self.output_dir)
+
+        debug_path = os.path.join(self.output_dir, "tlDebug.txt")
+        je_path = os.path.join(self.output_dir, "jeCheck.txt")
+        translated_path = os.path.join(self.output_dir, "translatedText.txt")
+        error_path = os.path.join(self.output_dir, "errors.txt")
+
+        with open(debug_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.debug_text)
+
+        with open(je_path, 'w+', encoding='utf-8') as file: 
+                file.writelines(self.je_check_text)
+
+        with open(translated_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.translated_text)
+
+        with open(error_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.error_text)
+
+
+        if(self.from_gui):
+            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
+                file.write("Debug text have been written to : " + debug_path + "\n\n")
+                file.write("J->E text have been written to : " + je_path + "\n\n")
+                file.write("Translated text has been written to : " + translated_path + "\n\n")
+                file.write("Errors have been written to : " + error_path + "\n\n")
+
+            return
+        
+        print("\n\nDebug text have been written to : " + debug_path)
+        print("\nJ->E text have been written to : " + je_path)
+        print("\nTranslated text has been written to : " + translated_path)
+        print("\nErrors have been written to : " + error_path + "\n")

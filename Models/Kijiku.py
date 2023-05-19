@@ -33,6 +33,21 @@ class Kijiku:
 ##-------------------start-of-__init__()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def __init__(self, config_dir:str, script_dir:str, from_gui:bool) -> None:
+
+        """
+
+        initializes the Kijiku object\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+        config_dir (string) : the path to the config directory\n
+        script_dir (string) : the path to the script directory\n
+        from_gui (bool) : if the program is being run from the gui\n
+
+        Returns:\n
+        None\n
+
+        """
         
         ## where the config files are stored
         self.config_dir = config_dir
@@ -94,11 +109,11 @@ class Kijiku:
 
         """
 
-        resets the self.kijiku_rules json to default\n
+        resets the kijiku_rules json to default\n
 
         Parameters:\n
-        self.config_dir (string) the path to the config directory\n
-
+        self (object - Kijiku) : the Kijiku object.\n\
+        
         Returns:\n
         None\n
 
@@ -199,10 +214,41 @@ class Kijiku:
         with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
             json.dump(self.kijiku_rules, file)
 
+##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def check_settings(self):
+
+        print("\nAre these settings okay? (1 for yes or 2 for no) : \n\n")
+
+        for key, value in self.kijiku_rules["open ai settings"].items():
+            print(key + " : " + str(value))
+
+        if(input("\n") == "1"):
+            pass
+        else:
+            self.change_settings()
+
+        associated_functions.clear_console()
+
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
+        ctypes.windll.user32.ShowWindow(hwnd, 9)
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def translate(self,text_to_translate:str) -> None:
+
+        """
+
+        Translate the text in the file at the path given.\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+        text_to_translate (string) : the path to the text file to translate.\n
+
+        Returns:\n
+        None\n
+
+        """
 
         self.reset()
         
@@ -210,15 +256,16 @@ class Kijiku:
 
         self.commence_translation()
 
-#-------------------start-of-initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def initialize(self,text_to_translate:str) -> None:
 
         """
 
-        Set the open api key and create a list full of the sentences we need to translate.\n
+        Sets the open api key and creates a list full of the sentences we need to translate.\n
         
         Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
         text_to_translate (string) a path to the text kijiku will translate\n
         
         Returns:\n
@@ -304,7 +351,7 @@ class Kijiku:
             with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
                 self.kijiku_rules = json.load(file) 
 
-#-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def commence_translation(self) -> None:
 
@@ -313,9 +360,7 @@ class Kijiku:
         Uses all the other functions to translate the text provided by Kudasai\n
 
         Parameters:\n
-        japaneseText (list - string) a list of japanese lines that we need to translate\n
-        scriptDir (string) the path of the directory that holds Kudasai.py\n
-        self.config_dir (string) the path of the directory that holds Kijiku Rules.json\n
+        self (object - Kijiku) : the Kijiku object.\n
         
         Returns:\n
         None\n
@@ -368,12 +413,12 @@ class Kijiku:
 
                 i+=2
 
-            associated_functions.output_results(self.script_dir,self.config_dir,self.debug_text,self.je_check_text,self.translated_text,self.error_text,self.from_gui)
+            self.output_results()
 
             time_end = time.time()
 
             if(self.from_gui):
-                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
                     file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end) + "\n\n")
             
             else:
@@ -386,28 +431,26 @@ class Kijiku:
             self.error_text.append("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
             if(self.from_gui):
-                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
                     file.write("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
                 associated_functions.clear_console()
 
-            associated_functions.output_results(self.script_dir,self.config_dir,self.debug_text,self.je_check_text,self.translated_text,self.error_text,self.from_gui)
+            self.output_results()
 
-#-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def build_messages(self) -> None:
 
         '''
 
-        builds messages dict for ai
+        builds messages dict for ai\n
+        
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
 
-        Parameters:
-        systemMessage (string) a string that gives instructions to the gpt chat model
-        message_mode (int) the method of assembling the messages
-        promptSize (int) the size of the prompt that will be given to the model
-
-        Returns:
-        messages (list - dict - string) the assembled messages that will be given to the model, it's a list of dicts that contain strings
+        Returns:\n
+        None\n
 
         '''
 
@@ -452,18 +495,17 @@ class Kijiku:
 
                 self.debug_text.append(str(message) + "\n")
 
-
-#-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
 
         '''
 
-        generates prompts but skips punctuation or plain english\n
+        generates prompts for the messages meant for the ai\n
 
         Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
         index (int) an int representing where we currently are in the text file\n
-        promptSize (int) an int representing how many lines the prompt will have\n
 
         Returns:\n
         prompt (list - string) a list of japanese lines that will be assembled into messages\n
@@ -502,7 +544,7 @@ class Kijiku:
 
         return prompt, index
     
-#-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def estimate_cost(self, model) -> None:
 
@@ -511,9 +553,8 @@ class Kijiku:
         attempts to estimate cost.\n
     
         Parameters:\n
-        messages (dict - string) the assembled messages that will be given to the model\n
-        model (string) a constant that represents which model we will be using\n
-        configDir (string) the directory of the config file\n
+        self (object - Kijiku) : the Kijiku object.\n
+        model (string) t represents which model we will be using\n
 
         Returns:\n
         None\n
@@ -536,8 +577,8 @@ class Kijiku:
         
         elif(model == "gpt-3.5-turbo-0301"):
             costPer1000Tokens = 0.002
-            tokensPerMessage = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
-            tokensPerName = -1  # if there's a name, the role is omitted
+            tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
+            tokensPerName = -1  ## if there's a name, the role is omitted
 
         elif(model == "gpt-4-0314"):
             costPer1000Tokens = 0.06
@@ -560,7 +601,7 @@ class Kijiku:
                 if(key == "name"):
                     numTokens += tokensPerName
 
-        numTokens += 3  # every reply is primed with <|start|>assistant<|message|>
+        numTokens += 3  ## every reply is primed with <|start|>assistant<|message|>
         minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
 
         self.debug_text.append("\nEstimated Tokens in Messages : " + str(numTokens))
@@ -570,12 +611,13 @@ class Kijiku:
             print("\nEstimated Number of Tokens in Text : " + str(numTokens))
             print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
         else:
-            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
+            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
                 file.write("\nEstimated Number of Tokens in Text : " + str(numTokens) + "\n")
                 file.write("\nEstimated Minimum Cost of Translation : " + str(minCost) + "\n\n")
 
-#-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    ## backoff wrapper for retrying on errors
     @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError))
     def translate_message(self, system_message:dict, user_message:dict) -> str:
 
@@ -584,13 +626,12 @@ class Kijiku:
         translates system and user message\n
 
         Parameters:\n
-        systemMessage (dict - string) a dictionary that contains the system message\n
-        userMessage (dict - string) a dictionary that contains the user message\n
-        MODEL (string) a constant that represents which model we will be using\n
-        kijiku_rules (dict - string) a dictionary of rules that kijiku follows as it translates\n
+        self (object - Kijiku) : the Kijiku object.\n
+        system_message (dict) : the system message also known as the instructions\n
+        user_message (dict) : the user message also known as the prompt\n
 
         Returns:\n
-        output (string) a string that gpt gives to us\n
+        output (string) a string that gpt gives to us also known as the translation\n
 
         '''
 
@@ -614,7 +655,7 @@ class Kijiku:
         )
 
         ## note, pylance flags this as a 'GeneralTypeIssue', however i see nothing wrong with it, and it works fine
-        output = response['choices'][0]['message']['content'] # type: ignore
+        output = response['choices'][0]['message']['content'] ## type: ignore
 
         self.debug_text.append("\nPrompt was : \n" + user_message["content"] + "\n")
 
@@ -624,7 +665,7 @@ class Kijiku:
         
         return output
 
-#-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def redistribute(self, translated_message:str) -> None:
 
@@ -633,15 +674,15 @@ class Kijiku:
         puts translated text back into text file
 
         Parameters:
-        translatedText (string) a string that is the result of gpt's translation
-        sentence_fragmenter_mode (int) 1, 2, or 3 representing the mode of sentence fragmenter
+        self (object - Kijiku) : the Kijiku object.
+        translated_message (string) : the translated message
 
         Returns:
         None
 
         '''
 
-        if(self.sentence_fragmenter_mode == 1): # mode 1 is the default mode, uses regex and other nonsense to split sentences
+        if(self.sentence_fragmenter_mode == 1): ## mode 1 is the default mode, uses regex and other nonsense to split sentences
 
             sentences = re.findall(r"(.*?(?:(?:\"|\'|-|~|!|\?|%|\(|\)|\.\.\.|\.|---|\[|\])))(?:\s|$)", translated_message)
 
@@ -672,7 +713,7 @@ class Kijiku:
                     index = patched_sentences.index(self.translated_text[i])
                     self.translated_text[i] = patched_sentences[index]
 
-        elif(self.sentence_fragmenter_mode == 2): # mode 2 uses spacy to split sentences
+        elif(self.sentence_fragmenter_mode == 2): ## mode 2 uses spacy to split sentences
 
             nlp = spacy.load("en_core_web_lg")
 
@@ -686,26 +727,60 @@ class Kijiku:
                 self.je_check_text.append(sentence + '\n')
                 self.debug_text.append(sentence + '\n')
 
-        elif(self.sentence_fragmenter_mode == 3): # mode 3 just assumes gpt formatted it properly
+        elif(self.sentence_fragmenter_mode == 3): ## mode 3 just assumes gpt formatted it properly
             
             self.translated_text.append(translated_message + '\n\n')
             self.je_check_text.append(translated_message + '\n')
 
-##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def output_results(self) -> None:
 
-    def check_settings(self):
+        '''
 
-        print("\nAre these settings okay? (1 for yes or 2 for no) : \n\n")
+        Outputs results to several txt files\n
 
-        for key, value in self.kijiku_rules["open ai settings"].items():
-            print(key + " : " + str(value))
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
 
-        if(input("\n") == "1"):
-            pass
-        else:
-            self.change_settings()
+        Returns:\n
+        None\n
 
-        associated_functions.clear_console()
+        '''
 
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
-        ctypes.windll.user32.ShowWindow(hwnd, 9)
+        self.output_dir = os.path.join(self.script_dir, "KudasaiOutput")
+        
+        if(not os.path.exists(self.output_dir)):
+            os.mkdir(self.output_dir)
+
+        debug_path = os.path.join(self.output_dir, "tlDebug.txt")
+        je_path = os.path.join(self.output_dir, "jeCheck.txt")
+        translated_path = os.path.join(self.output_dir, "translatedText.txt")
+        error_path = os.path.join(self.output_dir, "errors.txt")
+
+        with open(debug_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.debug_text)
+
+        with open(je_path, 'w+', encoding='utf-8') as file: 
+                file.writelines(self.je_check_text)
+
+        with open(translated_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.translated_text)
+
+        with open(error_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.error_text)
+
+
+        if(self.from_gui):
+            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
+                file.write("Debug text have been written to : " + debug_path + "\n\n")
+                file.write("J->E text have been written to : " + je_path + "\n\n")
+                file.write("Translated text has been written to : " + translated_path + "\n\n")
+                file.write("Errors have been written to : " + error_path + "\n\n")
+
+            return
+        
+        print("\n\nDebug text have been written to : " + debug_path)
+        print("\nJ->E text have been written to : " + je_path)
+        print("\nTranslated text has been written to : " + translated_path)
+        print("\nErrors have been written to : " + error_path + "\n")

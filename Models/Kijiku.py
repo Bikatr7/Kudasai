@@ -254,6 +254,8 @@ class Kijiku:
         
         self.initialize(text_to_translate)
 
+        self.check_settings()
+
         self.commence_translation()
 
 ##-------------------start-of-initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -661,7 +663,7 @@ class Kijiku:
 
         self.debug_text.append("-------------------------\nResponse from GPT was : \n\n" + output + "\n")
             
-        self.je_check_text.append("\n-------------------------\n"+ str(user_message["content"]) + "\n\n")
+        self.je_check_text.append(str(user_message["content"]))
         
         return output
 
@@ -705,7 +707,7 @@ class Kijiku:
                     continue
 
                 self.translated_text.append(sentence + '\n')
-                self.je_check_text.append(sentence + '\n')
+                self.je_check_text.append(sentence)
                 self.debug_text.append(sentence + '\n')
 
             for i in range(len(self.translated_text)):
@@ -724,13 +726,13 @@ class Kijiku:
 
             for sentence in sentences:
                 self.translated_text.append(sentence + '\n')
-                self.je_check_text.append(sentence + '\n')
+                self.je_check_text.append(sentence)
                 self.debug_text.append(sentence + '\n')
 
         elif(self.sentence_fragmenter_mode == 3): ## mode 3 just assumes gpt formatted it properly
             
             self.translated_text.append(translated_message + '\n\n')
-            self.je_check_text.append(translated_message + '\n')
+            self.je_check_text.append(translated_message)
 
 ##-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -758,6 +760,8 @@ class Kijiku:
         translated_path = os.path.join(self.output_dir, "translatedText.txt")
         error_path = os.path.join(self.output_dir, "errors.txt")
 
+        self.je_check_text = self.fix_je()
+
         with open(debug_path, 'w+', encoding='utf-8') as file:
                 file.writelines(self.debug_text)
 
@@ -784,3 +788,33 @@ class Kijiku:
         print("\nJ->E text have been written to : " + je_path)
         print("\nTranslated text has been written to : " + translated_path)
         print("\nErrors have been written to : " + error_path + "\n")
+
+##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def fix_je(self) -> typing.List[str]:
+        
+        i = 1
+        final_list = []
+
+        while i < len(self.je_check_text):
+            jap = self.je_check_text[i-1].split('\n')
+            eng = self.je_check_text[i].split('\n')
+
+            jap = [line for line in jap if line.strip()]  ## Remove blank lines
+            eng = [line for line in eng if line.strip()]  ## Remove blank lines    
+
+            if(len(jap) == len(eng)):
+
+                for jap_line,eng_line in zip(jap,eng):
+                    if(jap_line and eng_line): ## check if jap_line and eng_line aren't blank
+                        final_list.append(jap_line + '\n\n')
+                        final_list.append(eng_line + '\n\n')
+
+            else:
+                final_list.append("Could not Format\n")
+                final_list.append(self.je_check_text[i-1] + '\n\n')
+                final_list.append(self.je_check_text[i] + '\n\n')
+
+            i+=2
+
+        return final_list

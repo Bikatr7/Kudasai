@@ -201,7 +201,7 @@ class Kudasai:
 
         self.setup(input_file,replacement_json) ## calls the setup function to load the input file and the replacement json file
 
-        self.replace_type() ## calls the replace_type function to handle replacements in the japanese text
+        self.replace() ## calls the replace function to handle replacements in the japanese text
 
         self.setup_needed_files() ## calls output_file_names function to set up paths and make sure needed directories exist
 
@@ -212,7 +212,7 @@ class Kudasai:
 
 ##-------------------start-of-replace_type()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def replace_type(self) -> None: 
+    def replace(self) -> None: 
 
         """
 
@@ -288,7 +288,7 @@ class Kudasai:
         if(not self.from_GUI): 
 
             print("\nTotal Replacements " + str(self.total_replacements))
-            print("\nTime Elapsed " + associated_functions.get_elapsed_time(time_start, time_end))
+            print("\nTime Elapsed " + associated_functions.get_elapsed_time(time_start, time_end) + '\n')
 
 ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -566,7 +566,7 @@ class Kudasai:
 
         print("Please choose an auto translation model")
         print("\n1.Kaiseki - DeepL based line by line translation (Not very accurate by itself) (Free if using trial)")
-        print("\n2.Kijiku - OpenAI based batch translator (Very accurate) (Price depends on model)\n")
+        print("\n2.Kijiku - OpenAI based batch translator (Very accurate) (Price depends on model)")
         print("\n3.Exit\n")
         
         mode = input()
@@ -628,8 +628,6 @@ class Kudasai:
         associated_functions.clear_console()
 
         kijiku_client = Kijiku(self.config_dir,self.script_dir,from_gui=False)
-
-        kijiku_client.check_settings()
 
         print("Commencing Automated Translation\n")
 

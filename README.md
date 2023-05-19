@@ -1,12 +1,16 @@
-Kudasai
+---------------------------------------------------------------------------------------------------------------------------------------------------
+**Naming Conventions**
 
-Original Author: thevoidzero#4686
+Kudasai.py - Main Script (Preprocessing) - ください　- Please
+Kijiku.py - openai translation module - 基軸 - Foundation
+Kaiseki.py - deepl translation module - 解析 - Parsing
 
-Refactored, Maintained, and Added to by: Seinu#7854
+Note that Kudasai refers to both the preprocessing script and the entire program.
 
-Contributions by: SnOrT NeSqUiK™#9775
+---------------------------------------------------------------------------------------------------------------------------------------------------
+**Notes**
 
-Built for Windows, Doesn't use an os specific library, so it should work on other OS's, but it is untested.
+Built for Windows, Should work on Linux/MacOS but is untested.
 
 Python Version: 3.8-3.11.2
 
@@ -14,11 +18,10 @@ It should work with 3.8, although it is untested. I recommend using 3.9+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
-Derived from https://github.com/Atreyagaurav/mtl-related-scripts
+Preprocessor Derived from https://github.com/Atreyagaurav/mtl-related-scripts
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-Dependencies:
+**Dependencies**
 
 spacy[jp]
 spacy[en]
@@ -43,8 +46,7 @@ pip install en_core_web_lg
 pip install ja_core_news_lg
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-CmdLineArgs
+**CmdLineArgs**
 
 Argument 1: Path to a .txt file that needs to be preprocessed
 
@@ -53,6 +55,8 @@ Argument 2: Path to JSON Criteria
 An example of how to run Kudasai.py from cmd:
 
 C:\Users\Tetra\Documents\Repositories\Kudasai\Kudasai.py "C:\Users\Tetra\Desktop\arc 8 chapter 9.txt" "C:\Users\Tetra\Documents\Repositories\Kudasai\Replacements\Rezero Replacements.json"
+
+![Example CMD](https://i.imgur.com/7MHeo1v.jpg)
 
 Where:
 
@@ -63,58 +67,14 @@ C:\users\Tetra\Desktop\arc 8 chapter 9.txt is the path to the .txt file that nee
 C:\Users\Tetra\Documents\Repositories\Kudasai\Replacements\Rezero Replacements.json is the path to the JSON Criteria
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-JSON Criteria
+**JSON Criteria**
 
 For the json it has to be a specific format, you can see several examples in the 'Replacements' Folder or an outline below
 
-{
-  "honorifics": {
-    "さん": "san",
-    "くん": "kun"
-  },
-
-  "single_words": {
-    "β": "Beta"
-  },
-
-  "unicode": {
-    "\u3000": " "
-  },
-
-  "phrases": {
-    "ケヤキモール" : "Keyaki Mall",
-    "高育" : "ANHS"
-  },
-
-  "kutouten": {
-    "「": "\"",
-    "」": "\"",
-    "『": "'",
-    "』": "'",
-    "、": ","
-
-  },
-
-  "name_like": {
-    "お兄": ["Onii"],
-  },
-
-  "single_names": {
-    "Kijima": ["鬼島"],
-    "king": ["Wan-sama"]
-
-  },
-
-  "full_names": {
-    "Amasawa Ichika": ["天沢","一夏"]
-  }
-
-}
+![Example JSON](https://i.imgur.com/qgCI9w9.png)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-Output: 
+**Output** 
 
 KudasaiOutput (folder created where this script (Kudasai.py) is located)
 
@@ -132,9 +92,10 @@ translatedText.txt (a txt file containing the results of your chosen auto transl
 
 errorText.txt (a txt file containing the errors that occurred during auto translation (if any))
 
----------------------------------------------------------------------------------------------------------------------------------------------------
+![Example Output](https://i.imgur.com/z1sgQ8w.png)
 
-To use
+---------------------------------------------------------------------------------------------------------------------------------------------------
+**To Use**
 
 Step 1: Open CMD
 
@@ -151,29 +112,22 @@ Step 6: Follow internal instructions to use auto-translation
 Any questions or bugs, please email Seinuve@gmail.com
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-Security:
+**Security**
 
 api keys are stored locally in the user folder and are obfuscated.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-Util:
+**Utilities**
 
 Util folder has a script called Token Counter.py that lets you estimated the number of tokens/cost in a file/string
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+**GUI**
 
-GUI:
+GUI.py is a GUI Interface for Kudasai, it also provides visuals for Kaiseki and Kijiku
 
-GUI.py is a GUI Interface for Kudasai.py, it does not include Kijiku or Kaiseki currently, and is solely for providing a visual interface for preprocessing.
+Please note that the GUI can appear unresponsive while translating or preprocessing, this is normal.
 
----------------------------------------------------------------------------------------------------------------------------------------------------
-
-Naming Conventions:
-
-Kudasai.py - Main Script (Preprocessing) - ください　- Please
-Kijiku.py - openai translation module - 基軸 - Foundation
-Kaiseki.py - deepl translation module - 解析 - Parsing
+![Example GUI](https://i.imgur.com/JqIj5bE.png)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------

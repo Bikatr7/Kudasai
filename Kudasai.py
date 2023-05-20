@@ -622,9 +622,6 @@ class Kudasai:
 
         """
 
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## minimize console window
-        ctypes.windll.user32.ShowWindow(hwnd, 3) 
-
         associated_functions.clear_console()
 
         kijiku_client = Kijiku(self.config_dir,self.script_dir,from_gui=False)

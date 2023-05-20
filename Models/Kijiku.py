@@ -159,6 +159,8 @@ class Kijiku:
         None\n
 
         """
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
+        ctypes.windll.user32.ShowWindow(hwnd, 3)
         
         while(True):
 
@@ -214,6 +216,9 @@ class Kijiku:
         with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
             json.dump(self.kijiku_rules, file)
 
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## minimize console window
+        ctypes.windll.user32.ShowWindow(hwnd, 9)
+
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def check_settings(self):
@@ -229,9 +234,6 @@ class Kijiku:
             self.change_settings()
 
         associated_functions.clear_console()
-
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
-        ctypes.windll.user32.ShowWindow(hwnd, 9)
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -254,7 +256,8 @@ class Kijiku:
         
         self.initialize(text_to_translate)
 
-        self.check_settings()
+        if(not self.from_gui):
+            self.check_settings()
 
         self.commence_translation()
 

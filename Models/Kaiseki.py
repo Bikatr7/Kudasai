@@ -1,459 +1,609 @@
+## built in modules
 import string
 import os
 import time
 import re
 import base64
+import time
+import typing
 
+## third party modules
+import deepl
 
-from time import sleep
-from typing import List
-
-from deepl.exceptions import QuotaExceededException
-from deepl.exceptions import AuthorizationException
-from deepl import Translator
-
+## custom modules
 from Util import associated_functions
 
-#-------------------start-of-initialize_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def initialize_translator(textToTranslate:str, configDir:str) -> tuple[Translator, List[str]]:
+class Kaiseki:
+
+    """
+
+    Kaiseki is a secondary class that is used to interact with the deepl API.
+    
+    """
+
+##-------------------start-of-__init__()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def __init__(self, config_dir:str, script_dir:str, from_gui:bool) -> None:
 
         """
 
-        Initializes the translator object and gets the text to translate.\n
+        Constructor for the Kaiseki Class, Takes in the path to the config directory and the path to the main script directory as well as a boolean indicating if the translation request is from the gui or not.\n
 
         Parameters:\n
-        textToTranslate (string) the path to the text file to translate\n
-        configDir (string) the path to the config folder\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+        config_dir (str) : the path to the config directory.\n
+        script_dir (str) : the path to the main script directory.\n
+        from_gui (bool) : if the translation request is from the gui or not.\n
 
         Returns:\n
-        translator (object - Translator) the translator object\n
-        japaneseText (list - string) a list of the text to translate\n
+        None\n
+
+        """
+        
+        ## the path to the config directory
+        self.config_dir = config_dir
+
+        ## the path to the main script directory
+        self.script_dir = script_dir
+
+        ## if the translation request is from the gui or not
+        self.from_gui = from_gui
+
+        ## the text to translate
+        self.japanese_text = []
+
+        ## parts of the self.current_sentence
+        self.sentence_parts = []
+
+        ## punctuation for each self.current_sentence part
+        self.sentence_punctuation = []
+
+        ## if the self.current_sentence contains special punctuation
+        self.special_punctuation = [] ## [0] = "" [1] = ~ [2] = '' in self.current_sentence but not entire self.current_sentence [3] = '' but entire self.current_sentence [3] if () in self.current_sentence
+
+        ## the debugging text for developers
+        self.debug_text = []
+
+        ## the translated text
+        self.translated_text = []
+
+        ## the text for j-e checking
+        self.je_check_text = []
+
+        ## the text for errors that occur during translation
+        self.error_text = []
+
+        ## the current self.current_sentence being translated
+        self.current_sentence = ""
+
+        ## the current translated self.current_sentence
+        self.translated_sentence = ""
+
+##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def reset(self) -> None:
+
+        """
+
+        Resets the Kaiseki object.\n
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.error_text = []
+        self.je_check_text = []
+        self.translated_text = []
+        self.debug_text = []
+
+        self.current_sentence = ""
+        self.translated_sentence = ""
+        
+##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def translate(self, text_to_translate:str):
+
+        """
+
+        Translates the text file
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+        text_to_translate (str) : the path to the text file to translate_sentence.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.reset()
+
+        self.initialize(text_to_translate) ## initialize the Kaiseki object
+
+        self.commence_translation() ## commence the translation
+
+##-------------------start-of-initialize()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def initialize(self, text_to_translate:str) -> None:
+        
+        """
+
+        Initializes the Kaiseki class by getting the api key and creating the translator object.\n
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+        text_to_translate (str) : the path to the text file to translate_sentence.\n
+
         
         """
         
         try:
-                with open(os.path.join(configDir,'DeeplApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
-                    apiKey = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
+            with open(os.path.join(self.config_dir,'DeeplApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
+                api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-                translator = Translator(apiKey)
+            self.translator = deepl.Translator(api_key)
 
-                print("Used saved api key in " + os.path.join(configDir,'DeeplApiKey.txt'))
+            print("Used saved api key in " + os.path.join(self.config_dir,'DeeplApiKey.txt'))
 
         except Exception as e: ## else try to get api key manually
 
-                if(os.path.isfile("C:\\ProgramData\\Kudasai\\DeeplApiKey.txt") == True):
-                        os.remove("C:\\ProgramData\\Kudasai\\DeeplApiKey.txt")
-                        print("r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt' was deleted due to Kudasai switching to user storage\n\n")
+            if(os.path.isfile("C:\\ProgramData\\Kudasai\\DeeplApiKey.txt") == True):
+                os.remove("C:\\ProgramData\\Kudasai\\DeeplApiKey.txt")
+                print("r'C:\\ProgramData\\Kudasai\\DeeplApiKey.txt' was deleted due to Kudasai switching to user storage\n\n")
 
-                apiKey = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the deepL api key you have : ")
+            api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the deepL api key you have : ")
 
-                try: ## if valid save the api key
- 
-                        translator = Translator(apiKey)
+            try: ## if valid save the api key
 
-                        if(os.path.isdir(configDir) == False):
-                            os.mkdir(configDir, 0o666)
-                            print(configDir + " was created due to lack of the folder")
+                self.translator = deepl.Translator(api_key)
 
-                        sleep(.1)
-                            
-                        if(os.path.exists(os.path.join(configDir,'DeeplApiKey.txt')) == False):
-                           print(os.path.join(configDir,'DeeplApiKey.txt') + " was created due to lack of the file")
+                if(os.path.isdir(self.config_dir) == False):
+                    os.mkdir(self.config_dir, 0o666)
+                    print(self.config_dir + " was created due to lack of the folder")
 
-                           with open(os.path.join(configDir,'DeeplApiKey.txt'), 'w+', encoding='utf-8') as key: 
-                                    key.write(base64.b64encode(apiKey.encode('utf-8')).decode('utf-8'))
+                time.sleep(.1)
+                    
+                if(os.path.exists(os.path.join(self.config_dir,'DeeplApiKey.txt')) == False):
+                    print(os.path.join(self.config_dir,'DeeplApiKey.txt') + " was created due to lack of the file")
 
-                        sleep(.1)
-                   
-                except AuthorizationException: ## if invalid key exit
-                     
-                        associated_functions.clear_console()
-                        
-                        print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKudasai will now exit.\n")
-                        associated_functions.pause_console()
-                        
-                        exit()
+                    with open(os.path.join(self.config_dir,'DeeplApiKey.txt'), 'w+', encoding='utf-8') as key: 
+                        key.write(base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
 
-                except Exception as e: ## other error, alert user and raise it
-                        associated_functions.clear_console()
-                        
-                        print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKudasai will now exit.\n")
-                        associated_functions.pause_console()
+                time.sleep(.1)
+                
+            except deepl.exceptions.AuthorizationException: ## if invalid key exit
+                    
+                associated_functions.clear_console()
+                    
+                print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKudasai will now exit.\n")
+                associated_functions.pause_console()
+                    
+                exit()
 
-                        exit()
+            except Exception as e: ## other error, alert user and raise it
+                
+                associated_functions.clear_console()
+                    
+                print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKudasai will now exit.\n")
+                associated_functions.pause_console()
 
-        with open(textToTranslate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate
-                japaneseText = [line.strip() for line in file.readlines()]
+                exit()
 
-        return translator,japaneseText
+        with open(text_to_translate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate_sentence
+            self.japanese_text = [line.strip() for line in file.readlines()]
 
-#-------------------start-of-separate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- 
-def separate(sentence) -> tuple[List[str], List[str], List[bool]]: 
+##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def commence_translation(self) -> None:
 
         """
         
-        Separates a sentence into parts based of punctuation.\n
+        Commences the translation process using all the functions in the Kaiseki class.\n
 
         Parameters:\n
-        sentence (string) a sentence(line) of japanese text\n
+        self (object - Kaiseki) : the Kaiseki object.\n
 
-        Returns:\n
-        sentenceParts (list - string) a list of parts of text which is derived from sentence\n
-        sentencePunctuation (list - string) a list of punctuation found in sentence\n
-        specialPunctuation (list - boolean) a list of booleans indicating whether "special" punctuation exist in the sentence\n
+        Returns:\n 
+        None\n
 
         """
 
-        sentenceParts = []
-        sentencePunctuation = []
-        specialPunctuation = [False,False,False,False,False] ## [0] = "" [1] = ~ [2] = '' in sentence but not entire sentence [3] = '' but entire sentence [4] = enclosing entire sentence
- 
+        try:
+
+            i = 0
+
+            time_start = time.time()
+
+            while(i < len(self.japanese_text)):
+                    
+                self.current_sentence = self.japanese_text[i]
+                
+                self.debug_text.append("Initial Sentence : " + self.current_sentence)
+
+                if(any(char in self.current_sentence for char in ["▼", "△", "◇"])):
+                    self.translated_text.append(self.current_sentence + '\n')
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
+
+                elif("part" in self.current_sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in self.current_sentence) and not all(char in [" "] for char in self.current_sentence)):
+                    self.translated_text.append(self.current_sentence + '\n') 
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is part marker... leaving intact\n-----------------------------------------------\n\n")
+    
+                elif bool(re.match(r'^[\W_\s\n-]+$', self.current_sentence)) and not any(char in self.current_sentence for char in ["」", "「", "«", "»"]):
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
+                    self.translated_text.append(self.current_sentence + "\n")
+
+                elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', self.current_sentence))):
+                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is english... skipping\n-----------------------------------------------\n\n")
+                    self.translated_text.append(self.current_sentence + "\n")
+
+                elif(len(self.current_sentence) == 0 or self.current_sentence.isspace() == True):
+                    self.debug_text.append("\nSentence is empty... skipping translation\n-----------------------------------------------\n\n")
+                    self.translated_text.append(self.current_sentence + "\n")  
+
+                else:
+            
+                    self.separate_sentence()
+
+                    self.translate_sentence()
+
+                    if(len(self.translated_text[i]) > 0 and self.translated_text[i] != "" and self.translated_text[i][-2] not in string.punctuation and self.sentence_punctuation[-1] == None): ## this is for adding a period if it's missing 
+                        self.translated_text[i] = self.translated_text[i] + "."
+                    
+                    if(self.special_punctuation[0] == True): ## re-adds quotes
+                        self.translated_text[i] =  '"' + self.translated_text[i] + '"'
+
+                    elif('"' in self.translated_text[i]): ## replaces quotes because deepL adds them sometimes
+                        self.translated_text[i] = self.translated_text[i].replace('"',"'")
+
+                    if(self.special_punctuation[3] == True): ## re-adds single quotes
+                        self.translated_text[i] =  "'" + self.translated_text[i] + "'"
+
+                    if(self.special_punctuation[4] == True): ## re-adds parentheses quotes
+                        self.translated_text[i] =  "(" + self.translated_text[i] + ")"
+
+                    self.translated_text[i] += "\n"
+
+                    self.debug_text.append("\nTranslated and Reassembled Sentence : " + self.translated_text[i] + "\n-----------------------------------------------\n\n")
+
+                    self.je_check_text.append(str(i+1) + ": " + self.current_sentence +  "\n   " +  self.translated_text[i] + "\n")
+                
+                i+=1
+                
+                associated_functions.clear_console()
+                
+                print(str(i) + "/" + str(len(self.japanese_text)) + " completed.")
+
+
+            self.output_results()
+
+            time_end = time.time()
+
+            if(self.from_gui):
+                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
+                        file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end) + "\n\n")
+            
+            else:
+                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end))
+
+        except Exception as e:
+            if(self.from_gui):
+                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
+                        file.write("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+
+            print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+            self.output_results()
+
+##-------------------start-of-separate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def separate_sentence(self) -> None: 
+
+        """
+
+        This function separates the sentence into parts and punctuation\n
+
+        Parameters:\n
+        self (object - Kaiseki) : The Kaiseki object\n
+
+        Returns:\n
+        None\n
+        
+        """
+
+        ## resets variables for current_sentence
+        self.sentence_parts = [] 
+        self.sentence_punctuation = []
+        self.special_punctuation = [False,False,False,False,False] 
+
         i = 0
 
         buildString = ""
- 
-        if('"' in sentence):
-                sentence = sentence.replace('"', '')
-                specialPunctuation[0] = True
 
-        if('~' in sentence):
-                specialPunctuation[1] = True
+        ## checks if quotes are in the sentence and removes them
+        if('"' in self.current_sentence):
+            self.current_sentence = self.current_sentence.replace('"', '')
+            self.special_punctuation[0] = True
 
-        if(sentence.count("'") == 2 and (sentence[0] != "'" and sentence[-1] != "'")):
-                specialPunctuation[2] = True
+        ## checks if tildes are in the sentence
+        if('~' in self.current_sentence):
+            self.special_punctuation[1] = True
 
-        elif(sentence.count("'") == 2):
-               specialPunctuation[3] = True
-               sentence = sentence.replace("'", "")
+        ## checks if apostrophes are in the sentence but not at the beginning or end
+        if(self.current_sentence.count("'") == 2 and (self.current_sentence[0] != "'" and self.current_sentence[-1] != "'")):
+            self.special_punctuation[2] = True
 
-        if("(" in sentence and ")" in sentence):
-               specialPunctuation[4] = True
-               sentence= sentence.replace("(","")
-               sentence= sentence.replace(")","")
+        ## checks if apostrophes are in the sentence and removes them
+        elif(self.current_sentence.count("'") == 2):
+            self.special_punctuation[3] = True
+            self.current_sentence = self.current_sentence.replace("'", "")
 
-        while(i < len(sentence)):
+        ## checks if parentheses are in the sentence and removes them
+        if("(" in self.current_sentence and ")" in self.current_sentence):
+            self.special_punctuation[4] = True
+            self.current_sentence= self.current_sentence.replace("(","")
+            self.current_sentence= self.current_sentence.replace(")","")
+
+        while(i < len(self.current_sentence)):
                 
-            if(sentence[i] in [".","!","?","-"]): 
+            if(self.current_sentence[i] in [".","!","?","-"]): 
 
-                if(i+5 < len(sentence) and sentence[i:i+6] in ["......"]):
+                if(i+5 < len(self.current_sentence) and self.current_sentence[i:i+6] in ["......"]):
 
-                        if(i+6 < len(sentence) and sentence[i:i+7] in ["......'"]):
-                               buildString += "'"
-                               i+=1
-
-                        if(buildString != ""):
-                               sentenceParts.append(buildString)
-
-                        sentencePunctuation.append(sentence[i:i+6])
-                        i+=5
-                        buildString = ""
-                    
-                if(i+4 < len(sentence) and sentence[i:i+5] in [".....","...!?"]):
-
-                        if(i+5 < len(sentence) and sentence[i:i+6] in [".....'","...!?'"]):
-                               buildString += "'"
-                               i+=1
-
-                        if(buildString != ""):
-                               sentenceParts.append(buildString)
-
-                        sentencePunctuation.append(sentence[i:i+5])
-                        i+=4
-                        buildString = ""
-                                            
-                elif(i+3 < len(sentence) and sentence[i:i+4] in ["...!","...?","---.","....","!..."]):
-
-                        if(i+4 < len(sentence) and sentence[i:i+5] in ["...!'","...?'","---.'","....'","!...'"]):
-                               buildString += "'"
-                               i+=1
-
-                        if(buildString != ""):
-                               sentenceParts.append(buildString)
-
-                        sentencePunctuation.append(sentence[i:i+4])
-                        i+=3
-                        buildString = ""
-                        
-                elif(i+2 < len(sentence) and sentence[i:i+3] in ["---","..."]):
-
-                        if(i+3 < len(sentence) and sentence[i:i+4] in ["---'","...'"]):
-                               buildString += "'"
-                               i+=1
-
-                        if(buildString != ""):
-                               sentenceParts.append(buildString)
-
-                        sentencePunctuation.append(sentence[i:i+3])
-                        i+=2
-                        buildString = ""
-
-                elif(i+1 < len(sentence) and sentence[i:i+2] == '!?'):
-
-                        if(i+2 < len(sentence) and sentence[i:i+3] == "!?'"):
-                               buildString += "'"
-                               i+=1
-
-                        if(buildString != ""):
-                               sentenceParts.append(buildString)
-
-                        sentencePunctuation.append(sentence[i:i+2])
+                    if(i+6 < len(self.current_sentence) and self.current_sentence[i:i+7] in ["......'"]):
+                        buildString += "'"
                         i+=1
-                        buildString = ""
+
+                    if(buildString != ""):
+                        self.sentence_parts.append(buildString)
+
+                    self.sentence_punctuation.append(self.current_sentence[i:i+6])
+                    i+=5
+                    buildString = ""
+                    
+                if(i+4 < len(self.current_sentence) and self.current_sentence[i:i+5] in [".....","...!?"]):
+
+                    if(i+5 < len(self.current_sentence) and self.current_sentence[i:i+6] in [".....'","...!?'"]):
+                        buildString += "'"
+                        i+=1
+
+                    if(buildString != ""):
+                        self.sentence_parts.append(buildString)
+
+                    self.sentence_punctuation.append(self.current_sentence[i:i+5])
+                    i+=4
+                    buildString = ""
+                                            
+                elif(i+3 < len(self.current_sentence) and self.current_sentence[i:i+4] in ["...!","...?","---.","....","!..."]):
+
+                    if(i+4 < len(self.current_sentence) and self.current_sentence[i:i+5] in ["...!'","...?'","---.'","....'","!...'"]):
+                        buildString += "'"
+                        i+=1
+
+                    if(buildString != ""):
+                        self.sentence_parts.append(buildString)
+
+                    self.sentence_punctuation.append(self.current_sentence[i:i+4])
+                    i+=3
+                    buildString = ""
                         
-                elif(sentence[i] != "-"):  ## if punctuation that was found is not a hyphen then just follow normal punctuation separation rules
+                elif(i+2 < len(self.current_sentence) and self.current_sentence[i:i+3] in ["---","..."]):
 
-                        if(i+1 < len(sentence) and sentence[i+1] == "'"):
-                               buildString += "'"
+                    if(i+3 < len(self.current_sentence) and self.current_sentence[i:i+4] in ["---'","...'"]):
+                        buildString += "'"
+                        i+=1
 
-                        if(buildString != ""):
-                               sentenceParts.append(buildString)
+                    if(buildString != ""):
+                        self.sentence_parts.append(buildString)
 
-                        sentencePunctuation.append(sentence[i])
-                        buildString = ""
+                    self.sentence_punctuation.append(self.current_sentence[i:i+3])
+                    i+=2
+                    buildString = ""
+
+                elif(i+1 < len(self.current_sentence) and self.current_sentence[i:i+2] == '!?'):
+
+                    if(i+2 < len(self.current_sentence) and self.current_sentence[i:i+3] == "!?'"):
+                        buildString += "'"
+                        i+=1
+
+                    if(buildString != ""):
+                        self.sentence_parts.append(buildString)
+
+                    self.sentence_punctuation.append(self.current_sentence[i:i+2])
+                    i+=1
+                    buildString = ""
+                        
+                elif(self.current_sentence[i] != "-"):  ## if punctuation that was found is not a hyphen then just follow normal punctuation separation rules
+
+                    if(i+1 < len(self.current_sentence) and self.current_sentence[i+1] == "'"):
+                        buildString += "'"
+
+                    if(buildString != ""):
+                        self.sentence_parts.append(buildString)
+
+                    self.sentence_punctuation.append(self.current_sentence[i])
+                    buildString = ""
 
                 else:
-                        buildString += sentence[i] ## if it is just a singular hyphen, do not consider it punctuation as they are used in honorifics
+                        buildString += self.current_sentence[i] ## if it is just a singular hyphen, do not consider it punctuation as they are used in honorifics
             else:
-                buildString += sentence[i] 
+                buildString += self.current_sentence[i] 
 
             i += 1
                 
-        
         if(buildString): ## if end of line, add none punctuation which means a period needs to be added later
-            sentenceParts.append(buildString)
-            sentencePunctuation.append(None)
+            self.sentence_parts.append(buildString)
+            self.sentence_punctuation.append(None)
 
-        debugText.append("\nFragmented Sentence Parts " + str(sentenceParts))
-        debugText.append("\nSentence Punctuation " + str(sentencePunctuation))
-        debugText.append("\nDoes Sentence Have Special Punctuation : " + str(specialPunctuation))
+        self.debug_text.append("\nFragmented Sentence Parts " + str(self.sentence_parts))
+        self.debug_text.append("\nSentence Punctuation " + str(self.sentence_punctuation))
+        self.debug_text.append("\nDoes Sentence Have Special Punctuation : " + str(self.special_punctuation))
 
-        sentenceParts = [part.strip() for part in sentenceParts] ## strip the parts as well
+        self.sentence_parts = [part.strip() for part in self.sentence_parts] ## strip the sentence parts
 
-        return sentenceParts,sentencePunctuation,specialPunctuation
+##-------------------start-of-translate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#-------------------start-of-translate()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir,configDir,fromGui): ## for translating each part of a sentence
+    def translate_sentence(self) -> None: ## for translating each part of a sentence
 
         """
 
-        Translates individual sentence parts and quotes
+        This function translates each part of a sentence\n
 
-        Parameters:
-        translator (object - deepL.Translator) a deepL translator object
-        sentenceParts (list - string) a list of parts of text which is derived from sentence
-        sentencePunctuation (list - string) a list of punctuation found in sentence
-        specialPunctuation (list - boolean) a list of booleans indicating whether "special" punctuation exist in the sentence
-        scriptDir (string) the directory of the script
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object\n
 
-        Returns:
-        finalSentence (string) a fully translated and reassembled version of sentence
+        Returns:\n
+        None
 
+        
         """
+
 
         i = 0
         ii = 0
 
-        finalSentence = ""
         quote = ""
         error = ""
         
-        errorActive = False
-        tildeActive = False
-        singleQuoteActive = False
+        tilde_active = False
+        single_quote_active = False
 
-        ## [0] = "" [1] = ~ [2] = '' in sentence but not entire sentence [3] = '' but entire sentence
+        while(i < len(self.sentence_parts)):
 
-        while(i < len(sentenceParts)):
+            ## if tilde is present in part, delete it and set tilde active to true, so we can add it back in a bit
+            if(self.special_punctuation[1] == True and "~" in self.sentence_parts[i]): 
+                self.sentence_parts[i] = self.sentence_parts[i].replace("~","")
+                tilde_active = True
 
-                if(specialPunctuation[1] == True and "~" in sentenceParts[i]): ## if tilde is present in part, delete it and set tilde active to true, so we can add it in a bit
-                        sentenceParts[i] = sentenceParts[i].replace("~","")
-                        tildeActive = True
-
-                if(specialPunctuation[2] == True and "'" in sentenceParts[i] and (sentenceParts[i][0] != "'" and sentenceParts[i][-1] != "'")): ## isolates the quote in the sentence
-                      
-                      Str = sentenceParts[i]
-                      subStart = Str.index("'")
-                      subEnd = 0
-                      quote = ""
-
-                      ii = subStart
-                      while(ii < len(Str)):
-                            if(Str[ii] == "'"):
-                                  subEnd = ii
-                            ii+=1
-                        
-                      quote = Str[subStart+1:subEnd]
-                      sentenceParts[i] = Str[:subStart+1] + "quote" + Str[subEnd:]
-
-                      singleQuoteActive = True
-                      
-                try:
-                        results = str(translator.translate_text(sentenceParts[i], source_lang= "JA", target_lang="EN-US")) 
-
-                        translatedPart = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
-                        translatedPart = translatedPart.rstrip() 
-       
-
-                        if(tildeActive == True): ## here we re-add the tilde, (note not always accurate but mostly is)
-                              translatedPart += "~"
-                              tildeActive = False
-
-                        if(singleQuoteActive == True): ## translates the quote and readds it back to the sentence part
-                                quote = str(translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
-                                
-                                quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
-                                quote = quote.rstrip() 
-
-                                translatedPart = translatedPart.replace("'quote'","'" + quote + "'",1)
-
-                        if(len(sentencePunctuation) > len(sentenceParts)): ## if punctuation appears first and before any text, add the punctuation and remove it form the list.
-                               finalSentence += sentencePunctuation[0]
-                               sentencePunctuation.pop(0)
-
-                        if(sentencePunctuation[i] != None):
-                                finalSentence += translatedPart + sentencePunctuation[i] 
-                        else:
-                                finalSentence += translatedPart 
-
-                        if(i != len(sentencePunctuation)-1):
-                               finalSentence += " "
-                               
-                except QuotaExceededException:
-
-                        print("\nDeepL API quota exceeded\n")
-
-                        associated_functions.pause_console()
-
-                        associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,finalText,errorText,fromGui)
-                        exit()
-                        
-                except ValueError as e:
-
-                        if(str(e) == "Text must not be empty."):
-                                finalSentence += ""
-                        else:
-                                finalSentence += "ERROR"
-                                errorActive = True
-                                error = str(e)
-
-                i+=1
-
-        if(errorActive == True):
-                debugText.append("\nError is : " + error)
-                errorText.append("\nError is : " + error)
-               
-        return finalSentence
-
-#-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def commence_translation(translator:Translator, japaneseText:List[str],scriptDir:str,configDir,fromGui) -> None:
-
-        """
-        
-        Uses all the other functions to translate the text provided
-
-        Parameters:
-        translator (object - deepL.translator) a deepL translator object
-        japaneseText (list - string) a list of japanese lines to translate
-        scriptDir (string) the path of the directory that holds Kudasai.py
-
-        Returns: 
-        None
-
-        """
-
-        try:
-                sentenceParts = []
-                sentencePunctuation = []
-                specialPunctuation = [] ## [0] = "" [1] = ~ [2] = '' in sentence but not entire sentence [3] = '' but entire sentence
-
-                global debugText,jeCheckText,finalText,errorText
-                debugText,jeCheckText,finalText,errorText = [],[],[],[]
-
-                i = 0
-
-                timeStart = time.time()
-
-                while(i < len(japaneseText)):
-                        
-                        sentence = japaneseText[i]
-                        
-                        debugText.append("Initial Sentence : " + sentence)
-
-                        if(any(char in sentence for char in ["▼", "△", "◇"])):
-                                finalText.append(sentence + '\n')
-                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
-
-                        elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in " " for char in sentence)):
-                                finalText.append(sentence + '\n') 
-                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is part marker... leaving intact\n-----------------------------------------------\n\n")
+            ## a quote is present in the sentence, but not enclosing the sentence, we need to isolate it
+            if(self.special_punctuation[2] == True and "'" in self.sentence_parts[i] and (self.sentence_parts[i][0] != "'" and self.sentence_parts[i][-1] != "'")): ## isolates the quote in the sentence
                 
-                        elif bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]):
-                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
-                                finalText.append(sentence + "\n")
+                sentence = self.sentence_parts[i]
+                substring_start = sentence.index("'")
+                substring_end = 0
+                quote = ""
 
-                        elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence))):
-                                debugText.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is english... skipping\n-----------------------------------------------\n\n")
-                                finalText.append(sentence + "\n")
+                ii = substring_start
+                while(ii < len(sentence)):
+                    if(sentence[ii] == "'"):
+                        substring_end = ii
+                    ii+=1
+                    
+                quote = sentence[substring_start+1:substring_end]
+                self.sentence_parts[i] = sentence[:substring_start+1] + "quote" + sentence[substring_end:]
 
-                        elif(len(sentence) == 0 or sentence.isspace() == True):
-                                debugText.append("\nSentence is empty... skipping translation\n-----------------------------------------------\n\n")
-                                finalText.append(sentence + "\n")  
-
-                        else:
-                        
-                                sentenceParts,sentencePunctuation,specialPunctuation = separate(sentence)
-
-                                finalText.append(translate(translator,sentenceParts,sentencePunctuation,specialPunctuation,scriptDir,configDir,fromGui))
-
-                                if(len(finalText[i]) > 0 and finalText[i] != "" and finalText[i][-2] not in string.punctuation and sentencePunctuation[-1] == None): ## this is for adding a period if it's missing 
-                                        finalText[i] = finalText[i] + "."
-                                
-                                if(specialPunctuation[0] == True): ## re-adds quotes
-                                        finalText[i] =  '"' + finalText[i] + '"'
-
-                                elif('"' in finalText[i]): ## replaces quotes because deepL adds them sometimes
-                                        finalText[i] = finalText[i].replace('"',"'")
-
-                                if(specialPunctuation[3] == True): ## re-adds single quotes
-                                        finalText[i] =  "'" + finalText[i] + "'"
-
-                                if(specialPunctuation[4] == True): ## re-adds parentheses quotes
-                                        finalText[i] =  "(" + finalText[i] + ")"
-
-                                finalText[i] += "\n"
-
-                                debugText.append("\nTranslated and Reassembled Sentence : " + finalText[i] + "\n-----------------------------------------------\n\n")
-
-                                jeCheckText.append(str(i+1) + ": " + sentence +  "\n   " +  finalText[i] + "\n")
-                        
-                        i+=1
-                        
-                        associated_functions.clear_console()
-                        
-                        print(str(i) + "/" + str(len(japaneseText)) + " completed.")
-
-
-                associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,finalText,errorText,fromGui)
-
-                timeEnd = time.time()
-
-                if(fromGui):
-                        with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
-                                file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd) + "\n\n")
+                single_quote_active = True
                 
+            try:
+                results = str(self.translator.translate_text(self.sentence_parts[i], source_lang= "JA", target_lang="EN-US")) 
+
+                translated_part = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
+                translated_part = translated_part.rstrip() 
+
+
+                if(tilde_active == True): ## here we re-add the tilde, (note not always accurate but mostly is)
+                    translated_part += "~"
+                    tilde_active = False
+
+                if(single_quote_active == True): ## translates the quote and readds it back to the sentence part
+                    quote = str(self.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
+                    
+                    quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
+                    quote = quote.rstrip() 
+
+                    translated_part = translated_part.replace("'quote'","'" + quote + "'",1)
+
+                if(len(self.sentence_punctuation) > len(self.sentence_parts)): ## if punctuation appears first and before any text, add the punctuation and remove it form the list.
+                    self.translated_sentence += self.sentence_punctuation[0]
+                    self.sentence_punctuation.pop(0)
+
+                if(self.sentence_punctuation[i] != None):
+                    self.translated_sentence += translated_part + self.sentence_punctuation[i] 
                 else:
-                       print("\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd))
+                    self.translated_sentence += translated_part 
+
+                if(i != len(self.sentence_punctuation)-1):
+                    self.translated_sentence += " "
+                        
+            except deepl.exceptions.QuotaExceededException:
+
+                print("\nDeepL API quota exceeded\n")
+
+                associated_functions.pause_console()
+
+                self.output_results()
+                exit()
+                    
+            except ValueError as e:
+
+                if(str(e) == "Text must not be empty."):
+                    self.translated_sentence += ""
+                else:
+                    self.translated_sentence += "ERROR"
+                    error = str(e)
+
+                    self.debug_text.append("\nError is : " + error)
+                    self.error_text.append("\nError is : " + error)
 
 
-                
-        except Exception as e:
-                if(fromGui):
-                        with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
-                                file.write("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+            i+=1
 
-                print("\nUncaught error has been raised in Kaiseki, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
-                associated_functions.output_results(scriptDir,configDir,debugText,jeCheckText,finalText,errorText,fromGui)
+        self.translated_text.append(self.translated_sentence)
+        self.translated_sentence = ""
+
+##-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def output_results(self) -> None:
+
+        '''
+
+        Outputs results to several txt files\n
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+
+        Returns:\n
+        None\n
+
+        '''
+
+        self.output_dir = os.path.join(self.script_dir, "KudasaiOutput")
+        
+        if(not os.path.exists(self.output_dir)):
+            os.mkdir(self.output_dir)
+
+        debug_path = os.path.join(self.output_dir, "tlDebug.txt")
+        je_path = os.path.join(self.output_dir, "jeCheck.txt")
+        translated_path = os.path.join(self.output_dir, "translatedText.txt")
+        error_path = os.path.join(self.output_dir, "errors.txt")
+
+        with open(debug_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.debug_text)
+
+        with open(je_path, 'w+', encoding='utf-8') as file: 
+                file.writelines(self.je_check_text)
+
+        with open(translated_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.translated_text)
+
+        with open(error_path, 'w+', encoding='utf-8') as file:
+                file.writelines(self.error_text)
+
+
+        if(self.from_gui):
+            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
+                file.write("Debug text have been written to : " + debug_path + "\n\n")
+                file.write("J->E text have been written to : " + je_path + "\n\n")
+                file.write("Translated text has been written to : " + translated_path + "\n\n")
+                file.write("Errors have been written to : " + error_path + "\n\n")
+
+            return
+        
+        print("\n\nDebug text have been written to : " + debug_path)
+        print("\nJ->E text have been written to : " + je_path)
+        print("\nTranslated text has been written to : " + translated_path)
+        print("\nErrors have been written to : " + error_path + "\n")

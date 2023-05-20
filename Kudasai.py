@@ -1,43 +1,43 @@
-import sys 
-import json 
-import os 
-import time 
-import itertools
-import spacy
-import requests
+## built in modules
+import os
+import itertools 
+import time
+import enum
+import typing
+import sys
 import ctypes
 
-from time import sleep
-from enum import Flag 
-from collections import namedtuple 
-from typing import Generator
+## third party modules
+import spacy
+import json
 
-from Models import Kaiseki 
-from Models import Kijiku
+## custom modules
+from Models.Kaiseki import Kaiseki 
+from Models.Kijiku import Kijiku
 from Util import associated_functions 
 
-#-------------------start-of-globals---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-ReplacementType()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Character = namedtuple('Character', 'japName engName') ## represents a japanese name along with equivalent english name
+class ReplacementType(enum.Flag):
 
-ner = spacy.load("ja_core_news_lg") # large model for japanese NER (named entity recognition)
+    """
 
-SINGLE_KANJI_FILTER = True ## filters out single kanji or uses specific function to deal with it when replacing names
-fromGui = False ## determines if Kudasai is being run from the GUI or not
+    Represents name markers for different types of names.
 
-JAPANESE_NAME_SEPARATORS = ["・", ""] ## how japanese names are separated in the japanese text
+    The ReplacementType class extends the Flag class, allowing for the combination of name markers using bitwise operations.
+    
+    Name Markers:
+    - NONE: No specific name marker.
+    - FULL_NAME: Represents a full name, first and last name.
+    - FIRST_NAME: Represents the first name only.
+    - FULL_AND_FIRST: Represents both the full name and the first name separately.
+    - LAST_NAME: Represents the last name only.
+    - FULL_AND_LAST: Represents both the full name and the last name.
+    - FIRST_AND_LAST: Represents both the first name and the last name.
+    - ALL_NAMES: Represents all possible names.
+    
+    """
 
-japaneseText = ''
-replacementText = ''
-errorText = []
-
-totalReplacements = 0 
-
-replacementJson = dict() 
-
-#-------------------start-of-Names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-class Names(Flag):  ## name markers
     NONE = 0 
     FULL_NAME = 1 
     FIRST_NAME = 2 
@@ -47,546 +47,597 @@ class Names(Flag):  ## name markers
     FIRST_AND_LAST = 6 
     ALL_NAMES = 7 
 
-#-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-Name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def check_update() -> bool:
+class Name(typing.NamedTuple):
 
     """
 
-    determines if Kudasai has a new latest release\n
+    Represents a japanese name along with its equivalent english name.
 
-    Parameters:\n
-    None\n
+    The Name class extends the NamedTuple class, allowing for the creation of a tuple with named fields.
 
-    Returns:\n
-    True if there is user has an internet connection, False otherwise\n
     """
 
-    try:
+    jap : str
+    eng : str
+
+##-------------------start-of-Kudasai---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class Kudasai:
+
+    """
+
+    Kudasai class is the main class for the Kudasai program. It contains all the functions and variables needed to run the base preprocessor.\n
     
-        CURRENT_VERSION = "v1.4.4" 
+    """
+##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
-        latestVersion = response.json()["tag_name"]
+    def __init__(self, from_gui:bool) -> None: # constructor for Kudasai class
 
-        if(latestVersion != CURRENT_VERSION):
-            print("There is a new update for Kudasai (" + latestVersion + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n")
+        """
+        
+        Constructor for Kudasai class. Takes in the input file, replacement json file, and if it is being run from the GUI or not.
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+        from_gui (boolean) : indicates whether or not the request is from the gui.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        ## represents a japanese name along with its equivalent english name
+        self.Name = Name
+
+        ## large model for japanese NER (named entity recognition)
+        self.ner = spacy.load("ja_core_news_lg") 
+
+        ## filters out single kanji or uses a specific function to deal with it when replacing names
+        self.SINGLE_KANJI_FILTER = True 
+
+        ## determines if the user is connected to the internet or not
+        self.connection = False 
+
+        ## determines if Kudasai is being run from the GUI or not
+        self.from_GUI = from_gui
+
+        ## how japanese names are separated in the japanese text
+        self.JAPANESE_NAME_SEPARATORS = ["・", ""] 
+
+        ## log for errors
+        self.error_text = [] 
+
+        ## holds the japanese text from the input file
+        self.japanese_text = '' 
+
+        ## results of the replacement process, not the japanese text, but like a log
+        self.replacement_text = '' 
+
+        ## dictionary that holds the replacement json file
+        self.replacement_json = dict()
+
+        ## total number of replacements made
+        self.total_replacements = 0
+
+##-------------------start-of-reset()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset(self) -> None:
+
+        """
+
+        Resets the Kudasai object.
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.total_replacements = 0
+
+        self.error_text = []
+
+        self.replacement_text = ''
+
+##-------------------start-of-setup()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def setup(self, input_file, replacement_json) -> None:
+
+        """
+        
+        Sets up the Kudasai object, loads the input file and the replacement json file.\n
+        
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+        input_file (str) : The path to the input file to be processed.\n
+        replacement_json (str) : The path to the replacement json file.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        with open(input_file, 'r', encoding='utf-8') as file: 
+            self.japanese_text = file.read()
+        
+        try:
+
+            with open(replacement_json, 'r', encoding='utf-8') as file: 
+                self.replacement_json = json.load(file) 
+    
+        except:
+
+            print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
             associated_functions.pause_console()
-            associated_functions.clear_console()
 
-        return True
+            exit()
 
-    except: ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail
+##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        return False 
+    def preprocess(self, input_file, replacement_json) -> None:
+
+        """
+
+        Preprocesses the input file, replacing all the names and writes the results to the output files.\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+        input_file (str) : The path to the input file to be processed.\n
+        replacement_json (str) : The path to the replacement json file.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        if(not self.from_GUI):
+            self.connection = associated_functions.check_update() ## checks if there is a new update for Kudasai
+
+        self.reset() ## calls the reset function to reset the Kudasai object
+
+        self.setup(input_file,replacement_json) ## calls the setup function to load the input file and the replacement json file
+
+        self.replace() ## calls the replace function to handle replacements in the japanese text
+
+        self.setup_needed_files() ## calls output_file_names function to set up paths and make sure needed directories exist
+
+        self.write_results() ## calls write_results function to write the results of the replacement process to the output files
+
+        if(not self.from_GUI):
+            associated_functions.pause_console() ## pauses the console so the user can see the results
+
+##-------------------start-of-replace_type()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-#-------------------start-of-output_file_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def replace(self) -> None: 
 
-def output_file_names() -> tuple[str,str,str,str,str,str,str,str]:
+        """
 
-    """
-    spits out output file paths and creates the Kudasai required directories for them\n
-    
-    Parameters:\n
-    None\n
+        handles replacements in the japanese text\n
 
-    Returns:\n
-    preprocessPath (string) where the preprocessed text is stored\n
-    outputPath (string) where the output for the Kudasai preprocessor is stored\n
-    debugPath (string) where the debug text is stored\n
-    jePath (string) where the text for the j-e checkers to review is stored\n
-    translatedPath (string) where the text translated by Kijiku/Kaiseki is stored\n
-    errorPath (string) where the errors are stored (if any)\n
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
 
-    """
+        Returns:\n
+        None\n
 
-    scriptDir = os.path.dirname(os.path.abspath(__file__))
-    outputDir = os.path.join(scriptDir, "KudasaiOutput")
+        """
 
-    if(os.name == 'nt'):  # Windows
-        configDir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
-    else:  # Linux
-        configDir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
+        ## (title, json_key, is_name, replace_name, honorific_type)
+        replacement_rules = [ 
+        ('Punctuation', 'kutouten', False, None, None), 
+        ('Unicode','unicode', False, None, None),
+        ('Phrases','phrases', False, None ,None),
+        ('Words','single_words', False, None, None),
+        ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
+        ('Single Names', 'single_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
+        ('Name Like', 'name_like', True, ReplacementType.ALL_NAMES, ReplacementType.NONE),
+        ]
+ 
+        replaced_names = dict()
 
-    if(not os.path.exists(outputDir)):
-        os.mkdir(outputDir)
+        time_start = time.time() 
 
-    if(not os.path.exists(configDir)):
-        os.mkdir(configDir)
+        for rule in replacement_rules: 
 
-    preprocessPath = os.path.join(outputDir, "preprocessedText.txt")
-    outputPath = os.path.join(outputDir, "output.txt")
-    debugPath = os.path.join(outputDir, "tlDebug.txt")
-    jePath = os.path.join(outputDir, "jeCheck.txt")
-    translatedPath = os.path.join(outputDir, "translatedText.txt")
-    errorPath = os.path.join(outputDir, "errors.txt")
-    
-    return preprocessPath, outputPath, debugPath, jePath, translatedPath, errorPath,scriptDir,configDir
+            title, json_key, is_name, replace_name_param, honorific_type = rule 
 
-#-------------------start-of-replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def replace_single_kanji(kanji:str, replacement:str) -> int: 
-
-    """
-
-    uses ner (Named Entity Recognition) from the spacy module to replace names that are composed of a single kanji in the japanese text\n
-
-    may miss true positives, but should not replace false positives\n
-
-    Parameters:\n
-    kanji (string) japanese kanji to be replaced\n
-    replacement (string) the replacement for kanji\n
-
-    Returns:\n
-    kanjiCount (int) how many kanji were replaced\n
-
-    """
-
-    global japaneseText, totalReplacements
-
-    i = 0
-    kanjiCount = 0
-
-    japLines = japaneseText.split('\n')
-
-    while(i < len(japLines)):
-        if(kanji in japLines[i]):
-
-            sentence = ner(japLines[i])
-
-            for entity in sentence.ents:
-                if(entity.text == kanji and entity.label_ == "PERSON"):
-                    kanjiCount += 1
-                    japLines[i] = japLines[i][:entity.start_char] + replacement + japLines[i][entity.end_char:]
-
-        i+=1
-
-    japaneseText = '\n'.join(japLines)
-    totalReplacements += kanjiCount
-    
-    return kanjiCount
-
-#-------------------start-of-replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def replace_single_word(word:str, replacement:str) -> int: 
-
-    """
-
-    replaces single words in the japanese text\n
-
-    Parameters:\n
-    word (string) word to be replaced\n
-    replacement (string) replacement for the word\n
-
-    Returns:\n
-    numOccurrences (int) number of occurrences for word\n
-
-    """
-    
-    global japaneseText, totalReplacements 
-    
-    numOccurrences = japaneseText.count(word) 
-    
-    if(numOccurrences == 0): 
-        return 0 
-
-    japaneseText = japaneseText.replace(word, replacement) 
-    totalReplacements += numOccurrences 
-    
-    return numOccurrences 
-
-#-------------------start-of-loop_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def loop_names(character:Character, replace:Names, honorific:Names) -> Generator[tuple[str, str, bool], None, None]:
-
-    
-    """
-
-    generates tuples of English and Japanese names to be replaced, along with a boolean indicating whether honorifics should be kept or removed\n
-
-    Parameters:\n
-    character (object - Character) represents a japanese name along with its english equivalent\n
-    replace  (object - name) how a name should be replaced\n
-    honorific (object - name) how a honorific should be replaced\n
-
-    Returns:\n
-    tuple (string, string, bool) tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed\n
-    
-    tuple is wrapped in a generator along with two None values\n
-
-    """
-    
-    japaneseNames = character.japName.split(" ") 
-    englishNames = character.engName.split(" ") 
-    
-    try: 
-        assert len(japaneseNames) == len(englishNames)
-
-    except AssertionError:
-        print("Character lengths do not match for : ") 
-        print(character) 
-        print("\nPlease correct character discrepancy in JSON\n")
-
-        associated_functions.pause_console()
-        exit()
-    
-    if(Names.FULL_NAME in replace):
-        indices = range(len(japaneseNames)) 
-        combinations = itertools.chain(*(itertools.combinations(indices, i) for i in range(2, len(indices)+1))) ## create a chain of combinations of indices, starting with combinations of length 2 up to the length of indices
-        
-        for comb in combinations: 
-            for separator in JAPANESE_NAME_SEPARATORS: 
-                yield (" ".join(map(lambda i: englishNames[i], comb)), ## yield a tuple containing the following elements:
-                       separator.join(map(lambda i: japaneseNames[i], comb)), ## a string created by joining the elements in comb using the map function to apply the function lambda i: englishNames[i] to each element in comb and then joining the resulting list with spaces, 
-                       Names.FULL_NAME in honorific) ## a boolean indicating whether FULL_NAME is in honorific
-    
-    if(Names.FIRST_NAME in replace): ## if FIRST_NAME is in replace, yield a tuple containing the following elements: 
-        yield (englishNames[0], ## the first element of englishNames, 
-                f'{japaneseNames[0]}', ## the first element of japaneseNames,
-                Names.FIRST_NAME in honorific) ## a boolean indicating whether FIRST_NAME is in honorific
-        
-    if(Names.LAST_NAME in replace): ## if LAST_NAME is in replace, yield a tuple containing the following elements:
-        yield (englishNames[-1],  ## the last element of englishNames,
-               f'{japaneseNames[-1]}', ## the last element of japaneseNames,
-               Names.LAST_NAME in honorific)  ## a boolean indicating whether LAST_NAME is in honorific
-
-#-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def replace_name(character:Character, replace:Names, noHonorific:Names, replacedNames:dict) -> None:
-
-    """
-
-    replaces names in the japanese text based off of tuples returned by loop_names\n
-
-    Parameters:\n
-    character (object - Character) represents a japanese name along with its english equivalent\n
-    replace  (object - name) how a name should be replaced\n
-    noHonorific (object - name) if a name is to replaced without honorifics\n
-    replacedNames (dict - string) a list of replaced names and their occurrences\n
-
-    Returns:\n
-    None\n
-
-    """
-
-    global replacementText,fromGui 
-    
-    for eng, jap, noHonor in loop_names(character, replace, noHonorific): ## if name already replaced, skip
-        if(jap in replacedNames):
-            continue
-
-        data = dict()
-
-        for honor, honorificEnglish in replacementJson['honorifics'].items(): ## replaces honorifics
-            data[honorificEnglish] = replace_single_word(
-                f'{jap}{honor}',
-                f'{eng}-{honorificEnglish}'
-            )
-
-        if(noHonor == True): ## if name does not have honorific
-            if(len(jap) > 1 or not SINGLE_KANJI_FILTER): ## if name is not singular kanji, or we do not care if singular kanji are replaced
-                data['NA'] = replace_single_word(jap, eng)
-
-            elif(len(jap) == 1 and SINGLE_KANJI_FILTER == True): 
-                data['NA'] = replace_single_kanji(jap, eng)
+            if(is_name == True): 
                 
+                try:
+                    for eng, jap in self.replacement_json[json_key].items(): 
 
-        total = sum(data.values())
+                        if(isinstance(jap, list) == False):  ## makes jap entries into a list if not already
+                            jap = [jap]
 
-        replacedNames[jap] = total
+                        current_name = self.Name(" ".join(jap), eng)
 
-        if(total == 0): ## if no replacements happened skip display
-            continue
+                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names)
 
-        replacementText += f'{eng} : {total} ('
-        replacementText += ', '.join([f'{key}-{value}' for key, value in data.items() if value > 0]) + ')\n'
+                except Exception as E: 
+                    self.error_text.append(str(E) + '\n')
+                    self.error_text.append("Exception with : " + json_key  + '\n')
+                    continue ## Go to the next iteration of the loop
 
-        if(not fromGui):
+            else: 
+                try:
+                    for jap, eng in self.replacement_json[json_key].items(): 
+                        num_replacements = self.replace_single_word(jap, eng)
 
-            print(f'{eng} : {total} (', end='')
-            print(", ".join(map(lambda x: f'{x}-{data[x]}',
-                                filter(lambda x: data[x]>0, data))), end=')\n')
-            
-#-------------------start-of-replace()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                        if(num_replacements > 0):
 
-def replace() -> str: 
+                            self.replacement_text += str(jap) + " → " + str(eng) + " : " + str(num_replacements) + "\n"
 
-    """
+                            if(not self.from_GUI): 
+                                print(str(jap) + " → " + str(eng) + " : " + str(num_replacements))
+                            
 
-    handles replacements in the japanese text\n
+                except Exception as E: 
+                    self.error_text.append(str(E) + '\n')
+                    self.error_text.append("Exception with : " + json_key  + '\n')
+                    continue ## Go to the next iteration of the loop
 
-    Parameters:\n
-    None\n
+        time_end = time.time()
 
-    Returns:\n
-    japaneseText (string) the japanese text we are preprocessing\n
+        self.replacement_text += "\nTotal Replacements  : " + str(self.total_replacements)
+        self.replacement_text += "\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end)
 
-    """
+        if(not self.from_GUI): 
 
-    global japaneseText, replacementJson, replacementText,errorText,fromGui 
+            print("\nTotal Replacements " + str(self.total_replacements))
+            print("\nTime Elapsed " + associated_functions.get_elapsed_time(time_start, time_end) + '\n')
 
-    ## (title, jsonKey, isName, replace_name, noHonorific)
-    
-    replacementRules = [ 
-    ('Punctuation', 'kutouten', False, None, None), 
-    ('Unicode','unicode',False, None, None),
-    ('Phrases','phrases',False,None,None),
-    ('Words','single_words',False,None,None),
-    ('Full Names', 'full_names', True,Names.ALL_NAMES, Names.ALL_NAMES),
-    ('Single Names', 'single_names', True, Names.ALL_NAMES, Names.ALL_NAMES),
-    ('Name Like', 'name_like', True, Names.ALL_NAMES, Names.NONE),
-    ]
+##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    replacedNames = dict()
+    def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict) -> None:
 
-    timeStart = time.time() 
+        """
 
-    for rule in replacementRules: 
+        replaces names in the japanese text based off of tuples returned by loop_names\n
 
-        title, jsonKey, isName, replaceNameParam, noHonorific = rule 
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+        Name (object - Name)  : represents a japanese name along with its english equivalent\n
+        replace_type  (object - ReplacementType) : how a name should be replaced\n
+        honorific_type (object - ReplacementType) : how a honorific_type should be replaced\n
+        replaced_names (dict - string) : a dict of replaced names and their occurrences\n
 
-        if(isName == True): 
-            
-            try:
-                for eng, jap in replacementJson[jsonKey].items(): 
+        Returns:\n
+        None\n
 
-                    if(isinstance(jap, list) == False):  ## makes jap entries into a list if not already
-                        jap = [jap]
+        """
 
-                    char = Character(" ".join(jap), eng)
+        for eng, jap, no_honor in self.loop_names(Name, replace_type, honorific_type): ## if name already replaced, skip
+            if(jap in replaced_names):
+                continue
 
-                    replace_name(char, replaceNameParam, noHonorific, replacedNames)
+            replacement_data = dict()
 
-            except Exception as E: 
-                errorText.append(str(E) + '\n')
-                errorText.append("Exception with : " + jsonKey  + '\n')
-                continue ## Go to the next iteration of the loop
+            for honor, honorific_english in self.replacement_json['honorifics'].items(): ## replaces honorifics
+                replacement_data[honorific_english] = self.replace_single_word(
+                    f'{jap}{honor}',
+                    f'{eng}-{honorific_english}'
+                )
 
-        else: 
-            try:
-                for jap, eng in replacementJson[jsonKey].items(): 
-                    numReplacements = replace_single_word(jap, eng)
+            if(no_honor == True): ## if name does not have honorific
+                if(len(jap) > 1 or not self.SINGLE_KANJI_FILTER): ## if name is not singular kanji, or we do not care if singular kanji are replaced
+                    replacement_data['NA'] = self.replace_single_word(jap, eng)
 
-                    if(numReplacements > 0):
+                elif(len(jap) == 1 and self.SINGLE_KANJI_FILTER == True): 
+                    replacement_data['NA'] = self.replace_single_kanji(jap, eng)
+                    
 
-                        replacementText += str(jap) + " → " + str(eng) + " : " + str(numReplacements) + "\n"
+            total = sum(replacement_data.values())
 
-                        if(not fromGui): 
-                            print(str(jap) + " → " + str(eng) + " : " + str(numReplacements))
-                        
+            replaced_names[jap] = total
 
-            except Exception as E: 
-                errorText.append(str(E) + '\n')
-                errorText.append("Exception with : " + jsonKey  + '\n')
-                continue ## Go to the next iteration of the loop
+            if(total == 0): ## if no replacements happened skip display
+                continue
 
-    timeEnd = time.time()
+            self.replacement_text += f'{eng} : {total} ('
+            self.replacement_text += ', '.join([f'{key}-{value}' for key, value in replacement_data.items() if value > 0]) + ')\n'
 
-    replacementText += "\nTotal Replacements  : " + str(totalReplacements)
-    replacementText += "\nTime Elapsed : " + associated_functions.get_elapsed_time(timeStart, timeEnd)
+            if(not self.from_GUI):
 
-    if(not fromGui): 
+                print(f'{eng} : {total} (', end='')
+                print(", ".join(map(lambda x: f'{x}-{replacement_data[x]}',
+                                    filter(lambda x: replacement_data[x]>0, replacement_data))), end=')\n')
+                
+##-------------------start-of-loop_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        print("\nTotal Replacements " + str(totalReplacements))
-        print("\nTime Elapsed " + associated_functions.get_elapsed_time(timeStart, timeEnd))
+    def loop_names(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType) -> typing.Generator[tuple[str, str, bool], None, None]:
 
-    return japaneseText 
-
-#-------------------start-of-determine_translation_automation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def determine_translation_automation(preprocessPath:str, scriptDir:str, configDir:str) -> None:
-
-    """
-
-    determines which translation module the user wants to use and calls it\n
-
-    Parameters:\n
-    preprocessPath (string) path to where the preprocessed text was stored\n
-    scriptDir (string) path to where the script is\n
-    configDir (string) path to where the config is\n
-
-    Returns:\n
-    None\n
-
-    """
-
-    print("Please choose an auto translation model")
-    print("\n1.Kaiseki - DeepL based line by line translation (Not very accurate by itself) (Free if using trial) (Good with punctuation)")
-    print("\n2.Kijiku - OpenAI based batch translator (Very accurate) (Pricey) ($0.002 per 1k Tokens)\n")
-    print("\n3.Exit\n")
-    
-    mode = input()
-
-    if(mode == "1"):
-        run_kaiseki(preprocessPath,scriptDir,configDir)
-    
-    elif(mode == "2"):
-        run_kijiku(preprocessPath,scriptDir,configDir)
-
-    else:
-        exit()
-
-#-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def run_kaiseki(preprocessPath:str, scriptDir:str, configDir:str) -> None:
-
-    """
-
-    runs the kaiseki module for auto translation\n
-
-    Parameters:\n
-    preprocessPath (string) path to where the preprocessed text was stored\n
-    scriptDir (string) path to where the script is\n
-    configDir (string) path to where the config is\n
-
-    Returns:\n
-    None\n
-
-    """
-
-    associated_functions.clear_console()
-    
-    print("Commencing Automated Translation\n")
-
-    sleep(2)
-
-    translator,japaneseText = Kaiseki.initialize_translator(preprocessPath,configDir)
-
-    Kaiseki.commence_translation(translator,japaneseText,scriptDir,configDir,fromGui)
-
-#-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def run_kijiku(preprocessPath:str, scriptDir:str, configDir:str) -> None:
-
-    """
-
-    runs the kijiku module for auto translation\n
-
-    Parameters:\n
-    preprocessPath (string) path to where the preprocessed text was stored\n
-    scriptDir (string) path to where the script is\n
-    configDir (string) path to where the config is\n
-
-    Returns:\n
-    None\n
-
-    """
-
-    hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## minimize console window
-    ctypes.windll.user32.ShowWindow(hwnd, 3) 
-
-    associated_functions.clear_console()
-
-    japaneseText,kijikuRules = Kijiku.initialize_text(preprocessPath,configDir)
-
-    print("\nAre these settings okay? (1 for yes or 2 for no) : \n\n")
-
-    for key, value in kijikuRules["open ai settings"].items():
-        print(key + " : " + str(value))
-
-    if(input("\n") == "1"):
-        pass
-    else:
-        Kijiku.change_settings(kijikuRules,configDir)
-
-    associated_functions.clear_console()
-
-    hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
-    ctypes.windll.user32.ShowWindow(hwnd, 9)
-
-    print("Commencing Automated Translation\n")
-
-    sleep(2)
-
-    Kijiku.commence_translation(japaneseText,scriptDir,configDir,isGui=False)
-
-#-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def main(inputFile:str, jsonFile:str,isGui:bool) -> None:
-
-    """
-
-    reads the text from `inputFile`, replaces names and honorifics in the text based on the data in `jsonFile`, and writes the results to the folder "KudasaiOutput"\n
-
-    Parameters:\n
-    inputFile (string) path to the txt file we are preprocessing\n
-    jsonFile (string) path to the json file whose "rules" we are following\n
-    isGui (bool) whether or not the program was called from the GUI\n
-
-    Returns:\n
-    None\n
-
-    """
-    
-    global japaneseText, replacementJson, totalReplacements, replacementText,errorText, fromGui 
-
-    connection = None
-    fromGui = isGui
-
-    
-    if(fromGui): ## If the program was called from the GUI, we need to reset the global variables
-        totalReplacements = 0
-        replacementText = ""
-        errorText = []
-
-    if(not fromGui):
-        connection = check_update()
-    
-    with open(inputFile, 'r', encoding='utf-8') as file: 
-        japaneseText = file.read()
         
-    try:
+        """
 
-        with open(jsonFile, 'r', encoding='utf-8') as file: 
-            replacementJson = json.load(file) 
-    
-    except:
+        generates tuples of English and Japanese names to be replaced, along with a boolean indicating whether honorifics should be kept or removed\n
 
-        print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-        associated_functions.pause_console()
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+        Name (object - Name) : represents a japanese name along with its english equivalent\n
+        replace_type  (object - ReplacementType) : how a name should be replaced\n
+        honorific_type (object - ReplacementType) : how a honorific_type should be replaced\n
 
-        exit()
-
-    replace() 
-    
-    preprocessPath,outputPath,debugPath,jePath,translatedPath,errorPath,scriptDir,configDir = output_file_names()
-
-    with open(preprocessPath, 'w+', encoding='utf-8') as file: 
-        file.write(japaneseText) 
-
-    with open(outputPath, 'w+', encoding='utf-8') as file:
-        file.write(replacementText) 
-
-    if(not os.path.exists(debugPath)):
-        with open(debugPath, 'w+', encoding='utf-8') as file:
-            pass
-
-    if(not os.path.exists(jePath)):
-        with open(jePath, 'w+', encoding='utf-8') as file:
-            pass
-
-    if(not os.path.exists(translatedPath)):
-        with open(translatedPath, 'w+', encoding='utf-8') as file:
-            pass
-
-    with open(errorPath, 'w+', encoding='utf-8') as file: 
-        file.writelines(errorText) 
-
-    if(not fromGui):
-        print("\n\nResults have been written to : " + preprocessPath)
-        print("\nKudasai replacement output has been written to : " + outputPath + "\n")
+        Returns:\n
+        tuple (string, string, bool) : tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed\n
         
-        os.system('pause /P "Press any key to auto translate..."')
+        tuple is wrapped in a generator along with two None values\n
+
+        """
+        
+        japanese_names = Name.jap.split(" ") 
+        english_names = Name.eng.split(" ") 
+        
+        try: 
+            assert len(japanese_names) == len(english_names)
+
+        except AssertionError:
+            print("Name lengths do not match for : ") 
+            print(Name) 
+            print("\nPlease correct Name discrepancy in JSON\n")
+
+            associated_functions.pause_console()
+            exit()
+        
+        if(ReplacementType.FULL_NAME in replace_type):
+            indices = range(len(japanese_names)) 
+            combinations = itertools.chain(*(itertools.combinations(indices, i) for i in range(2, len(indices)+1))) ## create a chain of combinations of indices, starting with combinations of length 2 up to the length of indices
+            
+            for comb in combinations:  
+                for separator in self.JAPANESE_NAME_SEPARATORS: 
+                    yield (" ".join(map(lambda i: english_names[i], comb)), ## yield a tuple containing the following elements:
+                        separator.join(map(lambda i: japanese_names[i], comb)), ## a string created by joining the elements in comb using the map function to apply the function lambda i: english_names[i] to each element in comb and then joining the resulting list with spaces, 
+                        ReplacementType.FULL_NAME in honorific_type) ## a boolean indicating whether FULL_NAME is in honorific_type
+        
+        if(ReplacementType.FIRST_NAME in replace_type): ## if FIRST_NAME is in replace_type, yield a tuple containing the following elements: 
+            yield (english_names[0], ## the first element of english_names, 
+                f'{japanese_names[0]}', ## the first element of japanese_names,
+                ReplacementType.FIRST_NAME in honorific_type) ## a boolean indicating whether FIRST_NAME is in honorific_type
+            
+        if(ReplacementType.LAST_NAME in replace_type): ## if LAST_NAME is in replace_type, yield a tuple containing the following elements:
+            yield (english_names[-1],  ## the last element of english_names,
+                f'{japanese_names[-1]}', ## the last element of japanese_names,
+                ReplacementType.LAST_NAME in honorific_type)  ## a boolean indicating whether LAST_NAME is in honorific_type
+          
+##-------------------start-of-replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def replace_single_word(self, word:str, replacement:str) -> int: 
+
+        """
+
+        replaces single words in the japanese text\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+        word (string) : word to be replaced\n
+        replacement (string) : replacement for the word\n
+
+        Returns:\n
+        num_occurrences (int) : number of occurrences for word\n
+
+        """
+            
+        num_occurrences = self.japanese_text.count(word) 
+        
+        if(num_occurrences == 0): 
+            return 0 
+
+        self.japanese_text = self.japanese_text.replace(word, replacement) 
+        self.total_replacements += num_occurrences 
+
+        return num_occurrences
+    
+##-------------------start-of-replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def replace_single_kanji(self, kanji:str, replacement:str) -> int: 
+
+        """
+
+        uses ner (Named Entity Recognition) from the spacy module to replace names that are composed of a single kanji in the japanese text\n
+
+        may miss true positives, but should not replace false positives\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+        kanji (string) : japanese kanji to be replaced\n
+        replacement (string) : the replacement for kanji\n
+
+        Returns:\n
+        kanji_count (int) : how many kanji were replaced\n
+
+        """
+
+        i = 0
+        kanji_count = 0
+
+        jap_lines = self.japanese_text.split('\n')
+
+        while(i < len(jap_lines)):
+            if(kanji in jap_lines[i]):
+
+                sentence = self.ner(jap_lines[i])
+
+                for entity in sentence.ents:
+                    if(entity.text == kanji and entity.label_ == "PERSON"):
+                        kanji_count += 1
+                        jap_lines[i] = jap_lines[i][:entity.start_char] + replacement + jap_lines[i][entity.end_char:]
+
+            i+=1
+
+        self.japanese_text = '\n'.join(jap_lines)
+        self.total_replacements += kanji_count
+        
+        return kanji_count
+    
+##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def setup_needed_files(self) -> None:
+
+        """
+
+        spits out output file paths and creates the required directories for them\n
+        
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.output_dir = os.path.join(self.script_dir, "KudasaiOutput")
+
+        if(os.name == 'nt'):  # Windows
+            self.config_dir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
+        else:  # Linux
+            self.config_dir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
+
+        if(not os.path.exists(self.output_dir)):
+            os.mkdir(self.output_dir)
+
+        if(not os.path.exists(self.config_dir)):
+            os.mkdir(self.config_dir)
+
+        self.preprocess_path = os.path.join(self.output_dir, "preprocessedText.txt") ## path for preprocessed text
+        self.output_path = os.path.join(self.output_dir, "output.txt")  ## path for Kudasai output
+        self.debug_path = os.path.join(self.output_dir, "tlDebug.txt") ## path for tl debug text (mostly for developers)
+        self.je_path = os.path.join(self.output_dir, "jeCheck.txt") ## path for je check text
+        self.translated_path = os.path.join(self.output_dir, "translatedText.txt") ## path for translated text
+        self.error_path = os.path.join(self.output_dir, "errors.txt") ## path for errors
+
+##-------------------start-of-write_results()-------------------------------------------------------------------------------------------------------------------------------------
+        
+    def write_results(self) -> None: 
+
+        """
+
+        writes the results of Kudasai to the output files\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        with open(self.preprocess_path, 'w+', encoding='utf-8') as file: 
+            file.write(self.japanese_text) 
+
+        with open(self.output_path, 'w+', encoding='utf-8') as file:
+            file.write(self.replacement_text) 
+
+        if(not os.path.exists(self.debug_path)):
+            with open(self.debug_path, 'w+', encoding='utf-8') as file:
+                pass
+
+        if(not os.path.exists(self.je_path)):
+            with open(self.je_path, 'w+', encoding='utf-8') as file:
+                pass
+
+        if(not os.path.exists(self.translated_path)):
+            with open(self.translated_path, 'w+', encoding='utf-8') as file:
+                pass
+
+        with open(self.error_path, 'w+', encoding='utf-8') as file: 
+            file.writelines(self.error_text) 
+
+##-------------------start-of-determine_translation_automation()-------------------------------------------------------------------------------------------------------------------------------------
+
+    def determine_translation_automation(self) -> None:
+
+        """
+
+        determines which translation module the user wants to use and calls it\n
+
+        Parameters:\n
+        preprocessPath (string) : path to where the preprocessed text was stored\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        associated_functions.clear_console()
+
+        print("Please choose an auto translation model")
+        print("\n1.Kaiseki - DeepL based line by line translation (Not very accurate by itself) (Free if using trial)")
+        print("\n2.Kijiku - OpenAI based batch translator (Very accurate) (Price depends on model)")
+        print("\n3.Exit\n")
+        
+        mode = input()
+
+        if(mode == "1"):
+            self.run_kaiseki()
+        
+        elif(mode == "2"):
+            self.run_kijiku()
+
+        else:
+            exit()
+
+##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def run_kaiseki(self) -> None:
+
+        """
+
+        runs the kaiseki module for auto translation\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
         associated_functions.clear_console()
         
-        if(connection == True):
-            determine_translation_automation(preprocessPath,scriptDir,configDir)
-    else:
-        return
+        print("Commencing Automated Translation\n")
 
-#-------------------start-of-sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        time.sleep(1)
 
-if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called outside cmd prints usage statement
+        kaiseki_client = Kaiseki(self.config_dir,self.script_dir,from_gui=False)
+
+        kaiseki_client.translate(self.preprocess_path)
+
+##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def run_kijiku(self) -> None:
+        
+        """
+        
+        runs the kijiku module for auto translation\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## minimize console window
+        ctypes.windll.user32.ShowWindow(hwnd, 3) 
+
+        associated_functions.clear_console()
+
+        kijiku_client = Kijiku(self.config_dir,self.script_dir,from_gui=False)
+
+        print("Commencing Automated Translation\n")
+
+        time.sleep(2)
+
+        kijiku_client.translate(self.preprocess_path)
+
+##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+if(__name__ == '__main__'): ## checks sys arguments and if less than 3 or called outside cmd prints usage statement
 
     if(len(sys.argv) < 3): 
 
@@ -599,5 +650,8 @@ if(__name__ == '__main__'): # checks sys arguments and if less than 3 or called 
 
     os.system("title " + "Kudasai") 
 
-    main(sys.argv[1], sys.argv[2],isGui=False) # Call main function with the first and second command line arguments as the input file and replacement JSON, respectively
+    kudasai_client = Kudasai(from_gui=False) ## creates Kudasai object, passing in input file and replacement json file, and if it is being run from the GUI or not
 
+    kudasai_client.preprocess(sys.argv[1], sys.argv[2]) ## preprocesses the text
+
+    kudasai_client.determine_translation_automation() ## determines which translation module the user wants to use and calls it

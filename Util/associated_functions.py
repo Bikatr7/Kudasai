@@ -1,9 +1,9 @@
+## built-in modules
 import os
 import requests
+import typing
 
-from typing import List
-
-#-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def clear_console() -> None:
 
@@ -21,9 +21,9 @@ def clear_console() -> None:
 
     os.system('cls' if os.name == 'nt' else 'clear')
 
-#-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def pause_console(message="Press any key to continue . . ."):
+def pause_console(message:str="Press enter to continue . . .") -> None:
 
     """
 
@@ -37,12 +37,12 @@ def pause_console(message="Press any key to continue . . ."):
 
     """
 
-    if(os.name == 'nt'):  # Windows
+    if(os.name == 'nt'):  ## Windows
         os.system('pause /P f{message}')
-    else: 
+    else: ## Linux
         input(message)
 
-#-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def get_elapsed_time(start:float, end:float) -> str:
 
@@ -55,81 +55,25 @@ def get_elapsed_time(start:float, end:float) -> str:
     end (float): end time\n
 
     Returns:\n
-    printValue (string) elapsed time\n
+    print_value (string) elapsed time\n
 
     """
 
-    printValue = ""
+    print_value = ""
 
     if(end-start < 60.0):
-        printValue = str(round(end-start, 2)) + " seconds"
+        print_value = str(round(end-start, 2)) + " seconds"
     
     elif(end-start < 3600.0):
-        printValue = str(round((end-start)/60, 2)) + " minutes"
+        print_value = str(round((end-start)/60, 2)) + " minutes"
     
     else:
-        printValue = str(round((end-start)/3600, 2)) + " hours"
+        print_value = str(round((end-start)/3600, 2)) + " hours"
 
-    return printValue
-
-#-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def output_results(scriptDir:str, configDir:str, debugText:List[str], jeCheckText:List[str], finalText:List[str], errorText:List[str],fromGui) -> None:
-
-        '''
-
-        Outputs results to several txt files\n
-
-        Parameters:\n
-        scriptDir (string) the path of the directory that holds Kudasai.py\n
-        debugText (list - string) debug text\n
-        jeCheckText (list - string) J->E text\n
-        finalText (list - string) translated text\n
-        errorText (list - string) errors\n
-
-        Returns:\n
-        None\n
-
-        '''
-
-        outputDir = os.path.join(scriptDir, "KudasaiOutput")
-
-        if(not os.path.exists(outputDir)):
-               os.mkdir(outputDir)
-
-        debugPath = os.path.join(outputDir, "tlDebug.txt")
-        jePath = os.path.join(outputDir, "jeCheck.txt")
-        resultsPath = os.path.join(outputDir, "translatedText.txt")
-        errorPath = os.path.join(outputDir, "errors.txt")
-
-        with open(debugPath, 'w+', encoding='utf-8') as file:
-                file.writelines(debugText)
-
-        with open(jePath, 'w+', encoding='utf-8') as file: 
-                file.writelines(jeCheckText)
-
-        with open(resultsPath, 'w+', encoding='utf-8') as file:
-                file.writelines(finalText)
-
-        with open(errorPath, 'w+', encoding='utf-8') as file:
-                file.writelines(errorText)
+    return print_value
 
 
-        if(fromGui):
-            with open(os.path.join(configDir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: # Write the text to a temporary file
-                file.write("Debug text have been written to : " + debugPath + "\n\n")
-                file.write("J->E text have been written to : " + jePath + "\n\n")
-                file.write("Translated text has been written to : " + resultsPath + "\n\n")
-                file.write("Errors have been written to : " + errorPath + "\n\n")
-
-            return
-        
-        print("\n\nDebug text have been written to : " + debugPath)
-        print("\nJ->E text have been written to : " + jePath)
-        print("\nTranslated text has been written to : " + resultsPath)
-        print("\nErrors have been written to : " + errorPath + "\n")
-
-#-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def check_update() -> bool:
 
@@ -142,6 +86,7 @@ def check_update() -> bool:
 
     Returns:\n
     True if the user has an internet connection, False if the user does not\n
+
     """
 
     try:

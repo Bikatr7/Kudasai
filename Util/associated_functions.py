@@ -91,7 +91,7 @@ def check_update() -> bool:
 
     try:
     
-        CURRENT_VERSION = "v1.5.0beta" 
+        CURRENT_VERSION = "v1.5.0" 
 
         response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
         latestVersion = response.json()["tag_name"]

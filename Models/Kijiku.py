@@ -80,6 +80,28 @@ class Kijiku:
         ## model message is the text that will be translated  
         self.messages = []
 
+        ## the default settings for the Kijiku Rules.json file
+        self.default = {
+        "open ai settings": 
+        {
+            "model":"gpt-3.5-turbo",
+            "temp":1,
+            "top_p":1,
+            "n":1,
+            "stream":False,
+            "stop":None,
+            "max_tokens":9223372036854775807,
+            "presence_penalty":0,
+            "frequency_penalty":0,
+            "logit_bias":None,
+            "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
+            "message_mode":1,
+            "num_lines":13,
+            "sentence_fragmenter_mode":1,
+            "je_check_mode":1
+        }
+        }
+
 ##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def reset(self):
@@ -103,7 +125,70 @@ class Kijiku:
         self.error_text = []
         self.messages = []
 
-#-------------------start-of-reset_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def validate_json(self):
+
+        """
+
+        validates the Kijiku Rules.json file\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        keys_list = [
+        "model",
+        "temp",
+        "top_p",
+        "n",
+        "stream",
+        "stop",
+        "max_tokens",
+        "presence_penalty",
+        "frequency_penalty",
+        "logit_bias",
+        "system_message",
+        "message_mode",
+        "num_lines",
+        "sentence_fragmenter_mode",
+        "je_check_mode"
+         ]
+        
+        if("open ai settings" not in self.kijiku_rules):
+            self.reset_kijiku_rules()
+
+            with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
+                self.kijiku_rules = json.load(file) 
+            return
+        
+        if(all(key in self.kijiku_rules["open ai settings"] for key in keys_list)):
+            return
+        
+        elif(self.from_gui == False):
+            associated_functions.clear_console()
+
+            for key,value in self.kijiku_rules["open ai settings"].items(): ## print out the current settings
+                print(key + " : " + str(value))
+
+            print("\n\nKijiku Rules.json is missing keys and will be resetting to default, if you wish to preserve your existing settings, please back them up before continuing\n")
+
+            associated_functions.pause_console()
+            associated_functions.clear_console()
+
+            self.reset_kijiku_rules()
+
+        else:
+            self.reset_kijiku_rules()
+
+        with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
+            self.kijiku_rules = json.load(file) 
+
+##-------------------start-of-reset_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def reset_kijiku_rules(self) -> None:
 
@@ -119,28 +204,8 @@ class Kijiku:
 
         """
         
-        default = {
-        "open ai settings": 
-        {
-            "model":"gpt-3.5-turbo",
-            "temp":1,
-            "top_p":1,
-            "n":1,
-            "stream":False,
-            "stop":None,
-            "max_tokens":9223372036854775807,
-            "presence_penalty":0,
-            "frequency_penalty":0,
-            "logit_bias":None,
-            "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
-            "message_mode":1,
-            "num_lines":13,
-            "sentence_fragmenter_mode":1
-        }
-        }
-
         with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
-            json.dump(default,file)
+            json.dump(self.default,file)
 
         associated_functions.clear_console()
 
@@ -182,25 +247,47 @@ class Kijiku:
             print("\nmessage_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treating as a user message. 1 is recommend for gpt-4 otherwise either works.")
             print("\nnum_lines : the number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines.")
             print("\nsentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all.")
-            
+            print("\nje_check_mode : 1 or 2, 1 will print out the 'num_lines' amount of jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If  it cannot, it will do 1.")
+
             print("\n\nPlease note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them.")
 
-            print("\n\nCurrent settings:\n\n")
+            print("\n\nCurrent settings:\n\n----------------------------------------------------------------")
 
             for key,value in self.kijiku_rules["open ai settings"].items(): ## print out the current settings
                 print(key + " : " + str(value))
 
-            action = input("\nEnter the name of the setting you want to change, type d to reset to default, or type 'q' to continue: ").lower()
+            action = input("\nEnter the name of the setting you want to change, type d to reset to default, type c to load a json directly,  or type 'q' to quit settings change : ").lower()
 
             if(action == "q"): ## if the user wants to continue, do so
                 break
+
+            if(action == "c"):
+                associated_functions.clear_console()
+
+                try:
+                    with open(os.path.join(self.script_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
+                        self.kijiku_rules = json.load(file) 
+
+                    self.validate_json()
+
+                    assert self.kijiku_rules != self.default ## validate_json() sets a dict to default if it's invalid, so if it's still default, it's invalid
+                    
+                    with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
+                      json.dump(self.kijiku_rules, file)
+                
+                except Exception as e:
+                    print(e)
+                    print("Invalid JSON file. Please try again. ")
+                    time.sleep(1)
+                    associated_functions.pause_console()
+                    continue
+            
 
             elif(action == "d"): ## if the user wants to reset to default, do so
                 self.reset_kijiku_rules()
 
                 with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
                     self.kijiku_rules = json.load(file) 
-
 
             elif(action not in self.kijiku_rules["open ai settings"]):
                 print("Invalid setting name. Please try again.")
@@ -223,7 +310,7 @@ class Kijiku:
 
     def check_settings(self):
 
-        print("\nAre these settings okay? (1 for yes or 2 for no) : \n\n")
+        print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
         for key, value in self.kijiku_rules["open ai settings"].items():
             print(key + " : " + str(value))
@@ -256,6 +343,8 @@ class Kijiku:
         
         self.initialize(text_to_translate)
 
+        self.validate_json()
+
         if(not self.from_gui):
             self.check_settings()
 
@@ -285,6 +374,7 @@ class Kijiku:
             openai.api_key = api_key
 
             print("Used saved api key in " + os.path.join(self.config_dir,'GPTApiKey.txt')) ## if valid save the api key
+            time.sleep(.7)
 
         except (FileNotFoundError,AuthenticationError): ## else try to get api key manually
                 
@@ -345,9 +435,8 @@ class Kijiku:
                 time.sleep(1)
                 associated_functions.clear_console()
 
-            with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
+            with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r+', encoding='utf-8') as file:
                 self.kijiku_rules = json.load(file) 
-
 
         except: ## if the kijiku rules don't exist, create them
             
@@ -389,6 +478,7 @@ class Kijiku:
             self.message_mode = int(self.kijiku_rules["open ai settings"]["message_mode"])
             self.prompt_size = int(self.kijiku_rules["open ai settings"]["num_lines"])
             self.sentence_fragmenter_mode = int(self.kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
+            self.je_check_mode = int(self.kijiku_rules["open ai settings"]["je_check_mode"])
 
             time_start = time.time()
 
@@ -399,6 +489,8 @@ class Kijiku:
             self.build_messages()
 
             self.estimate_cost(self.MODEL)
+
+            self.MODEL = self.kijiku_rules["open ai settings"]["model"] ## model may have changed due to cost estimation
 
             if(self.from_gui == False):
                 associated_functions.pause_console("Press any key to continue with translation...")
@@ -567,7 +659,7 @@ class Kijiku:
         '''
         
         try:
-            encoding = tiktoken.encoding_for_model(self.MODEL)
+            encoding = tiktoken.encoding_for_model(model)
         except KeyError:
             print("Warning: model not found. Using cl100k_base encoding.")
             encoding = tiktoken.get_encoding("cl100k_base")
@@ -665,8 +757,11 @@ class Kijiku:
         self.debug_text.append("\nPrompt was : \n" + user_message["content"] + "\n")
 
         self.debug_text.append("-------------------------\nResponse from GPT was : \n\n" + output + "\n")
-            
-        self.je_check_text.append(str(user_message["content"]))
+
+        if(self.je_check_mode == 1):
+            self.je_check_text.append("\n-------------------------\n"+ str(user_message["content"]) + "\n\n")
+        elif(self.je_check_mode == 2):
+            self.je_check_text.append(str(user_message["content"]))
         
         return output
 
@@ -710,8 +805,12 @@ class Kijiku:
                     continue
 
                 self.translated_text.append(sentence + '\n')
-                self.je_check_text.append(sentence)
                 self.debug_text.append(sentence + '\n')
+
+                if(self.je_check_mode == 1):
+                    self.je_check_text.append(sentence+ '\n')
+                elif(self.je_check_mode == 2):
+                    self.je_check_text.append(sentence)
 
             for i in range(len(self.translated_text)):
                 if self.translated_text[i] in patched_sentences:
@@ -729,13 +828,21 @@ class Kijiku:
 
             for sentence in sentences:
                 self.translated_text.append(sentence + '\n')
-                self.je_check_text.append(sentence)
                 self.debug_text.append(sentence + '\n')
+
+                if(self.je_check_mode == 1):
+                    self.je_check_text.append(sentence + '\n')
+                elif(self.je_check_mode == 2):
+                    self.je_check_text.append(sentence)
 
         elif(self.sentence_fragmenter_mode == 3): ## mode 3 just assumes gpt formatted it properly
             
             self.translated_text.append(translated_message + '\n\n')
-            self.je_check_text.append(translated_message)
+            
+            if(self.je_check_mode == 1):
+                self.je_check_text.append(translated_message + '\n')
+            elif(self.je_check_mode == 2):
+                self.je_check_text.append(translated_message)
 
 ##-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -763,7 +870,8 @@ class Kijiku:
         translated_path = os.path.join(self.output_dir, "translatedText.txt")
         error_path = os.path.join(self.output_dir, "errors.txt")
 
-        self.je_check_text = self.fix_je()
+        if(self.je_check_mode == 2):
+            self.je_check_text = self.fix_je()
 
         with open(debug_path, 'w+', encoding='utf-8') as file:
                 file.writelines(self.debug_text)
@@ -795,6 +903,20 @@ class Kijiku:
 ##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def fix_je(self) -> typing.List[str]:
+
+        '''
+
+        Fixes the J->E text to be more j-e check friendly\n
+
+        Note that fix_je() is not always accurate, and may use standard j-e formatting instead of the corrected formatting.\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+
+        Returns:\n
+        final_list (list - str) : the fixed J->E text.\n
+
+        '''
         
         i = 1
         final_list = []
@@ -806,6 +928,8 @@ class Kijiku:
             jap = [line for line in jap if line.strip()]  ## Remove blank lines
             eng = [line for line in eng if line.strip()]  ## Remove blank lines    
 
+            final_list.append("\n-------------------------\n")
+
             if(len(jap) == len(eng)):
 
                 for jap_line,eng_line in zip(jap,eng):
@@ -814,7 +938,7 @@ class Kijiku:
                         final_list.append(eng_line + '\n\n')
 
             else:
-                final_list.append("Could not Format\n")
+
                 final_list.append(self.je_check_text[i-1] + '\n\n')
                 final_list.append(self.je_check_text[i] + '\n\n')
 

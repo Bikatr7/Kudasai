@@ -454,7 +454,7 @@ class KudasaiGUI:
 
         for file_name in os.listdir(model_folder):
 
-            if(file_name.endswith(".py") and not file_name.startswith("__init__")): ## If the file is a model file, add it to the options
+            if(file_name.endswith(".py") and not file_name.startswith("__init__") and not file_name.startswith("Kansei")): ## If the file is a model file, add it to the options
                 file_path = os.path.join(model_folder, file_name)
                 file_name = file_name.replace(".py", "")
                 translation_model_files.append(file_name)

@@ -19,7 +19,7 @@ class Kaiseki:
 
     """
 
-    Kaiseki is a secondary class that is used to interact with the deepl API.
+    Kaiseki is a secondary class that is used to interact with the deepl API and translate sentence by sentence.
     
     """
 
@@ -115,7 +115,7 @@ class Kaiseki:
 
         Parameters:\n
         self (object - Kaiseki) : the Kaiseki object.\n
-        text_to_translate (str) : the path to the text file to translate_sentence.\n
+        text_to_translate (str) : the path to the text file to translate.\n
 
         Returns:\n
         None\n
@@ -138,7 +138,7 @@ class Kaiseki:
 
         Parameters:\n
         self (object - Kaiseki) : the Kaiseki object.\n
-        text_to_translate (str) : the path to the text file to translate_sentence.\n
+        text_to_translate (str) : the path to the text file to translate.\n
 
         
         """

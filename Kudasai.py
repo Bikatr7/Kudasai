@@ -638,7 +638,7 @@ if(__name__ == '__main__'): ## checks sys arguments and if less than 3 or called
 
     if(len(sys.argv) < 3): 
 
-        print(f'\nUsage: {sys.argv[0]} input_txt_file replacement.json\nSee README.md for more information.\n') 
+        print(f'Usage: {sys.argv[0]} input_txt_file replacement.json\n\nSee README.md for more information.\n') 
         
         associated_functions.pause_console()
         exit() 

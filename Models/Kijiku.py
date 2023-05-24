@@ -276,10 +276,8 @@ class Kijiku:
                       json.dump(self.kijiku_rules, file)
                 
                 except Exception as e:
-                    print(e)
-                    print("Invalid JSON file. Please try again. ")
+                    print("Invalid or Missing JSON file. Please try again. ")
                     time.sleep(1)
-                    associated_functions.pause_console()
                     continue
             
 

@@ -634,7 +634,7 @@ class Kudasai:
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-if(__name__ == '__main__'): ## checks sys arguments and if less than 3 or called outside cmd prints usage statement
+if(__name__ == '__main__'): ## checks sys arguments and if less than three or called outside cmd prints usage statement
 
     if(len(sys.argv) < 3): 
 

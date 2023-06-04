@@ -348,7 +348,7 @@ class Kijiku:
 
         self.commence_translation()
 
-##-------------------start-of-initialize_text()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def initialize(self,text_to_translate:str) -> None:
 
@@ -370,7 +370,7 @@ class Kijiku:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
             openai.api_key = api_key
-
+        
             print("Used saved api key in " + os.path.join(self.config_dir,'GPTApiKey.txt')) ## if valid save the api key
             time.sleep(.7)
 

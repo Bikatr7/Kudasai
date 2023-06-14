@@ -663,18 +663,26 @@ class Kijiku:
             encoding = tiktoken.get_encoding("cl100k_base")
 
         if(model == "gpt-3.5-turbo"):
-            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
-            return self.estimate_cost(model="gpt-3.5-turbo-0301")
+            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
+            time.sleep(1)
+            return self.estimate_cost(model="gpt-3.5-turbo-0613")
         
+        if(model == "gpt-3.5-turbo-0301"):
+            print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ends September 13")
+            time.sleep(1)
+            costPer1000Tokens = 0.0015
+            tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
+            tokensPerName = -1  ## if there's a name, the role is omitted
+
+        if(model == "gpt-3.5-turbo-0613"):
+            costPer1000Tokens = 0.0015
+            tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
+            tokensPerName = -1  ## if there's a name, the role is omitted
+
         elif(model == "gpt-4"):
             print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
             return self.estimate_cost(model="gpt-4-0314")
         
-        elif(model == "gpt-3.5-turbo-0301"):
-            costPer1000Tokens = 0.002
-            tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
-            tokensPerName = -1  ## if there's a name, the role is omitted
-
         elif(model == "gpt-4-0314"):
             costPer1000Tokens = 0.06
             tokensPerMessage = 3

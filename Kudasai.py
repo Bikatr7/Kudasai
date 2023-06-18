@@ -192,10 +192,9 @@ class Kudasai:
         Returns:\n
         None\n
 
-        """
+        """        
 
-        if(not self.from_GUI):
-            self.connection = associated_functions.check_update() ## checks if there is a new update for Kudasai
+        self.connection = associated_functions.check_update(self.from_GUI) ## checks if there is a new update for Kudasai
 
         self.reset() ## calls the reset function to reset the Kudasai object
 

@@ -8,6 +8,7 @@ from tkinter import scrolledtext
 ## Custom modules
 from Models.Kaiseki import Kaiseki
 from Models.Kijiku import Kijiku
+from Util.associated_functions import check_update
 from Kudasai import Kudasai
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,6 +74,7 @@ class KudasaiGUI:
 
         self.gui_temp_kaiseki_path = os.path.join(self.config_dir,"guiTempKaiseki.txt")
         self.gui_temp_kijiku_path = os.path.join(self.config_dir,"guiTempKijiku.txt")
+        self.is_there_update_path = os.path.join(self.config_dir, "isThereUpdate.txt")
 
         self.kudasai_results_path = os.path.join(os.path.join(self.script_dir,"KudasaiOutput"), "output.txt")
         self.translated_text_path = os.path.join(os.path.join(self.script_dir,"KudasaiOutput"), "translatedText.txt")
@@ -85,6 +87,12 @@ class KudasaiGUI:
 
         if(not os.path.exists(self.output_dir)):
             os.mkdir(self.output_dir)
+
+        check_update(True)
+
+        with open(self.is_there_update_path, 'r', encoding='utf-8') as file:
+            if(file.read() == "true"):
+                self.create_update_alert_window()
 
         self.create_secondary_window()
 
@@ -204,6 +212,34 @@ class KudasaiGUI:
 
         self.create_results_output_label()
 
+##-------------------start-of-create_update_alert_window()()-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def create_update_alert_window(self) -> None:
+
+        """
+
+        Creates the update alert window\n
+
+        Parameters:\n
+        self (object - KudasaiGUI) : The KudasaiGUI object\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.update_alert_window = tk.Tk()
+        self.update_alert_window.title("Please Update Kudasai")
+        self.update_alert_window.configure(bg="#202020")
+        self.update_alert_window.geometry("300x600")
+        self.update_alert_window.resizable(False, False) ## Prevents resizing of window
+
+        self.create_update_alert_output_label()
+
+        self.update_alert_output_label.insert(tk.END, "There is a new update for Kudasai\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n") ## Display the preprocessed text
+
+        self.update_alert_window.lift()
+
 ##-------------------start-of-create_text_entry()-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def create_text_entry(self) -> None:
@@ -260,6 +296,13 @@ class KudasaiGUI:
 
         self.secondary_output_label = scrolledtext.ScrolledText(self.secondary_window, bg=self.primary_color, fg=self.text_color, height=39, width=300)
         self.secondary_output_label.pack(side=tk.BOTTOM)
+
+##-------------------start-of-create_update_alert_output_label()-------------------------------------------------------------------------------------------------------------------------------------------
+
+    def create_update_alert_output_label(self) -> None:
+
+        self.update_alert_output_label = scrolledtext.ScrolledText(self.update_alert_window, bg=self.primary_color, fg=self.text_color, height=39, width=300)
+        self.update_alert_output_label.pack(side=tk.BOTTOM)
 
 ##-------------------start-of-create_frames()---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -663,6 +706,12 @@ class KudasaiGUI:
         None\n
 
         """
+
+        try:
+            self.update_alert_window.destroy()
+        except:
+            pass
+
         try:
             self.secondary_window.destroy()
         except:

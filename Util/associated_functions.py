@@ -112,10 +112,14 @@ def check_update(from_gui:bool) -> bool:
 
         else:
             if(latestVersion != CURRENT_VERSION):
+                if not os.path.exists(config_dir):
+                    os.makedirs(config_dir)
                 with open(is_there_update_path, 'w+', encoding='utf-8') as file:
                     file.write("true")
 
             else:
+                if not os.path.exists(config_dir):
+                    os.makedirs(config_dir)
                 with open(is_there_update_path, 'w+', encoding='utf-8') as file:
                     file.write("false")
 

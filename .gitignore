@@ -93,3 +93,8 @@ dmypy.json
 __pypackages__/
 
 # Custom additions (if any)
+Kijiku Rules.json
+
+## KudasaiOutput
+KudasaiOutput/
+KudasaiOutput.zip

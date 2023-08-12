@@ -1,5 +1,6 @@
 ## built-in modules
 import os
+import msvcrt
 import requests
 
 ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -22,24 +23,42 @@ def clear_console() -> None:
 
 ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def pause_console(message:str="Press enter to continue . . .") -> None:
+def pause_console(message:str="Press any key to continue...") -> None:
 
     """
 
-    pauses the console\n
+    Pauses the console.\n
 
     Parameters:\n
-    message (string) the message that will be displayed when the console is paused\n
+    message (str - optional) : the message that will be displayed when the console is paused.\n
 
     Returns:\n
     None\n
 
     """
 
+    print(message)  ## Print the custom message
+    
     if(os.name == 'nt'):  ## Windows
-        os.system('pause /P f{message}')
-    else: ## Linux
-        input(message)
+        
+        msvcrt.getch() 
+
+    else:  ## Linux, No idea if any of this works lmao
+
+        import termios
+
+        ## Save terminal settings
+        old_settings = termios.tcgetattr(0)
+
+        try:
+            new_settings = termios.tcgetattr(0)
+            new_settings[3] = new_settings[3] & ~termios.ICANON
+            termios.tcsetattr(0, termios.TCSANOW, new_settings)
+            os.read(0, 1)  ## Wait for any key press
+
+        finally:
+
+            termios.tcsetattr(0, termios.TCSANOW, old_settings)
 
 ##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -78,13 +97,13 @@ def check_update(from_gui:bool) -> bool:
 
     """
 
-    determines if Kudasai has a new latest release, and confirms if an internet connection is present or not\n
+    Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.\n
 
     Parameters:\n
-    from_gui (bool) : whether or not the function call is from the gui
+    from_gui (bool) : whether or not the function call is from the gui.\n
 
     Returns:\n
-    True if the user has an internet connection, False if the user does not\n
+    True if the user has an internet connection, False if the user does not.\n
 
     """
 
@@ -95,28 +114,44 @@ def check_update(from_gui:bool) -> bool:
 
     ## the temp file for the gui, used to detect if an update is available
     is_there_update_path = os.path.join(config_dir, "isThereUpdate.txt")
+
+    ## temp file for the gui, used to store the patch notes
+    patch_notes_path = os.path.join(config_dir, "patchNotes.txt")
     
     try:
     
-        CURRENT_VERSION = "v1.5.3" 
+        CURRENT_VERSION = "v1.5.4" 
 
         response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
-        latestVersion = response.json()["tag_name"]
+        latest_version = response.json()["tag_name"]
+        release_notes = response.json()["body"]
 
         if(not from_gui):
 
-            if(latestVersion != CURRENT_VERSION):
-                print("There is a new update for Kudasai (" + latestVersion + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n")
+            if(latest_version != CURRENT_VERSION):
+                print("There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n")
+               
+                if(release_notes):
+                    print("Release notes:\n\n" + release_notes + '\n')
+
                 pause_console()
                 clear_console()
 
         else:
-            if not os.path.exists(config_dir):
+
+            if(not os.path.exists(config_dir)):
                 os.makedirs(config_dir)
             
             with open(is_there_update_path, 'w+', encoding='utf-8') as file:
-                if(latestVersion != CURRENT_VERSION):
+
+                if(latest_version != CURRENT_VERSION):
                     file.write("true")
+
+                    if(release_notes):
+
+                        with open(patch_notes_path, 'w+', encoding='utf-8') as file:
+                            file.write("Release notes:\n\n" + release_notes + '\n')
+
                 else:
                     file.write("false")
 

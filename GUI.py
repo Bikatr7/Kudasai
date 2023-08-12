@@ -234,9 +234,14 @@ class KudasaiGUI:
         self.update_alert_window.geometry("300x600")
         self.update_alert_window.resizable(False, False) ## Prevents resizing of window
 
+        patch_notes_path = os.path.join(self.config_dir, "patchNotes.txt")
+
+        with open(patch_notes_path, 'r', encoding='utf-8') as file:
+            release_notes = file.read()
+
         self.create_update_alert_output_label()
 
-        self.update_alert_output_label.insert(tk.END, "There is a new update for Kudasai\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n") ## Display the preprocessed text
+        self.update_alert_output_label.insert(tk.END, "There is a new update for Kudasai\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n" + release_notes) ## Display the update text
 
         self.update_alert_window.lift()
 

@@ -5,7 +5,6 @@ import time
 import enum
 import typing
 import sys
-import ctypes
 
 ## third party modules
 import spacy
@@ -73,7 +72,7 @@ class Kudasai:
     """
 ##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, from_gui:bool) -> None: # constructor for Kudasai class
+    def __init__(self, from_gui:bool) -> None: 
 
         """
         

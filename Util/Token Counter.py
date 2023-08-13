@@ -15,13 +15,13 @@ def count_characters(text:str) -> int:
 
     '''
 
-    counts the number of characters in a string\n
+    Counts the number of characters in a string\n
  
     Parameters:\n
-    text (string) the text that will be counting characters for\n
+    text (str) : the text that will be counting characters for.\n
 
     Returns:\n
-    num_characters (int) the number of characters in the text\n
+    num_characters (int) the number of characters in the text.\n
 
     '''
 
@@ -37,15 +37,15 @@ def estimate_cost(text:str, model:str) -> tuple[int,float]:
     
     '''
 
-    attempts to estimate cost and number of tokens in a string\n
+    Attempts to estimate cost and number of tokens in a string\n
  
     Parameters:\n
-    text (string) the text that will be counting tokens for\n
-    model (string)  represents which model we will be using\n
+    text (str) : the text that will be counting tokens for\n
+    model (str) : represents which model we will be using\n
 
     Returns:\n
-    num_tokens (int) the estimated number of tokens in the text\n
-    min_cost (double) the estimated cost of translating text\n
+    num_tokens (int) : the estimated number of tokens in the text\n
+    min_cost (double) : the estimated cost of translating text\n
 
     '''
 

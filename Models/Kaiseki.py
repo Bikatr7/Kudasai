@@ -216,7 +216,7 @@ class Kaiseki:
 
         try:
 
-            i = 0
+            i = 0 
 
             time_start = time.time()
 

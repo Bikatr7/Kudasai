@@ -64,8 +64,10 @@ class Kijiku:
         ## the japanese text that will be translated
         self.japanese_text = []
 
+        self.current_version = "v1.5.4"
+
         ## the debugging text for developers
-        self.debug_text = []
+        self.debug_text = ["Current Version : " + self.current_version + "\n\n"]
 
         ## the translated text
         self.translated_text = []
@@ -486,9 +488,7 @@ class Kijiku:
 
             self.build_messages()
 
-            self.estimate_cost(self.MODEL)
-
-            self.MODEL = self.kijiku_rules["open ai settings"]["model"] ## model may have changed due to cost estimation
+            self.estimate_cost()
 
             if(self.from_gui == False):
                 associated_functions.pause_console("Press any key to continue with translation...")
@@ -641,7 +641,7 @@ class Kijiku:
     
 ##-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def estimate_cost(self, model) -> None:
+    def estimate_cost(self) -> None:
 
         '''
 
@@ -657,39 +657,44 @@ class Kijiku:
         '''
         
         try:
-            encoding = tiktoken.encoding_for_model(model)
+            encoding = tiktoken.encoding_for_model(self.MODEL)
         except KeyError:
             print("Warning: model not found. Using cl100k_base encoding.")
             encoding = tiktoken.get_encoding("cl100k_base")
 
-        if(model == "gpt-3.5-turbo"):
+        if(self.MODEL == "gpt-3.5-turbo"):
             print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
             time.sleep(1)
-            return self.estimate_cost(model="gpt-3.5-turbo-0613")
+            self.MODEL="gpt-3.5-turbo-0613"
+            return self.estimate_cost()
         
-        if(model == "gpt-3.5-turbo-0301"):
-            print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ends September 13")
+        if(self.MODEL == "gpt-3.5-turbo-0301"):
+            print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ended September 13, Returning num tokens assuming gpt-3.5-turbo-0613.")
             time.sleep(1)
+            self.MODEL="gpt-3.5-turbo-0613"
+            return self.estimate_cost()
+
+        if(self.MODEL == "gpt-3.5-turbo-0613"):
             costPer1000Tokens = 0.0015
             tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
             tokensPerName = -1  ## if there's a name, the role is omitted
 
-        if(model == "gpt-3.5-turbo-0613"):
-            costPer1000Tokens = 0.0015
-            tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
-            tokensPerName = -1  ## if there's a name, the role is omitted
-
-        elif(model == "gpt-4"):
-            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
-            return self.estimate_cost(model="gpt-4-0314")
+        elif(self.MODEL == "gpt-4"):
+            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
+            return self.estimate_cost(model="gpt-4-0613")
         
-        elif(model == "gpt-4-0314"):
+        elif(self.MODEL == "gpt-4-0314"):
+            print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, Returning num tokens assuming gpt-4-0613.")
+            time.sleep(1)
+            self.MODEL="gpt-4-0613"
+
+        elif(self.MODEL == "gpt-4-0613"):
             costPer1000Tokens = 0.06
             tokensPerMessage = 3
             tokensPerName = 1
 
         else:
-            raise NotImplementedError(f"""Kudasai does not support : {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+            raise NotImplementedError(f"""Kudasai does not support : {self.MODEL}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
         
         numTokens = 0
 

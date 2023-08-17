@@ -18,7 +18,7 @@
 
 Built for Windows, Should work on Linux/MacOS but is untested.
 
-Python Version: 3.8-3.11.2
+Python Version: 3.8+
 
 It should work with 3.8, although it is untested. I recommend using 3.9+
 
@@ -29,11 +29,13 @@ Preprocessor Derived from https://github.com/Atreyagaurav/mtl-related-scripts
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Naming Conventions**<a name="naming-conventions"></a> 
 
-Kudasai.py - Main Script (Preprocessing) - ください　- Please
+Kudasai.py - Main Script - ください　- Please
+
+Kairyou.py - preprocessing module - 改良 - Reform
+
+Kaiseki.py - deepL translation module - 解析 - Parsing
 
 Kijiku.py - openai translation module - 基軸 - Foundation
-
-Kaiseki.py - deepl translation module - 解析 - Parsing
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>

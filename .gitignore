@@ -1,12 +1,12 @@
-# Byte-compiled / optimized / DLL files
+## Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
+## C extensions
 *.so
 
-# Distribution / packaging
+## Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -25,17 +25,17 @@ share/python-wheels/
 .installed.cfg
 *.egg
 
-# PyInstaller
-# Usually these files are written by a python script from a template
-# before PyInstaller builds the exe, so as to inject date/other infos into it.
+## PyInstaller
+## Usually these files are written by a python script from a template
+## before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
-# Installer logs
+## Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+## Unit test / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -49,14 +49,14 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Jupyter Notebook
+## Jupyter Notebook
 .ipynb_checkpoints
 
-# IPython
+## IPython
 profile_default/
 ipython_config.py
 
-# Environment directories
+## Environment directories
 .env
 .venv
 env/
@@ -65,34 +65,34 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
+## Spyder project settings
 .spyderproject
 .spyproject
 
-# Rope project settings
+## Rope project settings
 .ropeproject
 
-# mkdocs documentation
+## mkdocs documentation
 /site
 
-# mypy
+## mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
+## Pyre type checker
 .pyre/
 
-# VS Code settings
+## VS Code settings
 .vscode/
 
-# PyCharm settings
+## PyCharm settings
 .idea/
 
-# Directories used by popular Python packages and tools
+## Directories used by popular Python packages and tools
 __pypackages__/
 
-# Custom additions (if any)
+## Custom additions (if any)
 Kijiku Rules.json
 
 ## KudasaiOutput

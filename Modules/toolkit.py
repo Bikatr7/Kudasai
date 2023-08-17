@@ -3,97 +3,105 @@ import os
 import msvcrt
 import requests
 
+class toolkit():
+
+    """
+    
+    The class for a bunch of utility functions used throughout Kudasai.\n
+
+    """
+
 ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def clear_console() -> None:
+    def clear_console(self) -> None:
 
-    """
+        """
 
-    clears the console\n
+        clears the console\n
 
-    Parameters:\n
-    None\n
+        Parameters:\n
+        None\n
 
-    Returns:\n
-    None\n
+        Returns:\n
+        None\n
 
-    """
+        """
 
-    os.system('cls' if os.name == 'nt' else 'clear')
+        os.system('cls' if os.name == 'nt' else 'clear')
 
 ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def pause_console(message:str="Press any key to continue...") -> None:
+    def pause_console(self, message:str="Press any key to continue...") -> None:
 
-    """
+        """
 
-    Pauses the console.\n
+        Pauses the console.\n
 
-    Parameters:\n
-    message (str - optional) : the message that will be displayed when the console is paused.\n
+        Parameters:\n
+        message (str | optional) : the message that will be displayed when the console is paused.\n
 
-    Returns:\n
-    None\n
+        Returns:\n
+        None\n
 
-    """
+        """
 
-    print(message)  ## Print the custom message
-    
-    if(os.name == 'nt'):  ## Windows
+        print(message)  ## Print the custom message
         
-        msvcrt.getch() 
+        if(os.name == 'nt'):  ## Windows
+            
+            msvcrt.getch() 
 
-    else:  ## Linux, No idea if any of this works lmao
+        else:  ## Linux, No idea if any of this works lmao
 
-        import termios
+            import termios
 
-        ## Save terminal settings
-        old_settings = termios.tcgetattr(0)
+            ## Save terminal settings
+            old_settings = termios.tcgetattr(0)
 
-        try:
-            new_settings = termios.tcgetattr(0)
-            new_settings[3] = new_settings[3] & ~termios.ICANON
-            termios.tcsetattr(0, termios.TCSANOW, new_settings)
-            os.read(0, 1)  ## Wait for any key press
+            try:
+                new_settings = termios.tcgetattr(0)
+                new_settings[3] = new_settings[3] & ~termios.ICANON
+                termios.tcsetattr(0, termios.TCSANOW, new_settings)
+                os.read(0, 1)  ## Wait for any key press
 
-        finally:
+            finally:
 
-            termios.tcsetattr(0, termios.TCSANOW, old_settings)
+                termios.tcsetattr(0, termios.TCSANOW, old_settings)
 
 ##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def get_elapsed_time(start:float, end:float) -> str:
+    def get_elapsed_time(self, start:float, end:float) -> str:
 
-    """
+        """
 
-    calculates elapsed time\n
+        calculates elapsed time\n
 
-    Parameters:\n
-    start (float): start time\n
-    end (float): end time\n
+        Parameters:\n
+        start (float): start time\n
+        end (float): end time\n
 
-    Returns:\n
-    print_value (string) elapsed time\n
+        Returns:\n
+        print_value (string) elapsed time\n
 
-    """
+        """
 
-    print_value = ""
+        print_value = ""
 
-    if(end-start < 60.0):
-        print_value = str(round(end-start, 2)) + " seconds"
-    
-    elif(end-start < 3600.0):
-        print_value = str(round((end-start)/60, 2)) + " minutes"
-    
-    else:
-        print_value = str(round((end-start)/3600, 2)) + " hours"
+        if(end-start < 60.0):
+            print_value = str(round(end-start, 2)) + " seconds"
+        
+        elif(end-start < 3600.0):
+            print_value = str(round((end-start)/60, 2)) + " minutes"
+        
+        else:
+            print_value = str(round((end-start)/3600, 2)) + " hours"
 
-    return print_value
+        return print_value
 
 
 ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def check_update(from_gui:bool) -> bool:
+def check_update(self, from_gui:bool) -> bool:
 
     """
 
@@ -134,8 +142,8 @@ def check_update(from_gui:bool) -> bool:
                 if(release_notes):
                     print("Release notes:\n\n" + release_notes + '\n')
 
-                pause_console()
-                clear_console()
+                self.pause_console()
+                self.clear_console()
 
         else:
 

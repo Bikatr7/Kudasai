@@ -8,7 +8,7 @@ from tkinter import scrolledtext
 ## Custom modules
 from Models.Kaiseki import Kaiseki
 from Models.Kijiku import Kijiku
-from Util.associated_functions import check_update
+from Modules.toolkit import check_update
 from Kudasai import Kudasai
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

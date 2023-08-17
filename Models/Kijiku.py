@@ -17,7 +17,7 @@ import spacy
 from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
 
 ## custom modules
-from Util import associated_functions
+from Modules import toolkit
 
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -172,15 +172,15 @@ class Kijiku:
             return
         
         elif(self.from_gui == False):
-            associated_functions.clear_console()
+            toolkit.clear_console()
 
             for key,value in self.kijiku_rules["open ai settings"].items(): ## print out the current settings
                 print(key + " : " + str(value))
 
             print("\n\nKijiku Rules.json is missing keys and will be resetting to default, if you wish to preserve your existing settings, please back them up before continuing\n")
 
-            associated_functions.pause_console()
-            associated_functions.clear_console()
+            toolkit.pause_console()
+            toolkit.clear_console()
 
             self.reset_kijiku_rules()
 
@@ -209,7 +209,7 @@ class Kijiku:
         with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'w+', encoding='utf-8') as file:
             json.dump(self.default,file)
 
-        associated_functions.clear_console()
+        toolkit.clear_console()
 
 #-------------------start-of-change_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -231,7 +231,7 @@ class Kijiku:
         
         while(True):
 
-            associated_functions.clear_console()
+            toolkit.clear_console()
 
             print("See https://platform.openai.com/docs/api-reference/chat/create for further details\n")
 
@@ -264,7 +264,7 @@ class Kijiku:
                 break
 
             if(action == "c"):
-                associated_functions.clear_console()
+                toolkit.clear_console()
 
                 try:
                     with open(os.path.join(self.script_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
@@ -320,7 +320,7 @@ class Kijiku:
         else:
             self.change_settings()
 
-        associated_functions.clear_console()
+        toolkit.clear_console()
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -404,26 +404,26 @@ class Kijiku:
                 
             except AuthenticationError: ## if invalid key exit
                     
-                associated_functions.clear_console()
+                toolkit.clear_console()
                         
                 print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\n")
-                associated_functions.pause_console()
+                toolkit.pause_console()
                         
                 exit()
 
             except Exception as e: ## other error, alert user and raise it
 
-                associated_functions.clear_console()
+                toolkit.clear_console()
                         
                 print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
-                associated_functions.pause_console()
+                toolkit.pause_console()
 
                 raise e
                     
         with open(text_to_translate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate
             self.japanese_text = [line.strip() for line in file.readlines()]
 
-        associated_functions.clear_console()
+        toolkit.clear_console()
 
         try: ## try to load the kijiku rules
 
@@ -433,7 +433,7 @@ class Kijiku:
                 os.remove(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json')
                 print("r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json' was deleted due to Kudasai switching to user storage\n\nYour settings have been copied to " + self.config_dir + "\n\n")
                 time.sleep(1)
-                associated_functions.clear_console()
+                toolkit.clear_console()
 
             with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r+', encoding='utf-8') as file:
                 self.kijiku_rules = json.load(file) 
@@ -482,7 +482,7 @@ class Kijiku:
 
             time_start = time.time()
 
-            associated_functions.clear_console()
+            toolkit.clear_console()
 
             self.debug_text.append("\nStarting Prompt Building\n-------------------------\n")
 
@@ -491,13 +491,13 @@ class Kijiku:
             self.estimate_cost()
 
             if(self.from_gui == False):
-                associated_functions.pause_console("Press any key to continue with translation...")
+                toolkit.pause_console("Press any key to continue with translation...")
 
             self.debug_text.append("\nStarting Translation\n-------------------------")
 
             while(i+2 <= len(self.messages)):
 
-                associated_functions.clear_console()
+                toolkit.clear_console()
 
                 print("Trying " + str(i+2) + " of " + str(len(self.messages)))
                 self.debug_text.append("\n\n-------------------------\nTrying " + str(i+2) + " of " + str(len(self.messages)) + "\n-------------------------\n")
@@ -514,10 +514,10 @@ class Kijiku:
 
             if(self.from_gui):
                 with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
-                    file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end) + "\n\n")
+                    file.write("\nTime Elapsed : " + toolkit.get_elapsed_time(time_start, time_end) + "\n\n")
             
             else:
-                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end))
+                print("\nTime Elapsed : " + toolkit.get_elapsed_time(time_start, time_end))
     
         except Exception as e: 
 
@@ -529,7 +529,7 @@ class Kijiku:
                 with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
                     file.write("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
 
-                associated_functions.clear_console()
+                toolkit.clear_console()
 
             self.output_results()
 

@@ -11,7 +11,7 @@ import typing
 import deepl
 
 ## custom modules
-from Util import associated_functions
+from Modules import toolkit
 
 ##-------------------start-of-Kansei--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -168,19 +168,19 @@ class Kansei:
                 
             except deepl.exceptions.AuthorizationException: ## if invalid key exit
                     
-                associated_functions.clear_console()
+                toolkit.clear_console()
                     
                 print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKudasai will now exit.\n")
-                associated_functions.pause_console()
+                toolkit.pause_console()
                     
                 exit()
 
             except Exception as e: ## other error, alert user and raise it
                 
-                associated_functions.clear_console()
+                toolkit.clear_console()
                     
                 print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKudasai will now exit.\n")
-                associated_functions.pause_console()
+                toolkit.pause_console()
 
                 exit()
 

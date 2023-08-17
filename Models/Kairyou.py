@@ -8,7 +8,8 @@ import time
 import spacy
 
 ## custom modules
-from Util import associated_functions
+from Modules.toolkit import toolkit
+from Modules.preloader import preloader
 
 ##-------------------start-of-Name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -81,6 +82,9 @@ class Kairyou:
         None.\n
 
         """
+
+        ## The preloader (contains most auxiliary functions).
+        self.preloader = preloader()
 
         ## The dictionary containing the rules for preprocessing.
         self.replacement_json = inc_replacement_json
@@ -173,7 +177,7 @@ class Kairyou:
         time_end = time.time()
 
         self.preprocessing_log += "\nTotal Replacements  : " + str(self.total_replacements)
-        self.preprocessing_log += "\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end)
+        self.preprocessing_log += "\nTime Elapsed : " + self.preloader.toolkit.get_elapsed_time(time_start, time_end)
 
 ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -269,7 +273,7 @@ class Kairyou:
             print(Name) 
             print("\nPlease correct Name discrepancy in JSON\n")
 
-            associated_functions.pause_console()
+            self.preloader.toolkit.pause_console()
             
             raise e
         
@@ -362,3 +366,25 @@ class Kairyou:
         self.total_replacements += kanji_count
         
         return kanji_count
+    
+##-------------------start-of-reset()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset(self) -> None:
+
+        """
+
+        Resets the Kudasai object.
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.total_replacements = 0
+
+        self.error_log = ""
+
+        self.preprocessing_log = ""

@@ -11,7 +11,7 @@ import typing
 import deepl
 
 ## custom modules
-from Util import associated_functions
+from Modules import toolkit
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -179,19 +179,19 @@ class Kaiseki:
                 
             except deepl.exceptions.AuthorizationException: ## if invalid key exit
                     
-                associated_functions.clear_console()
+                toolkit.clear_console()
                     
                 print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKudasai will now exit.\n")
-                associated_functions.pause_console()
+                toolkit.pause_console()
                     
                 exit()
 
             except Exception as e: ## other error, alert user and raise it
                 
-                associated_functions.clear_console()
+                toolkit.clear_console()
                     
                 print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKudasai will now exit.\n")
-                associated_functions.pause_console()
+                toolkit.pause_console()
 
                 exit()
 
@@ -275,7 +275,7 @@ class Kaiseki:
                 
                 i+=1
                 
-                associated_functions.clear_console()
+                toolkit.clear_console()
                 
                 print(str(i) + "/" + str(len(self.japanese_text)) + " completed.")
 
@@ -286,10 +286,10 @@ class Kaiseki:
 
             if(self.from_gui):
                 with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
-                        file.write("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end) + "\n\n")
+                        file.write("\nTime Elapsed : " + toolkit.get_elapsed_time(time_start, time_end) + "\n\n")
             
             else:
-                print("\nTime Elapsed : " + associated_functions.get_elapsed_time(time_start, time_end))
+                print("\nTime Elapsed : " + toolkit.get_elapsed_time(time_start, time_end))
 
         except Exception as e:
             if(self.from_gui):
@@ -533,7 +533,7 @@ class Kaiseki:
 
                 print("\nDeepL API quota exceeded\n")
 
-                associated_functions.pause_console()
+                toolkit.pause_console()
 
                 self.output_results()
                 exit()

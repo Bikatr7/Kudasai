@@ -1,19 +1,17 @@
 ## built in modules
 import os
-import itertools 
 import time
-import enum
-import typing
 import sys
 
 ## third party modules
-import spacy
+
 import json
 
 ## custom modules
 from Models.Kaiseki import Kaiseki 
 from Models.Kijiku import Kijiku
-from Modules import toolkit 
+from Models.Kairyou import Kairyou
+from Modules.preloader import preloader
 
 
 ##-------------------start-of-Kudasai---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -22,67 +20,44 @@ class Kudasai:
 
     """
 
-    Kudasai class is the main class for the Kudasai program. It contains all the functions and variables needed to run the base preprocessor.\n
+    Kudasai class is the main class for the Kudasai program. It handles all the stuff except for the gui.\n
     
     """
 ##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, from_gui:bool) -> None: 
+    def __init__(self) -> None: 
 
         """
         
-        Constructor for Kudasai class. Takes in the input file, replacement json file, and if it is being run from the GUI or not.
+        Constructor for Kudasai class.
 
         Parameters:\n
         self (object - Kudasai) : the Kudasai object.\n
-        from_gui (boolean) : indicates whether or not the request is from the gui.\n
 
         Returns:\n
         None\n
 
         """
 
-        ## represents a japanese name along with its equivalent english name
-        self.Name = Name
+        os.system("title " + "Kudasai")
 
-        ## large model for japanese NER (named entity recognition)
-        self.ner = spacy.load("ja_core_news_lg") 
+        self.preloader = preloader()
 
-        ## filters out single kanji or uses a specific function to deal with it when replacing names
-        self.SINGLE_KANJI_FILTER = True 
+        self.kairyou_client = None
 
-        ## determines if the user is connected to the internet or not
-        self.connection = False 
+        self.kaiseki_client = None
 
-        ## determines if Kudasai is being run from the GUI or not
-        self.from_GUI = from_gui
-
-        ## how japanese names are separated in the japanese text
-        self.JAPANESE_NAME_SEPARATORS = ["・", ""] 
-
-        ## log for errors
-        self.error_text = [] 
-
-        ## holds the japanese text from the input file
-        self.japanese_text = '' 
-
-        ## results of the replacement process, not the japanese text, but like a log
-        self.replacement_text = '' 
-
-        ## dictionary that holds the replacement json file
-        self.replacement_json = dict()
-
-        ## total number of replacements made
-        self.total_replacements = 0
+        self.kijiku_client = None
+ 
 
 
 ##-------------------start-of-setup()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def setup(self, input_file, replacement_json) -> None:
+    def setup_kairyou(self, input_file, replacement_json) -> None:
 
         """
         
-        Sets up the Kudasai object, loads the input file and the replacement json file.\n
+        If the user is running the CLI version of Kudasai, this function is called to setup the text to be processed and the replacement json file.\n
         
         Parameters:\n
         self (object - Kudasai) : the Kudasai object.\n
@@ -94,29 +69,32 @@ class Kudasai:
 
         """
 
-        with open(input_file, 'r', encoding='utf-8') as file: 
-            self.japanese_text = file.read()
-        
         try:
 
             with open(replacement_json, 'r', encoding='utf-8') as file: 
-                self.replacement_json = json.load(file) 
+                replacement_json = json.load(file) 
     
         except:
 
             print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-            toolkit.pause_console()
+            self.preloader.toolkit.pause_console()
 
             exit()
 
-##-------------------start-of-write_results()-------------------------------------------------------------------------------------------------------------------------------------
+
+        with open(input_file, 'r', encoding='utf-8') as file: 
+            japanese_text = file.read()
         
-    def write_results(self) -> None: 
+        self.kairyou_client = Kairyou(replacement_json, japanese_text)
+
+##-------------------start-of-run_kudasai_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def run_kudasai_cli(self) -> None:
 
         """
-
-        writes the results of Kudasai to the output files\n
-
+        
+        If the user is running the CLI version of Kudasai, this function is called to run the program.\n
+        
         Parameters:\n
         self (object - Kudasai) : the Kudasai object.\n
 
@@ -124,131 +102,20 @@ class Kudasai:
         None\n
 
         """
-
-        with open(self.preprocess_path, 'w+', encoding='utf-8') as file: 
-            file.write(self.japanese_text) 
-
-        with open(self.output_path, 'w+', encoding='utf-8') as file:
-            file.write(self.replacement_text) 
-
-        if(not os.path.exists(self.debug_path)):
-            with open(self.debug_path, 'w+', encoding='utf-8') as file:
-                pass
-
-        if(not os.path.exists(self.je_path)):
-            with open(self.je_path, 'w+', encoding='utf-8') as file:
-                pass
-
-        if(not os.path.exists(self.translated_path)):
-            with open(self.translated_path, 'w+', encoding='utf-8') as file:
-                pass
-
-        with open(self.error_path, 'w+', encoding='utf-8') as file: 
-            file.writelines(self.error_text) 
-
-##-------------------start-of-determine_translation_automation()-------------------------------------------------------------------------------------------------------------------------------------
-
-    def determine_translation_automation(self) -> None:
-
-        """
-
-        determines which translation module the user wants to use and calls it\n
-
-        Parameters:\n
-        preprocessPath (string) : path to where the preprocessed text was stored\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        toolkit.clear_console()
-
-        print("Please choose an auto translation model")
-        print("\n1.Kaiseki - DeepL based line by line translation (Not very accurate by itself) (Free if using trial)")
-        print("\n2.Kijiku - OpenAI based batch translator (Very accurate) (Price depends on model)")
-        print("\n3.Exit\n")
-        
-        mode = input()
-
-        if(mode == "1"):
-            self.run_kaiseki()
-        
-        elif(mode == "2"):
-            self.run_kijiku()
-
-        else:
-            exit()
-
-##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def run_kaiseki(self) -> None:
-
-        """
-
-        runs the kaiseki module for auto translation\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        toolkit.clear_console()
-        
-        print("Commencing Automated Translation\n")
-
-        time.sleep(1)
-
-        kaiseki_client = Kaiseki(self.config_dir,self.script_dir,from_gui=False)
-
-        kaiseki_client.translate(self.preprocess_path)
-
-##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def run_kijiku(self) -> None:
-        
-        """
-        
-        runs the kijiku module for auto translation\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        toolkit.clear_console()
-
-        kijiku_client = Kijiku(self.config_dir,self.script_dir,from_gui=False)
-
-        print("Commencing Automated Translation\n")
-
-        time.sleep(2)
-
-        kijiku_client.translate(self.preprocess_path)
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-if(__name__ == '__main__'): ## checks sys arguments and if less than three or called outside cmd prints usage statement
+kudasai_client = Kudasai()
 
-    if(len(sys.argv) < 3): 
+## determines if we will run the Kudasai CLI or the Kudasai Console
+if(__name__ == '__main__'):
 
-        print(f'Usage: {sys.argv[0]} input_txt_file replacement.json\n\nSee README.md for more information.\n') 
-        
-        toolkit.pause_console()
-        exit() 
+    ## to be implemented later, for now we will just run the CLI version
+    if(len(sys.argv) < 3):
+        pass
 
-    toolkit.clear_console() 
+    else:
 
-    os.system("title " + "Kudasai") 
+        kudasai_client.setup_kairyou(sys.argv[1], sys.argv[2])
 
-    kudasai_client = Kudasai(from_gui=False) ## creates Kudasai object, passing in input file and replacement json file, and if it is being run from the GUI or not
-
-    kudasai_client.preprocess(sys.argv[1], sys.argv[2]) ## preprocesses the text
-
-    kudasai_client.determine_translation_automation() ## determines which translation module the user wants to use and calls it
+        kudasai_client.run_kudasai_cli()

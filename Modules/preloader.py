@@ -41,6 +41,8 @@ class preloader:
         self.translated_path = os.path.join(self.file_handler.output_dir, "translatedText.txt") ## path for translated text
         self.error_path = os.path.join(self.file_handler.output_dir, "errors.txt") ## path for errors
 
+        self.setup_needed_files()
+
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def setup_needed_files(self) -> None:
@@ -59,3 +61,9 @@ class preloader:
 
         self.file_handler.standard_create_directory(self.file_handler.config_dir)
         self.file_handler.standard_create_directory(self.file_handler.output_dir)
+
+        self.file_handler.standard_create_file(self.preprocess_path)
+        self.file_handler.standard_create_file(self.output_path)
+        self.file_handler.standard_create_file(self.je_path)
+        self.file_handler.standard_create_file(self.translated_path)
+        self.file_handler.standard_create_file(self.error_path)

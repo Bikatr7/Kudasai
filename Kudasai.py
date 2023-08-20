@@ -11,6 +11,7 @@ import json
 from Models.Kaiseki import Kaiseki 
 from Models.Kijiku import Kijiku
 from Models.Kairyou import Kairyou
+
 from Modules.preloader import preloader
 
 
@@ -48,8 +49,6 @@ class Kudasai:
         self.kaiseki_client = None
 
         self.kijiku_client = None
- 
-
 
 ##-------------------start-of-setup()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -102,6 +101,35 @@ class Kudasai:
         None\n
 
         """
+
+        self.kairyou_client.preprocess() ## type: ignore (we know it's not None)
+
+        self.write_kairyou_results()
+
+##-------------------start-of-write_kairyou_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def write_kairyou_results(self) -> None:
+
+        """
+        
+        If the user is running the CLI or Console version of Kudasai, this function is called to write the results of the preprocessing to a directory.\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        with(open(self.preloader.preprocess_path, 'w', encoding='utf-8')) as file:
+            file.write(self.kairyou_client.text_to_preprocess) ## type: ignore (we know it's not None)
+
+        with open(self.preloader.output_path, 'w', encoding='utf-8') as file:
+            file.write(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
+
+        with open(self.preloader.error_path, 'w', encoding='utf-8') as file:
+            file.write(self.kairyou_client.error_log) ## type: ignore (we know it's not None)
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

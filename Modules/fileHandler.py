@@ -27,7 +27,7 @@ class fileHandler():
 
         """
 
-        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.output_dir = os.path.join(self.script_dir, "KudasaiOutput")
 
         if(os.name == 'nt'):  # Windows

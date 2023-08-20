@@ -123,6 +123,8 @@ class Kairyou:
 
         """
 
+        self.preloader.toolkit.clear_console()
+
         ## (title, json_key, is_name, replace_name, honorific_type)
         replacement_rules = [ 
         ('Punctuation', 'kutouten', False, None, None), 
@@ -178,6 +180,8 @@ class Kairyou:
 
         self.preprocessing_log += "\nTotal Replacements  : " + str(self.total_replacements)
         self.preprocessing_log += "\nTime Elapsed : " + self.preloader.toolkit.get_elapsed_time(time_start, time_end)
+
+        print(self.preprocessing_log)
 
 ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -315,12 +319,12 @@ class Kairyou:
 
         """
             
-        num_occurrences = self.japanese_text.count(word) 
+        num_occurrences = self.text_to_preprocess.count(word) 
         
         if(num_occurrences == 0): 
             return 0 
 
-        self.japanese_text = self.japanese_text.replace(word, replacement) 
+        self.text_to_preprocess = self.text_to_preprocess.replace(word, replacement) 
         self.total_replacements += num_occurrences 
 
         return num_occurrences
@@ -337,8 +341,8 @@ class Kairyou:
 
         Parameters:\n
         self (object - Kudasai) : the Kudasai object.\n
-        kanji (string) : japanese kanji to be replaced\n
-        replacement (string) : the replacement for kanji\n
+        kanji (str) : japanese kanji to be replaced\n
+        replacement (str) : the replacement for kanji\n
 
         Returns:\n
         kanji_count (int) : how many kanji were replaced\n
@@ -348,7 +352,7 @@ class Kairyou:
         i = 0
         kanji_count = 0
 
-        jap_lines = self.japanese_text.split('\n')
+        jap_lines = self.text_to_preprocess.split('\n')
 
         while(i < len(jap_lines)):
             if(kanji in jap_lines[i]):
@@ -362,7 +366,7 @@ class Kairyou:
 
             i+=1
 
-        self.japanese_text = '\n'.join(jap_lines)
+        self.text_to_preprocess = '\n'.join(jap_lines)
         self.total_replacements += kanji_count
         
         return kanji_count
@@ -388,3 +392,4 @@ class Kairyou:
         self.error_log = ""
 
         self.preprocessing_log = ""
+        

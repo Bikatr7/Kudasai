@@ -82,3 +82,26 @@ class fileHandler():
             self.logger.log_action(file_path + " was created due to lack of the file")
             with open(file_path, "w+", encoding="utf-8") as file:
                 file.truncate()
+
+##--------------------start-of-modified_create_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def modified_create_file(self, file_path:str, content_to_write:str) -> None:
+
+        """
+
+        Creates a path if it doesn't exist or if it is blank or empty, writes to it,  as well as logs what was created.\n
+
+        Parameters:\n
+        self (object - fileHandler) : the fileHandler object.\n
+        file_path (str) : path to the file to be created.\n
+        content to write (str) : content to be written to the file.\n
+
+        Returns:\n
+        None.\n
+
+        """
+
+        if(os.path.exists(file_path) == False or os.path.getsize(file_path) == 0):
+            self.logger.log_action(file_path + " was created due to lack of the file or because it is blank")
+            with open(file_path, "w+", encoding="utf-8") as file:
+                file.write(content_to_write)

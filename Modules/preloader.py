@@ -70,3 +70,4 @@ class preloader:
         self.file_handler.standard_create_file(self.je_check_path)
         self.file_handler.standard_create_file(self.kairyou_log_path)
         self.file_handler.standard_create_file(self.error_log_path)
+        self.file_handler.standard_create_file(self.debug_log_path)

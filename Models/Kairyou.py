@@ -69,7 +69,7 @@ class Kairyou:
 
 ##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, inc_replacement_json:dict, inc_text_to_preprocess:str) -> None: 
+    def __init__(self, inc_replacement_json:dict, inc_text_to_preprocess:str, inc_preloader:preloader) -> None: 
 
         """
         
@@ -84,7 +84,7 @@ class Kairyou:
         """
 
         ## The preloader (contains most auxiliary functions).
-        self.preloader = preloader()
+        self.preloader = inc_preloader
 
         ## The dictionary containing the rules for preprocessing.
         self.replacement_json = inc_replacement_json

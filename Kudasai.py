@@ -1,6 +1,6 @@
 ## built in modules
 import os
-import time
+import traceback
 import sys
 
 ## third party modules
@@ -88,7 +88,7 @@ class Kudasai:
         with open(input_file, 'r', encoding='utf-8') as file: 
             japanese_text = file.read()
         
-        self.kairyou_client = Kairyou(replacement_json, japanese_text)
+        self.kairyou_client = Kairyou(replacement_json, japanese_text, self.preloader)
 
 ##-------------------start-of-run_kudasai_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -157,23 +157,35 @@ class Kudasai:
         with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
             file.truncate()
 
-        with open(self.preloader.debug_log_path, 'w', encoding='utf-8') as file:
-            file.truncate()
-
-
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-kudasai_client = Kudasai()
+client = Kudasai()
 
-## determines if we will run the Kudasai CLI or the Kudasai Console
-if(__name__ == '__main__'):
+try:
 
-    ## to be implemented later, for now we will just run the CLI version
-    if(len(sys.argv) < 3):
-        pass
+    ## determines if we will run the Kudasai CLI or the Kudasai Console
+    if(__name__ == '__main__'):
 
-    else:
+        ## to be implemented later, for now we will just run the CLI version
+        if(len(sys.argv) < 3):
+            pass
 
-        kudasai_client.setup_kairyou(sys.argv[1], sys.argv[2])
+        else:
 
-        kudasai_client.run_kudasai_cli()
+            client.setup_kairyou(sys.argv[1], sys.argv[2])
+
+            client.run_kudasai_cli()
+
+except Exception as e:
+
+    ## if crash, catch and log, then throw
+    client.preloader.file_handler.logger.log_action("--------------------------------------------------------------")
+    client.preloader.file_handler.logger.log_action("Kudasai has crashed")
+
+    traceback_str = traceback.format_exc()
+    
+    client.preloader.file_handler.logger.log_action(traceback_str)
+
+    client.preloader.file_handler.logger.push_batch()
+
+    raise e

@@ -2,6 +2,7 @@
 import os
 import msvcrt
 import requests
+import typing
 
 class toolkit():
 
@@ -10,6 +11,24 @@ class toolkit():
     The class for a bunch of utility functions used throughout Kudasai.\n
 
     """
+
+##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def __init__(self) -> None:
+
+        """
+        
+        Constructor for the toolkit class.\n
+
+        Parameters:\n
+        None.\n
+
+        Returns:\n
+        None.\n
+
+        """
+
+        self.CURRENT_VERSION = "v1.5.4" 
 
 ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -20,7 +39,7 @@ class toolkit():
         clears the console\n
 
         Parameters:\n
-        None\n
+        self (object - toolkit) : the toolkit object.\n
 
         Returns:\n
         None\n
@@ -38,6 +57,7 @@ class toolkit():
         Pauses the console.\n
 
         Parameters:\n
+        self (object - toolkit) : the toolkit object.\n
         message (str | optional) : the message that will be displayed when the console is paused.\n
 
         Returns:\n
@@ -77,6 +97,7 @@ class toolkit():
         calculates elapsed time\n
 
         Parameters:\n
+        self (object - toolkit) : the toolkit object.\n
         start (float): start time\n
         end (float): end time\n
 
@@ -101,74 +122,42 @@ class toolkit():
 
 ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def check_update(self, from_gui:bool) -> bool:
+    def check_update(self) -> typing.Tuple[bool,str]:
 
-    """
+        """
 
-    Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.\n
+        Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.\n
 
-    Parameters:\n
-    from_gui (bool) : whether or not the function call is from the gui.\n
+        Parameters:\n
+        self (object - toolkit) : the toolkit object.\n
 
-    Returns:\n
-    True if the user has an internet connection, False if the user does not.\n
+        Returns:\n
+        is_connection (bool) : whether or not the user has an internet connection.\n
+        update_prompt (str) : the update prompt to be displayed to the user, can either be blank if there is no update or contain the update prompt if there is an update.\n
 
-    """
+        """
 
-    if(os.name == 'nt'):  # Windows
-        config_dir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
-    else:  ## Linux
-        config_dir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
+        update_prompt = ""
+        is_connection = True
+        
+        try:
+        
+            response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
+            latest_version = response.json()["tag_name"]
+            release_notes = response.json()["body"]
 
-    ## the temp file for the gui, used to detect if an update is available
-    is_there_update_path = os.path.join(config_dir, "isThereUpdate.txt")
-
-    ## temp file for the gui, used to store the patch notes
-    patch_notes_path = os.path.join(config_dir, "patchNotes.txt")
-    
-    try:
-    
-        CURRENT_VERSION = "v1.5.4" 
-
-        response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
-        latest_version = response.json()["tag_name"]
-        release_notes = response.json()["body"]
-
-        if(not from_gui):
-
-            if(latest_version != CURRENT_VERSION):
-                print("There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n")
-               
-                if(release_notes):
-                    print("Release notes:\n\n" + release_notes + '\n')
-
-                self.pause_console()
-                self.clear_console()
-
-        else:
-
-            if(not os.path.exists(config_dir)):
-                os.makedirs(config_dir)
+            if(latest_version != self.CURRENT_VERSION):
+                update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n"
             
-            with open(is_there_update_path, 'w+', encoding='utf-8') as file:
+                if(release_notes):
+                    update_prompt += "\nRelease notes:\n\n" + release_notes + '\n'
 
-                if(latest_version != CURRENT_VERSION):
-                    file.write("true")
 
-                    if(release_notes):
+            return is_connection, update_prompt
 
-                        with open(patch_notes_path, 'w+', encoding='utf-8') as file:
-                            file.write("Release notes:\n\n" + release_notes + '\n')
+        ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail
+        except:
 
-                else:
-                    file.write("false")
-
-        return True
-
-    except: ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail
-
-        if(from_gui):
-            with open(is_there_update_path, 'w+', encoding='utf-8') as file:
-                file.write("false")
-                
-        return False
+            is_connection = False 
+                    
+            return is_connection, update_prompt

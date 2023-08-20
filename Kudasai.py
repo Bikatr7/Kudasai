@@ -44,11 +44,15 @@ class Kudasai:
 
         self.preloader = preloader()
 
+        self.preloader.toolkit.clear_console()
+
         self.kairyou_client = None
 
         self.kaiseki_client = None
 
         self.kijiku_client = None
+
+        self.connection = None
 
 ##-------------------start-of-setup()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -102,9 +106,25 @@ class Kudasai:
 
         """
 
+        self.handle_update_check_from_cli_or_console()
+
         self.kairyou_client.preprocess() ## type: ignore (we know it's not None)
 
         self.write_kairyou_results()
+
+##-------------------start-of-handle_update_check_from_cli_or_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def handle_update_check_from_cli_or_console(self) -> None:
+
+        self.connection, update_prompt = self.preloader.toolkit.check_update()
+
+        if(update_prompt):
+            
+            print(update_prompt)
+
+            self.preloader.toolkit.pause_console()
+            self.preloader.toolkit.clear_console()
+        
 
 ##-------------------start-of-write_kairyou_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -122,14 +142,24 @@ class Kudasai:
 
         """
 
-        with(open(self.preloader.preprocess_path, 'w', encoding='utf-8')) as file:
+        with(open(self.preloader.preprocessed_text_path, 'w', encoding='utf-8')) as file:
             file.write(self.kairyou_client.text_to_preprocess) ## type: ignore (we know it's not None)
 
-        with open(self.preloader.output_path, 'w', encoding='utf-8') as file:
+        with open(self.preloader.kairyou_log_path, 'w', encoding='utf-8') as file:
             file.write(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
 
-        with open(self.preloader.error_path, 'w', encoding='utf-8') as file:
+        with open(self.preloader.error_log_path, 'w', encoding='utf-8') as file:
             file.write(self.kairyou_client.error_log) ## type: ignore (we know it's not None)
+
+        with open(self.preloader.je_check_path, 'w', encoding='utf-8') as file:
+            file.truncate()
+
+        with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
+            file.truncate()
+
+        with open(self.preloader.debug_log_path, 'w', encoding='utf-8') as file:
+            file.truncate()
+
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

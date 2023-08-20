@@ -49,15 +49,6 @@ class Kijiku:
 
         """
         
-        ## where the config files are stored
-        self.config_dir = config_dir
-
-        ## where the main script is located
-        self.script_dir = script_dir
-
-        ## if the program is being run from the gui
-        self.from_gui = from_gui
-
         ## the rules Kijiku will follow when interacting with the OpenAI API
         self.kijiku_rules = dict()
 

@@ -108,13 +108,15 @@ class Kudasai:
 
         self.handle_update_check_from_cli_or_console()
 
+        print("Preprocessing...")
+
         self.kairyou_client.preprocess() ## type: ignore (we know it's not None)
 
         print(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
 
         self.write_kairyou_results()
 
-        self.preloader.toolkit.pause_console("Press any key to continue to Auto-Translation...")
+        self.preloader.toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
         self.determine_autotranslation_module()
 
@@ -258,16 +260,8 @@ try:
 
             client.run_kudasai_cli()
 
+            client.preloader.file_handler.logger.push_batch()
+
 except Exception as e:
 
-    ## if crash, catch and log, then throw
-    client.preloader.file_handler.logger.log_action("--------------------------------------------------------------")
-    client.preloader.file_handler.logger.log_action("Kudasai has crashed")
-
-    traceback_str = traceback.format_exc()
-    
-    client.preloader.file_handler.logger.log_action(traceback_str)
-
-    client.preloader.file_handler.logger.push_batch()
-
-    raise e
+    client.preloader.file_handler.handle_critical_exception(e)

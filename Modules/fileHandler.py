@@ -1,5 +1,6 @@
 ## built-in libaries
 import os
+import traceback
 
 ## custom modules
 from Modules.logger import logger
@@ -36,7 +37,7 @@ class fileHandler():
             self.config_dir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
 
         ## log file
-        self.log_path = os.path.join(self.script_dir, "tlDebug.txt")
+        self.log_path = os.path.join(self.output_dir, "debug log.txt")
 
         self.logger = logger(self.log_path)
 
@@ -105,3 +106,19 @@ class fileHandler():
             self.logger.log_action(file_path + " was created due to lack of the file or because it is blank")
             with open(file_path, "w+", encoding="utf-8") as file:
                 file.write(content_to_write)
+
+##-------------------start-of-handle_critical_exception()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def handle_critical_exception(self, critical_exception:Exception) -> None:
+
+        ## if crash, catch and log, then throw
+        self.logger.log_action("--------------------------------------------------------------")
+        self.logger.log_action("Kudasai has crashed")
+
+        traceback_str = traceback.format_exc()
+        
+        self.logger.log_action(traceback_str)
+
+        self.logger.push_batch()
+
+        raise critical_exception

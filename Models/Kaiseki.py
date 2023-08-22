@@ -47,11 +47,8 @@ class Kaiseki:
 
         ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        ## the text to translate's path
-        self.text_to_translate_path = inc_text_to_translate
-
         ## the text to translate
-        self.text_to_translate = []
+        self.text_to_translate =  [line for line in inc_text_to_translate.split('\n')]
 
         ## parts of the self.current_sentence
         self.sentence_parts = []
@@ -131,9 +128,12 @@ class Kaiseki:
 
             self.commence_translation() ## commence the translation
 
-        except:
+        except Exception as e:
             
             self.translation_print_result += "An error has occurred, outputting results so far..."
+
+            self.preloader.file_handler.handle_critical_exception(e)
+
         finally:
 
             self.time_end = time.time() ## end time
@@ -198,9 +198,6 @@ class Kaiseki:
                 self.preloader.toolkit.pause_console()
 
                 raise e
-
-        with open(self.text_to_translate_path, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate_sentence
-            self.text_to_translate = [line.strip() for line in file.readlines()]
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

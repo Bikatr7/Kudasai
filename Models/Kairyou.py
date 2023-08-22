@@ -181,8 +181,6 @@ class Kairyou:
         self.preprocessing_log += "\nTotal Replacements  : " + str(self.total_replacements)
         self.preprocessing_log += "\nTime Elapsed : " + self.preloader.toolkit.get_elapsed_time(time_start, time_end)
 
-        print(self.preprocessing_log)
-
 ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict) -> None:

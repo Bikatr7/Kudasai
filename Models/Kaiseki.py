@@ -133,8 +133,7 @@ class Kaiseki:
 
         except:
             
-            self.translation_print_result += "An error has occurred, outputting results so far...\n\n"
-
+            self.translation_print_result += "An error has occurred, outputting results so far..."
         finally:
 
             self.time_end = time.time() ## end time

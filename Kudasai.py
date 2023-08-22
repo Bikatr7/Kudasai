@@ -110,6 +110,8 @@ class Kudasai:
 
         self.kairyou_client.preprocess() ## type: ignore (we know it's not None)
 
+        print(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
+
         self.write_kairyou_results()
 
         self.preloader.toolkit.pause_console("Press any key to continue to Auto-Translation...")
@@ -160,6 +162,26 @@ class Kudasai:
 
         with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
             file.truncate()
+
+        ## pushes the tl debug log to the file
+        self.preloader.file_handler.logger.push_batch()
+
+##-------------------start-of-write_kaiseki_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def write_kaiseki_results(self) -> None:
+
+
+        with open(self.preloader.error_log_path, 'a+', encoding='utf-8') as file:
+            file.writelines(self.kaiseki_client.error_text) ## type: ignore (we know it's not None)
+
+        with open(self.preloader.je_check_path, 'w', encoding='utf-8') as file:
+            file.writelines(self.kaiseki_client.je_check_text) ## type: ignore (we know it's not None)
+
+        with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
+            file.writelines(self.kaiseki_client.translated_text) ## type: ignore (we know it's not None)
+
+        ## pushes the tl debug log to the file
+        self.preloader.file_handler.logger.push_batch()
 
 ##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -212,6 +234,10 @@ class Kudasai:
         self.kaiseki_client = Kaiseki(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
 
         self.kaiseki_client.translate()
+
+        print(self.kaiseki_client.translation_print_result)
+
+        self.write_kaiseki_results()
             
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

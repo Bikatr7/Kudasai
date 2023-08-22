@@ -64,6 +64,9 @@ class Kaiseki:
 
         ## the text for errors that occur during translation
         self.error_text = []
+
+        ## the print result for the translation
+        self.translation_print_result = ""
         
         ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -101,6 +104,8 @@ class Kaiseki:
 
         self.current_sentence = ""
         self.translated_sentence = ""
+
+        self.translation_print_result = ""
         
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -127,13 +132,14 @@ class Kaiseki:
             self.commence_translation() ## commence the translation
 
         except:
-            pass
+            
+            self.translation_print_result += "An error has occurred, outputting results so far...\n\n"
 
         finally:
 
             self.time_end = time.time() ## end time
 
-            self.return_results() ## return the results
+            self.assemble_results() ## assemble the results
 
 ##-------------------start-of-initialize()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -178,21 +184,21 @@ class Kaiseki:
                     
                 self.preloader.toolkit.clear_console()
                     
-                print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKudasai will now exit.\n")
+                print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKaiseki will now exit.\n")
                 
                 self.preloader.toolkit.pause_console()
                     
-                exit()
+                raise e
 
             except Exception as e: ## other error, alert user and raise it
                 
                 self.preloader.toolkit.clear_console()
                     
-                print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKudasai will now exit.\n")
+                print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKaiseki will now exit.\n")
                 
                 self.preloader.toolkit.pause_console()
 
-                exit()
+                raise e
 
         with open(self.text_to_translate_path, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate_sentence
             self.text_to_translate = [line.strip() for line in file.readlines()]
@@ -504,14 +510,15 @@ class Kaiseki:
                 if(i != len(self.sentence_punctuation)-1):
                     self.translated_sentence += " "
                         
-            except deepl.exceptions.QuotaExceededException:
+            except deepl.exceptions.QuotaExceededException as E:
 
                 print("\nDeepL API quota exceeded\n")
 
                 self.preloader.toolkit.pause_console()
 
-                self.return_results()
-                exit()
+                self.assemble_results()
+                
+                raise E
                     
             except ValueError as e:
 
@@ -530,9 +537,9 @@ class Kaiseki:
         self.translated_text.append(self.translated_sentence)
         self.translated_sentence = ""
 
-##-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def return_results(self) -> typing.Tuple[str, typing.List[str], typing.List[str], typing.List[str]]:
+    def assemble_results(self):
 
         '''
 
@@ -542,22 +549,16 @@ class Kaiseki:
         self (object - Kaiseki) : the Kaiseki object.\n
 
         Returns:\n
-        translation_print_result (str) : the display output for Kaiseki.\n
-        je_check_text (list - str) : the j-e check text.\n
-        translated_text (list - str) : the translated text.\n
-        error_text (list - str) : the error text.\n
+        None\n
 
         '''
 
         self.preloader.toolkit.clear_console()
 
-        translation_print_result = "Time Elapsed : " + self.preloader.toolkit.get_elapsed_time(self.time_start, self.time_end)
+        self.translation_print_result += "Time Elapsed : " + self.preloader.toolkit.get_elapsed_time(self.time_start, self.time_end)
 
-        translation_print_result += "\n\nDebug text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "debug log.txt")
-        translation_print_result += "\nJ->E text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "jeCheck.txt")
-        translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
-        translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
-
-
-        return translation_print_result, self.je_check_text, self.translated_text, self.error_text
+        self.translation_print_result += "\n\nDebug text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "debug log.txt")
+        self.translation_print_result += "\nJ->E text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "jeCheck.txt")
+        self.translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
+        self.translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
         

@@ -114,6 +114,8 @@ class Kudasai:
 
         self.preloader.toolkit.pause_console("Press any key to continue to Auto-Translation...")
 
+        self.determine_autotranslation_module()
+
 ##-------------------start-of-handle_update_check_from_cli_or_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def handle_update_check_from_cli_or_console(self) -> None:
@@ -179,16 +181,38 @@ class Kudasai:
 
         pathing = 0
 
-        pathing_msg = "Please select an auto-translation module:\n\n1. Kaiseki\n2. Kijiku3.Skip\n\n"
+        pathing_msg = "Please select an auto-translation module:\n\n1. Kaiseki\n2. Kijiku\n3.Skip\n\n"
 
         pathing = input(pathing_msg)
 
         if(pathing == "1"):
-            pass
+            self.run_kaiseki()
         elif(pathing == "2"):
             pass
         else:
             pass
+
+
+##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def run_kaiseki(self) -> None:
+
+        """
+        
+        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kaiseki module.\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.kaiseki_client = Kaiseki(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
+
+        self.kaiseki_client.translate()
+            
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 client = Kudasai()

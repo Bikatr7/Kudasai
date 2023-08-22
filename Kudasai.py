@@ -112,6 +112,8 @@ class Kudasai:
 
         self.write_kairyou_results()
 
+        self.preloader.toolkit.pause_console("Press any key to continue to Auto-Translation...")
+
 ##-------------------start-of-handle_update_check_from_cli_or_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def handle_update_check_from_cli_or_console(self) -> None:
@@ -157,6 +159,36 @@ class Kudasai:
         with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
             file.truncate()
 
+##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def determine_autotranslation_module(self) -> None:
+
+        """
+        
+        If the user is running the CLI or Console version of Kudasai, this function is called to determine which autotranslation module to use.\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.preloader.toolkit.clear_console()
+
+        pathing = 0
+
+        pathing_msg = "Please select an auto-translation module:\n\n1. Kaiseki\n2. Kijiku3.Skip\n\n"
+
+        pathing = input(pathing_msg)
+
+        if(pathing == "1"):
+            pass
+        elif(pathing == "2"):
+            pass
+        else:
+            pass
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 client = Kudasai()

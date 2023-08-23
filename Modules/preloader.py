@@ -62,12 +62,16 @@ class preloader:
 
         """
 
+        ## creates the output directory and config directory if they don't exist
         self.file_handler.standard_create_directory(self.file_handler.config_dir)
         self.file_handler.standard_create_directory(self.file_handler.output_dir)
 
+        ## creates and clears the log file
+        self.file_handler.logger.clear_log_file()
+
+        ## creates the remaining 5 output files
         self.file_handler.standard_create_file(self.preprocessed_text_path)
         self.file_handler.standard_create_file(self.translated_text_path)
         self.file_handler.standard_create_file(self.je_check_path)
         self.file_handler.standard_create_file(self.kairyou_log_path)
         self.file_handler.standard_create_file(self.error_log_path)
-        self.file_handler.standard_create_file(self.debug_log_path)

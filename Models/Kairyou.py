@@ -8,7 +8,6 @@ import time
 import spacy
 
 ## custom modules
-from Modules.toolkit import toolkit
 from Modules.preloader import preloader
 
 ##-------------------start-of-Name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -129,11 +128,11 @@ class Kairyou:
         replacement_rules = [ 
         ('Punctuation', 'kutouten', False, None, None), 
         ('Unicode','unicode', False, None, None),
-        ('Phrases','phrases', False, None ,None),
-        ('Words','single_words', False, None, None),
         ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
         ('Single Names', 'single_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
         ('Name Like', 'name_like', True, ReplacementType.ALL_NAMES, ReplacementType.NONE),
+        ('Phrases','phrases', False, None ,None),
+        ('Words','single_words', False, None, None),
         ]
  
         replaced_names = dict()

@@ -46,6 +46,18 @@ class Kudasai:
 
         self.preloader.toolkit.clear_console()
 
+        self.preloader.file_handler.logger.log_action("--------------------")
+        self.preloader.file_handler.logger.log_action("Initialized Kudasai")
+        self.preloader.file_handler.logger.log_action("--------------------\n")
+
+        self.preloader.file_handler.logger.log_action("--------------------")
+        self.preloader.file_handler.logger.log_action("Kudasai started")
+        self.preloader.file_handler.logger.log_action("--------------------\n")
+    
+        self.preloader.file_handler.logger.log_action("--------------------")
+        self.preloader.file_handler.logger.log_action("Current version: " + self.preloader.toolkit.CURRENT_VERSION)
+        self.preloader.file_handler.logger.log_action("-------------------\n")
+
         self.kairyou_client = None
 
         self.kaiseki_client = None
@@ -170,6 +182,17 @@ class Kudasai:
 
     def write_kaiseki_results(self) -> None:
 
+        """
+
+        If the user is running the CLI or Console version of Kudasai, this function is called to write the results of the Kaiseki module to a directory.\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None\n
+
+        """
 
         with open(self.preloader.error_log_path, 'a+', encoding='utf-8') as file:
             file.writelines(self.kaiseki_client.error_text) ## type: ignore (we know it's not None)
@@ -230,6 +253,10 @@ class Kudasai:
         None\n
 
         """
+
+        self.preloader.file_handler.logger.log_action("--------------------")
+        self.preloader.file_handler.logger.log_action("Kaiseki started")
+        self.preloader.file_handler.logger.log_action("--------------------\n")
 
         self.kaiseki_client = Kaiseki(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
 

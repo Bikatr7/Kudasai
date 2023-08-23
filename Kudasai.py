@@ -108,8 +108,6 @@ class Kudasai:
 
         self.handle_update_check_from_cli_or_console()
 
-        print("Preprocessing...")
-
         self.kairyou_client.preprocess() ## type: ignore (we know it's not None)
 
         print(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
@@ -205,7 +203,7 @@ class Kudasai:
 
         pathing = 0
 
-        pathing_msg = "Please select an auto-translation module:\n\n1. Kaiseki\n2. Kijiku\n3.Skip\n\n"
+        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki\n2.Kijiku\n3.Skip\n\n"
 
         pathing = input(pathing_msg)
 

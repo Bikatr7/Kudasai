@@ -5,13 +5,11 @@ import time
 import re
 import base64
 import time
-import typing
 
 ## third party modules
 import deepl
 
 ## custom modules
-from Modules.toolkit import toolkit
 from Modules.preloader import preloader
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -225,23 +223,23 @@ class Kaiseki:
 
             if(any(char in self.current_sentence for char in ["▼", "△", "◇"])):
                 self.translated_text.append(self.current_sentence + '\n')
-                self.preloader.file_handler.logger.log_action("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n")
+                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is a pov change... leaving intact.\n")
 
             elif("part" in self.current_sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in self.current_sentence) and not all(char in [" "] for char in self.current_sentence) and self.current_sentence != '"..."' and self.current_sentence != "..."):
                 self.translated_text.append(self.current_sentence + '\n') 
-                self.preloader.file_handler.logger.log_action("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is part marker... leaving intact\n-----------------------------------------------\n")
+                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is part marker... leaving intact.\n")
 
             elif bool(re.match(r'^[\W_\s\n-]+$', self.current_sentence)) and not any(char in self.current_sentence for char in ["」", "「", "«", "»"]):
-                self.preloader.file_handler.logger.log_action("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n")
+                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is punctuation... skipping.\n")
                 self.translated_text.append(self.current_sentence + "\n")
 
             elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', self.current_sentence))):
-                self.preloader.file_handler.logger.log_action("\n-----------------------------------------------\nSentence : " + self.current_sentence + "\nSentence is english... skipping\n-----------------------------------------------\n")
+                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is english... skipping translation.\n")
                 self.translated_text.append(self.current_sentence + "\n")
 
             elif(len(self.current_sentence) == 0 or self.current_sentence.isspace() == True):
-                self.preloader.file_handler.logger.log_action("\nSentence is empty... skipping translation\n-----------------------------------------------\n")
-                self.translated_text.append(self.current_sentence + "\n")  
+                self.preloader.file_handler.logger.log_action("Sentence is empty... skipping translation.\n")
+                self.translated_text.append(self.current_sentence + "\n") 
 
             else:
         
@@ -266,7 +264,7 @@ class Kaiseki:
 
                 self.translated_text[i] += "\n"
 
-                self.preloader.file_handler.logger.log_action("\nTranslated and Reassembled Sentence : " + self.translated_text[i] + "\n-----------------------------------------------\n")
+                self.preloader.file_handler.logger.log_action("Translated and Reassembled Sentence : " + self.translated_text[i])
 
                 self.je_check_text.append(str(i+1) + ": " + self.current_sentence +  "\n   " +  self.translated_text[i] + "\n")
             
@@ -416,9 +414,9 @@ class Kaiseki:
             self.sentence_parts.append(buildString)
             self.sentence_punctuation.append(None)
 
-        self.preloader.file_handler.logger.log_action("\nFragmented Sentence Parts " + str(self.sentence_parts))
-        self.preloader.file_handler.logger.log_action("\nSentence Punctuation " + str(self.sentence_punctuation))
-        self.preloader.file_handler.logger.log_action("\nDoes Sentence Have Special Punctuation : " + str(self.special_punctuation))
+        self.preloader.file_handler.logger.log_action("Fragmented Sentence Parts " + str(self.sentence_parts))
+        self.preloader.file_handler.logger.log_action("Sentence Punctuation " + str(self.sentence_punctuation))
+        self.preloader.file_handler.logger.log_action("Does Sentence Have Special Punctuation : " + str(self.special_punctuation))
 
         self.sentence_parts = [part.strip() for part in self.sentence_parts] ## strip the sentence parts
 
@@ -524,8 +522,8 @@ class Kaiseki:
                     self.translated_sentence += "ERROR"
                     error = str(e)
 
-                    self.preloader.file_handler.logger.log_action("\nError is : " + error)
-                    self.error_text.append("\nError is : " + error)
+                    self.preloader.file_handler.logger.log_action("Error is : " + error)
+                    self.error_text.append("Error is : " + error)
 
 
             i+=1

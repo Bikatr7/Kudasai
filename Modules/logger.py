@@ -95,3 +95,22 @@ class logger:
             file.write(self.batch)
 
         self.batch = ""
+
+##--------------------start-of-clear_log_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def clear_log_file(self):
+
+        """
+        
+        Clears the log file.\n
+
+        Parameters:\n
+        None.\n
+
+        Returns:\n
+        None.\n
+        
+        """
+
+        with open(self.log_file_path, 'w+', encoding="utf-8") as file:
+            file.truncate(0)

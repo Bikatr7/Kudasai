@@ -41,6 +41,8 @@ class fileHandler():
 
         self.logger = logger(self.log_path)
 
+        self.logger.clear_log_file()
+
 ##--------------------start-of-standard_create_directory()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def standard_create_directory(self, directory_path:str) -> None:

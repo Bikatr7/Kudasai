@@ -537,7 +537,7 @@ class Kaiseki:
 
 ##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def assemble_results(self):
+    def assemble_results(self) -> None:
 
         '''
 
@@ -550,9 +550,7 @@ class Kaiseki:
         None\n
 
         '''
-
-        self.preloader.toolkit.clear_console()
-
+        
         self.translation_print_result += "Time Elapsed : " + self.preloader.toolkit.get_elapsed_time(self.time_start, self.time_end)
 
         self.translation_print_result += "\n\nDebug text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "debug log.txt")

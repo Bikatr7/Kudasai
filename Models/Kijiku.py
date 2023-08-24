@@ -52,6 +52,8 @@ class Kijiku:
 
         ## the json handler object
         self.json_handler = jsonHandler(inc_preloader)
+
+        ##--------------------------------------------------------------------------------------------------------------------------
         
         ## the text to translate
         self.text_to_translate =  [line for line in inc_text_to_translate.split('\n')]
@@ -69,8 +71,12 @@ class Kijiku:
         ## model message is the text that will be translated  
         self.messages = []
 
+        ##--------------------------------------------------------------------------------------------------------------------------
+
         ## path to the openai api key
         self.api_key_path = os.path.join(self.preloader.file_handler.config_dir,'GPTApiKey.txt')
+
+        self.translation_print_result = ""
 
 ##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -139,14 +145,29 @@ class Kijiku:
 
         """
 
+        self.time_start = time.time()
+
+        try:
         
-        self.initialize()
+            self.initialize()
 
-        self.json_handler.validate_json()
+            self.json_handler.validate_json()
 
-        self.check_settings()
+            self.check_settings()
 
-        self.commence_translation()
+            self.commence_translation()
+
+        except Exception as e:
+            
+            self.translation_print_result += "An error has occurred, outputting results so far..."
+
+            self.preloader.file_handler.handle_critical_exception(e)
+
+        finally:
+
+            self.time_end = time.time() ## end time
+
+            self.assemble_results() ## assemble the results
 
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -226,76 +247,69 @@ class Kijiku:
 
         """
         
-        try:
-        
-            i = 0
+        i = 0
 
-            self.preloader.file_handler.logger.log_action("Kijiku Activated\n\nSettings are as follows : \n\n")
+        self.preloader.file_handler.logger.log_action("Kijiku Activated\n\nSettings are as follows : \n\n")
 
-            for key,value in self.json_handler.kijiku_rules["open ai settings"].items():
-                self.preloader.file_handler.logger.log_action(key + " : " + str(value))
+        for key,value in self.json_handler.kijiku_rules["open ai settings"].items():
+            self.preloader.file_handler.logger.log_action(key + " : " + str(value))
 
-            ##-----------------continue refactoring here---------------------------------------------------------------------------------------------------------------------------------------------------------------------------s
-                
-            self.MODEL = self.json_handler.kijiku_rules["open ai settings"]["model"]
-            self.system_message = self.json_handler.kijiku_rules["open ai settings"]["system_message"]
-            self.message_mode = int(self.json_handler.kijiku_rules["open ai settings"]["message_mode"])
-            self.prompt_size = int(self.json_handler.kijiku_rules["open ai settings"]["num_lines"])
-            self.sentence_fragmenter_mode = int(self.json_handler.kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
-            self.je_check_mode = int(self.json_handler.kijiku_rules["open ai settings"]["je_check_mode"])
+        self.MODEL = self.json_handler.kijiku_rules["open ai settings"]["model"]
+        self.system_message = self.json_handler.kijiku_rules["open ai settings"]["system_message"]
+        self.message_mode = int(self.json_handler.kijiku_rules["open ai settings"]["message_mode"])
+        self.prompt_size = int(self.json_handler.kijiku_rules["open ai settings"]["num_lines"])
+        self.sentence_fragmenter_mode = int(self.json_handler.kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
+        self.je_check_mode = int(self.json_handler.kijiku_rules["open ai settings"]["je_check_mode"])
 
-            time_start = time.time()
+        self.preloader.toolkit.clear_console()
 
-            toolkit.clear_console()
+        self.preloader.file_handler.logger.log_action("Starting Prompt Building")
 
-            self.debug_text.append("\nStarting Prompt Building\n-------------------------\n")
+        self.build_messages()
 
-            self.build_messages()
+        print(self.estimate_cost())
 
-            self.estimate_cost()
+        time.sleep(3)
 
-            if(self.from_gui == False):
-                toolkit.pause_console("Press any key to continue with translation...")
+        self.preloader.file_handler.logger.log_action("Starting Translation")
 
-            self.debug_text.append("\nStarting Translation\n-------------------------")
+        while(i+2 <= len(self.messages)):
 
-            while(i+2 <= len(self.messages)):
+            self.preloader.toolkit.clear_console()
 
-                toolkit.clear_console()
+            print("Trying " + str(i+2) + " of " + str(len(self.messages)))
+            self.preloader.file_handler.logger.log_action("Trying " + str(i+2) + " of " + str(len(self.messages)))
 
-                print("Trying " + str(i+2) + " of " + str(len(self.messages)))
-                self.debug_text.append("\n\n-------------------------\nTrying " + str(i+2) + " of " + str(len(self.messages)) + "\n-------------------------\n")
+            translated_message = self.translate_message(self.messages[i], self.messages[i+1])
 
-                translated_message = self.translate_message(self.messages[i],self.messages[i+1])
+            self.redistribute(translated_message)
 
-                self.redistribute(translated_message)
+            i+=2
 
-                i+=2
+        self.preloader.toolkit.clear_console()
 
-            self.output_results()
-
-            time_end = time.time()
-
-            if(self.from_gui):
-                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
-                    file.write("\nTime Elapsed : " + toolkit.get_elapsed_time(time_start, time_end) + "\n\n")
-            
-            else:
-                print("\nTime Elapsed : " + toolkit.get_elapsed_time(time_start, time_end))
+##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-        except Exception as e: 
+    def assemble_results(self) -> None:
 
-            print("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+        '''
 
-            self.error_text.append("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+        Outputs results to several txt files\n
 
-            if(self.from_gui):
-                with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
-                    file.write("\nUncaught error has been raised in Kijiku, error is as follows : " + str(e) + "\nOutputting incomplete results\n")
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
 
-                toolkit.clear_console()
+        Returns:\n
+        None\n
 
-            self.output_results()
+        '''
+
+        self.translation_print_result += "Time Elapsed : " + self.preloader.toolkit.get_elapsed_time(self.time_start, self.time_end)
+
+        self.translation_print_result += "\n\nDebug text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "debug log.txt")
+        self.translation_print_result += "\nJ->E text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "jeCheck.txt")
+        self.translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
+        self.translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
 
 ##-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -338,7 +352,7 @@ class Kijiku:
 
             self.messages.append(model_msg)
 
-        self.debug_text.append("\nMessages\n-------------------------\n\n")
+        self.preloader.file_handler.logger.log_action("\nMessages\n-------------------------\n\n")
 
         i = 0
 
@@ -348,11 +362,11 @@ class Kijiku:
 
             if(i % 2 == 0):
 
-                self.debug_text.append(str(message) + "\n\n")
+                self.preloader.file_handler.logger.log_action(str(message) + "\n\n")
         
             else:
 
-                self.debug_text.append(str(message) + "\n")
+                self.preloader.file_handler.logger.log_action(str(message) + "\n")
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -381,17 +395,17 @@ class Kijiku:
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(sentence + '\n')
-                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is a pov change... leaving intact\n-----------------------------------------------\n\n")
+                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.\n")
 
                 elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
                     prompt.append(sentence + '\n') 
-                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is part marker... leaving intact\n-----------------------------------------------\n\n")
-            
+                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.\n")
+
                 elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]) and sentence != '"..."' and sentence != "..."):
-                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is punctuation... skipping\n-----------------------------------------------\n\n")
+                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.\n")
             
                 elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
-                    self.debug_text.append("\n-----------------------------------------------\nSentence : " + sentence + "\nSentence is english... skipping\n-----------------------------------------------\n\n")
+                    self.preloader.file_handler.logger.log_action("Sentence is empty... skipping translation.\n")
 
                 else:
                     prompt.append(sentence + "\n")
@@ -405,15 +419,14 @@ class Kijiku:
     
 ##-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def estimate_cost(self) -> None:
+    def estimate_cost(self) -> str:
 
         '''
 
-        attempts to estimate cost.\n
+        Attempts to estimate cost.\n
     
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
-        model (string) t represents which model we will be using\n
 
         Returns:\n
         None\n
@@ -422,6 +435,7 @@ class Kijiku:
         
         try:
             encoding = tiktoken.encoding_for_model(self.MODEL)
+            
         except KeyError:
             print("Warning: model not found. Using cl100k_base encoding.")
             encoding = tiktoken.get_encoding("cl100k_base")
@@ -432,25 +446,29 @@ class Kijiku:
             self.MODEL="gpt-3.5-turbo-0613"
             return self.estimate_cost()
         
-        if(self.MODEL == "gpt-3.5-turbo-0301"):
+        elif(self.MODEL == "gpt-3.5-turbo-0301"):
             print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ended September 13, Returning num tokens assuming gpt-3.5-turbo-0613.")
             time.sleep(1)
             self.MODEL="gpt-3.5-turbo-0613"
             return self.estimate_cost()
 
+        elif(self.MODEL == "gpt-4"):
+            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
+            time.sleep(1)
+            self.MODEL="gpt-4-0613"
+            return self.estimate_cost()
+        
+        elif(self.MODEL == "gpt-4-0314"):
+
+            print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, Returning num tokens assuming gpt-4-0613.")
+            time.sleep(1)
+            self.MODEL="gpt-4-0613"
+            return self.estimate_cost()
+        
         if(self.MODEL == "gpt-3.5-turbo-0613"):
             costPer1000Tokens = 0.0015
             tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
             tokensPerName = -1  ## if there's a name, the role is omitted
-
-        elif(self.MODEL == "gpt-4"):
-            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
-            return self.estimate_cost(model="gpt-4-0613")
-        
-        elif(self.MODEL == "gpt-4-0314"):
-            print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, Returning num tokens assuming gpt-4-0613.")
-            time.sleep(1)
-            self.MODEL="gpt-4-0613"
 
         elif(self.MODEL == "gpt-4-0613"):
             costPer1000Tokens = 0.06
@@ -476,16 +494,11 @@ class Kijiku:
         numTokens += 3  ## every reply is primed with <|start|>assistant<|message|>
         minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
 
-        self.debug_text.append("\nEstimated Tokens in Messages : " + str(numTokens))
-        self.debug_text.append("\nEstimated Minimum Cost : " + str(minCost) + '\n')
+        estimate_cost_result = "Estimated Tokens in Messages : " + str(numTokens) + "\nEstimated Minimum Cost : " + str(minCost) + "\n"
 
-        if(not self.from_gui):
-            print("\nEstimated Number of Tokens in Text : " + str(numTokens))
-            print("Estimated Minimum Cost of Translation : " + str(minCost) + "\n")
-        else:
-            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
-                file.write("\nEstimated Number of Tokens in Text : " + str(numTokens) + "\n")
-                file.write("\nEstimated Minimum Cost of Translation : " + str(minCost) + "\n\n")
+        self.preloader.file_handler.logger.log_action(estimate_cost_result)
+
+        return estimate_cost_result
 
 ##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -529,9 +542,9 @@ class Kijiku:
         ## note, pylance flags this as a 'GeneralTypeIssue', however i see nothing wrong with it, and it works fine
         output = response['choices'][0]['message']['content'] ## type: ignore
 
-        self.debug_text.append("\nPrompt was : \n" + user_message["content"] + "\n")
+        self.preloader.file_handler.logger.log_action("Prompt was : \n" + user_message["content"])
 
-        self.debug_text.append("-------------------------\nResponse from GPT was : \n\n" + output + "\n")
+        self.preloader.file_handler.logger.log_action("Response from openai was : \n" + output )
 
         if(self.je_check_mode == 1):
             self.je_check_text.append("\n-------------------------\n"+ str(user_message["content"]) + "\n\n")
@@ -546,134 +559,73 @@ class Kijiku:
 
         '''
 
-        puts translated text back into text file
+        Puts translated text back into the text file.\n
 
-        Parameters:
-        self (object - Kijiku) : the Kijiku object.
-        translated_message (string) : the translated message
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+        translated_message (string) : the translated message\n
 
-        Returns:
-        None
+        Returns:\n
+        None.\n
 
         '''
 
-        if(self.sentence_fragmenter_mode == 1): ## mode 1 is the default mode, uses regex and other nonsense to split sentences
+        ## mode 1 is the default mode, uses regex and other nonsense to split sentences
+        if(self.sentence_fragmenter_mode == 1): 
 
             sentences = re.findall(r"(.*?(?:(?:\"|\'|-|~|!|\?|%|\(|\)|\.\.\.|\.|---|\[|\])))(?:\s|$)", translated_message)
 
             patched_sentences = []
-            buildString = None
+            build_string = None
 
-            self.debug_text.append("\n-------------------------\nDistributed result was : \n\n")
+            self.preloader.file_handler.logger.log_action("Distributed result was : \n")
 
             for sentence in sentences:
-                if(sentence.startswith("\"") and not sentence.endswith("\"") and buildString is None):
-                    buildString = sentence
+                if(sentence.startswith("\"") and not sentence.endswith("\"") and build_string is None):
+                    build_string = sentence
                     continue
-                elif(not sentence.startswith("\"") and sentence.endswith("\"") and buildString is not None):
-                    buildString += f" {sentence}"
-                    patched_sentences.append(buildString)
-                    buildString = None
+                elif(not sentence.startswith("\"") and sentence.endswith("\"") and build_string is not None):
+                    build_string += f" {sentence}"
+                    patched_sentences.append(build_string)
+                    build_string = None
                     continue
-                elif(buildString is not None):
-                    buildString += f" {sentence}"
+                elif(build_string is not None):
+                    build_string += f" {sentence}"
                     continue
 
                 self.translated_text.append(sentence + '\n')
-                self.debug_text.append(sentence + '\n')
 
-                if(self.je_check_mode == 1):
-                    self.je_check_text.append(sentence+ '\n')
-                elif(self.je_check_mode == 2):
-                    self.je_check_text.append(sentence)
+                self.preloader.file_handler.logger.log_action(sentence + '\n')
 
             for i in range(len(self.translated_text)):
                 if self.translated_text[i] in patched_sentences:
                     index = patched_sentences.index(self.translated_text[i])
                     self.translated_text[i] = patched_sentences[index]
 
-        elif(self.sentence_fragmenter_mode == 2): ## mode 2 uses spacy to split sentences
+        ## mode 2 uses spacy to split sentences
+        elif(self.sentence_fragmenter_mode == 2): 
 
             nlp = spacy.load("en_core_web_lg")
 
             doc = nlp(translated_message)
             sentences = [sent.text for sent in doc.sents]
             
-            self.debug_text.append("\n-------------------------\nDistributed result was : \n\n")
+            self.preloader.file_handler.logger.log_action("\n-------------------------\nDistributed result was : \n\n")
 
             for sentence in sentences:
                 self.translated_text.append(sentence + '\n')
-                self.debug_text.append(sentence + '\n')
+                self.preloader.file_handler.logger.log_action(sentence + '\n')
 
-                if(self.je_check_mode == 1):
-                    self.je_check_text.append(sentence + '\n')
-                elif(self.je_check_mode == 2):
-                    self.je_check_text.append(sentence)
-
-        elif(self.sentence_fragmenter_mode == 3): ## mode 3 just assumes gpt formatted it properly
+        ## mode 3 just assumes gpt formatted it properly
+        elif(self.sentence_fragmenter_mode == 3): 
             
             self.translated_text.append(translated_message + '\n\n')
             
-            if(self.je_check_mode == 1):
-                self.je_check_text.append(translated_message + '\n')
-            elif(self.je_check_mode == 2):
-                self.je_check_text.append(translated_message)
 
-##-------------------start-of-output_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    def output_results(self) -> None:
-
-        '''
-
-        Outputs results to several txt files\n
-
-        Parameters:\n
-        self (object - Kijiku) : the Kijiku object.\n
-
-        Returns:\n
-        None\n
-
-        '''
-
-        self.output_dir = os.path.join(self.script_dir, "KudasaiOutput")
-        
-        if(not os.path.exists(self.output_dir)):
-            os.mkdir(self.output_dir)
-
-        debug_path = os.path.join(self.output_dir, "tlDebug.txt")
-        je_path = os.path.join(self.output_dir, "jeCheck.txt")
-        translated_path = os.path.join(self.output_dir, "translatedText.txt")
-        error_path = os.path.join(self.output_dir, "errors.txt")
-
-        if(self.je_check_mode == 2):
-            self.je_check_text = self.fix_je()
-
-        with open(debug_path, 'w+', encoding='utf-8') as file:
-                file.writelines(self.debug_text)
-
-        with open(je_path, 'w+', encoding='utf-8') as file: 
-                file.writelines(self.je_check_text)
-
-        with open(translated_path, 'w+', encoding='utf-8') as file:
-                file.writelines(self.translated_text)
-
-        with open(error_path, 'w+', encoding='utf-8') as file:
-                file.writelines(self.error_text)
-
-
-        if(self.from_gui):
-            with open(os.path.join(self.config_dir,"guiTempTranslationLog.txt"), "a+", encoding="utf-8") as file: ## Write the text to a temporary file
-                file.write("Debug text have been written to : " + debug_path + "\n\n")
-                file.write("J->E text have been written to : " + je_path + "\n\n")
-                file.write("Translated text has been written to : " + translated_path + "\n\n")
-                file.write("Errors have been written to : " + error_path + "\n\n")
-
-            return
-        
-        print("\n\nDebug text have been written to : " + debug_path)
-        print("\nJ->E text have been written to : " + je_path)
-        print("\nTranslated text has been written to : " + translated_path)
-        print("\nErrors have been written to : " + error_path + "\n")
+        if(self.je_check_mode == 1):
+            self.je_check_text.append(translated_message + '\n')
+        elif(self.je_check_mode == 2):
+            self.je_check_text.append(translated_message)
 
 ##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -262,6 +262,8 @@ class Kudasai:
 
         self.kaiseki_client.translate()
 
+        self.preloader.toolkit.clear_console()
+
         print(self.kaiseki_client.translation_print_result)
 
         self.write_kaiseki_results()

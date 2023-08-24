@@ -94,7 +94,7 @@ class Kijiku:
 
         """
 
-        self.japanese_text = []
+        self.text_to_translate = []
         self.debug_text = []
         self.translated_text = []
         self.je_check_text = []
@@ -249,7 +249,9 @@ class Kijiku:
         
         i = 0
 
-        self.preloader.file_handler.logger.log_action("Kijiku Activated\n\nSettings are as follows : \n\n")
+        self.preloader.file_handler.logger.log_action("-------------------------")
+        self.preloader.file_handler.logger.log_action("Kijiku Activated, Settings are as follows : ")
+        self.preloader.file_handler.logger.log_action("-------------------------")
 
         for key,value in self.json_handler.kijiku_rules["open ai settings"].items():
             self.preloader.file_handler.logger.log_action(key + " : " + str(value))
@@ -263,13 +265,15 @@ class Kijiku:
 
         self.preloader.toolkit.clear_console()
 
+        self.preloader.file_handler.logger.log_action("-------------------------")
         self.preloader.file_handler.logger.log_action("Starting Prompt Building")
+        self.preloader.file_handler.logger.log_action("-------------------------")
 
         self.build_messages()
 
         print(self.estimate_cost())
 
-        time.sleep(3)
+        time.sleep(6)
 
         self.preloader.file_handler.logger.log_action("Starting Translation")
 
@@ -329,7 +333,7 @@ class Kijiku:
 
         i = 0
 
-        while i < len(self.japanese_text):
+        while i < len(self.text_to_translate):
             prompt, i = self.generate_prompt(i)
 
             prompt = ''.join(prompt)
@@ -352,7 +356,8 @@ class Kijiku:
 
             self.messages.append(model_msg)
 
-        self.preloader.file_handler.logger.log_action("\nMessages\n-------------------------\n\n")
+        self.preloader.file_handler.logger.log_action("Built Messages : ")
+        self.preloader.file_handler.logger.log_action("-------------------------")
 
         i = 0
 
@@ -362,11 +367,12 @@ class Kijiku:
 
             if(i % 2 == 0):
 
-                self.preloader.file_handler.logger.log_action(str(message) + "\n\n")
+                self.preloader.file_handler.logger.log_action(str(message))
         
             else:
 
-                self.preloader.file_handler.logger.log_action(str(message) + "\n")
+                self.preloader.file_handler.logger.log_action(str(message))
+                self.preloader.file_handler.logger.log_action("-------------------------")
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -388,8 +394,8 @@ class Kijiku:
 
         prompt = []
 
-        while(index < len(self.japanese_text)):
-            sentence = self.japanese_text[index]
+        while(index < len(self.text_to_translate)):
+            sentence = self.text_to_translate[index]
 
             if(len(prompt) < self.prompt_size):
 
@@ -494,9 +500,10 @@ class Kijiku:
         numTokens += 3  ## every reply is primed with <|start|>assistant<|message|>
         minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
 
-        estimate_cost_result = "Estimated Tokens in Messages : " + str(numTokens) + "\nEstimated Minimum Cost : " + str(minCost) + "\n"
+        estimate_cost_result = "Estimated Tokens in Messages : " + str(numTokens) + ", Estimated Minimum Cost : " + str(minCost) + "\n"
 
         self.preloader.file_handler.logger.log_action(estimate_cost_result)
+        self.preloader.file_handler.logger.log_action("-------------------------")
 
         return estimate_cost_result
 
@@ -544,7 +551,7 @@ class Kijiku:
 
         self.preloader.file_handler.logger.log_action("Prompt was : \n" + user_message["content"])
 
-        self.preloader.file_handler.logger.log_action("Response from openai was : \n" + output )
+        self.preloader.file_handler.logger.log_action("Response from openai was : \n\n" + output)
 
         if(self.je_check_mode == 1):
             self.je_check_text.append("\n-------------------------\n"+ str(user_message["content"]) + "\n\n")

@@ -205,7 +205,7 @@ class Kudasai:
         if(pathing == "1"):
             self.run_kaiseki()
         elif(pathing == "2"):
-            pass
+            self.run_kijiku()
         else:
             pass
 
@@ -259,6 +259,8 @@ class Kudasai:
         self.preloader.file_handler.logger.log_action("--------------------")
         self.preloader.file_handler.logger.log_action("Kijiku started")
         self.preloader.file_handler.logger.log_action("--------------------\n")
+
+        self.preloader.toolkit.clear_console()
 
         self.kijiku_client = Kijiku(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
 

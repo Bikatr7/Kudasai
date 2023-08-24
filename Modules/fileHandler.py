@@ -107,6 +107,28 @@ class fileHandler():
             with open(file_path, "w+", encoding="utf-8") as file:
                 file.write(content_to_write)
 
+##--------------------start-of-standard_overwrite_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def standard_overwrite_file(self, file_path:str, content_to_write:str) -> None:
+
+        """
+
+        Writes to a file, creates it if it doesn't exist, overwrites it if it does, as well as logs what occurred.\n
+
+        Parameters:\n
+        self (object - fileHandler) : the fileHandler object.\n
+        file_path (str) : path to the file to be overwritten.\n
+        content to write (str) : content to be written to the file.\n
+
+        Returns:\n
+        None.\n
+
+        """
+
+        self.logger.log_action(file_path + " was overwritten with the following content: " + content_to_write)
+        with open(file_path, "w+", encoding="utf-8") as file:
+            file.write(content_to_write)
+
 ##-------------------start-of-handle_critical_exception()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def handle_critical_exception(self, critical_exception:Exception) -> None:

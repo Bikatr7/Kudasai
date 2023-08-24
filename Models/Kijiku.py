@@ -18,6 +18,7 @@ from openai.error import APIConnectionError, APIError, AuthenticationError, Serv
 
 ## custom modules
 from Modules.preloader import preloader
+from Modules.jsonHandler import jsonHandler
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -48,6 +49,9 @@ class Kijiku:
 
         ## the preloader object
         self.preloader = inc_preloader
+
+        ## the json handler object
+        self.json_handler = jsonHandler(inc_preloader)
         
         ## the text to translate
         self.text_to_translate =  [line for line in inc_text_to_translate.split('\n')]
@@ -64,6 +68,9 @@ class Kijiku:
         ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
         ## model message is the text that will be translated  
         self.messages = []
+
+        ## path to the openai api key
+        self.api_key_path = os.path.join(self.preloader.file_handler.config_dir,'GPTApiKey.txt')
 
 ##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -92,21 +99,33 @@ class Kijiku:
 
     def check_settings(self):
 
+        """
+
+        Prompts the user to confirm the settings in the kijiku rules file.\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
         print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
-        for key, value in self.kijiku_rules["open ai settings"].items():
+        for key, value in self.json_handler.kijiku_rules["open ai settings"].items():
             print(key + " : " + str(value))
 
         if(input("\n") == "1"):
             pass
         else:
-            self.change_settings()
+            self.json_handler.change_kijiku_settings()
 
-        toolkit.clear_console()
+        self.preloader.toolkit.clear_console()
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def translate(self,text_to_translate:str) -> None:
+    def translate(self) -> None:
 
         """
 
@@ -114,35 +133,31 @@ class Kijiku:
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
-        text_to_translate (string) : the path to the text file to translate.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
-        self.reset()
         
-        self.initialize(text_to_translate)
+        self.initialize()
 
-        self.validate_json()
+        self.json_handler.validate_json()
 
-        if(not self.from_gui):
-            self.check_settings()
+        self.check_settings()
 
         self.commence_translation()
 
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def initialize(self,text_to_translate:str) -> None:
+    def initialize(self) -> None:
 
         """
 
-        Sets the open api key and creates a list full of the sentences we need to translate.\n
+        Sets the open api key.\n
         
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
-        text_to_translate (string) a path to the text kijiku will translate\n
         
         Returns:\n
         None\n
@@ -150,19 +165,14 @@ class Kijiku:
         """
 
         try:
-            with open(os.path.join(self.config_dir,'GPTApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
+            with open(self.api_key_path, 'r', encoding='utf-8') as file:  ## get saved api key if exists
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
             openai.api_key = api_key
         
-            print("Used saved api key in " + os.path.join(self.config_dir,'GPTApiKey.txt')) ## if valid save the api key
-            time.sleep(.7)
+            self.preloader.file_handler.logger.log_action("Used saved api key in " + self.api_key_path)
 
-        except (FileNotFoundError,AuthenticationError): ## else try to get api key manually
-                
-            if(os.path.isfile("C:\\ProgramData\\Kudasai\\GPTApiKey.txt") == True): ## if the api key is in the old location, delete it
-                os.remove("C:\\ProgramData\\Kudasai\\GPTApiKey.txt")
-                print("r'C:\\ProgramData\\Kudasai\\GPTApiKey.txt' was deleted due to Kudasai switching to user storage\n")
+        except (FileNotFoundError, AuthenticationError): ## else try to get api key manually
                 
             api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the openapi key you have : ")
 
@@ -170,62 +180,35 @@ class Kijiku:
 
                 openai.api_key = api_key
 
-                if(os.path.isdir(self.config_dir) == False):
-                    os.mkdir(self.config_dir, 0o666)
-                    print(self.config_dir + " created due to lack of the folder")
-
-                    time.sleep(.1)
-                            
-                if(os.path.isfile(os.path.join(self.config_dir,'GPTApiKey.txt')) == False):
-                    print(os.path.join(self.config_dir,'GPTApiKey.txt') + " was created due to lack of the file")
-
-                    with open(os.path.join(self.config_dir,'GPTApiKey.txt'), 'w+', encoding='utf-8') as key: 
-                        key.write(base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
-
-                    time.sleep(.1)
+                self.preloader.file_handler.standard_overwrite_file(self.api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
                 
             except AuthenticationError: ## if invalid key exit
                     
-                toolkit.clear_console()
+                self.preloader.toolkit.clear_console()
                         
-                print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\n")
-                toolkit.pause_console()
+                print("Authorization error with setting up openai, please double check your api key as it appears to be incorrect.\n")
+                self.preloader.toolkit.pause_console()
                         
                 exit()
 
             except Exception as e: ## other error, alert user and raise it
 
-                toolkit.clear_console()
+                self.preloader.toolkit.clear_console()
                         
-                print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
-                toolkit.pause_console()
+                print("Unknown error with setting up openai, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
+                self.preloader.toolkit.pause_console()
 
                 raise e
-                    
-        with open(text_to_translate, 'r', encoding='utf-8') as file:  ## strips each line of the text to translate
-            self.japanese_text = [line.strip() for line in file.readlines()]
-
-        toolkit.clear_console()
-
+            
         try: ## try to load the kijiku rules
 
-            if(os.path.isfile(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json') == True): ## if the kijiku rules are in the old location, copy them to the new one and delete the old one
-                shutil.copyfile(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json', os.path.join(self.config_dir,'Kijiku Rules.json'))
-
-                os.remove(r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json')
-                print("r'C:\\ProgramData\\Kudasai\\Kijiku Rules.json' was deleted due to Kudasai switching to user storage\n\nYour settings have been copied to " + self.config_dir + "\n\n")
-                time.sleep(1)
-                toolkit.clear_console()
-
-            with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r+', encoding='utf-8') as file:
-                self.kijiku_rules = json.load(file) 
+            self.json_handler.load_kijiku_rules()
 
         except: ## if the kijiku rules don't exist, create them
             
-            self.reset_kijiku_rules()
+            self.json_handler.reset_kijiku_rules_to_default()
 
-            with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
-                self.kijiku_rules = json.load(file) 
+            self.json_handler.load_kijiku_rules()
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -247,20 +230,19 @@ class Kijiku:
         
             i = 0
 
-            self.debug_text.append("Kijiku Activated\n\nSettings are as follows : \n\n")
+            self.preloader.file_handler.logger.log_action("Kijiku Activated\n\nSettings are as follows : \n\n")
 
-            with open(os.path.join(self.config_dir,'Kijiku Rules.json'), 'r', encoding='utf-8') as file:
-                self.kijiku_rules = json.load(file) 
+            for key,value in self.json_handler.kijiku_rules["open ai settings"].items():
+                self.preloader.file_handler.logger.log_action(key + " : " + str(value))
 
-            for key,value in self.kijiku_rules["open ai settings"].items():
-                self.debug_text.append(key + " : " + str(value) +'\n')
+            ##-----------------continue refactoring here---------------------------------------------------------------------------------------------------------------------------------------------------------------------------s
                 
-            self.MODEL = self.kijiku_rules["open ai settings"]["model"]
-            self.system_message = self.kijiku_rules["open ai settings"]["system_message"]
-            self.message_mode = int(self.kijiku_rules["open ai settings"]["message_mode"])
-            self.prompt_size = int(self.kijiku_rules["open ai settings"]["num_lines"])
-            self.sentence_fragmenter_mode = int(self.kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
-            self.je_check_mode = int(self.kijiku_rules["open ai settings"]["je_check_mode"])
+            self.MODEL = self.json_handler.kijiku_rules["open ai settings"]["model"]
+            self.system_message = self.json_handler.kijiku_rules["open ai settings"]["system_message"]
+            self.message_mode = int(self.json_handler.kijiku_rules["open ai settings"]["message_mode"])
+            self.prompt_size = int(self.json_handler.kijiku_rules["open ai settings"]["num_lines"])
+            self.sentence_fragmenter_mode = int(self.json_handler.kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
+            self.je_check_mode = int(self.json_handler.kijiku_rules["open ai settings"]["je_check_mode"])
 
             time_start = time.time()
 
@@ -534,13 +516,13 @@ class Kijiku:
                 user_message,
             ],
 
-            temperature = float(self.kijiku_rules["open ai settings"]["temp"]),
-            top_p = float(self.kijiku_rules["open ai settings"]["top_p"]),
-            n = int(self.kijiku_rules["open ai settings"]["top_p"]),
-            stream = self.kijiku_rules["open ai settings"]["stream"],
-            stop = self.kijiku_rules["open ai settings"]["stop"],
-            presence_penalty = float(self.kijiku_rules["open ai settings"]["presence_penalty"]),
-            frequency_penalty = float(self.kijiku_rules["open ai settings"]["frequency_penalty"]),
+            temperature = float(self.json_handler.kijiku_rules["open ai settings"]["temp"]),
+            top_p = float(self.json_handler.kijiku_rules["open ai settings"]["top_p"]),
+            n = int(self.json_handler.kijiku_rules["open ai settings"]["top_p"]),
+            stream = self.json_handler.kijiku_rules["open ai settings"]["stream"],
+            stop = self.json_handler.kijiku_rules["open ai settings"]["stop"],
+            presence_penalty = float(self.json_handler.kijiku_rules["open ai settings"]["presence_penalty"]),
+            frequency_penalty = float(self.json_handler.kijiku_rules["open ai settings"]["frequency_penalty"]),
 
         )
 

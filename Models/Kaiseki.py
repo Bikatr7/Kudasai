@@ -77,6 +77,11 @@ class Kaiseki:
         ## the current translated self.current_sentence
         self.translated_sentence = ""
 
+
+        ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+        self.deepl_api_key_path = os.path.join(self.preloader.file_handler.config_dir, "DeeplApiKey.txt")
+
 ##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     def reset(self) -> None:
@@ -155,7 +160,7 @@ class Kaiseki:
         """
         
         try:
-            with open(os.path.join(self.preloader.file_handler.config_dir,'DeeplApiKey.txt'), 'r', encoding='utf-8') as file:  ## get saved api key if exists
+            with open(self.deepl_api_key_path, 'r', encoding='utf-8') as file:  ## get saved api key if exists
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
             self.translator = deepl.Translator(api_key)
@@ -172,8 +177,7 @@ class Kaiseki:
 
                 time.sleep(.1)
                     
-                with open(os.path.join(self.preloader.file_handler.config_dir,'DeeplApiKey.txt'), 'w+', encoding='utf-8') as key: 
-                    key.write(base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
+                self.preloader.file_handler.standard_overwrite_file(self.deepl_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
 
                 time.sleep(.1)
                 

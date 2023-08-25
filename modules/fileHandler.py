@@ -90,7 +90,7 @@ class fileHandler():
 
         """
 
-        Creates a path if it doesn't exist or if it is blank or empty, writes to it,  as well as logs what was created.\n
+        Creates a path if it doesn't exist or if it is blank or empty, writes to it, as well as logs what was created.\n
 
         Parameters:\n
         self (object - fileHandler) : the fileHandler object.\n
@@ -132,6 +132,19 @@ class fileHandler():
 ##-------------------start-of-handle_critical_exception()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def handle_critical_exception(self, critical_exception:Exception) -> None:
+
+        """
+
+        Handles a critical exception by logging it and then throwing it.\n
+
+        Parameters:\n
+        self (object - fileHandler) : the fileHandler object.\n
+        critical_exception (object - Exception) : the exception to be handled.\n
+
+        Returns:\n
+        None.\n
+
+        """
 
         ## if crash, catch and log, then throw
         self.logger.log_action("--------------------------------------------------------------")

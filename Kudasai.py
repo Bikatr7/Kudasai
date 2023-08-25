@@ -1,6 +1,5 @@
 ## built in modules
 import os
-import traceback
 import sys
 
 ## third party modules
@@ -36,7 +35,7 @@ class Kudasai:
         self (object - Kudasai) : the Kudasai object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -66,9 +65,9 @@ class Kudasai:
 
         self.connection = None
 
-##-------------------start-of-setup()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def setup_kairyou(self, input_file, replacement_json) -> None:
+    def setup_kairyou_for_cli(self, input_file, replacement_json) -> None:
 
         """
         
@@ -80,7 +79,7 @@ class Kudasai:
         replacement_json (str) : The path to the replacement json file.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -92,6 +91,8 @@ class Kudasai:
         except:
 
             print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
+            self.preloader.file_handler.logger.log_action("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
+
             self.preloader.toolkit.pause_console()
 
             exit()
@@ -114,7 +115,7 @@ class Kudasai:
         self (object - Kudasai) : the Kudasai object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -133,6 +134,18 @@ class Kudasai:
 ##-------------------start-of-handle_update_check_from_cli_or_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def handle_update_check_from_cli_or_console(self) -> None:
+
+        """
+
+        If the user is running the CLI or Console version of Kudasai, this function is called to check for updates.\n
+
+        Parameters:\n
+        self (object - Kudasai) : the Kudasai object.\n
+
+        Returns:\n
+        None.\n
+
+        """
 
         self.connection, update_prompt = self.preloader.toolkit.check_update()
 
@@ -156,7 +169,7 @@ class Kudasai:
         self (object - Kudasai) : the Kudasai object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -170,7 +183,7 @@ class Kudasai:
 
         self.preloader.toolkit.clear_console()
 
-        pathing = 0
+        pathing = ""
 
         pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki\n2.Kijiku\n3.Exit\n\n"
 
@@ -185,7 +198,6 @@ class Kudasai:
         else:
             self.preloader.toolkit.clear_console()
 
-
 ##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def run_kaiseki(self) -> None:
@@ -198,7 +210,7 @@ class Kudasai:
         self (object - Kudasai) : the Kudasai object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -228,7 +240,7 @@ class Kudasai:
         self (object - Kudasai) : the Kudasai object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -263,7 +275,7 @@ try:
 
         else:
 
-            client.setup_kairyou(sys.argv[1], sys.argv[2])
+            client.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
 
             client.run_kudasai_cli()
 

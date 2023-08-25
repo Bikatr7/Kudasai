@@ -42,7 +42,7 @@ class toolkit():
         self (object - toolkit) : the toolkit object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -61,17 +61,19 @@ class toolkit():
         message (str | optional) : the message that will be displayed when the console is paused.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
         print(message)  ## Print the custom message
         
-        if(os.name == 'nt'):  ## Windows
+        ## Windows
+        if(os.name == 'nt'): 
             
             msvcrt.getch() 
 
-        else:  ## Linux, No idea if any of this works lmao
+        ## Linux, No idea if any of this works lmao
+        else:  
 
             import termios
 
@@ -154,7 +156,7 @@ class toolkit():
 
             return is_connection, update_prompt
 
-        ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail
+        ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail.
         except:
 
             is_connection = False 

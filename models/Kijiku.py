@@ -78,6 +78,7 @@ class Kijiku:
         ## path to the openai api key
         self.api_key_path = os.path.join(self.preloader.file_handler.config_dir,'GPTApiKey.txt')
 
+        ## the translation print result
         self.translation_print_result = ""
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -138,53 +139,64 @@ class Kijiku:
 
         """
 
+        ## get saved api key if exists
         try:
-            with open(self.api_key_path, 'r', encoding='utf-8') as file:  ## get saved api key if exists
+            with open(self.api_key_path, 'r', encoding='utf-8') as file: 
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
             openai.api_key = api_key
         
+            print("Used saved api key in " + self.api_key_path)
             self.preloader.file_handler.logger.log_action("Used saved api key in " + self.api_key_path)
 
-        except (FileNotFoundError, AuthenticationError): ## else try to get api key manually
+        ## else try to get api key manually
+        except (FileNotFoundError, AuthenticationError): 
                 
             api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the openapi key you have : ")
 
-            try: ## if valid save the api key
+            ## if valid save the api key
+            try: 
 
                 openai.api_key = api_key
 
                 self.preloader.file_handler.standard_overwrite_file(self.api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
                 
-            except AuthenticationError: ## if invalid key exit
+            ## if invalid key exit
+            except AuthenticationError: 
                     
                 self.preloader.toolkit.clear_console()
                         
                 print("Authorization error with setting up openai, please double check your api key as it appears to be incorrect.\n")
+                self.preloader.file_handler.logger.log_action("Authorization error with setting up openai, please double check your api key as it appears to be incorrect.\n")
+
                 self.preloader.toolkit.pause_console()
                         
                 exit()
 
-            except Exception as e: ## other error, alert user and raise it
+            ## other error, alert user and raise it
+            except Exception as e: 
 
                 self.preloader.toolkit.clear_console()
                         
                 print("Unknown error with setting up openai, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
+                self.preloader.file_handler.logger.log_action("Unknown error with setting up openai, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
+
                 self.preloader.toolkit.pause_console()
 
                 raise e
             
-        try: ## try to load the kijiku rules
+        ## try to load the kijiku rules
+        try: 
 
             self.json_handler.load_kijiku_rules()
 
-        except: ## if the kijiku rules don't exist, create them
+        ## if the kijiku rules don't exist, create them
+        except: 
             
             self.json_handler.reset_kijiku_rules_to_default()
 
             self.json_handler.load_kijiku_rules()
             
-
         self.preloader.toolkit.clear_console()
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -199,7 +211,7 @@ class Kijiku:
         self (object - Kijiku) : the Kijiku object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -221,13 +233,13 @@ class Kijiku:
 
         """
             
-        Uses all the other functions to translate the text provided by Kudasai\n
+        Uses all the other functions to translate the text provided by Kudasai.\n
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
         
         Returns:\n
-        None\n
+        None.\n
 
         """
         
@@ -282,15 +294,15 @@ class Kijiku:
 
         '''
 
-        generates prompts for the messages meant for the ai\n
+        Generates prompts for the messages meant for the ai.\n
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
-        index (int) an int representing where we currently are in the text file\n
+        index (int) an int representing where we currently are in the text file.\n
 
         Returns:\n
-        prompt (list - string) a list of japanese lines that will be assembled into messages\n
-        index (int) an updated int representing where we currently are in the text file\n
+        prompt (list - string) a list of japanese lines that will be assembled into messages.\n
+        index (int) an updated int representing where we currently are in the text file.\n
 
         '''
 
@@ -331,13 +343,13 @@ class Kijiku:
 
         '''
 
-        builds messages dict for ai\n
+        Builds messages dict for ai prompt.\n
         
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         '''
 
@@ -396,7 +408,7 @@ class Kijiku:
         self (object - Kijiku) : the Kijiku object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         '''
         
@@ -476,15 +488,15 @@ class Kijiku:
 
         '''
 
-        translates system and user message\n
+        Translates system and user message.\n
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
-        system_message (dict) : the system message also known as the instructions\n
-        user_message (dict) : the user message also known as the prompt\n
+        system_message (dict) : the system message also known as the instructions.\n
+        user_message (dict) : the user message also known as the prompt.\n
 
         Returns:\n
-        output (string) a string that gpt gives to us also known as the translation\n
+        output (string) a string that gpt gives to us also known as the translation.\n
 
         '''
 
@@ -601,7 +613,7 @@ class Kijiku:
 
         '''
 
-        Fixes the J->E text to be more j-e check friendly\n
+        Fixes the J->E text to be more j-e check friendly.\n
 
         Note that fix_je() is not always accurate, and may use standard j-e formatting instead of the corrected formatting.\n
 
@@ -647,13 +659,13 @@ class Kijiku:
 
         '''
 
-        Outputs results to several txt files\n
+        Outputs results to several txt files.\n
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         '''
 
@@ -663,26 +675,3 @@ class Kijiku:
         self.translation_print_result += "\nJ->E text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "jeCheck.txt")
         self.translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
         self.translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
-
-##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def reset(self):
-            
-        """
-
-        resets the Kijiku object\n
-
-        Parameters:\n
-        self (object - Kijiku) : the Kijiku object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        self.text_to_translate = []
-        self.debug_text = []
-        self.translated_text = []
-        self.je_check_text = []
-        self.error_text = []
-        self.messages = []

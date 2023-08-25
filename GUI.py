@@ -32,7 +32,7 @@ class KudasaiGUI:
         Initializes the KudasaiGUI class.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
         None.\n
@@ -72,7 +72,6 @@ class KudasaiGUI:
 
         ##---------------------------------------------------------------------
 
-
         self.is_connection, update_prompt = self.preloader.toolkit.check_update()
 
         if(update_prompt != ""):
@@ -100,13 +99,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the secondary window\n
+        Creates the secondary window.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -126,13 +125,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the update alert window\n
+        Creates the update alert window.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -154,13 +153,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the text entry box\n
+        Creates the text entry box for the main window.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -173,13 +172,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the output label\n
+        Creates the main output label.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -192,13 +191,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the output label\n
+        Creates the results output label.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -209,6 +208,18 @@ class KudasaiGUI:
 
     def create_update_alert_output_label(self) -> None:
 
+        """
+
+        Creates the output label for the update alert window.\n
+
+        Parameters:\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
+
+        Returns:\n
+        None.\n
+
+        """
+
         self.update_alert_output_label = scrolledtext.ScrolledText(self.update_alert_window, bg=self.primary_color, fg=self.text_color, height=39, width=300)
         self.update_alert_output_label.pack(side=tk.BOTTOM)
 
@@ -218,13 +229,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the frames\n
+        Creates the frames.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -243,13 +254,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the preprocess button\n
+        Creates the preprocess button.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -262,13 +273,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the translate button\n
+        Creates the translate button.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -281,13 +292,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the copy button\n
+        Creates the copy button.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -300,13 +311,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the json option menu\n
+        Creates the json option menu.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -328,13 +339,13 @@ class KudasaiGUI:
 
         """
 
-        Creates the translation mode menu\n
+        Creates the translation mode menu.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -356,14 +367,14 @@ class KudasaiGUI:
 
         """
 
-        Gets the json options from the Replacements folder\n
+        Gets the json options from the Replacements folder.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        replacement_json_files (list): List of json files\n
-        replacement_json_paths (list): List of json file paths\n
+        replacement_json_files (list): List of json files.\n
+        replacement_json_paths (list): List of json file paths.\n
 
         """
 
@@ -387,14 +398,14 @@ class KudasaiGUI:
 
         """
 
-        Gets the translation mode options from the Models folder\n
+        Gets the translation mode options from the Models folder.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        translation_model_files (list): List of model files\n
-        translation_model_paths (list): List of model file paths\n
+        translation_model_files (list): List of model files.\n
+        translation_model_paths (list): List of model file paths.\n
 
         """
 
@@ -421,13 +432,13 @@ class KudasaiGUI:
 
         """
 
-        Copies the output to the clipboard\n
+        Copies the output to the clipboard.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -440,13 +451,13 @@ class KudasaiGUI:
 
         """
 
-        Preprocesses the text in the text entry box\n
+        Preprocesses the text in the text entry box.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -491,13 +502,13 @@ class KudasaiGUI:
 
         """
 
-        Translates the text in the text entry box\n
+        Translates the text in the text entry box.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -519,13 +530,13 @@ class KudasaiGUI:
 
         """
 
-        Handles the gui's interaction with the Kijiku model\n
+        Handles the gui's interaction with the Kijiku model.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -556,13 +567,13 @@ class KudasaiGUI:
 
         """
 
-        Handles the gui's interaction with the Kaiseki model\n
+        Handles the gui's interaction with the Kaiseki model.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -593,13 +604,13 @@ class KudasaiGUI:
 
         """
 
-        Handles what happens when the main window is closed\n
+        Handles what happens when the main window is closed.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -624,13 +635,13 @@ class KudasaiGUI:
 
         """
 
-        Runs the GUI\n
+        Runs the GUI.\n
 
         Parameters:\n
-        self (object - KudasaiGUI) : The KudasaiGUI object\n
+        self (object - KudasaiGUI) : The KudasaiGUI object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 

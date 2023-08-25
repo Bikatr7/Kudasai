@@ -75,13 +75,13 @@ class jsonHandler:
 
         """
 
-        Validates the Kijiku Rules.json file\n
+        Validates the Kijiku Rules.json file.\n
 
         Parameters:\n
         self (object - jsonHandler) : the jsonHandler object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -106,7 +106,6 @@ class jsonHandler:
 
         if("open ai settings" not in self.kijiku_rules):
             self.reset_kijiku_rules_to_default()
-
 
         if(all(key in self.kijiku_rules["open ai settings"] for key in keys_list)):
             self.preloader.file_handler.logger.log_action("Kijiku Rules.json is valid")
@@ -191,11 +190,12 @@ class jsonHandler:
         self (object - jsonHandler) : the json object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
         
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## maximize console window
+        ## maximize console window
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() 
         ctypes.windll.user32.ShowWindow(hwnd, 3)
         
         while(True):
@@ -224,16 +224,19 @@ class jsonHandler:
 
             settings_print_message += "\n\nCurrent settings:\n\n----------------------------------------------------------------\n\n"
 
-            for key,value in self.kijiku_rules["open ai settings"].items(): ## print out the current settings
+            ## print out the current settings
+            for key,value in self.kijiku_rules["open ai settings"].items(): 
                 settings_print_message += key + " : " + str(value) + '\n'
 
             settings_print_message += "\n\nEnter the name of the setting you want to change, type d to reset to default, type c to load an external/custom json directly, or type 'q' to quit settings change : "
 
             action = input(settings_print_message).lower()
 
-            if(action == "q"): ## if the user wants to continue, do so
+            ## if the user wants to continue, do so
+            if(action == "q"): 
                 break
 
+            ## loads a custom json directly
             if(action == "c"):
                 self.preloader.toolkit.clear_console()
 
@@ -260,8 +263,8 @@ class jsonHandler:
 
                     continue
             
-
-            elif(action == "d"): ## if the user wants to reset to default, do so
+            ## if the user wants to reset to default, do so
+            elif(action == "d"): 
                 self.reset_kijiku_rules_to_default()
 
             elif(action not in self.kijiku_rules["open ai settings"]):
@@ -278,5 +281,6 @@ class jsonHandler:
 
         self.dump_kijiku_rules()
 
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow() ## minimize console window
+        ## minimize console window
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow() 
         ctypes.windll.user32.ShowWindow(hwnd, 9)

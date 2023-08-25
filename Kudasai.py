@@ -198,16 +198,18 @@ class Kudasai:
 
         pathing = 0
 
-        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki\n2.Kijiku\n3.Skip\n\n"
+        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki\n2.Kijiku\n3.Exit\n\n"
 
         pathing = input(pathing_msg)
+
+        self.preloader.toolkit.clear_console()
 
         if(pathing == "1"):
             self.run_kaiseki()
         elif(pathing == "2"):
             self.run_kijiku()
         else:
-            pass
+            self.preloader.toolkit.clear_console()
 
 
 ##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

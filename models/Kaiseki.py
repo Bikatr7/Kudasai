@@ -103,6 +103,8 @@ class Kaiseki:
 
             self.initialize() ## initialize the Kaiseki object
 
+            self.time_start = time.time() ## offset time
+
             self.commence_translation() ## commence the translation
 
         except Exception as e:
@@ -174,6 +176,8 @@ class Kaiseki:
                 self.preloader.toolkit.pause_console()
 
                 raise e
+
+        self.preloader.toolkit.clear_console()
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

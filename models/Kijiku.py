@@ -5,7 +5,6 @@ import os
 import time
 import typing
 
-
 ## third party modules
 import openai
 import backoff
@@ -102,6 +101,8 @@ class Kijiku:
 
             self.check_settings()
 
+            self.time_start = time.time() ## offset time
+
             self.commence_translation()
 
         except Exception as e:
@@ -177,6 +178,9 @@ class Kijiku:
             self.json_handler.reset_kijiku_rules_to_default()
 
             self.json_handler.load_kijiku_rules()
+            
+
+        self.preloader.toolkit.clear_console()
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

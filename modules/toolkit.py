@@ -94,28 +94,27 @@ class toolkit():
 
         """
 
-        calculates elapsed time\n
+        Calculates elapsed time with an offset.\n
 
         Parameters:\n
-        self (object - toolkit) : the toolkit object.\n
-        start (float): start time\n
-        end (float): end time\n
+        self (object - toolkit)  the toolkit object.\n
+        start (float) : start time.\n
+        end (float) : end time.\n
 
         Returns:\n
-        print_value (string) elapsed time\n
+        print_value (string): elapsed time with the offset.\n
 
         """
 
+        elapsed_time = end - start
         print_value = ""
 
-        if(end-start < 60.0):
-            print_value = str(round(end-start, 2)) + " seconds"
-        
-        elif(end-start < 3600.0):
-            print_value = str(round((end-start)/60, 2)) + " minutes"
-        
+        if(elapsed_time < 60.0):
+            print_value = str(round(elapsed_time, 2)) + " seconds"
+        elif(elapsed_time < 3600.0):
+            print_value = str(round(elapsed_time / 60, 2)) + " minutes"
         else:
-            print_value = str(round((end-start)/3600, 2)) + " hours"
+            print_value = str(round(elapsed_time / 3600, 2)) + " hours"
 
         return print_value
 

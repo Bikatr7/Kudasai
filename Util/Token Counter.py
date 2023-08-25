@@ -2,133 +2,231 @@
 import sys
 import os
 import time
+import typing
+import msvcrt
 
 ## third-party modules
 import tiktoken
 
-## custom modules
-import associated_functions
+class TokenCounter:
+
+    """
+    
+    Util script for counting tokens, characters, and estimating cost of translating a text.\n
+
+    """
+
+##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def __init__(self) -> None:
+
+        '''
+
+        Constructor for TokenCounter class.\n
+
+        Parameters:\n
+        None.\n
+
+        Returns:\n
+        None.\n
+
+        '''
+
+        os.system("title " + "Token Counter")
+
+        self.MODEL = None
 
 ##-------------------start-of-count_characters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def count_characters(text:str) -> int:
+    def count_characters(self) -> int:
 
-    '''
+        '''
 
-    Counts the number of characters in a string\n
- 
-    Parameters:\n
-    text (str) : the text that will be counting characters for.\n
+        Counts the number of characters in a string.\n
+    
+        Parameters:\n
+        self (object - TokenCounter) : the TokenCounter object.\n
+        text (str) : the text that will be counting characters for.\n
 
-    Returns:\n
-    num_characters (int) the number of characters in the text.\n
+        Returns:\n
+        num_characters (int) the number of characters in the text.\n
 
-    '''
+        '''
 
-    associated_functions.clear_console()
+        self.clear_console()
 
-    num_characters = len(text)
+        num_characters = len(self.text)
 
-    return num_characters
+        return num_characters
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def estimate_cost(text:str, model:str) -> tuple[int,float]:
+    def estimate_cost(self) -> typing.Tuple[int, float]:
+
+        '''
+
+        Attempts to estimate cost.\n
     
-    '''
+        Parameters:\n
+        self (object - TokenCounter) : the TokenCounter object.\n
 
-    Attempts to estimate cost and number of tokens in a string\n
- 
-    Parameters:\n
-    text (str) : the text that will be counting tokens for\n
-    model (str) : represents which model we will be using\n
+        Returns:\n
+        num_tokens (int) the number of tokens in the text.\n
+        min_cost (float) the minimum cost of translating the text.\n
 
-    Returns:\n
-    num_tokens (int) : the estimated number of tokens in the text\n
-    min_cost (double) : the estimated cost of translating text\n
+        '''
+        
+        try:
+            encoding = tiktoken.encoding_for_model(self.MODEL)  # type: ignore
+            
+        except KeyError:
+            print("Warning: model not found. Using cl100k_base encoding.")
+            encoding = tiktoken.get_encoding("cl100k_base")
 
-    '''
+        if(self.MODEL == "gpt-3.5-turbo"):
+            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
+            time.sleep(4)
+            self.MODEL="gpt-3.5-turbo-0613"
+            return self.estimate_cost()
+        
+        elif(self.MODEL == "gpt-3.5-turbo-0301"):
+            print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ended September 13, Returning num tokens assuming gpt-3.5-turbo-0613.")
+            time.sleep(4)
+            self.MODEL="gpt-3.5-turbo-0613"
+            return self.estimate_cost()
 
-    associated_functions.clear_console()
-    
-    try:
-
-        encoding = tiktoken.encoding_for_model(model)
-
-    except KeyError:
-
-        print("Warning: model not found. Using cl100k_base encoding.")
-        encoding = tiktoken.get_encoding("cl100k_base")
-
-    if(model == "gpt-3.5-turbo"):
-        print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
-        time.sleep(1)
-        return estimate_cost(text, model="gpt-3.5-turbo-0301")
-    
-    elif(model == "gpt-4"):
-        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
-        time.sleep(1)
-        return estimate_cost(text, model="gpt-4-0314")
-    
-    elif(model == "gpt-3.5-turbo-0301"):
-        cost_per_1000_tokens = 0.002
-
-    elif(model == "gpt-4-0314"):
-        cost_per_1000_tokens = 0.06
-
-    else:
-        raise NotImplementedError(f"""Token Counter does not support : {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how text are converted to tokens.""")
-    
-    num_tokens = len(encoding.encode(text))
-
-    min_cost = round((float(num_tokens) / 1000.00) * cost_per_1000_tokens, 5)
-
-    return num_tokens, min_cost
-
-##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def main(text_file:str) -> None:
-
-    '''
-
-    main function\n
-
-    Parameters:\n
-    text_file (string) the text file that will be counting tokens for\n
-
-    Returns:\n
-    None\n
-    
-    '''
+        elif(self.MODEL == "gpt-4"):
+            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
+            time.sleep(4)
+            self.MODEL="gpt-4-0613"
+            return self.estimate_cost()
+        
+        elif(self.MODEL == "gpt-4-0314"):
+            print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, Returning num tokens assuming gpt-4-0613.")
+            time.sleep(4)
+            self.MODEL="gpt-4-0613"
+            return self.estimate_cost()
+        
+        elif(self.MODEL == "gpt-3.5-turbo-0613"):
+            cost_per_thousand_tokens = 0.0015
 
 
-    with open(text_file, 'r', encoding='utf-8') as file: 
-        text = file.read()
+        elif(self.MODEL == "gpt-4-0613"):
+            cost_per_thousand_tokens = 0.06
 
-    model = input("Please enter model : ")
+        else:
+            raise NotImplementedError(f"""Kudasai does not support : {self.MODEL}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+        
+        num_tokens = len(encoding.encode(self.text))
 
-    num_tokens,min_cost = estimate_cost(text,model)
-    num_characters = count_characters(text)
+        min_cost = round((float(num_tokens) / 1000.00) * cost_per_thousand_tokens, 5)
 
-    print("Estimated Number of Tokens in Text : " + str(num_tokens))
-    print("Estimated Minimum Cost of Translation : " + str(min_cost))
-    print("Number of Characters in Text : " + str(num_characters) + "\n")
+        return num_tokens, min_cost
 
-    associated_functions.pause_console()
+##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def count_tokens(self, text_file:str) -> None:
+
+        '''
+
+        Counts the number of tokens in a text file.\n
+
+        Parameters:\n
+        self (object - TokenCounter) : the TokenCounter object.\n
+        text_file (string) the text file that will be counting tokens for.\n
+
+        Returns:\n
+        None.\n
+        
+        '''
+
+
+        with open(text_file, 'r', encoding='utf-8') as file: 
+            self.text = file.read()
+
+        self.MODEL = input("Please enter model : ")
+
+        num_tokens, min_cost = self.estimate_cost()
+        num_characters = self.count_characters()
+
+        print("Estimated Number of Tokens in Text : " + str(num_tokens))
+        print("Estimated Minimum Cost of Translation : " + str(min_cost))
+        print("Number of Characters in Text : " + str(num_characters) + "\n")
+
+        self.pause_console()
+
+##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def clear_console(self) -> None:
+
+        """
+
+        clears the console\n
+
+        Parameters:\n
+        self (object - TokenCounter) : the TokenCounter object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def pause_console(self, message:str="Press any key to continue...") -> None:
+
+        """
+
+        Pauses the console.\n
+
+        Parameters:\n
+        self (object - TokenCounter) : the TokenCounter object.\n
+        message (str | optional) : the message that will be displayed when the console is paused.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        print(message)  ## Print the custom message
+        
+        if(os.name == 'nt'):  ## Windows
+            
+            msvcrt.getch() 
+
+        else:  ## Linux, No idea if any of this works lmao
+
+            import termios
+
+            ## Save terminal settings
+            old_settings = termios.tcgetattr(0)
+
+            try:
+                new_settings = termios.tcgetattr(0)
+                new_settings[3] = new_settings[3] & ~termios.ICANON
+                termios.tcsetattr(0, termios.TCSANOW, new_settings)
+                os.read(0, 1)  ## Wait for any key press
+
+            finally:
+
+                termios.tcsetattr(0, termios.TCSANOW, old_settings)
 
 ##-------------------start-of-sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-if(__name__ == '__main__'): ## checks sys arguments and if less than 2 or called outside cmd prints usage statement
+client = TokenCounter()
+
+## checks sys arguments and if less than 2 or called outside cmd prints usage statement
+if(__name__ == '__main__'): 
 
     if(len(sys.argv) < 2): 
 
         print(f'\nUsage: {sys.argv[0]} input_txt_file\n') 
         
-        associated_functions.pause_console()
+        client.pause_console()
         exit() 
 
-    associated_functions.clear_console()
+    client.clear_console()
 
-    os.system("title " + "Token Counter")
-
-    main(sys.argv[1]) ## Call main function with the first command line argument
+    client.count_tokens(sys.argv[1])

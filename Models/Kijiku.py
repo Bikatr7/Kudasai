@@ -1,12 +1,10 @@
 ## built in modules
 import base64
-import json
-import shutil
 import re
 import os
 import time
 import typing
-import ctypes
+
 
 ## third party modules
 import openai
@@ -377,7 +375,7 @@ class Kijiku:
                 self.preloader.file_handler.logger.log_action(str(message))
                 self.preloader.file_handler.logger.log_action("-------------------------")
 
-##-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def estimate_cost(self) -> str:
 
@@ -425,36 +423,36 @@ class Kijiku:
             self.MODEL="gpt-4-0613"
             return self.estimate_cost()
         
-        if(self.MODEL == "gpt-3.5-turbo-0613"):
-            costPer1000Tokens = 0.0015
-            tokensPerMessage = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
-            tokensPerName = -1  ## if there's a name, the role is omitted
+        elif(self.MODEL == "gpt-3.5-turbo-0613"):
+            cost_per_thousand_tokens = 0.0015
+            tokens_per_message = 4  ## every message follows <|start|>{role/name}\n{content}<|end|>\n
+            tokens_per_name = -1  ## if there's a name, the role is omitted
 
         elif(self.MODEL == "gpt-4-0613"):
-            costPer1000Tokens = 0.06
-            tokensPerMessage = 3
-            tokensPerName = 1
+            cost_per_thousand_tokens = 0.06
+            tokens_per_message = 3
+            tokens_per_name = 1
 
         else:
             raise NotImplementedError(f"""Kudasai does not support : {self.MODEL}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
         
-        numTokens = 0
+        num_tokens = 0
 
         for message in self.messages:
 
-            numTokens += tokensPerMessage
+            num_tokens += tokens_per_message
 
             for key, value in message.items():
 
-                numTokens += len(encoding.encode(value))
+                num_tokens += len(encoding.encode(value))
 
                 if(key == "name"):
-                    numTokens += tokensPerName
+                    num_tokens += tokens_per_name
 
-        numTokens += 3  ## every reply is primed with <|start|>assistant<|message|>
-        minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
+        num_tokens += 3  ## every reply is primed with <|start|>assistant<|message|>
+        min_cost = round((float(num_tokens) / 1000.00) * cost_per_thousand_tokens, 5)
 
-        estimate_cost_result = "Estimated Tokens in Messages : " + str(numTokens) + ", Estimated Minimum Cost : $" + str(minCost) + "\n"
+        estimate_cost_result = "Estimated Tokens in Messages : " + str(num_tokens) + ", Estimated Minimum Cost : $" + str(min_cost) + "\n"
 
         self.preloader.file_handler.logger.log_action(estimate_cost_result)
         self.preloader.file_handler.logger.log_action("-------------------------")

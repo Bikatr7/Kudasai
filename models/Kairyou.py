@@ -10,7 +10,6 @@ import time
 import spacy
 
 ## custom modules
-
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from modules.preloader import preloader
 
@@ -65,7 +64,7 @@ class Kairyou:
 
     """
 
-    Kairyou is the preprocessor for the Kudasai program.
+    Kairyou is the preprocessor for the Kudasai program.\n
     
     """
 
@@ -79,7 +78,7 @@ class Kairyou:
 
         Parameters:\n
         inc_replacement_json (dict - string) : the dictionary containing the rules for preprocessing.\n
-        inc_text_to_preprocess (string) : the text to be preprocessed.\n
+        inc_text_to_preprocess (str) : the text to be preprocessed.\n
         inc_preloader (object - preloader) : the preloader object.\n
 
         Returns:\n
@@ -347,7 +346,7 @@ class Kairyou:
         replacement (str) : the replacement for kanji.\n
 
         Returns:\n
-        kanji_count (int) : how many kanji were replaced\n
+        kanji_count (int) : how many kanji were replaced.\n
 
         """
 
@@ -372,26 +371,3 @@ class Kairyou:
         self.total_replacements += kanji_count
         
         return kanji_count
-    
-##-------------------start-of-reset()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def reset(self) -> None:
-
-        """
-
-        Resets the Kairyou object.
-
-        Parameters:\n
-        self (object - Kairyou) : the Kairyou object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        self.total_replacements = 0
-
-        self.error_log = ""
-
-        self.preprocessing_log = ""
-        

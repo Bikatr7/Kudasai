@@ -1,5 +1,8 @@
-## built in modules
+## built-in libraries
+from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
+
 import string
+import typing
 import os
 import time
 import re
@@ -10,7 +13,8 @@ import time
 import deepl
 
 ## custom modules
-from modules.preloader import preloader
+if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
+    from modules.preloader import preloader
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

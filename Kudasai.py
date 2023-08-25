@@ -124,7 +124,7 @@ class Kudasai:
 
         print(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
 
-        self.write_kairyou_results()
+        self.preloader.write_kairyou_results(self.kairyou_client) ## type: ignore (we know it's not None)
 
         self.preloader.toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
@@ -144,40 +144,6 @@ class Kudasai:
             self.preloader.toolkit.clear_console()
         
 
-##-------------------start-of-write_kairyou_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def write_kairyou_results(self) -> None:
-
-        """
-        
-        If the user is running the CLI or Console version of Kudasai, this function is called to write the results of the preprocessing to a directory.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        with(open(self.preloader.preprocessed_text_path, 'w', encoding='utf-8')) as file:
-            file.write(self.kairyou_client.text_to_preprocess) ## type: ignore (we know it's not None)
-
-        with open(self.preloader.kairyou_log_path, 'w', encoding='utf-8') as file:
-            file.write(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
-
-        with open(self.preloader.error_log_path, 'w', encoding='utf-8') as file:
-            file.write(self.kairyou_client.error_log) ## type: ignore (we know it's not None)
-
-        with open(self.preloader.je_check_path, 'w', encoding='utf-8') as file:
-            file.truncate()
-
-        with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
-            file.truncate()
-
-        ## pushes the tl debug log to the file
-        self.preloader.file_handler.logger.push_batch()
-
 ##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def determine_autotranslation_module(self) -> None:
@@ -193,6 +159,14 @@ class Kudasai:
         None\n
 
         """
+
+        if(not self.connection):
+            self.preloader.toolkit.clear_console()
+
+            print("You are not connected to the internet. Please connect to the internet to use the autotranslation feature.\n")
+            self.preloader.toolkit.pause_console()
+
+            exit()
 
         self.preloader.toolkit.clear_console()
 
@@ -240,7 +214,7 @@ class Kudasai:
 
         print(self.kaiseki_client.translation_print_result)
 
-        self.write_kaiseki_results()
+        self.preloader.write_kaiseki_results(self.kaiseki_client) ## type: ignore (we know it's not None)
 
 ##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -272,63 +246,7 @@ class Kudasai:
 
         print(self.kijiku_client.translation_print_result)
 
-        self.write_kijiku_results()
-
-##-------------------start-of-write_kaiseki_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def write_kaiseki_results(self) -> None:
-
-        """
-
-        If the user is running the CLI or Console version of Kudasai, this function is called to write the results of the Kaiseki module to a directory.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        with open(self.preloader.error_log_path, 'a+', encoding='utf-8') as file:
-            file.writelines(self.kaiseki_client.error_text) ## type: ignore (we know it's not None)
-
-        with open(self.preloader.je_check_path, 'w', encoding='utf-8') as file:
-            file.writelines(self.kaiseki_client.je_check_text) ## type: ignore (we know it's not None)
-
-        with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
-            file.writelines(self.kaiseki_client.translated_text) ## type: ignore (we know it's not None)
-
-        ## pushes the tl debug log to the file
-        self.preloader.file_handler.logger.push_batch()
-
-##-------------------start-of-write_kijiku_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def write_kijiku_results(self) -> None:
-
-        """
-        
-        If the user is running the CLI or Console version of Kudasai, this function is called to write the results of the Kijiku module to a directory.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        with open(self.preloader.error_log_path, 'a+', encoding='utf-8') as file:
-            file.writelines(self.kijiku_client.error_text) ## type: ignore (we know it's not None)
-
-        with open(self.preloader.je_check_path, 'w', encoding='utf-8') as file:
-            file.writelines(self.kijiku_client.je_check_text) ## type: ignore (we know it's not None)
-
-        with open(self.preloader.translated_text_path, 'w', encoding='utf-8') as file:
-            file.writelines(self.kijiku_client.translated_text) ## type: ignore (we know it's not None)
-
-        ## pushes the tl debug log to the file
-        self.preloader.file_handler.logger.push_batch()
+        self.preloader.write_kijiku_results(self.kijiku_client) ## type: ignore (we know it's not None)
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

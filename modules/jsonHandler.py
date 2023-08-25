@@ -1,11 +1,15 @@
 ## built-in libraries
+from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
+
 import os
 import ctypes
 import json
+import typing
 import time
 
 ## custom modules
-from modules.preloader import preloader
+if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
+    from modules.preloader import preloader
 
 class jsonHandler:
 

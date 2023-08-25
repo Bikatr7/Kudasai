@@ -1,4 +1,6 @@
-## built in modules
+## built-in libraries
+from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
+
 import base64
 import re
 import os
@@ -14,8 +16,11 @@ import spacy
 from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
 
 ## custom modules
-from modules.preloader import preloader
 from modules.jsonHandler import jsonHandler
+
+if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
+    from modules.preloader import preloader
+
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36,7 +41,7 @@ class Kijiku:
         Constructor for the Kijiku class.\n
 
         Parameters:\n
-        inc_text_to_translate (string) : the path to the text file to translate.\n
+        text_to_translate (string) : the text to translate.\n
         inc_preloader (preloader) : the preloader object.\n
 
         Returns:\n

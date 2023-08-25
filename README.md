@@ -5,7 +5,7 @@
 - [Naming Conventions](#naming-conventions)
 - [Dependencies](#dependencies)
 - [Known Issues During Installation](#known-issues-during-installation)
-- [Kudasai](#kudasai)
+- [Kairyou](#kairyou)
 - [Kaiseki](#kaiseki)
 - [Kijiku](#kijiku)
 - [Kijiku Settings](#kijiku-settings)
@@ -16,15 +16,15 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Notes**<a name="notes"></a>
 
-Built for Windows, Should work on Linux/MacOS but is untested.
+Built for Windows, should work on Linux/MacOS but is untested.
 
-Python Version: 3.8+
+Python version: 3.8+
 
 It should work with 3.8, although it is untested. I recommend using 3.9+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
-Preprocessor Derived from https://github.com/Atreyagaurav/mtl-related-scripts
+Preprocessor originally derived from https://github.com/Atreyagaurav/mtl-related-scripts
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Naming Conventions**<a name="naming-conventions"></a> 
@@ -77,13 +77,15 @@ pip install ja_core_news_lg
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Kudasai**<a name="kudasai"></a>
+**Kairyou**<a name="kairyou"></a>
 
-Kudasai is the preprocessing script, it is used to preprocess Japanese text to make it easier to translate. It is the main script of this program.
+Kairyou is the preprocessing module, it is used to preprocess Japanese text to make it easier to translate. It is the first step in the process.
 
-Please note that Kudasai can refer to the entire program or just the preprocessing script.
+To run Kairyou and by extension Kudasai, you must use the command line. You can do so by opening a command prompt and entering the following command:
 
-To run Kudasai, you must use the command line, You will need to specify the input file and the replacement json file.
+```python Path to Kudasai.py Path to the text you are preprocessing Path to the replacement json file```
+
+Where the following is replaced with the appropriate information:
 
 i.e.
 
@@ -97,7 +99,7 @@ See an example of a command line entry below
 
 ![Example CMD](https://i.imgur.com/eQmVaYY.png)
 
-Many replacement json files are included in the replacements folder, you can also make your own if you wish provided it follows the same format. See an example below
+Many replacement json files are included in the replacements jsons folder, you can also make your own if you wish provided it follows the same format. See an example below
 
 ![Example JSON](https://i.imgur.com/qgCI9w9.png)
 
@@ -107,17 +109,17 @@ Upon Kudasai being run, it will create a folder called "KudasaiOutput" which wil
 
 These files are:
 
-    "errors.txt" - This file contains any errors that occurred during preprocessing, if this file is empty, no errors occurred.
+    "debug log.txt" : A log of most actions taken by Kudasai, useful for debugging.
 
-    "jeCheck.txt" - This file contains the j-e check text, this is the text file that japanese readers would use to check accuracy of the translation.
+    "error log.txt" : A log of errors that occurred during Kudasai's run, useful for debugging or reporting issues.
 
-    "output.txt" - This file contains the results of Kudasai, not the preprocessed text, but the results of the preprocessing. Basically what got replaced and what it got replaced with and the number of replacements.
+    "jeCheck.txt" : A log of the Japanese and English sentences that were paired together, useful for checking the accuracy of the translation and further editing of a machine translation.
 
-    "preprocessedText.txt" - This file contains the preprocessed text, this is the text that you would use to translate and the file that is used for the translation modules.
+    "Kairyou Results.txt" : A log of the results of Kairyou's run, shows what was replaced and how many times it was replaced.
 
-    "tlDebug.txt" - This file contains the debug text for the translation modules, this is mostly for myself and is blank until you run the translation modules.
+    "preprocessedText.txt" : The preprocessed text, the preprocessed text output by Kairyou.
 
-    "translatedText.txt" - This file contains the translated text, the result of the translations modules. It is also blank until you run the translation modules.
+    "translatedText.txt" : The translated text, the translated text output by Kaiseki or Kijiku.
 
 After preprocessing is completed, you will be prompted to run the translation modules.
 
@@ -153,11 +155,11 @@ Kijiku will store your obfuscated api key locally under KudasaiConfig under your
 
 You will also be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu. If you want to change anything about the settings, you do it here.
 
-You can also choose upload your own settings file in the setting change menu, this is useful if you want to use someone else's settings file. You would do so by placing the settings file in the same directory as Kudasai.py and then selecting 'c' in the settings change menu. This will load the file in and use it as your settings.
+You can also choose upload your own settings file in the setting change menu, this is useful if you want to use someone else's settings file. You would do so by placing the json file in the same directory as Kudasai.py and then selecting 'c' in the settings change menu. This will load the file in and use it as your settings.
 
-After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text. If you choose to continue, Kijiku will run and translate the preprocessed text and no other input is required.
+After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text. Kijiku will then run and translate the preprocessed text and no other input is required.
 
-Please note that translation with Kijiku can take a very long time depending on the length of the text and the number of tokens. It is not uncommon for it to take hours or more for long texts.
+Please note that translation with Kijiku can take a very long time depending on the length of the text and the number of tokens. It is not uncommon for it to take hours or more for long texts. Plans are in place to make Kijiku asynchronous to speed up translation.
 
 Also note that Kijiku's settings are very complex, please see the section below for more information on them.
 
@@ -202,11 +204,11 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **GUI**<a name="gui"></a>
 
-GUI.py is a GUI Interface for Kudasai, it also provides visuals for Kaiseki and Kijiku
+GUI.py is a GUI Interface for Kudasai, it also provides visuals for Kaiseki and Kijiku.
 
 Please note that the GUI can appear unresponsive while translating or preprocessing, this is normal.
 
-Also note that settings cannot be modified in the gui, you must modify them using the command line.
+A console also launches with the gui, it is mostly for visuals but you will be required to confirm your settings if you choose to run Kijiku.
 
 ![Example GUI](https://i.imgur.com/JqIj5bE.png)
 

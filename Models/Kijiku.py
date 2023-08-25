@@ -26,7 +26,7 @@ class Kijiku:
 
     """
     
-    Kijiku is a secondary class that is used to interact with the OpenAI API.
+    Kijiku is a secondary class that is used to interact with the OpenAI API and translates the text by batch.\n
     
     """
 
@@ -77,57 +77,6 @@ class Kijiku:
         self.api_key_path = os.path.join(self.preloader.file_handler.config_dir,'GPTApiKey.txt')
 
         self.translation_print_result = ""
-
-##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def reset(self):
-            
-        """
-
-        resets the Kijiku object\n
-
-        Parameters:\n
-        self (object - Kijiku) : the Kijiku object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        self.text_to_translate = []
-        self.debug_text = []
-        self.translated_text = []
-        self.je_check_text = []
-        self.error_text = []
-        self.messages = []
-
-##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def check_settings(self):
-
-        """
-
-        Prompts the user to confirm the settings in the kijiku rules file.\n
-
-        Parameters:\n
-        self (object - Kijiku) : the Kijiku object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
-
-        for key, value in self.json_handler.kijiku_rules["open ai settings"].items():
-            print(key + " : " + str(value))
-
-        if(input("\n") == "1"):
-            pass
-        else:
-            self.json_handler.change_kijiku_settings()
-
-        self.preloader.toolkit.clear_console()
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -231,6 +180,34 @@ class Kijiku:
 
             self.json_handler.load_kijiku_rules()
 
+##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def check_settings(self):
+
+        """
+
+        Prompts the user to confirm the settings in the kijiku rules file.\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
+
+        for key, value in self.json_handler.kijiku_rules["open ai settings"].items():
+            print(key + " : " + str(value))
+
+        if(input("\n") == "1"):
+            pass
+        else:
+            self.json_handler.change_kijiku_settings()
+
+        self.preloader.toolkit.clear_console()
+
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def commence_translation(self) -> None:
@@ -273,7 +250,7 @@ class Kijiku:
 
         print(self.estimate_cost())
 
-        time.sleep(6)
+        time.sleep(7)
 
         self.preloader.file_handler.logger.log_action("Starting Translation")
 
@@ -292,29 +269,55 @@ class Kijiku:
 
         self.preloader.toolkit.clear_console()
 
-##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    def assemble_results(self) -> None:
+##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
 
         '''
 
-        Outputs results to several txt files\n
+        generates prompts for the messages meant for the ai\n
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
+        index (int) an int representing where we currently are in the text file\n
 
         Returns:\n
-        None\n
+        prompt (list - string) a list of japanese lines that will be assembled into messages\n
+        index (int) an updated int representing where we currently are in the text file\n
 
         '''
 
-        self.translation_print_result += "Time Elapsed : " + self.preloader.toolkit.get_elapsed_time(self.time_start, self.time_end)
+        prompt = []
 
-        self.translation_print_result += "\n\nDebug text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "debug log.txt")
-        self.translation_print_result += "\nJ->E text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "jeCheck.txt")
-        self.translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
-        self.translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
+        while(index < len(self.text_to_translate)):
+            sentence = self.text_to_translate[index]
 
+            if(len(prompt) < self.prompt_size):
+
+                if(any(char in sentence for char in ["▼", "△", "◇"])):
+                    prompt.append(sentence + '\n')
+                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.\n")
+
+                elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
+                    prompt.append(sentence + '\n') 
+                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.\n")
+
+                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]) and sentence != '"..."' and sentence != "..."):
+                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.\n")
+            
+                elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
+                    self.preloader.file_handler.logger.log_action("Sentence is empty... skipping translation.\n")
+
+                else:
+                    prompt.append(sentence + "\n")
+    
+            else:
+                return prompt, index
+            
+            index += 1
+
+        return prompt, index
+    
 ##-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def build_messages(self) -> None:
@@ -374,55 +377,6 @@ class Kijiku:
                 self.preloader.file_handler.logger.log_action(str(message))
                 self.preloader.file_handler.logger.log_action("-------------------------")
 
-##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
-
-        '''
-
-        generates prompts for the messages meant for the ai\n
-
-        Parameters:\n
-        self (object - Kijiku) : the Kijiku object.\n
-        index (int) an int representing where we currently are in the text file\n
-
-        Returns:\n
-        prompt (list - string) a list of japanese lines that will be assembled into messages\n
-        index (int) an updated int representing where we currently are in the text file\n
-
-        '''
-
-        prompt = []
-
-        while(index < len(self.text_to_translate)):
-            sentence = self.text_to_translate[index]
-
-            if(len(prompt) < self.prompt_size):
-
-                if(any(char in sentence for char in ["▼", "△", "◇"])):
-                    prompt.append(sentence + '\n')
-                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.\n")
-
-                elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
-                    prompt.append(sentence + '\n') 
-                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.\n")
-
-                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]) and sentence != '"..."' and sentence != "..."):
-                    self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.\n")
-            
-                elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
-                    self.preloader.file_handler.logger.log_action("Sentence is empty... skipping translation.\n")
-
-                else:
-                    prompt.append(sentence + "\n")
-    
-            else:
-                return prompt, index
-            
-            index += 1
-
-        return prompt, index
-    
 ##-------------------start-of-estimated_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def estimate_cost(self) -> str:
@@ -500,13 +454,13 @@ class Kijiku:
         numTokens += 3  ## every reply is primed with <|start|>assistant<|message|>
         minCost = round((float(numTokens) / 1000.00) * costPer1000Tokens, 5)
 
-        estimate_cost_result = "Estimated Tokens in Messages : " + str(numTokens) + ", Estimated Minimum Cost : " + str(minCost) + "\n"
+        estimate_cost_result = "Estimated Tokens in Messages : " + str(numTokens) + ", Estimated Minimum Cost : $" + str(minCost) + "\n"
 
         self.preloader.file_handler.logger.log_action(estimate_cost_result)
         self.preloader.file_handler.logger.log_action("-------------------------")
 
         return estimate_cost_result
-
+    
 ##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ## backoff wrapper for retrying on errors
@@ -679,3 +633,49 @@ class Kijiku:
             i+=2
 
         return final_list
+
+##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def assemble_results(self) -> None:
+
+        '''
+
+        Outputs results to several txt files\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+
+        Returns:\n
+        None\n
+
+        '''
+
+        self.translation_print_result += "Time Elapsed : " + self.preloader.toolkit.get_elapsed_time(self.time_start, self.time_end)
+
+        self.translation_print_result += "\n\nDebug text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "debug log.txt")
+        self.translation_print_result += "\nJ->E text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "jeCheck.txt")
+        self.translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
+        self.translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
+
+##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def reset(self):
+            
+        """
+
+        resets the Kijiku object\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+
+        Returns:\n
+        None\n
+
+        """
+
+        self.text_to_translate = []
+        self.debug_text = []
+        self.translated_text = []
+        self.je_check_text = []
+        self.error_text = []
+        self.messages = []

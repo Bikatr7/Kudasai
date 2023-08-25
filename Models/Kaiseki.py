@@ -18,7 +18,7 @@ class Kaiseki:
 
     """
 
-    Kaiseki is a secondary class that is used to interact with the deepl API and translate sentence by sentence.\n
+    Kaiseki is a secondary class that is used to interact with the deepl API and translate Japanese text sentence by sentence.\n
 
     Kaiseki is considered Inferior to Kijiku, please consider using Kijiku instead.\n
     
@@ -34,7 +34,7 @@ class Kaiseki:
 
         Parameters:\n
         inc_text_to_translate (str) : the path to the text file to translate.\n
-        preloader (object - preloader) : the preloader object.\n
+        inc_preloader (object - preloader) : the preloader object.\n
 
         Returns:\n
         None.\n
@@ -77,35 +77,9 @@ class Kaiseki:
         ## the current translated self.current_sentence
         self.translated_sentence = ""
 
-
         ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         self.deepl_api_key_path = os.path.join(self.preloader.file_handler.config_dir, "DeeplApiKey.txt")
-
-##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    def reset(self) -> None:
-
-        """
-
-        Resets the Kaiseki object.\n
-
-        Parameters:\n
-        self (object - Kaiseki) : the Kaiseki object.\n
-
-        Returns:\n
-        None\n
-
-        """
-
-        self.error_text = []
-        self.je_check_text = []
-        self.translated_text = []
-
-        self.current_sentence = ""
-        self.translated_sentence = ""
-
-        self.translation_print_result = ""
         
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,13 +87,13 @@ class Kaiseki:
 
         """
 
-        Translates the text file
+        Translates the text given to the Kaiseki object.\n
 
         Parameters:\n
         self (object - Kaiseki) : the Kaiseki object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -213,7 +187,7 @@ class Kaiseki:
         self (object - Kaiseki) : the Kaiseki object.\n
 
         Returns:\n 
-        None\n
+        None.\n
 
         """
 
@@ -287,10 +261,10 @@ class Kaiseki:
         This function separates the sentence into parts and punctuation\n
 
         Parameters:\n
-        self (object - Kaiseki) : The Kaiseki object\n
+        self (object - Kaiseki) : The Kaiseki object.\n
 
         Returns:\n
-        None\n
+        None.\n
         
         """
 
@@ -426,19 +400,18 @@ class Kaiseki:
 
 ##-------------------start-of-translate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def translate_sentence(self) -> None: ## for translating each part of a sentence
+    def translate_sentence(self) -> None:
 
         """
 
         This function translates each part of a sentence\n
 
         Parameters:\n
-        self (object - Kaiseki) : the Kaiseki object\n
+        self (object - Kaiseki) : the Kaiseki object.\n
 
         Returns:\n
-        None
+        None.\n
 
-        
         """
 
 
@@ -508,15 +481,13 @@ class Kaiseki:
                 if(i != len(self.sentence_punctuation)-1):
                     self.translated_sentence += " "
                         
-            except deepl.exceptions.QuotaExceededException as E:
+            except deepl.exceptions.QuotaExceededException as e:
 
                 print("\nDeepL API quota exceeded\n")
 
                 self.preloader.toolkit.pause_console()
-
-                self.assemble_results()
                 
-                raise E
+                raise e
                     
             except ValueError as e:
 
@@ -541,13 +512,13 @@ class Kaiseki:
 
         '''
 
-        Outputs results to several txt files\n
+        Prepares the results of the translation for printing.\n
 
         Parameters:\n
         self (object - Kaiseki) : the Kaiseki object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         '''
         
@@ -558,3 +529,27 @@ class Kaiseki:
         self.translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
         self.translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
         
+##-------------------start-of-reset()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    def reset(self) -> None:
+
+        """
+
+        Resets the Kaiseki object.\n
+
+        Parameters:\n
+        self (object - Kaiseki) : the Kaiseki object.\n
+
+        Returns:\n
+        None.\n
+
+        """
+
+        self.error_text = []
+        self.je_check_text = []
+        self.translated_text = []
+
+        self.current_sentence = ""
+        self.translated_sentence = ""
+
+        self.translation_print_result = ""

@@ -16,9 +16,8 @@ class Name(typing.NamedTuple):
 
     """
 
-    Represents a japanese name along with its equivalent english name.
-
-    The Name class extends the NamedTuple class, allowing for the creation of a tuple with named fields.
+    Represents a Japanese name along with its equivalent english name.\n
+    The Name class extends the NamedTuple class, allowing for the creation of a tuple with named fields.\n
 
     """
 
@@ -31,19 +30,19 @@ class ReplacementType(enum.Flag):
 
     """
 
-    Represents name markers for different types of names.
+    Represents name markers for different types of names.\n
 
-    The ReplacementType class extends the Flag class, allowing for the combination of name markers using bitwise operations.
+    The ReplacementType class extends the Flag class, allowing for the combination of name markers using bitwise operations.\n
     
-    Name Markers:
-    - NONE: No specific name marker.
-    - FULL_NAME: Represents a full name, first and last name.
-    - FIRST_NAME: Represents the first name only.
-    - FULL_AND_FIRST: Represents both the full name and the first name separately.
-    - LAST_NAME: Represents the last name only.
-    - FULL_AND_LAST: Represents both the full name and the last name.
-    - FIRST_AND_LAST: Represents both the first name and the last name.
-    - ALL_NAMES: Represents all possible names.
+    Name Markers:\n
+    - NONE: No specific name marker.\n
+    - FULL_NAME: Represents a full name, first and last name.\n
+    - FIRST_NAME: Represents the first name only.\n
+    - FULL_AND_FIRST: Represents both the full name and the first name separately.\n
+    - LAST_NAME: Represents the last name only.\n
+    - FULL_AND_LAST: Represents both the full name and the last name.\n
+    - FIRST_AND_LAST: Represents both the first name and the last name.\n
+    - ALL_NAMES: Represents all possible names.\n
     
     """
 
@@ -75,14 +74,16 @@ class Kairyou:
         Constructor for Kairyou class.\n
 
         Parameters:\n
-        None.\n
+        inc_replacement_json (dict - string) : the dictionary containing the rules for preprocessing.\n
+        inc_text_to_preprocess (string) : the text to be preprocessed.\n
+        inc_preloader (object - preloader) : the preloader object.\n
 
         Returns:\n
         None.\n
 
         """
 
-        ## The preloader (contains most auxiliary functions).
+        ## The preloader object.
         self.preloader = inc_preloader
 
         ## The dictionary containing the rules for preprocessing.
@@ -118,7 +119,7 @@ class Kairyou:
         self (object - Kairyou) : the Kairyou object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -186,21 +187,21 @@ class Kairyou:
 
         """
 
-        replaces names in the japanese text based off of tuples returned by yield_name_replacements\n
+        Replaces names in the japanese text based off of tuples returned by yield_name_replacements.\n
 
         Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-        Name (object - Name)  : represents a japanese name along with its english equivalent\n
-        replace_type  (object - ReplacementType) : how a name should be replaced\n
-        honorific_type (object - ReplacementType) : how a honorific should be replaced\n
-        replaced_names (dict - string) : a dict of replaced names and their occurrences\n
+        self (object - Kairyou) : the Kairyou object.\n
+        Name (object - Name)  : represents a japanese name along with its english equivalent.\n
+        replace_type  (object - ReplacementType) : how a name should be replaced.\n
+        honorific_type (object - ReplacementType) : how a honorific should be replaced.\n
+        replaced_names (dict - string) : a dict of replaced names and their occurrences.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
-        for eng, jap, no_honor in self.yield_name_replacements(Name, replace_type, honorific_type): ## if name already replaced, skip
+        for eng, jap, no_honor in self.yield_name_replacements(Name, replace_type, honorific_type):
             
             ## if we have already replaced the current name, bail.
             if(jap in replaced_names):
@@ -245,18 +246,18 @@ class Kairyou:
         
         """
 
-        Generates tuples of English and Japanese names to be replaced, along with a boolean indicating whether honorifics should be kept or removed\n
+        Generates tuples of English and Japanese names to be replaced, along with a boolean indicating whether honorifics should be kept or removed.\n
 
         Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-        Name (object - Name) : represents a japanese name along with its english equivalent\n
-        replace_type  (object - ReplacementType) : how a name should be replaced\n
-        honorific_type (object - ReplacementType) : how a honorific_type should be replaced\n
+        self (object - Kairyou) : the Kairyou object.\n
+        Name (object - Name) : represents a japanese name along with its english equivalent.\n
+        replace_type  (object - ReplacementType) : how a name should be replaced.\n
+        honorific_type (object - ReplacementType) : how a honorific_type should be replaced.\n
 
         Returns:\n
-        tuple (string, string, bool) : tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed\n
+        tuple (string, string, bool) : tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed.\n
         
-        tuple is wrapped in a generator along with two None values\n
+        tuple is wrapped in a generator along with two None values. No, I don't know why.\n
 
         """
         
@@ -284,19 +285,19 @@ class Kairyou:
             
             for comb in combinations:  
                 for separator in self.JAPANESE_NAME_SEPARATORS: 
-                    yield (" ".join(map(lambda i: english_names[i], comb)), ## yield a tuple containing the following elements:
-                        separator.join(map(lambda i: japanese_names[i], comb)), ## a string created by joining the elements in comb using the map function to apply the function lambda i: english_names[i] to each element in comb and then joining the resulting list with spaces, 
-                        ReplacementType.FULL_NAME in honorific_type) ## a boolean indicating whether FULL_NAME is in honorific_type
+                    yield (" ".join(map(lambda i: english_names[i], comb)), 
+                        separator.join(map(lambda i: japanese_names[i], comb)), 
+                        ReplacementType.FULL_NAME in honorific_type) 
         
-        if(ReplacementType.FIRST_NAME in replace_type): ## if FIRST_NAME is in replace_type, yield a tuple containing the following elements: 
-            yield (english_names[0], ## the first element of english_names, 
-                f'{japanese_names[0]}', ## the first element of japanese_names,
-                ReplacementType.FIRST_NAME in honorific_type) ## a boolean indicating whether FIRST_NAME is in honorific_type
+        if(ReplacementType.FIRST_NAME in replace_type): 
+            yield (english_names[0], 
+                f'{japanese_names[0]}',
+                ReplacementType.FIRST_NAME in honorific_type) #
             
-        if(ReplacementType.LAST_NAME in replace_type): ## if LAST_NAME is in replace_type, yield a tuple containing the following elements:
-            yield (english_names[-1],  ## the last element of english_names,
-                f'{japanese_names[-1]}', ## the last element of japanese_names,
-                ReplacementType.LAST_NAME in honorific_type)  ## a boolean indicating whether LAST_NAME is in honorific_type
+        if(ReplacementType.LAST_NAME in replace_type): 
+            yield (english_names[-1],  
+                f'{japanese_names[-1]}', 
+                ReplacementType.LAST_NAME in honorific_type)  
             
 ##-------------------start-of-replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -304,15 +305,15 @@ class Kairyou:
 
         """
 
-        replaces single words in the japanese text\n
+        Replaces single a word in the Japanese text.\n
 
         Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-        word (string) : word to be replaced\n
-        replacement (string) : replacement for the word\n
+        self (object - Kairyou) : the Kairyou object.\n
+        word (string) : word to be replaced.\n
+        replacement (string) : replacement for the word.\n
 
         Returns:\n
-        num_occurrences (int) : number of occurrences for word\n
+        num_occurrences (int) : number of occurrences for the word.\n
 
         """
             
@@ -332,14 +333,14 @@ class Kairyou:
 
         """
 
-        uses ner (Named Entity Recognition) from the spacy module to replace names that are composed of a single kanji in the japanese text\n
+        Uses ner (Named Entity Recognition) from the spacy module to replace names that are composed of a single kanji in the japanese text.\n
 
-        May miss true positives, but should not replace false positives\n
+        May miss true positives, but should not replace false positives.\n
 
         Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-        kanji (str) : japanese kanji to be replaced\n
-        replacement (str) : the replacement for kanji\n
+        self (object - Kairyou) : the Kairyou object.\n
+        kanji (str) : Japanese kanji to be replaced.\n
+        replacement (str) : the replacement for kanji.\n
 
         Returns:\n
         kanji_count (int) : how many kanji were replaced\n
@@ -374,10 +375,10 @@ class Kairyou:
 
         """
 
-        Resets the Kudasai object.
+        Resets the Kairyou object.
 
         Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
+        self (object - Kairyou) : the Kairyou object.\n
 
         Returns:\n
         None\n

@@ -161,13 +161,13 @@ class TokenCounter:
 
         """
 
-        clears the console\n
+        Clears the console.\n
 
         Parameters:\n
         self (object - TokenCounter) : the TokenCounter object.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 
@@ -186,7 +186,7 @@ class TokenCounter:
         message (str | optional) : the message that will be displayed when the console is paused.\n
 
         Returns:\n
-        None\n
+        None.\n
 
         """
 

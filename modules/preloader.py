@@ -15,7 +15,9 @@ class preloader:
 
     """
 
-    Preloader is the program that runs before Kudasai.py & Gui.py get started in full swing.\n
+    Preloader is the class that handles the creation of the output files and directories, as well as the writing of the results of the preprocessing and translation modules.\n
+
+    It is used by the GUI, CLI, and Console versions of Kudasai.\n
     
     """
 
@@ -79,7 +81,6 @@ class preloader:
         self.file_handler.standard_create_file(self.je_check_path)
         self.file_handler.standard_create_file(self.kairyou_log_path)
         self.file_handler.standard_create_file(self.error_log_path)
-
 
 ##-------------------start-of-write_kaiseki_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -157,6 +158,7 @@ class preloader:
 
         Parameters:\n
         self (object - preloader) : the preloader object.\n
+        kairyou_client (object - Kairyou) : the Kairyou object.\n
 
         Returns:\n
         None.\n

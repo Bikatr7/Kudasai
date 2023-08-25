@@ -5,7 +5,7 @@ import json
 import time
 
 ## custom modules
-from Modules.preloader import preloader
+from modules.preloader import preloader
 
 class jsonHandler:
 

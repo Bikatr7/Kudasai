@@ -8,11 +8,11 @@ import sys
 import json
 
 ## custom modules
-from Models.Kaiseki import Kaiseki 
-from Models.Kijiku import Kijiku
-from Models.Kairyou import Kairyou
+from models.Kaiseki import Kaiseki 
+from models.Kijiku import Kijiku
+from models.Kairyou import Kairyou
 
-from Modules.preloader import preloader
+from modules.preloader import preloader
 
 
 ##-------------------start-of-Kudasai---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

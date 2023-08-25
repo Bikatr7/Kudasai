@@ -10,7 +10,7 @@ import time
 import deepl
 
 ## custom modules
-from Modules.preloader import preloader
+from modules.preloader import preloader
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

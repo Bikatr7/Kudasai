@@ -8,7 +8,7 @@ import time
 import spacy
 
 ## custom modules
-from Modules.preloader import preloader
+from modules.preloader import preloader
 
 ##-------------------start-of-Name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -15,8 +15,8 @@ import spacy
 from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
 
 ## custom modules
-from Modules.preloader import preloader
-from Modules.jsonHandler import jsonHandler
+from modules.preloader import preloader
+from modules.jsonHandler import jsonHandler
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

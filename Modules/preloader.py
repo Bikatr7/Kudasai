@@ -2,8 +2,8 @@
 import os
 
 ## custom modules
-from Modules.fileHandler import fileHandler
-from Modules.toolkit import toolkit
+from modules.fileHandler import fileHandler
+from modules.toolkit import toolkit
 
 ##-------------------start-of-preloader---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -363,7 +363,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-get_json_options()-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def get_json_options(self) -> tuple[typing.List[str], typing.List[str]]:
+    def get_json_options(self) -> typing.Tuple[typing.List[str], typing.List[str]]:
 
         """
 
@@ -394,7 +394,7 @@ class KudasaiGUI:
     
 ##-------------------start-of-get_translation_mode_options()------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def get_translation_mode_options(self) -> tuple[typing.List[str], typing.List[str]]:
+    def get_translation_mode_options(self) -> typing.Tuple[typing.List[str], typing.List[str]]:
 
         """
 

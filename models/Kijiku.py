@@ -151,6 +151,8 @@ class Kijiku:
 
         ## else try to get api key manually
         except (FileNotFoundError, AuthenticationError): 
+
+            self.preloader.toolkit.clear_console()
                 
             api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the openapi key you have : ")
 

@@ -481,6 +481,10 @@
     "Natsuki Subaru": ["菜月", "昴"],
     "Natsuki Kenichi": ["菜月", "賢一"],
     "Natsuki Naoko": ["菜月", "菜穂子"]
+  },
+
+  "enhanced_check_whitelist": {
+
   }
   
 }

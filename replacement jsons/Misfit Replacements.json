@@ -130,5 +130,9 @@
 		"Zeshia Bianca": ["ゼシア", "ビアンカ"],
 		"Zeshia Kanon Ijaysica":["ゼシア", "カノン", "イジェイシカ"],
 		"Zorro Angart": ["ゾロ", "アンガート"]
-		}
+    },
+
+    "enhanced_check_whitelist": {
+
+    }
 }

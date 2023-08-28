@@ -168,6 +168,9 @@
     "Yamashita Saki" : ["鈴代","紗弓"],
     "Yamauchi Haruki": ["山内","春樹"],
     "Yukimura Teruhiko": ["幸村","輝彦"]
-  }
+  },
 
+  "enhanced_check_whitelist": {
+    "Hoshinomiya Chie": ["星之宮","知恵"]
+  }
 }

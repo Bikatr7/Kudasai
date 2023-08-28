@@ -132,7 +132,8 @@ class Kairyou:
         replacement_rules = [ 
         ('Punctuation', 'kutouten', False, None, None), 
         ('Unicode','unicode', False, None, None),
-        ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
+        ('Enhanced Check Whitelist', 'enhanced_check_whitelist', True, None, None),
+        ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),       
         ('Single Names', 'single_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
         ('Name Like', 'name_like', True, ReplacementType.ALL_NAMES, ReplacementType.NONE),
         ('Phrases','phrases', False, None ,None),
@@ -140,7 +141,7 @@ class Kairyou:
         ]
  
         replaced_names = dict()
-
+        
         time_start = time.time() 
 
         for rule in replacement_rules: 
@@ -157,7 +158,7 @@ class Kairyou:
 
                         current_name = Name(" ".join(jap), eng)
 
-                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names)
+                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
 
                 except Exception as E: 
                     self.error_log += "Issue with the following key : " + json_key + "\n"
@@ -186,7 +187,7 @@ class Kairyou:
 
 ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict) -> None:
+    def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict, json_key:str) -> None:
 
         """
 
@@ -222,14 +223,12 @@ class Kairyou:
             ## if name does not have honorific
             if(no_honor == True): 
 
-                ## if name is not singular kanji.
-                if(len(jap) > 1): 
-                    replacement_data['NA'] = self.replace_single_word(jap, eng)
+                ## if name needs to be checked by spacy, i.e. user whitelist or single kanji
+                if(json_key == "enhanced_check_whitelist" or len(jap) == 1):
+                    replacement_data['NA'] = self.perform_enhanced_replace(jap, eng)
 
-                ## if singular kanji
-                elif(len(jap) == 1): 
-                    replacement_data['NA'] = self.replace_single_kanji(jap, eng)
-                    
+                else:
+                    replacement_data['NA'] = self.replace_single_word(jap, eng)
 
             total = sum(replacement_data.values())
 
@@ -330,13 +329,13 @@ class Kairyou:
 
         return num_occurrences
     
-##-------------------start-of-replace_single_kanji()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-perform_enhanced_replace()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def replace_single_kanji(self, kanji:str, replacement:str) -> int: 
+    def perform_enhanced_replace(self, kanji:str, replacement:str) -> int: 
 
         """
 
-        Uses ner (Named Entity Recognition) from the spacy module to replace names that are composed of a single kanji in the japanese text.\n
+        Uses ner (Named Entity Recognition) from the spacy module to replace names that need to be more carefully replace, such as single kanji or those placed in the user whitelist.\n
 
         May miss true positives, but should not replace false positives.\n
 

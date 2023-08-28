@@ -132,7 +132,7 @@ class Kairyou:
         replacement_rules = [ 
         ('Punctuation', 'kutouten', False, None, None), 
         ('Unicode','unicode', False, None, None),
-        ('Enhanced Check Whitelist', 'enhanced_check_whitelist', True, None, None),
+        ('Enhanced Check Whitelist', 'enhanced_check_whitelist', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
         ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),       
         ('Single Names', 'single_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
         ('Name Like', 'name_like', True, ReplacementType.ALL_NAMES, ReplacementType.NONE),

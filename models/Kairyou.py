@@ -128,6 +128,8 @@ class Kairyou:
 
         self.preloader.toolkit.clear_console()
 
+        print("Preprocessing...")
+
         ## (title, json_key, is_name, replace_name, honorific_type)
         replacement_rules = [ 
         ('Punctuation', 'kutouten', False, None, None), 
@@ -181,6 +183,8 @@ class Kairyou:
                     continue ## Go to the next iteration of the loop
 
         time_end = time.time()
+
+        self.preloader.toolkit.clear_console()
 
         self.preprocessing_log += "\nTotal Replacements  : " + str(self.total_replacements)
         self.preprocessing_log += "\nTime Elapsed : " + self.preloader.toolkit.get_elapsed_time(time_start, time_end)

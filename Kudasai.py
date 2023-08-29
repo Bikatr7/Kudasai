@@ -1,6 +1,7 @@
 ## built in modules
 import os
 import sys
+import asyncio
 
 ## third party modules
 
@@ -121,11 +122,11 @@ class Kudasai:
 
         os.system("title " + "Kudasai Console")
 
-        replacement_json = input("Please enter the path to the replacement json file:\n")
+        replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
 
         self.preloader.toolkit.clear_console()
 
-        input_file = input("Please enter the path to the input file to be processed:\n")
+        input_file = input("Please enter the path to the input file to be processed:\n").strip('"')
 
         self.preloader.toolkit.clear_console()
 
@@ -151,7 +152,7 @@ class Kudasai:
 
 ##-------------------start-of-run_kudasai_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def run_kudasai_console(self) -> None:
+    async def run_kudasai_console(self) -> None:
 
         """
         
@@ -175,13 +176,13 @@ class Kudasai:
 
         self.preloader.toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
-        self.determine_autotranslation_module()
+        await self.determine_autotranslation_module()
 
         self.preloader.toolkit.pause_console("\nPress any key to exit...")
 
 ##-------------------start-of-run_kudasai_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def run_kudasai_cli(self) -> None:
+    async def run_kudasai_cli(self) -> None:
 
         """
         
@@ -205,7 +206,7 @@ class Kudasai:
 
         self.preloader.toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
-        self.determine_autotranslation_module()
+        await self.determine_autotranslation_module()
 
 ##-------------------start-of-handle_update_check_from_cli_or_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -223,7 +224,7 @@ class Kudasai:
 
         """
 
-        self.connection, update_prompt = self.preloader.toolkit.check_update()
+        self.connection, update_prompt = self.preloader.toolkit.check_update() # type: ignore
 
         if(update_prompt):
             
@@ -235,7 +236,7 @@ class Kudasai:
 
 ##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def determine_autotranslation_module(self) -> None:
+    async def determine_autotranslation_module(self) -> None:
 
         """
         
@@ -270,7 +271,7 @@ class Kudasai:
         if(pathing == "1"):
             self.run_kaiseki()
         elif(pathing == "2"):
-            self.run_kijiku()
+            await self.run_kijiku()
         else:
             self.preloader.toolkit.clear_console()
 
@@ -306,7 +307,7 @@ class Kudasai:
 
 ##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def run_kijiku(self) -> None:
+    async def run_kijiku(self) -> None:
 
         """
         
@@ -328,7 +329,7 @@ class Kudasai:
 
         self.kijiku_client = Kijiku(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
 
-        self.kijiku_client.translate()
+        await self.kijiku_client.translate()
 
         self.preloader.toolkit.clear_console()
 
@@ -338,30 +339,34 @@ class Kudasai:
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-client = Kudasai()
+async def main():
 
-try:
+    client = Kudasai()
 
-    ## determines if we will run the Kudasai CLI or the Kudasai Console
-    if(__name__ == '__main__'):
+    try:
 
-        ## to be implemented later, for now we will just run the CLI version
-        if(len(sys.argv) < 3):
-            
-            client.setup_kairyou_for_console()
+        ## determines if we will run the Kudasai CLI or the Kudasai Console
+        if(__name__ == '__main__'):
 
-            client.run_kudasai_console()
+            ## to be implemented later, for now we will just run the CLI version
+            if(len(sys.argv) < 3):
+                
+                client.setup_kairyou_for_console()
 
-            client.preloader.file_handler.logger.push_batch()
+                await client.run_kudasai_console()
 
-        else:
+                client.preloader.file_handler.logger.push_batch()
 
-            client.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
+            else:
 
-            client.run_kudasai_cli()
+                client.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
 
-            client.preloader.file_handler.logger.push_batch()
+                await client.run_kudasai_cli()
 
-except Exception as e:
+                client.preloader.file_handler.logger.push_batch()
 
-    client.preloader.file_handler.handle_critical_exception(e)
+    except Exception as e:
+
+        client.preloader.file_handler.handle_critical_exception(e)
+
+asyncio.run(main())

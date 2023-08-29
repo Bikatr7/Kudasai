@@ -6,8 +6,12 @@ import re
 import os
 import time
 import typing
+import asyncio
+
 
 ## third party modules
+from aiohttp import ClientSession
+
 import openai
 import backoff
 import tiktoken
@@ -83,7 +87,7 @@ class Kijiku:
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def translate(self) -> None:
+    async def translate(self) -> None:
 
         """
 
@@ -97,19 +101,21 @@ class Kijiku:
 
         """
 
+        openai.aiosession.set(ClientSession())
+
         self.time_start = time.time()
 
         try:
         
-            self.initialize()
+            await self.initialize()
 
             self.json_handler.validate_json()
 
-            self.check_settings()
+            await self.check_settings()
 
             self.time_start = time.time() ## offset time
 
-            self.commence_translation()
+            await self.commence_translation()
 
         except Exception as e:
             
@@ -121,11 +127,16 @@ class Kijiku:
 
             self.time_end = time.time() ## end time
 
-            self.assemble_results() ## assemble the results
+            await self.assemble_results() ## assemble the results
+
+            session = openai.aiosession.get()
+
+            if(session):
+                await session.close()
 
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
 
         """
 
@@ -203,7 +214,7 @@ class Kijiku:
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def check_settings(self):
+    async def check_settings(self):
 
         """
 
@@ -231,7 +242,7 @@ class Kijiku:
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def commence_translation(self) -> None:
+    async def commence_translation(self) -> None:
 
         """
             
@@ -267,11 +278,12 @@ class Kijiku:
         self.preloader.file_handler.logger.log_action("Starting Prompt Building")
         self.preloader.file_handler.logger.log_action("-------------------------")
 
-        self.build_messages()
+        await self.build_messages()
 
-        print(self.estimate_cost())
+        cost = await self.estimate_cost()
+        print(cost)
 
-        time.sleep(7)
+        await asyncio.sleep(7)
 
         self.preloader.file_handler.logger.log_action("Starting Translation")
 
@@ -282,9 +294,9 @@ class Kijiku:
             print("Trying " + str(i+2) + " of " + str(len(self.messages)))
             self.preloader.file_handler.logger.log_action("Trying " + str(i+2) + " of " + str(len(self.messages)))
 
-            translated_message = self.translate_message(self.messages[i], self.messages[i+1])
+            translated_message = await self.translate_message(self.messages[i], self.messages[i+1])
 
-            self.redistribute(translated_message)
+            await self.redistribute(translated_message)
 
             i+=2
 
@@ -292,7 +304,7 @@ class Kijiku:
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
+    async def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
 
         '''
 
@@ -341,7 +353,7 @@ class Kijiku:
     
 ##-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def build_messages(self) -> None:
+    async def build_messages(self) -> None:
 
         '''
 
@@ -358,7 +370,7 @@ class Kijiku:
         i = 0
 
         while i < len(self.text_to_translate):
-            prompt, i = self.generate_prompt(i)
+            prompt, i = await self.generate_prompt(i)
 
             prompt = ''.join(prompt)
 
@@ -400,7 +412,7 @@ class Kijiku:
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def estimate_cost(self) -> str:
+    async def estimate_cost(self) -> str:
 
         '''
 
@@ -423,28 +435,28 @@ class Kijiku:
 
         if(self.MODEL == "gpt-3.5-turbo"):
             print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
-            time.sleep(1)
+            await asyncio.sleep(1)
             self.MODEL="gpt-3.5-turbo-0613"
-            return self.estimate_cost()
+            return await self.estimate_cost()
         
         elif(self.MODEL == "gpt-3.5-turbo-0301"):
             print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ended September 13, Returning num tokens assuming gpt-3.5-turbo-0613.")
-            time.sleep(1)
+            await asyncio.sleep(1)
             self.MODEL="gpt-3.5-turbo-0613"
-            return self.estimate_cost()
+            return await self.estimate_cost()
 
         elif(self.MODEL == "gpt-4"):
             print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
-            time.sleep(1)
+            await asyncio.sleep(1)
             self.MODEL="gpt-4-0613"
-            return self.estimate_cost()
+            return await self.estimate_cost()
         
         elif(self.MODEL == "gpt-4-0314"):
 
             print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, Returning num tokens assuming gpt-4-0613.")
-            time.sleep(1)
+            await asyncio.sleep(1)
             self.MODEL="gpt-4-0613"
-            return self.estimate_cost()
+            return await self.estimate_cost()
         
         elif(self.MODEL == "gpt-3.5-turbo-0613"):
             cost_per_thousand_tokens = 0.0015
@@ -486,7 +498,7 @@ class Kijiku:
 
     ## backoff wrapper for retrying on errors
     @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError))
-    def translate_message(self, system_message:dict, user_message:dict) -> str:
+    async def translate_message(self, system_message:dict, user_message:dict) -> str:
 
         '''
 
@@ -504,7 +516,7 @@ class Kijiku:
 
         ## max_tokens and logit bias are currently excluded due to a lack of need, and the fact that i am lazy
 
-        response = openai.ChatCompletion.create(
+        response = await openai.ChatCompletion.acreate(
             model=self.MODEL,
             messages=[
                 system_message,
@@ -537,7 +549,7 @@ class Kijiku:
 
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def redistribute(self, translated_message:str) -> None:
+    async def redistribute(self, translated_message:str) -> None:
 
         '''
 
@@ -611,7 +623,7 @@ class Kijiku:
 
 ##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def fix_je(self) -> typing.List[str]:
+    async def fix_je(self) -> typing.List[str]:
 
         '''
 
@@ -657,11 +669,11 @@ class Kijiku:
 
 ##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def assemble_results(self) -> None:
+    async def assemble_results(self) -> None:
 
         '''
 
-        Outputs results to several txt files.\n
+        Outputs results to a string.\n
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n

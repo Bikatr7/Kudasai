@@ -245,7 +245,7 @@ class Kijiku:
     async def commence_translation(self) -> None:
 
         """
-            
+
         Uses all the other functions to translate the text provided by Kudasai.\n
 
         Parameters:\n
@@ -256,8 +256,6 @@ class Kijiku:
 
         """
         
-        i = 0
-
         self.preloader.file_handler.logger.log_action("-------------------------")
         self.preloader.file_handler.logger.log_action("Kijiku Activated, Settings are as follows : ")
         self.preloader.file_handler.logger.log_action("-------------------------")
@@ -287,20 +285,48 @@ class Kijiku:
 
         self.preloader.file_handler.logger.log_action("Starting Translation")
 
-        while(i+2 <= len(self.messages)):
+        # Create a list of tasks to run concurrently
+        tasks = []
+        for i in range(0, len(self.messages), 2):
+            tasks.append(self.handle_translation(i, self.messages[i], self.messages[i+1]))
 
-            self.preloader.toolkit.clear_console()
+        # Use asyncio.gather to run tasks concurrently and collect results
+        results = await asyncio.gather(*tasks)
 
-            print("Trying " + str(i+2) + " of " + str(len(self.messages)))
-            self.preloader.file_handler.logger.log_action("Trying " + str(i+2) + " of " + str(len(self.messages)))
+        # Sort results based on the index to maintain order
+        sorted_results = sorted(results, key=lambda x: x[0])
 
-            translated_message = await self.translate_message(self.messages[i], self.messages[i+1])
-
+        # Redistribute the sorted results
+        for _, translated_message in sorted_results:
             await self.redistribute(translated_message)
 
-            i+=2
-
         self.preloader.toolkit.clear_console()
+
+##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    async def handle_translation(self, index:int, system_message:dict, user_message:dict) -> tuple[int, str]:
+
+        """
+
+        Handles the translation for a given system and user message.\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+        index (int) : the index of the message in the original list.\n
+        system_message (dict) : the system message also known as the instructions.\n
+        user_message (dict) : the user message also known as the prompt.\n
+
+        Returns:\n
+        tuple[int, str] : a tuple containing the index and the translated message.\n
+
+        """
+        
+        print(f"Trying translation for {user_message['content'][:20]}...")  # Just a snippet for clarity
+        self.preloader.file_handler.logger.log_action(f"Trying translation for {user_message['content'][:20]}...")
+
+        translated_message = await self.translate_message(system_message, user_message)
+        return index, translated_message
+
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

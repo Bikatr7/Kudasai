@@ -75,7 +75,7 @@ class Kijiku:
 
         ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
         ## model message is the text that will be translated  
-        self.messages = []
+        self.translation_requests = []
 
         ##--------------------------------------------------------------------------------------------------------------------------
 
@@ -101,19 +101,22 @@ class Kijiku:
 
         """
 
+        ## ngl i have basically no idea what this does, but it's needed for openai async to work
         openai.aiosession.set(ClientSession())
 
+        ## set this here cause the try-except could throw before we get past the settings configuration
         self.time_start = time.time()
 
         try:
         
-            await self.initialize()
+            self.initialize()
 
             self.json_handler.validate_json()
 
-            await self.check_settings()
+            self.check_settings()
 
-            self.time_start = time.time() ## offset time
+            ## set actual start time to the end of the settings configuration
+            self.time_start = time.time()
 
             await self.commence_translation()
 
@@ -125,10 +128,11 @@ class Kijiku:
 
         finally:
 
-            self.time_end = time.time() ## end time
+            self.time_end = time.time() 
 
-            await self.assemble_results() ## assemble the results
+            self.assemble_results()
 
+            ## more session stuff that i don't understand
             session = openai.aiosession.get()
 
             if(session):
@@ -136,7 +140,7 @@ class Kijiku:
 
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def initialize(self) -> None:
+    def initialize(self) -> None:
 
         """
 
@@ -214,7 +218,7 @@ class Kijiku:
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def check_settings(self):
+    def check_settings(self):
 
         """
 
@@ -264,7 +268,7 @@ class Kijiku:
             self.preloader.file_handler.logger.log_action(key + " : " + str(value))
 
         self.MODEL = self.json_handler.kijiku_rules["open ai settings"]["model"]
-        self.system_message = self.json_handler.kijiku_rules["open ai settings"]["system_message"]
+        self.translation_instructions = self.json_handler.kijiku_rules["open ai settings"]["system_message"]
         self.message_mode = int(self.json_handler.kijiku_rules["open ai settings"]["message_mode"])
         self.prompt_size = int(self.json_handler.kijiku_rules["open ai settings"]["num_lines"])
         self.sentence_fragmenter_mode = int(self.json_handler.kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
@@ -276,35 +280,47 @@ class Kijiku:
         self.preloader.file_handler.logger.log_action("Starting Prompt Building")
         self.preloader.file_handler.logger.log_action("-------------------------")
 
-        await self.build_messages()
+        self.build_translation_requests()
 
-        cost = await self.estimate_cost()
+        cost = self.estimate_cost()
         print(cost)
 
         await asyncio.sleep(7)
 
         self.preloader.file_handler.logger.log_action("Starting Translation")
+        print("Starting Translation...\n\n")
 
-        # Create a list of tasks to run concurrently
-        tasks = []
-        for i in range(0, len(self.messages), 2):
-            tasks.append(self.handle_translation(i, self.messages[i], self.messages[i+1]))
+        ## requests to run asynchronously
+        async_requests = []
+        length = len(self.translation_requests)
 
-        # Use asyncio.gather to run tasks concurrently and collect results
-        results = await asyncio.gather(*tasks)
+        for i in range(0, length, 2):
+            async_requests.append(self.handle_translation(i, length, self.translation_requests[i], self.translation_requests[i+1]))
 
-        # Sort results based on the index to maintain order
+        ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
+        results = await asyncio.gather(*async_requests)
+
+        print("\n\nTranslation Complete!\n\n")
+        self.preloader.file_handler.logger.log_action("Translation Complete!")
+
+        print("Starting Redistribution...\n\n")
+        self.preloader.file_handler.logger.log_action("Starting Redistribution...")
+
+        ## Sort results based on the index to maintain order
         sorted_results = sorted(results, key=lambda x: x[0])
 
-        # Redistribute the sorted results
-        for _, translated_message in sorted_results:
-            await self.redistribute(translated_message)
+        ## Redistribute the sorted results
+        for index, translated_prompt, translated_message in sorted_results:
+            self.redistribute(translated_prompt, translated_message)
 
         self.preloader.toolkit.clear_console()
 
+        print("Done!\n\n")
+        self.preloader.file_handler.logger.log_action("Done!")
+
 ##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def handle_translation(self, index:int, system_message:dict, user_message:dict) -> tuple[int, str]:
+    async def handle_translation(self, index:int, length:int, translation_instructions:dict, translation_prompt:dict) -> tuple[int, dict, str]:
 
         """
 
@@ -313,24 +329,30 @@ class Kijiku:
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
         index (int) : the index of the message in the original list.\n
-        system_message (dict) : the system message also known as the instructions.\n
-        user_message (dict) : the user message also known as the prompt.\n
+        translation_instructions (dict) : the system message also known as the instructions.\n
+        translation_prompt (dict) : the user message also known as the prompt.\n
 
         Returns:\n
-        tuple[int, str] : a tuple containing the index and the translated message.\n
+        index (int) : the index of the message in the original list.\n
+        translation_prompt (dict) : the user message also known as the prompt.\n
+        translated_message (str) : the translated message.\n
 
         """
         
-        print(f"Trying translation for {user_message['content'][:20]}...")  # Just a snippet for clarity
-        self.preloader.file_handler.logger.log_action(f"Trying translation for {user_message['content'][:20]}...")
+        message_number = (index // 2) + 1
+        print(f"Trying translation for request {message_number} of {length//2}...")
+        self.preloader.file_handler.logger.log_action(f"Trying translation for request {message_number} of {length//2}...")
 
-        translated_message = await self.translate_message(system_message, user_message)
-        return index, translated_message
+        translated_message = await self.translate_message(translation_instructions, translation_prompt)
 
+        print(f"Translation for request {message_number} of {length//2} successful!")
+        self.preloader.file_handler.logger.log_action(f"Translation for request {message_number} of {length//2} successful!")
+
+        return index, translation_prompt, translated_message
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
+    def generate_prompt(self, index:int) -> tuple[typing.List[str],int]:
 
         '''
 
@@ -377,13 +399,13 @@ class Kijiku:
 
         return prompt, index
     
-##-------------------start-of-build_messages()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-build_translation_requests()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def build_messages(self) -> None:
+    def build_translation_requests(self) -> None:
 
         '''
 
-        Builds messages dict for ai prompt.\n
+        Builds translations request dict for ai prompt.\n
         
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
@@ -396,34 +418,34 @@ class Kijiku:
         i = 0
 
         while i < len(self.text_to_translate):
-            prompt, i = await self.generate_prompt(i)
+            prompt, i = self.generate_prompt(i)
 
             prompt = ''.join(prompt)
 
             if(self.message_mode == 1):
                 system_msg = {}
                 system_msg["role"] = "system"
-                system_msg["content"] = self.system_message
+                system_msg["content"] = self.translation_instructions
 
             else:
                 system_msg = {}
                 system_msg["role"] = "user"
-                system_msg["content"] = self.system_message
+                system_msg["content"] = self.translation_instructions
 
-            self.messages.append(system_msg)
+            self.translation_requests.append(system_msg)
 
             model_msg = {}
             model_msg["role"] = "user"
             model_msg["content"] = prompt
 
-            self.messages.append(model_msg)
+            self.translation_requests.append(model_msg)
 
         self.preloader.file_handler.logger.log_action("Built Messages : ")
         self.preloader.file_handler.logger.log_action("-------------------------")
 
         i = 0
 
-        for message in self.messages:
+        for message in self.translation_requests:
 
             i+=1
 
@@ -438,7 +460,7 @@ class Kijiku:
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def estimate_cost(self) -> str:
+    def estimate_cost(self) -> str:
 
         '''
 
@@ -461,28 +483,27 @@ class Kijiku:
 
         if(self.MODEL == "gpt-3.5-turbo"):
             print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
-            await asyncio.sleep(1)
+            time.sleep(1)
             self.MODEL="gpt-3.5-turbo-0613"
-            return await self.estimate_cost()
+            return self.estimate_cost()
         
         elif(self.MODEL == "gpt-3.5-turbo-0301"):
             print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ended September 13, Returning num tokens assuming gpt-3.5-turbo-0613.")
-            await asyncio.sleep(1)
+            time.sleep(1)
             self.MODEL="gpt-3.5-turbo-0613"
-            return await self.estimate_cost()
+            return self.estimate_cost()
 
         elif(self.MODEL == "gpt-4"):
             print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
-            await asyncio.sleep(1)
+            time.sleep(1)
             self.MODEL="gpt-4-0613"
-            return await self.estimate_cost()
+            return self.estimate_cost()
         
         elif(self.MODEL == "gpt-4-0314"):
-
             print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, Returning num tokens assuming gpt-4-0613.")
-            await asyncio.sleep(1)
+            time.sleep(1)
             self.MODEL="gpt-4-0613"
-            return await self.estimate_cost()
+            return self.estimate_cost()
         
         elif(self.MODEL == "gpt-3.5-turbo-0613"):
             cost_per_thousand_tokens = 0.0015
@@ -499,7 +520,7 @@ class Kijiku:
         
         num_tokens = 0
 
-        for message in self.messages:
+        for message in self.translation_requests:
 
             num_tokens += tokens_per_message
 
@@ -524,7 +545,7 @@ class Kijiku:
 
     ## backoff wrapper for retrying on errors
     @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError))
-    async def translate_message(self, system_message:dict, user_message:dict) -> str:
+    async def translate_message(self, translation_instructions:dict, translation_prompt:dict) -> str:
 
         '''
 
@@ -532,8 +553,8 @@ class Kijiku:
 
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
-        system_message (dict) : the system message also known as the instructions.\n
-        user_message (dict) : the user message also known as the prompt.\n
+        translation_instructions (dict) : the system message also known as the instructions.\n
+        translation_prompt (dict) : the user message also known as the prompt.\n
 
         Returns:\n
         output (string) a string that gpt gives to us also known as the translation.\n
@@ -545,8 +566,8 @@ class Kijiku:
         response = await openai.ChatCompletion.acreate(
             model=self.MODEL,
             messages=[
-                system_message,
-                user_message,
+                translation_instructions,
+                translation_prompt,
             ],
 
             temperature = float(self.json_handler.kijiku_rules["open ai settings"]["temp"]),
@@ -561,21 +582,32 @@ class Kijiku:
 
         ## note, pylance flags this as a 'GeneralTypeIssue', however i see nothing wrong with it, and it works fine
         output = response['choices'][0]['message']['content'] ## type: ignore
-
-        self.preloader.file_handler.logger.log_action("Prompt was : \n" + user_message["content"])
-
-        self.preloader.file_handler.logger.log_action("Response from openai was : \n\n" + output)
-
-        if(self.je_check_mode == 1):
-            self.je_check_text.append("\n-------------------------\n"+ str(user_message["content"]) + "\n\n")
-        elif(self.je_check_mode == 2):
-            self.je_check_text.append(str(user_message["content"]))
         
         return output
+    
+##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def log_retry(self, details):
+
+        '''
+
+        Logs the retry message.\n
+
+        Parameters:\n
+        details (dict) : the details of the retry.\n
+
+        Returns:\n
+        None.\n
+
+        '''
+
+        retry_msg = f"Backing off {details['wait']} seconds after {details['tries']} tries calling function {details['target']} due to {details['value']}."
+        self.preloader.file_handler.logger.log_action(retry_msg)
+
 
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def redistribute(self, translated_message:str) -> None:
+    def redistribute(self, translation_prompt:dict, translated_message:str) -> None:
 
         '''
 
@@ -590,6 +622,13 @@ class Kijiku:
 
         '''
 
+        if(self.je_check_mode == 1):
+            self.je_check_text.append("\n-------------------------\n"+ str(translation_prompt["content"]) + "\n\n")
+            self.je_check_text.append(translated_message + '\n')
+        elif(self.je_check_mode == 2):
+            self.je_check_text.append(str(translation_prompt["content"]))
+            self.je_check_text.append(translated_message)
+
         ## mode 1 is the default mode, uses regex and other nonsense to split sentences
         if(self.sentence_fragmenter_mode == 1): 
 
@@ -597,8 +636,6 @@ class Kijiku:
 
             patched_sentences = []
             build_string = None
-
-            self.preloader.file_handler.logger.log_action("Distributed result was : \n")
 
             for sentence in sentences:
                 if(sentence.startswith("\"") and not sentence.endswith("\"") and build_string is None):
@@ -615,8 +652,6 @@ class Kijiku:
 
                 self.translated_text.append(sentence + '\n')
 
-                self.preloader.file_handler.logger.log_action(sentence + '\n')
-
             for i in range(len(self.translated_text)):
                 if self.translated_text[i] in patched_sentences:
                     index = patched_sentences.index(self.translated_text[i])
@@ -629,27 +664,19 @@ class Kijiku:
 
             doc = nlp(translated_message)
             sentences = [sent.text for sent in doc.sents]
-            
-            self.preloader.file_handler.logger.log_action("\n-------------------------\nDistributed result was : \n\n")
 
             for sentence in sentences:
                 self.translated_text.append(sentence + '\n')
-                self.preloader.file_handler.logger.log_action(sentence + '\n')
 
         ## mode 3 just assumes gpt formatted it properly
         elif(self.sentence_fragmenter_mode == 3): 
             
             self.translated_text.append(translated_message + '\n\n')
-            
-
-        if(self.je_check_mode == 1):
-            self.je_check_text.append(translated_message + '\n')
-        elif(self.je_check_mode == 2):
-            self.je_check_text.append(translated_message)
+        
 
 ##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def fix_je(self) -> typing.List[str]:
+    def fix_je(self) -> typing.List[str]:
 
         '''
 
@@ -695,7 +722,7 @@ class Kijiku:
 
 ##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    async def assemble_results(self) -> None:
+    def assemble_results(self) -> None:
 
         '''
 

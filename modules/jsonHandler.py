@@ -64,8 +64,8 @@ class jsonHandler:
             "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
             "message_mode":1,
             "num_lines":13,
-            "sentence_fragmenter_mode":1,
-            "je_check_mode":1
+            "sentence_fragmenter_mode":3,
+            "je_check_mode":2
         }
         }
 

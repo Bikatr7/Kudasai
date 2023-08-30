@@ -348,8 +348,8 @@ async def main():
         ## determines if we will run the Kudasai CLI or the Kudasai Console
         if(__name__ == '__main__'):
 
-            ## to be implemented later, for now we will just run the CLI version
-            if(len(sys.argv) < 3):
+            ## if running console version
+            if(len(sys.argv) <= 1):
                 
                 client.setup_kairyou_for_console()
 
@@ -357,7 +357,8 @@ async def main():
 
                 client.preloader.file_handler.logger.push_batch()
 
-            else:
+            ## if running cli version
+            elif(len(sys.argv) == 3):
 
                 client.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
 
@@ -365,8 +366,22 @@ async def main():
 
                 client.preloader.file_handler.logger.push_batch()
 
+            ## print usage statement
+            else:
+                    
+                    print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
+                    print("or run Kudasai.py without any arguments to run the console version.\n\n")
+    
+                    client.preloader.file_handler.logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
+    
+                    client.preloader.toolkit.pause_console()
+    
+                    exit()
+
     except Exception as e:
 
         client.preloader.file_handler.handle_critical_exception(e)
+
+##---------------------------------/
 
 asyncio.run(main())

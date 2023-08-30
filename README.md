@@ -20,8 +20,6 @@ Built for Windows, should work on Linux/MacOS but is untested.
 
 Python version: 3.8+
 
-It should work with 3.8, although it is untested. I recommend using 3.9+
-
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
 Preprocessor originally derived from https://github.com/Atreyagaurav/mtl-related-scripts
@@ -81,11 +79,13 @@ pip install ja_core_news_lg
 
 Kairyou is the preprocessing module, it is used to preprocess Japanese text to make it easier to translate. It is the first step in the process.
 
-To run Kairyou and by extension Kudasai, you must use the command line. You can do so by opening a command prompt and entering the following command:
+To run Kairyou and by extension Kudasai, you may use the CLI or the Console.
+
+You can run the console by simply clicking on Kudasai.py, this will open the console and you can follow the prompts from there.
+
+If you wish to use the CLI, you can do so by opening a command prompt and entering the following:
 
 ```python Path to Kudasai.py Path to the text you are preprocessing Path to the replacement json file```
-
-Where the following is replaced with the appropriate information:
 
 i.e.
 
@@ -101,7 +101,7 @@ See an example of a command line entry below
 
 Many replacement json files are included in the replacements jsons folder, you can also make your own if you wish provided it follows the same format. See an example below
 
-![Example JSON](https://i.imgur.com/qgCI9w9.png)
+![Example JSON](https://i.imgur.com/u3FnUia.jpg)
 
 If you do not wish to use a replacement json file, you can use the blank replacement json file provided in the replacements folder. This also serves as a template for making your own replacement json files.
 
@@ -127,7 +127,7 @@ After preprocessing is completed, you will be prompted to run the translation mo
 
 **Kaiseki**<a name="kaiseki"></a>
 
-Kaiseki is a deepl translation module, it is used to translate Japanese to English. It is flawed and not very accurate compared to Kijiku although plans are in place to develop a better version.
+Kaiseki is a deepl translation module, it is used to translate Japanese to English. It is flawed and not very accurate compared to Kijiku although plans are in place to develop a better version *eventually*.
 
 Please note an api key is required for Kaiseki to work, you can get one here: https://www.deepl.com/pro#developer.
 
@@ -155,11 +155,9 @@ Kijiku will store your obfuscated api key locally under KudasaiConfig under your
 
 You will also be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu. If you want to change anything about the settings, you do it here.
 
-You can also choose upload your own settings file in the setting change menu, this is useful if you want to use someone else's settings file. You would do so by placing the json file in the same directory as Kudasai.py and then selecting 'c' in the settings change menu. This will load the file in and use it as your settings.
+You can also choose to upload your own settings file in the settings change menu, this is useful if you want to use someone else's settings file. You would do so by placing the json file in the same directory as Kudasai.py and then selecting 'c' in the settings change menu. This will load the file in and use it as your settings.
 
 After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text. Kijiku will then run and translate the preprocessed text and no other input is required.
-
-Please note that translation with Kijiku can take a very long time depending on the length of the text and the number of tokens. It is not uncommon for it to take hours or more for long texts. Plans are in place to make Kijiku asynchronous to speed up translation.
 
 Also note that Kijiku's settings are very complex, please see the section below for more information on them.
 
@@ -200,17 +198,6 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
     je_check_mode : 1 or 2, 1 will print out the 'num_lines' amount of jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If  it cannot, it will do 1.
 
     Please note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them.
-
----------------------------------------------------------------------------------------------------------------------------------------------------
-**GUI**<a name="gui"></a>
-
-GUI.py is a GUI Interface for Kudasai, it also provides visuals for Kaiseki and Kijiku.
-
-Please note that the GUI can appear unresponsive while translating or preprocessing, this is normal.
-
-A console also launches with the gui, it is mostly for visuals but you will be required to confirm your settings if you choose to run Kijiku.
-
-![Example GUI](https://i.imgur.com/JqIj5bE.png)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **License**<a name="license"></a>

@@ -313,42 +313,14 @@ class Kijiku:
         for index, translated_prompt, translated_message in sorted_results:
             self.redistribute(translated_prompt, translated_message)
 
+        ## try to pair the text for j-e checking if the mode is 2
+        if(self.je_check_mode == 2):
+            self.je_check_text = self.fix_je()
+
         self.preloader.toolkit.clear_console()
 
         print("Done!\n\n")
         self.preloader.file_handler.logger.log_action("Done!")
-
-##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    async def handle_translation(self, index:int, length:int, translation_instructions:dict, translation_prompt:dict) -> tuple[int, dict, str]:
-
-        """
-
-        Handles the translation for a given system and user message.\n
-
-        Parameters:\n
-        self (object - Kijiku) : the Kijiku object.\n
-        index (int) : the index of the message in the original list.\n
-        translation_instructions (dict) : the system message also known as the instructions.\n
-        translation_prompt (dict) : the user message also known as the prompt.\n
-
-        Returns:\n
-        index (int) : the index of the message in the original list.\n
-        translation_prompt (dict) : the user message also known as the prompt.\n
-        translated_message (str) : the translated message.\n
-
-        """
-        
-        message_number = (index // 2) + 1
-        print(f"Trying translation for request {message_number} of {length//2}...")
-        self.preloader.file_handler.logger.log_action(f"Trying translation for request {message_number} of {length//2}...")
-
-        translated_message = await self.translate_message(translation_instructions, translation_prompt)
-
-        print(f"Translation for request {message_number} of {length//2} successful!")
-        self.preloader.file_handler.logger.log_action(f"Translation for request {message_number} of {length//2} successful!")
-
-        return index, translation_prompt, translated_message
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -585,6 +557,83 @@ class Kijiku:
         
         return output
     
+##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    async def handle_translation(self, index:int, length:int, translation_instructions:dict, translation_prompt:dict) -> tuple[int, dict, str]:
+
+        """
+
+        Handles the translation for a given system and user message.\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+        index (int) : the index of the message in the original list.\n
+        translation_instructions (dict) : the system message also known as the instructions.\n
+        translation_prompt (dict) : the user message also known as the prompt.\n
+
+        Returns:\n
+        index (int) : the index of the message in the original list.\n
+        translation_prompt (dict) : the user message also known as the prompt.\n
+        translated_message (str) : the translated message.\n
+
+        """
+
+        translated_message = ""
+        NUM_TRIES_ALLOWED = 3
+        num_tries = 0
+
+        while True:
+        
+            message_number = (index // 2) + 1
+            print(f"Trying translation for request {message_number} of {length//2}...")
+            self.preloader.file_handler.logger.log_action(f"Trying translation for request {message_number} of {length//2}...")
+
+            translated_message = await self.translate_message(translation_instructions, translation_prompt)
+
+            if(self.MODEL != "gpt-4-0613"):
+                break
+
+            if(self.check_if_translation_is_good(translated_message, translation_prompt) or num_tries <= NUM_TRIES_ALLOWED):
+                break
+
+            else:
+                num_tries += 1
+                self.preloader.file_handler.logger.log_action(f"Translation for request {message_number} of {length//2} was inadequate, retrying...")
+
+        print(f"Translation for request {message_number} of {length//2} successful!")
+        self.preloader.file_handler.logger.log_action(f"Translation for request {message_number} of {length//2} successful!")
+
+        return index, translation_prompt, translated_message
+    
+##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def check_if_translation_is_good(self, translated_message:str, translation_prompt:dict):
+
+        """
+        
+        Checks if the translation is good, i.e. the number of lines in the prompt and the number of lines in the translated message are the same.\n
+
+        Parameters:\n
+        self (object - Kijiku) : the Kijiku object.\n
+        translated_message (string) : the translated message\n
+        translation_prompt (dict) : the user message also known as the prompt.\n
+
+        Returns:\n
+        is_valid (bool) : whether or not the translation is valid.\n
+
+        """
+
+        prompt = translation_prompt["content"]
+        is_valid = False
+
+        jap = [line for line in prompt if line.strip()]  ## Remove blank lines
+        eng = [line for line in translated_message if line.strip()]  ## Remove blank lines    
+
+        if(len(jap) == len(eng)):
+            is_valid = True
+    
+        return is_valid
+    
 ##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def log_retry(self, details):
@@ -673,7 +722,6 @@ class Kijiku:
             
             self.translated_text.append(translated_message + '\n\n')
         
-
 ##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def fix_je(self) -> typing.List[str]:
@@ -710,6 +758,7 @@ class Kijiku:
                     if(jap_line and eng_line): ## check if jap_line and eng_line aren't blank
                         final_list.append(jap_line + '\n\n')
                         final_list.append(eng_line + '\n\n')
+     
 
             else:
 

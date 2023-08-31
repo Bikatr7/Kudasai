@@ -256,17 +256,15 @@ class jsonHandler:
                     self.dump_kijiku_rules()
                 
                 except AssertionError:
-                    print("Invalid JSON file. Please try again. ")
+                    print("Invalid JSON file. Please try again.")
+                    self.kijiku_rules = old_kijiku_rules
+                    time.sleep(1)
 
                 except FileNotFoundError:
                     print("Missing JSON file. Please try again.")
-
-                finally:
-                    ## resets the kijiku rules to the old rules
                     self.kijiku_rules = old_kijiku_rules
-
-                    continue
-            
+                    time.sleep(1)
+                    
             ## if the user wants to reset to default, do so
             elif(action == "d"): 
                 self.reset_kijiku_rules_to_default()

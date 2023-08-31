@@ -598,6 +598,7 @@ class Kijiku:
 
             else:
                 num_tries += 1
+                print(f"Translation for request {message_number} of {length//2} was inadequate, retrying...")
                 self.preloader.file_handler.logger.log_action(f"Translation for request {message_number} of {length//2} was inadequate, retrying...")
 
         print(f"Translation for request {message_number} of {length//2} successful!")

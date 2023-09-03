@@ -64,8 +64,8 @@ class jsonHandler:
             "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
             "message_mode":1,
             "num_lines":13,
-            "sentence_fragmenter_mode":1,
-            "je_check_mode":1
+            "sentence_fragmenter_mode":3,
+            "je_check_mode":2
         }
         }
 
@@ -264,7 +264,7 @@ class jsonHandler:
                     print("Missing JSON file. Please try again.")
                     self.kijiku_rules = old_kijiku_rules
                     time.sleep(1)
-                    
+
             ## if the user wants to reset to default, do so
             elif(action == "d"): 
                 self.reset_kijiku_rules_to_default()

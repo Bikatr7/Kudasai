@@ -17,7 +17,7 @@ class preloader:
 
     Preloader is the class that handles the creation of the output files and directories, as well as the writing of the results of the preprocessing and translation modules.\n
 
-    It is used by the GUI, CLI, and Console versions of Kudasai.\n
+    It is used by all versions of Kudasai.\n
     
     """
 

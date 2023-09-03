@@ -75,7 +75,7 @@ class Kijiku:
 
         ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
         ## model message is the text that will be translated  
-        self.translation_requests = []
+        self.translation_batches = []
 
         ##--------------------------------------------------------------------------------------------------------------------------
 
@@ -218,7 +218,7 @@ class Kijiku:
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def check_settings(self):
+    def check_settings(self) -> None:
 
         """
 
@@ -280,7 +280,7 @@ class Kijiku:
         self.preloader.file_handler.logger.log_action("Starting Prompt Building")
         self.preloader.file_handler.logger.log_action("-------------------------")
 
-        self.build_translation_requests()
+        self.build_translation_batches()
 
         cost = self.estimate_cost()
         print(cost)
@@ -292,10 +292,10 @@ class Kijiku:
 
         ## requests to run asynchronously
         async_requests = []
-        length = len(self.translation_requests)
+        length = len(self.translation_batches)
 
         for i in range(0, length, 2):
-            async_requests.append(self.handle_translation(i, length, self.translation_requests[i], self.translation_requests[i+1]))
+            async_requests.append(self.handle_translation(i, length, self.translation_batches[i], self.translation_batches[i+1]))
 
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
@@ -371,13 +371,13 @@ class Kijiku:
 
         return prompt, index
     
-##-------------------start-of-build_translation_requests()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def build_translation_requests(self) -> None:
+    def build_translation_batches(self) -> None:
 
         '''
 
-        Builds translations request dict for ai prompt.\n
+        Builds translations batches dict for ai prompt.\n
         
         Parameters:\n
         self (object - Kijiku) : the Kijiku object.\n
@@ -404,20 +404,20 @@ class Kijiku:
                 system_msg["role"] = "user"
                 system_msg["content"] = self.translation_instructions
 
-            self.translation_requests.append(system_msg)
+            self.translation_batches.append(system_msg)
 
             model_msg = {}
             model_msg["role"] = "user"
             model_msg["content"] = prompt
 
-            self.translation_requests.append(model_msg)
+            self.translation_batches.append(model_msg)
 
         self.preloader.file_handler.logger.log_action("Built Messages : ")
         self.preloader.file_handler.logger.log_action("-------------------------")
 
         i = 0
 
-        for message in self.translation_requests:
+        for message in self.translation_batches:
 
             i+=1
 
@@ -492,7 +492,7 @@ class Kijiku:
         
         num_tokens = 0
 
-        for message in self.translation_requests:
+        for message in self.translation_batches:
 
             num_tokens += tokens_per_message
 
@@ -579,36 +579,36 @@ class Kijiku:
         """
 
         translated_message = ""
-        NUM_TRIES_ALLOWED = 3
+        NUM_TRIES_ALLOWED = 1
         num_tries = 0
 
         while True:
         
             message_number = (index // 2) + 1
-            print(f"Trying translation for request {message_number} of {length//2}...")
-            self.preloader.file_handler.logger.log_action(f"Trying translation for request {message_number} of {length//2}...")
+            print(f"Trying translation for batch {message_number} of {length//2}...")
+            self.preloader.file_handler.logger.log_action(f"Trying translation for batch {message_number} of {length//2}...")
 
             translated_message = await self.translate_message(translation_instructions, translation_prompt)
 
             if(self.MODEL != "gpt-4-0613"):
                 break
 
-            if(self.check_if_translation_is_good(translated_message, translation_prompt) or num_tries <= NUM_TRIES_ALLOWED):
+            if(await self.check_if_translation_is_good(translated_message, translation_prompt) or num_tries >= NUM_TRIES_ALLOWED):
                 break
 
             else:
                 num_tries += 1
-                print(f"Translation for request {message_number} of {length//2} was inadequate, retrying...")
-                self.preloader.file_handler.logger.log_action(f"Translation for request {message_number} of {length//2} was inadequate, retrying...")
+                print(f"Batch {message_number} of {length//2} was malformed, retrying...")
+                self.preloader.file_handler.logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...")
 
-        print(f"Translation for request {message_number} of {length//2} successful!")
-        self.preloader.file_handler.logger.log_action(f"Translation for request {message_number} of {length//2} successful!")
+        print(f"Translation for batch {message_number} of {length//2} successful!")
+        self.preloader.file_handler.logger.log_action(f"Translation for batch {message_number} of {length//2} successful!")
 
         return index, translation_prompt, translated_message
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def check_if_translation_is_good(self, translated_message:str, translation_prompt:dict):
+    async def check_if_translation_is_good(self, translated_message:str, translation_prompt:dict):
 
         """
         
@@ -627,8 +627,8 @@ class Kijiku:
         prompt = translation_prompt["content"]
         is_valid = False
 
-        jap = [line for line in prompt if line.strip()]  ## Remove blank lines
-        eng = [line for line in translated_message if line.strip()]  ## Remove blank lines    
+        jap = [line for line in prompt.split('\n') if line.strip()]  ## Remove blank lines
+        eng = [line for line in translated_message.split('\n') if line.strip()]  ## Remove blank lines
 
         if(len(jap) == len(eng)):
             is_valid = True

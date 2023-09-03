@@ -38,6 +38,8 @@ Kijiku.py - openai translation module - 基軸 - Foundation
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>
 
+spacy
+
 spacy[jp]
 
 spacy[en]
@@ -63,15 +65,15 @@ or see requirements.txt
 
 Please note that issues can occur when trying to install these dependencies:
 
-python -m spacy download ja_core_news_lg
-
-python -m spacy download en_core_web_lg
-
-if these do not work, either reinstall spacy or try:
-
 pip install en_core_web_lg
 
 pip install ja_core_news_lg
+
+if these do not work, either reinstall spacy or try:
+
+python -m spacy download ja_core_news_lg
+
+python -m spacy download en_core_web_lg
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

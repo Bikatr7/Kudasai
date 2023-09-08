@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Table of Contents**
 
+- [Quick Start](#quick-start)
 - [Notes](#notes)
 - [Naming Conventions](#naming-conventions)
 - [Dependencies](#dependencies)
@@ -12,6 +13,19 @@
 - [GUI](#gui)
 - [License](#license)
 - [Contact](#contact)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+**Quick Start**<a name="quick-start"></a>
+
+Simply run Kudasai.py which will take a few seconds to load, insert a replacement json path (use Blank Replacements.json if not using preprocessing functionality), and then insert a text path. 
+
+After preprocessing is completed, you will be prompted to run the translation modules.
+
+I recommend using Kijiku as it is vastly superior.
+
+See the [Kijiku Settings](#kijiku-settings) section for more information on Kijiku's settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them.
+
+Follow the prompts and you should be good to go, results will be stored in the KudasaiOutput folder in the same directory as Kudasai.py.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Notes**<a name="notes"></a>

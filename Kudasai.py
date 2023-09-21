@@ -122,11 +122,11 @@ class Kudasai:
 
         os.system("title " + "Kudasai Console")
 
-        replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
+        input_file = input("Please enter the path to the input file to be processed:\n").strip('"')
 
         self.preloader.toolkit.clear_console()
 
-        input_file = input("Please enter the path to the input file to be processed:\n").strip('"')
+        replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
 
         self.preloader.toolkit.clear_console()
 

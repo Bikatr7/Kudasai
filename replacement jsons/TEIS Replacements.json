@@ -1,0 +1,100 @@
+{
+
+    "honorifics": {
+        "さん": "san",
+        "くん": "kun",
+        "ちゃん": "chan",
+        "せんぱい":  "senpai",
+        "上": "ue",
+        "氏": "shi",
+        "君": "kun",
+        "様": "sama",
+        "先輩": "senpai",
+        "後輩": "kōhai",
+        "先生": "sensei",
+        "殿": "dono"
+    },
+  
+    "single_words": {
+
+    },
+  
+    "unicode": {
+        "\u3000": " ", 
+        "\u2026":"..."
+      },
+  
+    "phrases": {
+    "シャドウガーデン": "Shadow Garden",
+    "ミドガル魔剣士学園": "Midgar Royal Spellsword Academy",
+    "ミドガル王国": "Midgar Kingdom",
+    "紅の騎士団":"Crimson Order",
+    "ディアボロス教団":"Cult of Diablos",
+    "三人の英雄":"Three Heroes",
+    "オリアナ王国":"Oriana Kingdom",
+    "ベガルタ帝国":"Velgalta Empire"
+
+    },
+    
+    "kutouten": {
+        "「": "\"",
+        "」": "\"",
+        "『": "'",
+        "』": "'",
+        "、": ",",
+        "─": "-",
+        "～":"~",
+        "！":"!",
+        "？":"?",
+        "％":"%",
+        "（":"(",
+        "）":")",
+        "……。":"...",
+        "…。":"...",
+        "。": ".",
+        "・":".",
+        "…………":"...",
+        "……": "...",
+        "･･･":"...",
+        "......":"...",
+        ".....":"...",
+        "....":"...",
+        "---.":"---"
+      },
+  
+    "name_like": {
+  
+    },
+  
+    "single_names": {
+    "Alpha": ["アルファ"],
+    "Beta": ["ベータ"],
+    "Gamma": ["ガンマ"],
+    "Delta": ["デルタ"],
+    "Epsilon": ["イプシロン"],
+    "Zeta": ["ゼータ"],
+    "Eta": ["イータ"],
+    "Nu": ["ニュー"],
+    "Victoria":["ウィクトーリア"],
+    "Fenrir":["フェンリル"],
+    "Aurora":["アウロラ"],
+    "Mordred":["モードレッド"]
+    },
+  
+    "full_names": {
+    "Kagenō Cid": ["カゲノー", "シド"],
+    "Kagenō Claire": ["カゲノー", "クレア"],
+    "Mundane Mann": ["ジミナ","セーネン"],
+    "Barnett Sherry": ["バーネット","シェリー"],
+    "Midgar Alexia": ["ミドガル","アレクシア"],
+    "Midgar Iris": ["ミドガル","アイリス"],
+    "Oriana Rose": ["オリアナ","ローズ"],
+    "Asshat Perv": ["ケツハット","ドエム"],
+    "Nishino Akane": ["西野","アカネ"]
+    },
+
+    "enhanced_check_whitelist": {
+
+    }
+    
+  }

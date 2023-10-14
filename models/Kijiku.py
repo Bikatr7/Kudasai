@@ -109,7 +109,7 @@ class Kijiku:
 
         try:
         
-            self.initialize()
+            await self.initialize()
 
             self.json_handler.validate_json()
 
@@ -140,7 +140,7 @@ class Kijiku:
 
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
 
         """
 
@@ -160,12 +160,19 @@ class Kijiku:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
             openai.api_key = api_key
+
+            ## make dummy request to check if api key is valid
+            await openai.Completion.acreate(
+                engine="davinci",
+                prompt="This is a test.",
+                max_tokens=5
+            )
         
             print("Used saved api key in " + self.api_key_path)
             self.preloader.file_handler.logger.log_action("Used saved api key in " + self.api_key_path)
 
         ## else try to get api key manually
-        except (FileNotFoundError, AuthenticationError): 
+        except (FileNotFoundError, AuthenticationError):
 
             self.preloader.toolkit.clear_console()
                 
@@ -175,6 +182,13 @@ class Kijiku:
             try: 
 
                 openai.api_key = api_key
+
+                ## make dummy request to check if api key is valid
+                await openai.Completion.acreate(
+                    engine="davinci",
+                    prompt="This is a test.",
+                    max_tokens=5
+                )
 
                 self.preloader.file_handler.standard_overwrite_file(self.api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
                 

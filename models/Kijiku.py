@@ -172,7 +172,7 @@ class Kijiku:
             self.preloader.file_handler.logger.log_action("Used saved api key in " + self.api_key_path)
 
         ## else try to get api key manually
-        except (FileNotFoundError, AuthenticationError):
+        except:
 
             self.preloader.toolkit.clear_console()
                 

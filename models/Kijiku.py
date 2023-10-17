@@ -190,7 +190,7 @@ class Kijiku:
                     max_tokens=5
                 )
 
-                self.preloader.file_handler.standard_overwrite_file(self.api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
+                self.preloader.file_handler.standard_overwrite_file(self.api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
                 
             ## if invalid key exit
             except AuthenticationError: 

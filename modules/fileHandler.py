@@ -109,7 +109,7 @@ class fileHandler():
 
 ##--------------------start-of-standard_overwrite_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def standard_overwrite_file(self, file_path:str, content_to_write:str) -> None:
+    def standard_overwrite_file(self, file_path:str, content_to_write:str, omit:bool = False) -> None:
 
         """
 
@@ -125,9 +125,13 @@ class fileHandler():
 
         """
 
-        self.logger.log_action(file_path + " was overwritten with the following content: " + content_to_write)
         with open(file_path, "w+", encoding="utf-8") as file:
             file.write(content_to_write)
+
+        if(omit):
+            content_to_write = "omitted"
+        
+        self.logger.log_action(file_path + " was overwritten with the following content: " + content_to_write)
 
 ##-------------------start-of-handle_critical_exception()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

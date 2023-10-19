@@ -262,7 +262,7 @@ class Kudasai:
 
         pathing = ""
 
-        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki\n2.Kijiku\n3.Exit\n\n"
+        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki (deepL)\n2.Kijiku (GPT)\n3.Exit\n\n"
 
         pathing = input(pathing_msg)
 

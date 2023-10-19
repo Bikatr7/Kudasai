@@ -765,7 +765,7 @@ class Kijiku:
             jap = [line for line in jap if line.strip()]  ## Remove blank lines
             eng = [line for line in eng if line.strip()]  ## Remove blank lines    
 
-            final_list.append("\n-------------------------\n")
+            final_list.append("-------------------------\n")
 
             if(len(jap) == len(eng)):
 
@@ -773,12 +773,16 @@ class Kijiku:
                     if(jap_line and eng_line): ## check if jap_line and eng_line aren't blank
                         final_list.append(jap_line + '\n\n')
                         final_list.append(eng_line + '\n\n')
+
+                        final_list.append("--------------------------------------------------\n")
      
 
             else:
 
                 final_list.append(self.je_check_text[i-1] + '\n\n')
                 final_list.append(self.je_check_text[i] + '\n\n')
+
+                final_list.append("--------------------------------------------------\n")
 
             i+=2
 

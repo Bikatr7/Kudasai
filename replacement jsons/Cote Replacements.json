@@ -1,17 +1,17 @@
 {
   "honorifics": {
-    "さん": "san",
-    "くん": "kun",
     "ちゃん": "chan",
-    "せんぱい":  "senpai",
-    "上": "ue",
-    "氏": "shi",
+    "殿": "dono",
+    "くん": "kun",
     "君": "kun",
-    "様": "sama",
-    "先輩": "senpai",
     "後輩": "kōhai",
+    "様": "sama",
+    "さん": "san",
+    "せんぱい": "senpai",
+    "先輩": "senpai",
     "先生": "sensei",
-    "殿": "dono"
+    "氏": "shi",
+    "上": "ue"
   },
 
   "single_words": {
@@ -22,8 +22,8 @@
   },
 
   "unicode": {
-    "\u3000": " ", 
-    "\u2026":"..."
+    "\u2026":"...",
+    "\u3000": " "
   },
 
   "phrases": {
@@ -65,24 +65,24 @@
   },
 
   "single_names": {
-    "Kijima": ["鬼島"],
     "Akiyama": ["秋山"],
-    "Mika": ["美香"],
-    "Sonezaki": ["曽根崎"],
-    "Kisarazu": ["木更津"],
-    "Sōya": ["宗谷"],
-    "Ohba": ["大場"],
-    "Ishida": ["石田"],
-    "Shiro": ["志朗"],
-    "Keisei": ["啓誠"],
-    "Mii": ["みー"],
     "Anzai": ["安在"],
-    "Sawada": ["沢田"],
-    "Yano": ["矢野"],
-    "Isoyama" : ["磯山"],
     "Ijūin": ["伊集院"],
+    "Ishida": ["石田"],
+    "Isoyama": ["磯山"],
+    "Keisei": ["啓誠"],
+    "Kijima": ["鬼島"],
+    "Kisarazu": ["木更津"],
+    "Mii": ["みー"],
+    "Mika": ["美香"],
+    "Ohba": ["大場"],
+    "Sawada": ["沢田"],
+    "Shiro": ["志朗"],
+    "Sonezaki": ["曽根崎"],
+    "Sōya": ["宗谷"],
+    "Yano": ["矢野"],
     "king": ["Wan-sama"]
-  },
+    },
 
 
   "full_names": {

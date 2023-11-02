@@ -1,22 +1,26 @@
 {
-
     "honorifics": {
-        "さん": "san",
-        "くん": "kun",
-        "ちゃん": "chan",
-        "せんぱい":  "senpai",
-        "上": "ue",
-        "氏": "shi",
-        "君": "kun",
-        "様": "sama",
-        "先輩": "senpai",
-        "後輩": "kōhai",
-        "先生": "sensei",
-        "殿": "dono"
+      "ちゃん": "chan",
+      "殿": "dono",
+      "くん": "kun",
+      "君": "kun",
+      "後輩": "kōhai",
+      "様": "sama",
+      "さん": "san",
+      "せんぱい": "senpai",
+      "先輩": "senpai",
+      "先生": "sensei",
+      "氏": "shi",
+      "上": "ue"
     },
   
     "single_words": {
-
+      "アレクサンドリア": "Alexandria",
+      "四つ葉": "Clovers",
+      "ラワガス": "Laugus",
+      "リンドブルム": "Lindwurm",
+      "聖騎士": "Paladin",
+      "テンプラー": "Templar"
     },
   
     "unicode": {
@@ -25,14 +29,28 @@
       },
   
     "phrases": {
-    "シャドウガーデン": "Shadow Garden",
-    "ミドガル魔剣士学園": "Midgar Royal Spellsword Academy",
-    "ミドガル王国": "Midgar Kingdom",
-    "紅の騎士団":"Crimson Order",
-    "ディアボロス教団":"Cult of Diablos",
-    "三人の英雄":"Three Heroes",
-    "オリアナ王国":"Oriana Kingdom",
-    "ベガルタ帝国":"Velgalta Empire"
+      "アルテナ帝国": "Altena Empire",
+      "都市国家群": "City-State Alliance",
+      "紅の騎士団":"Crimson Order",
+      "ディアボロス教団":"Cult of Diablos",
+      "無法 都市": "Lawless City",
+      "無法都市": "Lawless City",
+      "大 商会 連合": "Major Corporate Alliance",
+      "大商会連合": "Major Corporate Alliance",
+      "魔剣士協会":"Magic Swordsmen Association",
+      "ミドガル魔剣士学園": "Midgar Royal Spellsword Academy",
+      "ミドガル王国": "Midgar Kingdom",
+      "ミツゴシ商会": "Mitsugoshi Company",
+      "オリアナ王国":"Oriana Kingdom",
+      "聖地":"Sacred Land",
+      "桜坂高等学校": "Sakurazaka High School",
+      "聖域": "Sanctuary",
+      "シャドウガーデン": "Shadow Garden",
+      "雪狐商会": "Snow Fox Corporation",
+      "ベガルタ帝国":"Velgalta Empire",
+      "ベガルタ七武剣": "Velgalta's Seven Blades",
+      "十三の夜剣": "Thirteen Night Swords",
+      "三人の英雄":"Three Heroes"
 
     },
     
@@ -67,30 +85,37 @@
     },
   
     "single_names": {
-    "Alpha": ["アルファ"],
-    "Beta": ["ベータ"],
-    "Gamma": ["ガンマ"],
-    "Delta": ["デルタ"],
-    "Epsilon": ["イプシロン"],
-    "Zeta": ["ゼータ"],
-    "Eta": ["イータ"],
-    "Nu": ["ニュー"],
-    "Victoria":["ウィクトーリア"],
-    "Fenrir":["フェンリル"],
-    "Aurora":["アウロラ"],
-    "Mordred":["モードレッド"]
+      "Alpha": ["アルファ"],
+      "Aurora":["アウロラ"],
+      "Beta": ["ベータ"],
+      "Delta": ["デルタ"],
+      "Epsilon": ["イプシロン"],
+      "Eta": ["イータ"],
+      "Fenrir":["フェンリル"],
+      "Gamma": ["ガンマ"],
+      "Glen": ["グレン"],
+      "Grant": ["グラント"],
+      "Margaret":["マーガレット"],
+      "Mordred":["モードレッド"],
+      "Nu": ["ニュー"],
+      "Victoria":["ウィクトーリア"],
+      "Zeta": ["ゼータ"]
     },
   
     "full_names": {
-    "Kagenō Cid": ["カゲノー", "シド"],
-    "Kagenō Claire": ["カゲノー", "クレア"],
-    "Mundane Mann": ["ジミナ","セーネン"],
-    "Barnett Sherry": ["バーネット","シェリー"],
-    "Midgar Alexia": ["ミドガル","アレクシア"],
-    "Midgar Iris": ["ミドガル","アイリス"],
-    "Oriana Rose": ["オリアナ","ローズ"],
-    "Asshat Perv": ["ケツハット","ドエム"],
-    "Nishino Akane": ["西野","アカネ"]
+      "Asshat Perv": ["ケツハット","ドエム"],
+      "Barnett Sherry": ["バーネット","シェリー"],
+      "Granger Marco": ["グランジャー","マルコ"],
+      "Midgar Alexia": ["ミドガル","アレクシア"],
+      "Kagenō Claire": ["カゲノー", "クレア"],
+      "Kagenō Cid": ["カゲノー", "シド"],
+      "Midgar Iris": ["ミドガル","アイリス"],
+      "Midgar Klaus": ["ミドガル","クラウス"],
+      "Mundane Mann": ["ジミナ","セーネン"],
+      "Nishino Akane": ["西野","アカネ"],
+      "Oriana Raphael": ["オリアナ","ラファエロ"],
+      "Oriana Reina": ["オリアナ","レイナ"],
+      "Oriana Rose": ["オリアナ","ローズ"]
     },
 
     "enhanced_check_whitelist": {

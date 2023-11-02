@@ -16,6 +16,8 @@
   
     "single_words": {
       "アレクサンドリア": "Alexandria",
+      "アーティファクト": "Artifact",
+      "獣人": "Beastman",
       "四つ葉": "Clovers",
       "ラワガス": "Laugus",
       "リンドブルム": "Lindwurm",
@@ -30,6 +32,7 @@
   
     "phrases": {
       "アルテナ帝国": "Altena Empire",
+      "黒キ薔薇": "Black Rose",
       "都市国家群": "City-State Alliance",
       "紅の騎士団":"Crimson Order",
       "ディアボロス教団":"Cult of Diablos",

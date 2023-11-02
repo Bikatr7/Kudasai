@@ -1,18 +1,19 @@
 {
 	"honorifics": {
-	  "さん": "san",
-	  "くん": "kun",
-	  "ちゃん": "chan",
-	  "せんぱい":  "senpai",
-	  "上": "ue",
-	  "氏": "shi",
-	  "君": "kun",
-	  "様": "sama",
-	  "先輩": "senpai",
-	  "後輩": "kōhai",
-	  "先生": "sensei",
-	  "殿": "dono"
-	},
+		"ちゃん": "chan",
+		"殿": "dono",
+		"くん": "kun",
+		"君": "kun",
+		"後輩": "kōhai",
+		"様": "sama",
+		"さん": "san",
+		"せんぱい": "senpai",
+		"先輩": "senpai",
+		"先生": "sensei",
+		"氏": "shi",
+		"上": "ue"
+	  },
+	
 
 	"single_words": {
 	  },

@@ -6,8 +6,9 @@ from models.Kairyou import Kairyou
 from models.Kaiseki import Kaiseki
 from models.Kijiku import Kijiku
 
-from modules.fileHandler import fileHandler
 from modules.toolkit import toolkit
+
+from handlers.fileHandler import fileHandler
 
 ##-------------------start-of-preloader---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -21,7 +21,7 @@ class fileHandler():
         Initializes the fileHandler class.\n
 
         Parameters:\n
-        self (object - fileHandler) : the fileHandler object.\n
+        None.\n
 
         Returns:\n
         None.\n

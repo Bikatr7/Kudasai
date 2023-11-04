@@ -98,6 +98,8 @@ Kijiku Rules.json
 ## KudasaiOutput
 KudasaiOutput/
 KudasaiOutput.zip
+
+## Visual Studio shit
 .vs/slnx.sqlite-journal
 .vs/slnx.sqlite
 .vs/ProjectSettings.json

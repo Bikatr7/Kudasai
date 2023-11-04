@@ -20,7 +20,7 @@ import spacy
 from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
 
 ## custom modules
-from modules.jsonHandler import jsonHandler
+from handlers.jsonHandler import jsonHandler
 
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from modules.preloader import preloader

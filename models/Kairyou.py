@@ -10,6 +10,8 @@ import time
 import spacy
 
 ## custom modules
+from handlers.katakanaHandler import katakanaHandler
+
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from modules.preloader import preloader
 
@@ -109,6 +111,10 @@ class Kairyou:
 
         ## large model for japanese NER (named entity recognition)
         self.ner = spacy.load("ja_core_news_lg") 
+
+        ## katakana handler for those pesky mofos
+        self.katakana_handler = katakanaHandler(self.preloader.katakana_words_path)
+
 
 ##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

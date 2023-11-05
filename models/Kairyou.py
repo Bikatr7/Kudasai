@@ -152,6 +152,7 @@ class Kairyou:
         
         time_start = time.time() 
 
+        ## for non-katakana replacements
         for rule in replacement_rules: 
 
             title, json_key, is_name, replace_name_param, honorific_type = rule 
@@ -166,6 +167,10 @@ class Kairyou:
 
                         current_name = Name(" ".join(jap), eng)
 
+                        ## katakana is replaced at the end
+                        if(self.katakana_handler.is_katakana_only(current_name.jap)):
+                            continue
+                        
                         self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
 
                 except Exception as E: 
@@ -176,6 +181,52 @@ class Kairyou:
             else: 
                 try:
                     for jap, eng in self.replacement_json[json_key].items(): 
+                        num_replacements = self.replace_single_word(jap, eng)
+
+                        if(num_replacements > 0):
+
+                            self.preprocessing_log += str(jap) + " → " + str(eng) + " : " + str(num_replacements) + "\n"
+
+
+                except Exception as E: 
+                    self.error_log += "Issue with the following key : " + json_key + "\n"
+                    self.error_log += "Error is as follows : " + str(E) 
+                    continue ## Go to the next iteration of the loop
+
+        ## for katakana names
+        for rule in replacement_rules: 
+
+            title, json_key, is_name, replace_name_param, honorific_type = rule 
+
+            if(is_name == True): 
+                
+                try:
+                    for eng, jap in self.replacement_json[json_key].items(): 
+
+                        if(isinstance(jap, list) == False):  ## makes jap entries into a list if not already
+                            jap = [jap]
+
+                        current_name = Name(" ".join(jap), eng)
+
+                        ## we don't replace not-katakana here, or if the katakana is an actual word
+                        if(not self.katakana_handler.is_katakana_only(current_name.jap) or jap in self.katakana_handler.katakana_words):
+                            continue
+                        
+                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
+
+                except Exception as E: 
+                    self.error_log += "Issue with the following key : " + json_key + "\n"
+                    self.error_log += "Error is as follows : " + str(E) 
+                    continue ## Go to the next iteration of the loop
+
+            else: 
+                try:
+                    for jap, eng in self.replacement_json[json_key].items():
+
+                        ## we don't replace not-katakana here, or if the katakana is an actual word
+                        if(not self.katakana_handler.is_katakana_only(jap) or jap in self.katakana_handler.katakana_words):
+                            continue
+
                         num_replacements = self.replace_single_word(jap, eng)
 
                         if(num_replacements > 0):

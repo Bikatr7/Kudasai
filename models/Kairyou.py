@@ -198,7 +198,7 @@ class Kairyou:
                         if(self.katakana_handler.is_katakana_only(current_name.jap)):
                             continue
                         
-                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
+                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, is_potential_name=True)
 
                 except Exception as E: 
                     self.error_log += "Issue with the following key : " + json_key + "\n"
@@ -208,7 +208,7 @@ class Kairyou:
             else: 
                 try:
                     for jap, eng in self.replacement_json[json_key].items(): 
-                        num_replacements = self.replace_single_word(jap, eng)
+                        num_replacements = self.replace_single_word(jap, eng, is_potential_name=False)
 
                         if(num_replacements > 0):
 
@@ -274,7 +274,7 @@ class Kairyou:
                 current_name, replace_name_param, honorific_type, json_key = entry
 
                 try:
-                    self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
+                    self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, is_potential_name=True, is_katakana=True)
                     
                 except Exception as E: 
                     self.error_log += "Issue with the following key : " + json_key + "\n"
@@ -285,7 +285,7 @@ class Kairyou:
                 jap, eng = entry
 
                 try:
-                    num_replacements = self.replace_single_word(jap, eng)
+                    num_replacements = self.replace_single_word(jap, eng, is_potential_name=False, is_katakana=True)
 
                     if(num_replacements > 0):
                         self.preprocessing_log += str(jap) + " → " + str(eng) + " : " + str(num_replacements) + "\n"
@@ -355,97 +355,126 @@ class Kairyou:
                 f'{japanese_names[-1]}', 
                 ReplacementType.LAST_NAME in honorific_type)
 
-##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict, json_key:str) -> None:
+    def replace_single_word(self, word:str, replacement:str, is_potential_name:bool, is_katakana:bool=False) -> int: 
 
         """
 
-        Replaces names in the japanese text based off of tuples returned by yield_name_replacements.\n
+        Replaces a single word in the Japanese text, with an additional check for Katakana words.
 
-        Parameters:\n
-        self (object - Kairyou) : the Kairyou object.\n
-        Name (object - Name)  : represents a japanese name along with its english equivalent.\n
-        replace_type  (object - ReplacementType) : how a name should be replaced.\n
-        honorific_type (object - ReplacementType) : how a honorific should be replaced.\n
-        replaced_names (dict - string) : a dict of replaced names and their occurrences.\n
+        Parameters:
+        self (object - Kairyou) : the Kairyou object.
+        word (string) : The word to be replaced.
+        replacement (string) : The replacement for the word.
+        is_katakana (bool) : Indicates if the word is in Katakana.
 
-        Returns:\n
-        None.\n
+        Returns:
+        num_occurrences (int) : The number of occurrences of the word replaced.
+
+        """
+            
+        num_occurrences = 0
+
+
+        if(is_katakana and self.katakana_handler.is_katakana_only(word)):
+            if(self.katakana_handler.is_actual_word(word)):
+
+                ## Skip replacement if it's an actual word.
+                return 0  
+            
+            else:
+
+                ## Use NER to ensure we're not replacing a proper name that's not in our list of Katakana words.
+                if(is_potential_name):
+                    self.perform_enhanced_replace(word, replacement)
+
+                else:
+                    num_occurrences = self.text_to_preprocess.count(word)
+                    if(num_occurrences > 0):
+                        self.text_to_preprocess = self.text_to_preprocess.replace(word, replacement)
+
+        else:
+            num_occurrences = self.text_to_preprocess.count(word)
+            if(num_occurrences > 0):
+                self.text_to_preprocess = self.text_to_preprocess.replace(word, replacement)
+        
+        self.total_replacements += num_occurrences
+
+        return num_occurrences
+        
+    ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict, is_potential_name:bool, is_katakana:bool=False) -> None:
+
+        """
+
+        Replaces names in the japanese text based off of tuples returned by yield_name_replacements.
+
+        Parameters:
+        self (object - Kairyou) : the Kairyou object.
+        Name (object - Name)  : represents a japanese name along with its english equivalent.
+        replace_type  (object - ReplacementType) : how a name should be replaced.
+        honorific_type (object - ReplacementType) : how a honorific should be replaced.
+        replaced_names (dict - string) : a dict of replaced names and their occurrences.
+        is_katakana (bool) : Indicates if the name is in Katakana.
+
+        Returns:
+        None.
 
         """
 
         for eng, jap, no_honor in self.yield_name_replacements(Name, replace_type, honorific_type):
             
-            ## if we have already replaced the current name, bail.
+            ## Skip the replacement if this name has already been processed.
             if(jap in replaced_names):
                 continue
 
             replacement_data = dict()
 
-            ## replaces honorifics
-            for honor, honorific_english in self.replacement_json['honorifics'].items(): 
-                replacement_data[honorific_english] = self.replace_single_word(
-                    f'{jap}{honor}',
-                    f'{eng}-{honorific_english}'
-                )
 
-            ## if name does not have honorific
-            if(no_honor == True): 
-
-                ## if name needs to be checked by spacy, i.e. user whitelist or single kanji
-                if(json_key == "enhanced_check_whitelist" or len(jap) == 1):
+            if(is_katakana and self.katakana_handler.is_katakana_only(jap)):
+                if(self.katakana_handler.is_actual_word(jap)):
+                    ## Skip replacement if it's an actual Katakana word.
+                    continue
+                else:
+                    ## Perform enhanced replacement check with NER
                     replacement_data['NA'] = self.perform_enhanced_replace(jap, eng)
 
-                else:
-                    replacement_data['NA'] = self.replace_single_word(jap, eng)
+            ## Process honorifics if necessary
+            if(not no_honor):
+                for honor, honorific_english in self.replacement_json['honorifics'].items(): 
+                    replacement_data[honorific_english] = self.replace_single_word(
+                        f'{jap}{honor}',
+                        f'{eng}-{honorific_english}',
+                        is_potential_name,
+                        is_katakana,
+                    )
 
+            ## If the name does not have honorific and isn't a known Katakana word, or we aren't checking for Katakana
+            if(no_honor or not is_katakana):
+                replacement_data['NA'] = self.replace_single_word(jap, eng, is_potential_name, is_katakana)
+
+            ## Sum the total replacements for this name
             total = sum(replacement_data.values())
 
             replaced_names[jap] = total
 
-            ## if no replacements happened skip display assembly.
+            ## If no replacements occurred, skip the logging
             if(total == 0): 
                 continue
 
+            ## Log the replacements
             self.preprocessing_log += f'{eng} : {total} ('
             self.preprocessing_log += ', '.join([f'{key}-{value}' for key, value in replacement_data.items() if value > 0]) + ')\n'  
-            
-##-------------------start-of-replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def replace_single_word(self, word:str, replacement:str) -> int: 
-
-        """
-
-        Replaces single a word in the Japanese text.\n
-
-        Parameters:\n
-        self (object - Kairyou) : the Kairyou object.\n
-        word (string) : word to be replaced.\n
-        replacement (string) : replacement for the word.\n
-
-        Returns:\n
-        num_occurrences (int) : number of occurrences for the word.\n
-
-        """
-            
-        num_occurrences = self.text_to_preprocess.count(word) 
-        
-        if(num_occurrences == 0): 
-            return 0 
-
-        self.text_to_preprocess = self.text_to_preprocess.replace(word, replacement) 
-        self.total_replacements += num_occurrences 
-
-        return num_occurrences
-    
 ##-------------------start-of-perform_enhanced_replace()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def perform_enhanced_replace(self, kanji:str, replacement:str) -> int: 
+    def perform_enhanced_replace(self,jap:str, replacement:str) -> int: 
 
         """
 
-        Uses ner (Named Entity Recognition) from the spacy module to replace names that need to be more carefully replace, such as single kanji or those placed in the user whitelist.\n
+        Uses ner (Named Entity Recognition) from the spacy module to replace names that need to be more carefully replaced, such as single kanji, katakana names, or those placed in the user whitelist.\n
 
         May miss true positives, but should not replace false positives.\n
 
@@ -465,12 +494,12 @@ class Kairyou:
         jap_lines = self.text_to_preprocess.split('\n')
 
         while(i < len(jap_lines)):
-            if(kanji in jap_lines[i]):
+            if(jap in jap_lines[i]):
 
                 sentence = self.ner(jap_lines[i])
 
                 for entity in sentence.ents:
-                    if(entity.text == kanji and entity.label_ == "PERSON"):
+                    if(entity.text == jap and entity.label_ == "PERSON"):
                         kanji_count += 1
                         jap_lines[i] = jap_lines[i][:entity.start_char] + replacement + jap_lines[i][entity.end_char:]
 

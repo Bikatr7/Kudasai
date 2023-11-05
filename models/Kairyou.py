@@ -149,7 +149,35 @@ class Kairyou:
     
         replaced_names = dict()
         
-        time_start = time.time() 
+        time_start = time.time()
+
+        self.replace_non_katakana(replacement_rules, replaced_names)
+        self.replace_katakana(replacement_rules, replaced_names)
+
+        time_end = time.time()
+
+        self.preloader.toolkit.clear_console()
+
+        self.preprocessing_log += "\nTotal Replacements  : " + str(self.total_replacements)
+        self.preprocessing_log += "\nTime Elapsed : " + self.preloader.toolkit.get_elapsed_time(time_start, time_end)
+
+##-------------------start-of-replace_non_katakana()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def replace_non_katakana(self, replacement_rules:list, replaced_names:dict):
+
+        """
+        
+        Handles non-katakana replacements.\n
+
+        Parameters:\n
+        self (object - Kairyou) : The Kairyou object.\n
+        replacement_rules (dict) : The rules to replace by.\n
+        replaced_names : Names we have replaced.\n
+
+        Returns:\n
+        None.\n
+
+        """
 
         ## for non-katakana replacements
         for rule in replacement_rules: 
@@ -192,19 +220,45 @@ class Kairyou:
                     self.error_log += "Error is as follows : " + str(E) 
                     continue ## Go to the next iteration of the loop
 
-        ## Sort and process katakana replacements
+##-------------------start-of-replace_katakana()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def replace_katakana(self, replacement_rules:list, replaced_names:dict):
+
+        """
+        
+        Handles katakana replacements.\n
+
+        Parameters:\n
+        self (object - Kairyou) : The Kairyou object.\n
+        replacement_rules (dict) : The rules to replace by.\n
+        replaced_names : Names we have replaced.\n
+
+        Returns:\n
+        None.\n
+
+        """
+
         katakana_entries = []
+
         for rule in replacement_rules: 
+
             title, json_key, is_name, replace_name_param, honorific_type = rule 
+
             if(is_name == True): 
+
                 for eng, jap in self.replacement_json[json_key].items(): 
+
                     if(isinstance(jap, list) == False):
                         jap = [jap]
+
                     current_name = Name(" ".join(jap), eng)
+
                     if(self.katakana_handler.is_katakana_only(current_name.jap) and not self.katakana_handler.is_actual_word(current_name.jap)):
                         katakana_entries.append((current_name, replace_name_param, honorific_type, json_key))
             else:
+
                 for jap, eng in self.replacement_json[json_key].items():
+
                     if(self.katakana_handler.is_katakana_only(jap) and not self.katakana_handler.is_actual_word(jap)):
                         katakana_entries.append((jap, eng))
 
@@ -213,33 +267,33 @@ class Kairyou:
 
         ## Replace katakana names and words
         for entry in katakana_entries:
-            if isinstance(entry[0], Name):
-                # Handling names
+
+            ## names
+            if(isinstance(entry[0], Name)):
+
                 current_name, replace_name_param, honorific_type, json_key = entry
+
                 try:
                     self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
+                    
                 except Exception as E: 
                     self.error_log += "Issue with the following key : " + json_key + "\n"
                     self.error_log += "Error is as follows : " + str(E) 
                     continue
             else:
-                # Handling non-names
+                ## Handling non-names
                 jap, eng = entry
+
                 try:
                     num_replacements = self.replace_single_word(jap, eng)
-                    if num_replacements > 0:
+
+                    if(num_replacements > 0):
                         self.preprocessing_log += str(jap) + " → " + str(eng) + " : " + str(num_replacements) + "\n"
+
                 except Exception as E:
                     self.error_log += "Issue with the word : " + jap + "\n"
                     self.error_log += "Error is as follows : " + str(E) 
                     continue
-
-        time_end = time.time()
-
-        self.preloader.toolkit.clear_console()
-
-        self.preprocessing_log += "\nTotal Replacements  : " + str(self.total_replacements)
-        self.preprocessing_log += "\nTime Elapsed : " + self.preloader.toolkit.get_elapsed_time(time_start, time_end)
 
 ##-------------------start-of-yield_name_replacements()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -266,11 +320,10 @@ class Kairyou:
         japanese_names = Name.jap.split(" ") 
         english_names = Name.eng.split(" ") 
         
-        ## if the lengths of the names don't match, the entire thing is fucked.
+        ## if the lengths of the names don't match, the entire Name is fucked.
         try:
-
-            if(self.katakana_handler.is_katakana_only(Name.jap) == False):
-                assert len(japanese_names) == len(english_names)
+        
+            assert len(japanese_names) == len(english_names)
 
         except AssertionError as e:
 

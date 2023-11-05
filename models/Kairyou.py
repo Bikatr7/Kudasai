@@ -115,9 +115,8 @@ class Kairyou:
         ## katakana handler for those pesky mofos
         self.katakana_handler = katakanaHandler(self.preloader.katakana_words_path)
 
-
 ##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     def preprocess(self) -> None: 
 
         """
@@ -138,16 +137,16 @@ class Kairyou:
 
         ## (title, json_key, is_name, replace_name, honorific_type)
         replacement_rules = [ 
-        ('Punctuation', 'kutouten', False, None, None), 
-        ('Unicode','unicode', False, None, None),
-        ('Enhanced Check Whitelist', 'enhanced_check_whitelist', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
-        ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),       
-        ('Single Names', 'single_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
-        ('Name Like', 'name_like', True, ReplacementType.ALL_NAMES, ReplacementType.NONE),
-        ('Phrases','phrases', False, None ,None),
-        ('Words','single_words', False, None, None),
+            ('Punctuation', 'kutouten', False, None, None), 
+            ('Unicode','unicode', False, None, None),
+            ('Enhanced Check Whitelist', 'enhanced_check_whitelist', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
+            ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),       
+            ('Single Names', 'single_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
+            ('Name Like', 'name_like', True, ReplacementType.ALL_NAMES, ReplacementType.NONE),
+            ('Phrases','phrases', False, None ,None),
+            ('Words','single_words', False, None, None),
         ]
- 
+    
         replaced_names = dict()
         
         time_start = time.time() 
@@ -193,51 +192,47 @@ class Kairyou:
                     self.error_log += "Error is as follows : " + str(E) 
                     continue ## Go to the next iteration of the loop
 
-        ## for katakana names
+        ## Sort and process katakana replacements
+        katakana_entries = []
         for rule in replacement_rules: 
-
             title, json_key, is_name, replace_name_param, honorific_type = rule 
-
             if(is_name == True): 
-                
+                for eng, jap in self.replacement_json[json_key].items(): 
+                    if(isinstance(jap, list) == False):
+                        jap = [jap]
+                    current_name = Name(" ".join(jap), eng)
+                    if(self.katakana_handler.is_katakana_only(current_name.jap) and not self.katakana_handler.is_actual_word(current_name.jap)):
+                        katakana_entries.append((current_name, replace_name_param, honorific_type, json_key))
+            else:
+                for jap, eng in self.replacement_json[json_key].items():
+                    if(self.katakana_handler.is_katakana_only(jap) and not self.katakana_handler.is_actual_word(jap)):
+                        katakana_entries.append((jap, eng))
+
+        ## Sort the katakana entries by the length of Japanese phrases in descending order
+        katakana_entries.sort(key=lambda entry: len(entry[0].jap if isinstance(entry[0], Name) else entry[0]), reverse=True)
+
+        ## Replace katakana names and words
+        for entry in katakana_entries:
+            if isinstance(entry[0], Name):
+                # Handling names
+                current_name, replace_name_param, honorific_type, json_key = entry
                 try:
-                    for eng, jap in self.replacement_json[json_key].items(): 
-
-                        if(isinstance(jap, list) == False):  ## makes jap entries into a list if not already
-                            jap = [jap]
-
-                        current_name = Name(" ".join(jap), eng)
-
-                        ## we don't replace not-katakana here, or if the katakana is an actual word
-                        if(not self.katakana_handler.is_katakana_only(current_name.jap) or jap in self.katakana_handler.katakana_words):
-                            continue
-                        
-                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
-
+                    self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key)
                 except Exception as E: 
                     self.error_log += "Issue with the following key : " + json_key + "\n"
                     self.error_log += "Error is as follows : " + str(E) 
-                    continue ## Go to the next iteration of the loop
-
-            else: 
+                    continue
+            else:
+                # Handling non-names
+                jap, eng = entry
                 try:
-                    for jap, eng in self.replacement_json[json_key].items():
-
-                        ## we don't replace not-katakana here, or if the katakana is an actual word
-                        if(not self.katakana_handler.is_katakana_only(jap) or jap in self.katakana_handler.katakana_words):
-                            continue
-
-                        num_replacements = self.replace_single_word(jap, eng)
-
-                        if(num_replacements > 0):
-
-                            self.preprocessing_log += str(jap) + " → " + str(eng) + " : " + str(num_replacements) + "\n"
-
-
-                except Exception as E: 
-                    self.error_log += "Issue with the following key : " + json_key + "\n"
+                    num_replacements = self.replace_single_word(jap, eng)
+                    if num_replacements > 0:
+                        self.preprocessing_log += str(jap) + " → " + str(eng) + " : " + str(num_replacements) + "\n"
+                except Exception as E:
+                    self.error_log += "Issue with the word : " + jap + "\n"
                     self.error_log += "Error is as follows : " + str(E) 
-                    continue ## Go to the next iteration of the loop
+                    continue
 
         time_end = time.time()
 
@@ -245,6 +240,67 @@ class Kairyou:
 
         self.preprocessing_log += "\nTotal Replacements  : " + str(self.total_replacements)
         self.preprocessing_log += "\nTime Elapsed : " + self.preloader.toolkit.get_elapsed_time(time_start, time_end)
+
+##-------------------start-of-yield_name_replacements()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def yield_name_replacements(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType) -> typing.Generator[tuple[str, str, bool], None, None]:
+
+        
+        """
+
+        Generates tuples of English and Japanese names to be replaced, along with a boolean indicating whether honorifics should be kept or removed.\n
+
+        Parameters:\n
+        self (object - Kairyou) : the Kairyou object.\n
+        Name (object - Name) : represents a japanese name along with its english equivalent.\n
+        replace_type  (object - ReplacementType) : how a name should be replaced.\n
+        honorific_type (object - ReplacementType) : how a honorific_type should be replaced.\n
+
+        Returns:\n
+        tuple (string, string, bool) : tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed.\n
+        
+        tuple is wrapped in a generator along with two None values. No, I don't know why.\n
+
+        """
+        
+        japanese_names = Name.jap.split(" ") 
+        english_names = Name.eng.split(" ") 
+        
+        ## if the lengths of the names don't match, the entire thing is fucked.
+        try:
+
+            if(self.katakana_handler.is_katakana_only(Name.jap) == False):
+                assert len(japanese_names) == len(english_names)
+
+        except AssertionError as e:
+
+            print("Name lengths do not match for : ") 
+            print(Name) 
+            print("\nPlease correct Name discrepancy in JSON\n")
+
+            self.preloader.toolkit.pause_console()
+            
+            raise e
+        
+        if(ReplacementType.FULL_NAME in replace_type):
+            indices = range(len(japanese_names)) 
+            combinations = itertools.chain(*(itertools.combinations(indices, i) for i in range(2, len(indices)+1))) ## create a chain of combinations of indices, starting with combinations of length 2 up to the length of indices
+            
+            for comb in combinations:  
+                for separator in self.JAPANESE_NAME_SEPARATORS: 
+                    yield (" ".join(map(lambda i: english_names[i], comb)), 
+                        separator.join(map(lambda i: japanese_names[i], comb)), 
+                        ReplacementType.FULL_NAME in honorific_type) 
+        
+        if(ReplacementType.FIRST_NAME in replace_type): 
+            yield (english_names[0], 
+                f'{japanese_names[0]}',
+                ReplacementType.FIRST_NAME in honorific_type) #
+            
+        if(ReplacementType.LAST_NAME in replace_type): 
+            yield (english_names[-1],  
+                f'{japanese_names[-1]}', 
+                ReplacementType.LAST_NAME in honorific_type)
 
 ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -300,67 +356,7 @@ class Kairyou:
                 continue
 
             self.preprocessing_log += f'{eng} : {total} ('
-            self.preprocessing_log += ', '.join([f'{key}-{value}' for key, value in replacement_data.items() if value > 0]) + ')\n'
-
-##-------------------start-of-yield_name_replacements()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def yield_name_replacements(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType) -> typing.Generator[tuple[str, str, bool], None, None]:
-
-        
-        """
-
-        Generates tuples of English and Japanese names to be replaced, along with a boolean indicating whether honorifics should be kept or removed.\n
-
-        Parameters:\n
-        self (object - Kairyou) : the Kairyou object.\n
-        Name (object - Name) : represents a japanese name along with its english equivalent.\n
-        replace_type  (object - ReplacementType) : how a name should be replaced.\n
-        honorific_type (object - ReplacementType) : how a honorific_type should be replaced.\n
-
-        Returns:\n
-        tuple (string, string, bool) : tuple containing the japanese name, english name, and a boolean indicating whether honorifics should be kept or removed.\n
-        
-        tuple is wrapped in a generator along with two None values. No, I don't know why.\n
-
-        """
-        
-        japanese_names = Name.jap.split(" ") 
-        english_names = Name.eng.split(" ") 
-        
-        ## if the lengths of the names don't match, the entire thing is fucked.
-        try:
-
-            assert len(japanese_names) == len(english_names)
-
-        except AssertionError as e:
-
-            print("Name lengths do not match for : ") 
-            print(Name) 
-            print("\nPlease correct Name discrepancy in JSON\n")
-
-            self.preloader.toolkit.pause_console()
-            
-            raise e
-        
-        if(ReplacementType.FULL_NAME in replace_type):
-            indices = range(len(japanese_names)) 
-            combinations = itertools.chain(*(itertools.combinations(indices, i) for i in range(2, len(indices)+1))) ## create a chain of combinations of indices, starting with combinations of length 2 up to the length of indices
-            
-            for comb in combinations:  
-                for separator in self.JAPANESE_NAME_SEPARATORS: 
-                    yield (" ".join(map(lambda i: english_names[i], comb)), 
-                        separator.join(map(lambda i: japanese_names[i], comb)), 
-                        ReplacementType.FULL_NAME in honorific_type) 
-        
-        if(ReplacementType.FIRST_NAME in replace_type): 
-            yield (english_names[0], 
-                f'{japanese_names[0]}',
-                ReplacementType.FIRST_NAME in honorific_type) #
-            
-        if(ReplacementType.LAST_NAME in replace_type): 
-            yield (english_names[-1],  
-                f'{japanese_names[-1]}', 
-                ReplacementType.LAST_NAME in honorific_type)  
+            self.preprocessing_log += ', '.join([f'{key}-{value}' for key, value in replacement_data.items() if value > 0]) + ')\n'  
             
 ##-------------------start-of-replace_single_word()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

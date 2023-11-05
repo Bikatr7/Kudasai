@@ -75,7 +75,7 @@ class katakanaHandler:
 
 ##--------------------start-of-get_katakana_entities()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def get_katakana_entities(self, names: dict) -> typing.List[Name]:
+    def get_katakana_entities(self, names:dict) -> typing.List[Name]:
 
         """
 
@@ -90,3 +90,26 @@ class katakanaHandler:
         """
 
         return [Name(jap=j, eng=e) for e, j in names.items() if self.is_katakana_only(j)]
+    
+##--------------------start-of-is_actual_word()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def is_actual_word(self, jap:str) -> bool:
+
+        """
+        
+
+        Checks if the given jap is an actual katakana word.\n
+
+        Parameters:\n
+        self (object - katakanaHandler) : the katakanaHandler object
+
+        Returns:
+        bool : True if the word is an actual katakana word, False otherwise.\n
+
+        """
+
+        if(jap in self.katakana_words):
+            return True
+        
+        else:
+            return False

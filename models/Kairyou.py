@@ -198,7 +198,7 @@ class Kairyou:
                         if(self.katakana_handler.is_katakana_only(current_name.jap)):
                             continue
                         
-                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, is_potential_name=True)
+                        self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key, is_potential_name=True, is_katakana=False)
 
                 except Exception as E: 
                     self.error_log += "Issue with the following key : " + json_key + "\n"
@@ -274,7 +274,7 @@ class Kairyou:
                 current_name, replace_name_param, honorific_type, json_key = entry
 
                 try:
-                    self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, is_potential_name=True, is_katakana=True)
+                    self.replace_name(current_name, replace_name_param, honorific_type, replaced_names, json_key, is_potential_name=True, is_katakana=True)
                     
                 except Exception as E: 
                     self.error_log += "Issue with the following key : " + json_key + "\n"
@@ -348,7 +348,7 @@ class Kairyou:
         if(ReplacementType.FIRST_NAME in replace_type): 
             yield (english_names[0], 
                 f'{japanese_names[0]}',
-                ReplacementType.FIRST_NAME in honorific_type) #
+                ReplacementType.FIRST_NAME in honorific_type)
             
         if(ReplacementType.LAST_NAME in replace_type): 
             yield (english_names[-1],  
@@ -377,7 +377,7 @@ class Kairyou:
         num_occurrences = 0
 
 
-        if(is_katakana and self.katakana_handler.is_katakana_only(word)):
+        if(is_katakana):
             if(self.katakana_handler.is_actual_word(word)):
 
                 ## Skip replacement if it's an actual word.
@@ -405,7 +405,7 @@ class Kairyou:
         
     ##-------------------start-of-replace_name()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict, is_potential_name:bool, is_katakana:bool=False) -> None:
+    def replace_name(self, Name:Name, replace_type:ReplacementType, honorific_type:ReplacementType, replaced_names:dict, json_key:str, is_potential_name:bool, is_katakana:bool) -> None:
 
         """
 
@@ -432,28 +432,31 @@ class Kairyou:
 
             replacement_data = dict()
 
+            ## Process honorifics if necessary
+            for honor, honorific_english in self.replacement_json['honorifics'].items(): 
+                replacement_data[honorific_english] = self.replace_single_word(
+                    f'{jap}{honor}',
+                    f'{eng}-{honorific_english}',
+                    ## if honorifics, don't worry about additonal checking
+                    is_potential_name=False,
+                    is_katakana=False,
+                )
 
-            if(is_katakana and self.katakana_handler.is_katakana_only(jap)):
+            if(is_katakana):
                 if(self.katakana_handler.is_actual_word(jap)):
                     ## Skip replacement if it's an actual Katakana word.
                     continue
                 else:
-                    ## Perform enhanced replacement check with NER
+                    ## Perform enhanced replacement check with NER 
                     replacement_data['NA'] = self.perform_enhanced_replace(jap, eng)
 
-            ## Process honorifics if necessary
-            if(not no_honor):
-                for honor, honorific_english in self.replacement_json['honorifics'].items(): 
-                    replacement_data[honorific_english] = self.replace_single_word(
-                        f'{jap}{honor}',
-                        f'{eng}-{honorific_english}',
-                        is_potential_name,
-                        is_katakana,
-                    )
-
             ## If the name does not have honorific and isn't a known Katakana word, or we aren't checking for Katakana
-            if(no_honor or not is_katakana):
-                replacement_data['NA'] = self.replace_single_word(jap, eng, is_potential_name, is_katakana)
+            if(no_honor):
+                if(json_key == "enhanced_check_whitelist" or len(jap) == 1):
+                    replacement_data['NA'] = self.perform_enhanced_replace(jap, eng)
+
+                else:
+                    replacement_data['NA'] = self.replace_single_word(jap, eng, is_potential_name, is_katakana)
 
             ## Sum the total replacements for this name
             total = sum(replacement_data.values())

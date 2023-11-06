@@ -1,12 +1,44 @@
 ## built-in libraries
 from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
 
+import string
 import typing
 
 ## custom modules
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from models.Kairyou import Name
 
+## https://en.wikipedia.org/wiki/Katakana_(Unicode_block)
+KATAKANA_CHARSET = {
+'゠','ァ','ア','ィ','イ','ゥ','ウ','ェ','エ','ォ','オ','カ','ガ','キ','ギ','ク',
+'グ','ケ','ゲ','コ','ゴ','サ','ザ','シ','ジ','ス','ズ','セ','ゼ','ソ','ゾ','タ',
+'ダ','チ','ヂ','ッ','ツ','ヅ','テ','デ','ト','ド','ナ','ニ','ヌ','ネ','ノ','ハ',
+'バ','パ','ヒ','ビ','ピ','フ','ブ','プ','ヘ','ベ','ペ','ホ','ボ','ポ','マ','ミ',
+'ム','メ','モ','ャ','ヤ','ュ','ユ','ョ','ヨ','ラ','リ','ル','レ','ロ','ヮ','ワ',
+'ヰ','ヱ','ヲ','ン','ヴ','ヵ','ヶ','ヷ','ヸ','ヹ','ヺ','・','ー','ヽ','ヾ'
+}
+
+## Punctuation unicode ranges:
+## https://kairozu.github.io/updates/cleaning-jp-text
+PUNCTUATION_CHARSET = {
+'　','、','。','〃','〄','々','〆','〇','〈','〉','《','》','「','」','『','』',
+'【','】','〒','〓','〔','〕','〖','〗','〘','〙','〚','〛','〜','〝','〞','〟',
+'〠','〡','〢','〣','〤','〥','〦','〧','〨','〩','〪','〫','〬','〭','〮','〯',
+'〰','〱','〲','〳','〴','〵','〶','〷','〸','〹','〺','〻','〼','〽','〾','〿',
+'！','＂','＃','＄','％','＆','＇','（','）','＊','＋','，','－','．','／','：',
+'；','＜','＝','＞','？','［','＼','］','＾','＿','｀','｛','｜','｝','～','｟',
+'｠','｡','｢','｣','､','･','ー','※',' ',' ',' ',' ',
+' ',' ',' ',' ',' ',' ',' ',
+'​','‌','‍','‎','‏','‐','‑','‒','–','—',
+'―','‖','‗','‘','’','‚','‛','“','”','„','‟','†','‡','•','‣','․','‥','…','‧',
+' ',' ','‪','‫','‬','‭','‮',
+' ','‰','‱','′','″','‴','‵','‶','‷','‸','‹','›','※','‼','‽','‾','‿',
+'⁀','⁁','⁂','⁃','⁄','⁅','⁆','⁇','⁈','⁉','⁊','⁋','⁌','⁍','⁎','⁏','⁐','⁑','⁒',
+'⁓','⁔','⁕','⁖','⁗','⁘','⁙','⁚','⁛','⁜','⁝','⁞',' ','⁠',
+'⁦','⁧','⁨','⁩','«','»','×',"△","▼"
+} | set(string.punctuation) ## EN punctuation set
+
+##--------------------start-of-katakanaHandler------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class katakanaHandler:
 
@@ -56,22 +88,22 @@ class katakanaHandler:
 
 ##--------------------start-of-is_katakana_only()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def is_katakana_only(self, word:str) -> bool:
+    def is_katakana_only(self, string:str) -> bool:
 
         """
 
-        Checks if the word is only katakana.\n
+        Checks if the string is only katakana.\n
         
         Parameters:\n
         self (object - katakanaHandler) : the katakanaHandler object.\n
-        word (str) : the word to check.\n
+        string (str) : the string to check.\n
 
         Returns:\n
         bool : True if the word is only katakana, False otherwise.\n
 
         """
 
-        return all('ァ' <= char <= 'ヴ' or char == 'ー' for char in word)
+        return all([char in KATAKANA_CHARSET for char in string])
 
 ##--------------------start-of-get_katakana_entities()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -97,14 +129,14 @@ class katakanaHandler:
 
         """
         
-
-        Checks if the given jap is an actual katakana word.\n
+        Checks if the given jap is an actual katakana word.
 
         Parameters:\n
-        self (object - katakanaHandler) : the katakanaHandler object
-
+        self (object - katakanaHandler) : the katakanaHandler object.
+        jap (str) : the katakana word to check.
+ 
         Returns:
-        bool : True if the word is an actual katakana word, False otherwise.\n
+        bool : True if the word is an actual katakana word, False otherwise.
 
         """
 
@@ -113,3 +145,22 @@ class katakanaHandler:
         
         else:
             return False
+        
+##--------------------start-of-is_punctuation()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def is_punctuation(self, string):
+
+        """
+        
+        Checks if the given string is all punctuation.
+
+        Parameters:
+        self (object - katakanaHandler) : the katakanaHandler object.
+        string (str) : the string to check.
+
+        Returns:
+        bool : True if the word is all punc otherwise false
+
+        """
+
+        return all([char in PUNCTUATION_CHARSET for char in string])

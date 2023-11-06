@@ -6,11 +6,10 @@ import itertools
 import typing
 import time
 
-## third-party libraries
-import spacy
-
 ## custom modules
 from handlers.katakanaHandler import katakanaHandler
+
+from handlers.sudachiHandler import sudachiHandler
 
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from modules.preloader import preloader
@@ -72,7 +71,7 @@ class Kairyou:
 
 ##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, inc_replacement_json:dict, inc_text_to_preprocess:str, inc_preloader:preloader) -> None: 
+    def __init__(self, inc_replacement_json:dict, inc_text_to_preprocess:str, inc_preloader:preloader, json_name:str) -> None: 
 
         """
         
@@ -90,6 +89,12 @@ class Kairyou:
 
         ## The preloader object.
         self.preloader = inc_preloader
+
+        ## katakana handler for those pesky mofos
+        self.katakana_handler = katakanaHandler(self.preloader.katakana_words_path)
+
+        ## The sudachi handler object.
+        self.sudachi_handler = sudachiHandler(inc_replacement_json, self.preloader, self.katakana_handler)
 
         ## The dictionary containing the rules for preprocessing.
         self.replacement_json = inc_replacement_json
@@ -109,11 +114,11 @@ class Kairyou:
         ## How japanese names are separated in the japanese text
         self.JAPANESE_NAME_SEPARATORS = ["・", ""] 
 
-        ## large model for japanese NER (named entity recognition)
-        self.ner = spacy.load("ja_core_news_lg") 
+        ##------------------------/
 
-        ## katakana handler for those pesky mofos
-        self.katakana_handler = katakanaHandler(self.preloader.katakana_words_path)
+        self.sudachi_handler.prepare_sudachi(json_name)
+
+        self.ner = self.sudachi_handler.assemble_nlp_object()
 
 ##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -139,12 +144,12 @@ class Kairyou:
         replacement_rules = [ 
             ('Punctuation', 'kutouten', False, None, None), 
             ('Unicode','unicode', False, None, None),
+            ('Phrases','phrases', False, None ,None),
+            ('Words','single_words', False, None, None),
             ('Enhanced Check Whitelist', 'enhanced_check_whitelist', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
             ('Full Names', 'full_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),       
             ('Single Names', 'single_names', True, ReplacementType.ALL_NAMES, ReplacementType.ALL_NAMES),
             ('Name Like', 'name_like', True, ReplacementType.ALL_NAMES, ReplacementType.NONE),
-            ('Phrases','phrases', False, None ,None),
-            ('Words','single_words', False, None, None),
         ]
     
         replaced_names = dict()

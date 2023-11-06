@@ -14,7 +14,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -105,3 +104,8 @@ KudasaiOutput.zip
 .vs/ProjectSettings.json
 .vs/VSWorkspaceState.json
 .vs/Kudasai/v17/.wsuo
+lib/dicts/TEIS Replacements.json_sudachi_dict.dic
+lib/dicts/TEIS Replacements.json_sudachi_dict.csv
+lib/dicts/Cote Replacements.json_sudachi_dict.dic
+lib/dicts/Cote Replacements.json_sudachi_dict.csv
+lib/dicts/system.dic

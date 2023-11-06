@@ -68,7 +68,7 @@ class Kudasai:
 
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def setup_kairyou_for_cli(self, input_file, replacement_json) -> None:
+    def setup_kairyou_for_cli(self, input_file, replacement_json_path) -> None:
 
         """
         
@@ -86,7 +86,7 @@ class Kudasai:
 
         try:
 
-            with open(replacement_json, 'r', encoding='utf-8') as file: 
+            with open(replacement_json_path, 'r', encoding='utf-8') as file: 
                 replacement_json = json.load(file) 
     
         except:
@@ -98,11 +98,16 @@ class Kudasai:
 
             exit()
 
+        ## get name of json file
+        ## Example "86 Replacements.json" would return 86
+        name_of_replacement_json = os.path.basename(replacement_json_path)        
+
+
 
         with open(input_file, 'r', encoding='utf-8') as file: 
             japanese_text = file.read()
         
-        self.kairyou_client = Kairyou(replacement_json, japanese_text, self.preloader)
+        self.kairyou_client = Kairyou(replacement_json, japanese_text, self.preloader, name_of_replacement_json)
 
 ##-------------------start-of-setup_kairyou_for_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -126,13 +131,13 @@ class Kudasai:
 
         self.preloader.toolkit.clear_console()
 
-        replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
+        replacement_json_path = input("Please enter the path to the replacement json file:\n").strip('"')
 
         self.preloader.toolkit.clear_console()
 
         try:
 
-            with open(replacement_json, 'r', encoding='utf-8') as file: 
+            with open(replacement_json_path, 'r', encoding='utf-8') as file: 
                 replacement_json = json.load(file) 
     
         except:
@@ -148,7 +153,7 @@ class Kudasai:
         with open(input_file, 'r', encoding='utf-8') as file: 
             japanese_text = file.read()
         
-        self.kairyou_client = Kairyou(replacement_json, japanese_text, self.preloader)
+        self.kairyou_client = Kairyou(replacement_json, japanese_text, self.preloader, os.path.basename(replacement_json_path))
 
 ##-------------------start-of-run_kudasai_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -158,6 +158,8 @@ class sudachiHandler:
             with ZipFile(self.preloader.system_zip, 'r') as zip_ref:
                 zip_ref.extractall(self.preloader.dic_lib)
 
+            os.remove(self.preloader.system_zip)
+
             sleep(.1)
                 
 ##--------------------start-of-prepare_sudachi()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

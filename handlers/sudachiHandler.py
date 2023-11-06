@@ -75,54 +75,30 @@ class CustomSudachiTokenizer():
 
         self.katakana_handler = katakana_handler
 
-    def __call__(self, text:str):
-        # Tokenize the text into words and parts of speech
-        words = self.tokenize(text)
-        # Create a list of token texts
-        words_texts = [word.text for word in words]
-        # Create a Doc object from the list of token texts and the original text
-        doc = Doc(self.vocab, words=words_texts, spaces=[False]*len(words_texts))
+
+    def __call__(self, text):
+        # Tokenize the text using SudachiPy
+        sudachi_tokens = self.sudachi.tokenize(tokenizer.Tokenizer.SplitMode.C, text)
+        
+        # Create lists for the words, spaces, POS tags, and other morphological features
+        words = []
+        spaces = []
+        pos_tags = []
+        morphs = []
+
+        for token in sudachi_tokens:
+            words.append(token.surface())
+            pos_tags.append(token.part_of_speech())
+            # You can add custom logic to determine if the token is followed by a space
+            spaces.append(True)  # Simplified assumption
+            # You might want to convert Sudachi's POS and inflection to spaCy's format
+            morph = self.vocab.morphology.add(pos_tags[-1])
+            morphs.append(morph)
+
+        # Create a Doc object with the words, spaces, and morphological information
+        doc = Doc(self.vocab, words=words, spaces=spaces).from_array(["POS", "MORPH"], [pos_tags, morphs])
+        
         return doc
-
-##--------------------start-of-__call__()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def tokenize(self, text:str) -> typing.List[Word]:
-        word_list = []
-        tagged_words = self.sudachi.tokenize(text)
-
-        for word in tagged_words:
-            word_text = word.surface()
-
-            # TODO: Add an explanation of the part_of_speech_tuple tuple
-            part_of_speech_tuple = word.part_of_speech()
-            part_of_speech = part_of_speech_tuple[0]
-
-            class PartOfSpeech(str, Enum): 
-                NOUN = "名詞"
-                PROPER_NOUN = "固有名詞"
-                PUNCTUATION = "補助記号"
-                WHITESPACE = "空白"
-
-            class Word(typing.NamedTuple):
-                text:str
-                part_of_speech:str
-
-            # Some tokenizers (Sudachi, Nagisa) tend to mistag long strings of punctuation
-                PUNCTUATION = "補助記号"
-                WHITESPACE = "空白"
-
-            # Some tokenizers (Sudachi, Nagisa) tend to mistag long
-            # strings of punctuation
-            if part_of_speech != PartOfSpeech.PUNCTUATION and \
-               self.katakana_handler.is_punctuation(word_text):
-               part_of_speech = PartOfSpeech.PUNCTUATION
-            # Prefer the more specific proper noun pos tag when available,
-            # as it enables more accurate single kanji replacement
-            elif part_of_speech_tuple[0] == PartOfSpeech.NOUN and \
-                 part_of_speech_tuple[1] == PartOfSpeech.PROPER_NOUN:
-                part_of_speech = part_of_speech_tuple[1]
-            word_list.append(Word(word_text, part_of_speech))
-        return word_list
     
 ##--------------------start-of-sudachiHandler------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

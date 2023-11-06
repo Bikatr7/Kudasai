@@ -6,6 +6,9 @@ import itertools
 import typing
 import time
 
+## third-party libraries
+import spacy
+
 ## custom modules
 from handlers.katakanaHandler import katakanaHandler
 
@@ -116,9 +119,7 @@ class Kairyou:
 
         ##------------------------/
 
-        self.sudachi_handler.prepare_sudachi(json_name)
-
-        self.ner = self.sudachi_handler.assemble_nlp_object()
+        self.ner = spacy.load("ja_core_news_lg")
 
 ##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

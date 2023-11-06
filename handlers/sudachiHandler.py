@@ -1,11 +1,13 @@
 ## built-in imports
 from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
 from enum import Enum
+from zipfile import ZipFile
+from tempfile import NamedTemporaryFile
+from time import sleep
 
 import os
 import csv
 import subprocess
-from tempfile import NamedTemporaryFile
 import typing
 import json
 
@@ -151,6 +153,13 @@ class sudachiHandler:
 
         self.katakana_handler = inc_katakana_handler
 
+        if(os.path.exists(self.preloader.sudachi_system_dic) == False):
+
+            with ZipFile(self.preloader.system_zip, 'r') as zip_ref:
+                zip_ref.extractall(self.preloader.dic_lib)
+
+            sleep(.1)
+                
 ##--------------------start-of-prepare_sudachi()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def prepare_sudachi(self, name_of_replacement_json:str) -> None:

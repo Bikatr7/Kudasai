@@ -1,8 +1,16 @@
 ## built-in modules
+from pathlib import Path
+
 import sys
 import os
-import time
 import typing
+
+## Calculates the path to the modules directory and add it to sys.path
+current_dir = Path(__file__).resolve().parent
+parent_dir = current_dir.parent
+
+## Add the parent directory to sys.path so 'modules' can be found
+sys.path.append(str(parent_dir))
 
 ## custom modules
 from modules.toolkit import Toolkit
@@ -51,7 +59,7 @@ class TokenCounter:
 
         return num_characters
 
-##-------------------start-of-alculate_min_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-calculate_min_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def calculate_min_cost(self) -> typing.Tuple[int, float]:
 

@@ -1,48 +1,25 @@
 ## built-in modules
 import os
-import msvcrt
-import requests
 import typing
 
-class toolkit():
+class Toolkit():
 
     """
     
-    The class for a bunch of utility functions used throughout Kudasai.\n
+    The class for a bunch of utility functions used throughout Kudasai.
 
     """
 
-##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def __init__(self) -> None:
-
-        """
-        
-        Constructor for the toolkit class.\n
-
-        Parameters:\n
-        None.\n
-
-        Returns:\n
-        None.\n
-
-        """
-
-        self.CURRENT_VERSION = "v2.1.3" 
+    CURRENT_VERSION = "v2.1.3" 
 
 ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def clear_console(self) -> None:
+    @staticmethod
+    def clear_console() -> None:
 
         """
 
-        clears the console\n
-
-        Parameters:\n
-        self (object - toolkit) : the toolkit object.\n
-
-        Returns:\n
-        None.\n
+        Clears the console.
 
         """
 
@@ -50,61 +27,68 @@ class toolkit():
 
 ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def pause_console(self, message:str="Press any key to continue...") -> None:
+    @staticmethod
+    def pause_console(message:str="Press any key to continue...") -> None:
 
         """
 
-        Pauses the console.\n
+        Pauses the console.
+        Requires msvcrt on Windows and termios on Linux, will do nothing if neither are present.
 
-        Parameters:\n
-        self (object - toolkit) : the toolkit object.\n
-        message (str | optional) : the message that will be displayed when the console is paused.\n
-
-        Returns:\n
-        None.\n
+        Parameters:
+        message (string | optional) : The custom message to be displayed to the user.
 
         """
 
-        print(message)  ## Print the custom message
+
+        print(message)
+
+        try:
         
-        ## Windows
-        if(os.name == 'nt'): 
-            
-            msvcrt.getch() 
+            ## Windows
+            if(os.name == 'nt'): 
 
-        ## Linux, No idea if any of this works lmao
-        else:  
+                import msvcrt
+                
+                msvcrt.getch() 
 
-            import termios
+            ## Linux
+            else:  
 
-            ## Save terminal settings
-            old_settings = termios.tcgetattr(0)
+                import termios
 
-            try:
-                new_settings = termios.tcgetattr(0)
-                new_settings[3] = new_settings[3] & ~termios.ICANON
-                termios.tcsetattr(0, termios.TCSANOW, new_settings)
-                os.read(0, 1)  ## Wait for any key press
+                ## Save terminal settings
+                old_settings = termios.tcgetattr(0)
 
-            finally:
+                try:
+                    new_settings = termios.tcgetattr(0)
+                    new_settings[3] = new_settings[3] & ~termios.ICANON
+                    termios.tcsetattr(0, termios.TCSANOW, new_settings)
+                    os.read(0, 1)  ## Wait for any key press
 
-                termios.tcsetattr(0, termios.TCSANOW, old_settings)
+                finally:
+
+                    termios.tcsetattr(0, termios.TCSANOW, old_settings)
+
+        except ImportError:
+
+            pass
 
 ##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def get_elapsed_time(self, start:float, end:float) -> str:
+    @staticmethod
+    def get_elapsed_time(start:float, end:float) -> str:
 
         """
 
-        Calculates elapsed time with an offset.\n
+        Calculates elapsed time with an offset.
 
-        Parameters:\n
-        self (object - toolkit)  the toolkit object.\n
-        start (float) : start time.\n
-        end (float) : end time.\n
+        Parameters:
+        start (float) : Start time.
+        end (float) : End time.
 
-        Returns:\n
-        print_value (string): elapsed time with the offset.\n
+        Returns:
+        print_value (string): The elapsed time in a human-readable format.
 
         """
 
@@ -123,18 +107,17 @@ class toolkit():
 
 ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def check_update(self) -> typing.Tuple[bool,str]:
+    @staticmethod
+    def check_update() -> typing.Tuple[bool,str]:
 
         """
 
-        Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.\n
+        Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.
+        If requests is not installed, it will return is_connection as False.
 
-        Parameters:\n
-        self (object - toolkit) : the toolkit object.\n
-
-        Returns:\n
-        is_connection (bool) : whether or not the user has an internet connection.\n
-        update_prompt (str) : the update prompt to be displayed to the user, can either be blank if there is no update or contain the update prompt if there is an update.\n
+        Returns:
+        is_connection (bool) : Whether or not the user has an internet connection.
+        update_prompt (str) : The update prompt to be displayed to the user, can either be blank if there is no update or contain the update prompt if there is an update.
 
         """
 
@@ -142,13 +125,15 @@ class toolkit():
         is_connection = True
         
         try:
+
+            import requests
         
-            response = requests.get("https://api.github.com/repos/Seinuve/Kudasai/releases/latest")
+            response = requests.get("https://api.github.com/repos/Bikatr7/Kudasai/releases/latest")
             latest_version = response.json()["tag_name"]
             release_notes = response.json()["body"]
 
-            if(latest_version != self.CURRENT_VERSION):
-                update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Seinuve/Kudasai/releases/latest \n"
+            if(latest_version != Toolkit.CURRENT_VERSION):
+                update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
             
                 if(release_notes):
                     update_prompt += "\nRelease notes:\n\n" + release_notes + '\n'

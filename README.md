@@ -10,7 +10,6 @@
 - [Kaiseki](#kaiseki)
 - [Kijiku](#kijiku)
 - [Kijiku Settings](#kijiku-settings)
-- [GUI](#gui)
 - [License](#license)
 - [Contact](#contact)
 

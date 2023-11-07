@@ -3,10 +3,9 @@ import sys
 import os
 import time
 import typing
-import msvcrt
 
-## third-party modules
-import tiktoken
+## custom modules
+from modules.toolkit import Toolkit
 
 class TokenCounter:
 
@@ -20,17 +19,11 @@ class TokenCounter:
 
     def __init__(self) -> None:
 
-        '''
+        """
 
-        Constructor for TokenCounter class.\n
+        Constructor for TokenCounter class.
 
-        Parameters:\n
-        None.\n
-
-        Returns:\n
-        None.\n
-
-        '''
+        """
 
         os.system("title " + "Token Counter")
 
@@ -40,79 +33,108 @@ class TokenCounter:
 
     def count_characters(self) -> int:
 
-        '''
+        """
 
-        Counts the number of characters in a string.\n
+        Counts the number of characters in a string.
     
-        Parameters:\n
-        self (object - TokenCounter) : the TokenCounter object.\n
-        text (str) : the text that will be counting characters for.\n
+        Parameters:
+        self (object - TokenCounter) : The TokenCounter object.
 
-        Returns:\n
-        num_characters (int) the number of characters in the text.\n
+        Returns:
+        num_characters (int) The number of characters in the text.
 
-        '''
+        """
 
-        self.clear_console()
+        Toolkit.clear_console()
 
         num_characters = len(self.text)
 
         return num_characters
 
-##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-alculate_min_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def estimate_cost(self) -> typing.Tuple[int, float]:
+    def calculate_min_cost(self) -> typing.Tuple[int, float]:
 
-        '''
+        """
 
-        Attempts to estimate cost.\n
+        Gives a cost estimate for translating a text using Kudasai.
     
-        Parameters:\n
-        self (object - TokenCounter) : the TokenCounter object.\n
+        Parameters:
+        self (object - TokenCounter) : The TokenCounter object.
 
-        Returns:\n
-        num_tokens (int) the number of tokens in the text.\n
-        min_cost (float) the minimum cost of translating the text.\n
+        Returns:
+        num_tokens (int) The number of tokens in the text.
+        min_cost (float) The minimum cost of translating the text.
 
-        '''
+        """
+
+        cost_per_thousand_tokens = 0
+
+        try:
+            import tiktoken
+
+        except ImportError:
+            Toolkit.clear_console()
+            raise ImportError("tiktoken not found. Please install tiktoken using pip install tiktoken.")
         
         try:
-            encoding = tiktoken.encoding_for_model(self.MODEL)  # type: ignore
+            encoding = tiktoken.encoding_for_model(self.MODEL) ## type: ignore
             
         except KeyError:
-            print("Warning: model not found. Using cl100k_base encoding.")
+            print("Warning: model not found. Using cl100k_base encoding. Cost estimate will be extremely inaccurate.")
             encoding = tiktoken.get_encoding("cl100k_base")
 
         if(self.MODEL == "gpt-3.5-turbo"):
-            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
-            time.sleep(4)
-            self.MODEL="gpt-3.5-turbo-0613"
-            return self.estimate_cost()
+            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-1106.")
+            self.MODEL="gpt-3.5-turbo-1106"
+            return self.calculate_min_cost()
         
+        elif(self.MODEL == "gpt-3.5-turbo-0613"):
+            print("Warning: gpt-3.5-turbo-0613 is outdated and will be considered depreciated by June 13th 2024. Please consider switching to gpt-3.5-turbo-1106 unless you are specifically trying to break the filter. Returning num tokens assuming gpt-3.5-turbo-1106.")
+            self.MODEL="gpt-3.5-turbo-1106"
+            return self.calculate_min_cost()
+        
+        elif(self.MODEL == 	"gpt-3.5-turbo-16k-0613"):
+            print("Warning: gpt-3.5-turbo-16k-0613 is outdated and will be considered depreciated by June 13th 2024. Returning num tokens assuming gpt-3.5-turbo-16k-0613.")
+
         elif(self.MODEL == "gpt-3.5-turbo-0301"):
-            print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ended September 13, Returning num tokens assuming gpt-3.5-turbo-0613.")
-            time.sleep(4)
-            self.MODEL="gpt-3.5-turbo-0613"
-            return self.estimate_cost()
+            print("Warning: gpt-3.5-turbo-0301 is outdated. gpt-3.5-turbo-0301's support ended September 13, and will be considered depreciated by June 13th 2024. Please consider switching to gpt-3.5-turbo-1106 unless you are specifically trying to break the filter. Returning num tokens assuming gpt-3.5-turbo-1106.")
+            return self.calculate_min_cost()
 
         elif(self.MODEL == "gpt-4"):
             print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0613.")
-            time.sleep(4)
             self.MODEL="gpt-4-0613"
-            return self.estimate_cost()
+            return self.calculate_min_cost()
         
         elif(self.MODEL == "gpt-4-0314"):
-            print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, Returning num tokens assuming gpt-4-0613.")
-            time.sleep(4)
+            print("Warning: gpt-4-0314 is outdated. gpt-4-0314's support ended September 13, and will be considered depreciated by June 13th 2024.Returning num tokens assuming gpt-4-0613.")
             self.MODEL="gpt-4-0613"
-            return self.estimate_cost()
+            return self.calculate_min_cost()
         
-        elif(self.MODEL == "gpt-3.5-turbo-0613"):
+        elif(self.MODEL == "gpt-4-32k"):
+            print("Warning: gpt-4-32k may change over time. Returning num tokens assuming gpt-4-32k-0613.")
+            self.MODEL="gpt-4-32k-0613"
+            return self.calculate_min_cost()
+        
+        elif(self.MODEL == "gpt-4-32k-0314"):
+            print("Warning: gpt-4-32k-0314 is outdated. gpt-4-32k-0314's support ended September 13, and will be considered depreciated by June 13th 2024. Please consider switching to gpt-4-32k-0613 unless you are specifically trying to break the filter. Returning num tokens assuming gpt-4-32k-0613.")
+            self.MODEL="gpt-4-32k-0613"
+            return self.calculate_min_cost()
+        
+        elif(self.MODEL == "gpt-3.5-turbo-1106"):
             cost_per_thousand_tokens = 0.0015
 
+        elif(self.MODEL == "gpt-3.5-turbo-16k-0613"):
+            cost_per_thousand_tokens = 0.0030
 
         elif(self.MODEL == "gpt-4-0613"):
+            cost_per_thousand_tokens = 0.03
+
+        elif(self.MODEL == "gpt-4-32k-0613"):
             cost_per_thousand_tokens = 0.06
+
+        elif(self.MODEL == "gpt-4-1106-preview"):
+            cost_per_thousand_tokens = 0.01
 
         else:
             raise NotImplementedError(f"""Kudasai does not support : {self.MODEL}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
@@ -123,22 +145,19 @@ class TokenCounter:
 
         return num_tokens, min_cost
 
-##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def count_tokens(self, text_file:str) -> None:
+    def estimate_cost(self, text_file:str) -> None:
 
-        '''
+        """
 
-        Counts the number of tokens in a text file.\n
+        Counts the number of tokens in a text file.
 
-        Parameters:\n
-        self (object - TokenCounter) : the TokenCounter object.\n
-        text_file (string) the text file that will be counting tokens for.\n
-
-        Returns:\n
-        None.\n
+        Parameters:
+        self (object - TokenCounter) : The TokenCounter object.
+        text_file (string)  : The text file that will be counting tokens for.
         
-        '''
+        """
 
 
         with open(text_file, 'r', encoding='utf-8') as file: 
@@ -146,72 +165,15 @@ class TokenCounter:
 
         self.MODEL = input("Please enter model : ")
 
-        num_tokens, min_cost = self.estimate_cost()
+        num_tokens, min_cost = self.calculate_min_cost()
         num_characters = self.count_characters()
 
+        print("THIS ESTIMATE DOES NOT YET CONSIDER OUTPUT TOKENS, OUTPUT TOKENS ARE ROUGHLY 2X AS EXPENSIVE AS INPUT TOKENS.\n\n")
         print("Estimated Number of Tokens in Text : " + str(num_tokens))
         print("Estimated Minimum Cost of Translation : " + str(min_cost))
         print("Number of Characters in Text : " + str(num_characters) + "\n")
 
-        self.pause_console()
-
-##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def clear_console(self) -> None:
-
-        """
-
-        Clears the console.\n
-
-        Parameters:\n
-        self (object - TokenCounter) : the TokenCounter object.\n
-
-        Returns:\n
-        None.\n
-
-        """
-
-        os.system('cls' if os.name == 'nt' else 'clear')
-
-##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def pause_console(self, message:str="Press any key to continue...") -> None:
-
-        """
-
-        Pauses the console.\n
-
-        Parameters:\n
-        self (object - TokenCounter) : the TokenCounter object.\n
-        message (str | optional) : the message that will be displayed when the console is paused.\n
-
-        Returns:\n
-        None.\n
-
-        """
-
-        print(message)  ## Print the custom message
-        
-        if(os.name == 'nt'):  ## Windows
-            
-            msvcrt.getch() 
-
-        else:  ## Linux, No idea if any of this works lmao
-
-            import termios
-
-            ## Save terminal settings
-            old_settings = termios.tcgetattr(0)
-
-            try:
-                new_settings = termios.tcgetattr(0)
-                new_settings[3] = new_settings[3] & ~termios.ICANON
-                termios.tcsetattr(0, termios.TCSANOW, new_settings)
-                os.read(0, 1)  ## Wait for any key press
-
-            finally:
-
-                termios.tcsetattr(0, termios.TCSANOW, old_settings)
+        Toolkit.pause_console()
 
 ##-------------------start-of-sub_main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -224,9 +186,9 @@ if(__name__ == '__main__'):
 
         print(f'\nUsage: {sys.argv[0]} input_txt_file\n') 
         
-        client.pause_console()
+        Toolkit.pause_console()
         exit() 
 
-    client.clear_console()
+    Toolkit.clear_console()
 
-    client.count_tokens(sys.argv[1])
+    client.estimate_cost(sys.argv[1])

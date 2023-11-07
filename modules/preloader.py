@@ -6,7 +6,7 @@ from models.Kairyou import Kairyou
 from models.Kaiseki import Kaiseki
 from models.Kijiku import Kijiku
 
-from modules.toolkit import toolkit
+from modules.toolkit import Toolkit
 
 from handlers.fileHandler import fileHandler
 

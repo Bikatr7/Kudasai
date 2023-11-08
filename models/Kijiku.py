@@ -369,7 +369,7 @@ class Kijiku:
                     prompt.append(sentence + '\n') 
                     self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.\n")
 
-                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»"]) and sentence != '"..."' and sentence != "..."):
+                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»",'"','"'])):
                     self.preloader.file_handler.logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.\n")
             
                 elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):

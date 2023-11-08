@@ -1,3 +1,5 @@
+## Not in use.
+##---------------------------------------
 ## built-in imports
 from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
 from enum import Enum

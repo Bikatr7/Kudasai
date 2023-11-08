@@ -40,11 +40,11 @@ PUNCTUATION_CHARSET = {
 
 ##--------------------start-of-katakanaHandler------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class katakanaHandler:
+class KatakanaHandler:
 
     """
     
-    Has some helper functions for dealing with katakana characters while replacing text.\n
+    Has some helper functions for dealing with katakana characters while preprocessing.
 
     """
 ##--------------------start-of-__init__()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

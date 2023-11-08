@@ -1,48 +1,29 @@
 ## built-in imports
 import datetime
 
-class logger:
+class Logger:
 
-    '''
+    """
+    
+    The logger class is used to log actions taken by Kudasai.
 
-    The logger class is used to log actions taken by Kudasai.\n
-        
-    '''
+    """
 
-##--------------------start-of-__init__()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    log_file_path = ""
 
-
-    def __init__(self, incoming_log_file_path:str):
-
-        """
-        
-        Initializes a new logger object.\n
-
-        Parameters:\n
-        incoming_log_file_path (str) : The path to the log file.\n
-
-        Returns:\n
-        None.\n
-
-        """
-
-        self.log_file_path = incoming_log_file_path
-
-        self.batch = ""
+    current_batch = ""
 
 ##--------------------start-of-get_time_stamp()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def get_time_stamp(self):
+    @staticmethod
+    def get_time_stamp():
 
         """
         
-        Gets the time stamp for a logging action taken.\n
-
-        Parameters:\n
-        self (object - logger) : The logger object.\n
+        Gets the time stamp for a logging action taken.
 
         Returns:\n
-        time_stamp (str) : The time stamp for the logging action.\n
+        time_stamp (str) : The time stamp for the logging action.
 
         """
 
@@ -56,61 +37,48 @@ class logger:
     
 ##--------------------start-of-log_action()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def log_action(self, action:str):
+    @staticmethod
+    def log_action(action:str):
 
         """
         
-        Logs an action.\n
+        Logs an action.
 
-        Parameters:\n
-        self (object - logger) : the logger object.\n
-        action (str) : the action being logged.\n
-
-        Returns:\n
-        None.\n
+        Parameters:
+        action (str) : the action being logged.
  
         """
 
-        time_stamp = self.get_time_stamp()
+        time_stamp = Logger.get_time_stamp()
 
-        self.batch += time_stamp + action + "\n"
+        Logger.current_batch += time_stamp + action + "\n"
 
 ##--------------------start-of-push_batch()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def push_batch(self):
+    @staticmethod
+    def push_batch():
 
         """
         
-        Pushes all stored actions to the file.\n
+        Pushes all stored actions to the log file.
 
-        Parameters:\n
-        None.\n
-
-        Returns:\n
-        None.\n
-        
         """
 
-        with open(self.log_file_path, 'a+', encoding="utf-8") as file:
-            file.write(self.batch)
+        with open(Logger.log_file_path, 'a+', encoding="utf-8") as file:
+            file.write(Logger.current_batch)
 
-        self.batch = ""
+        Logger.current_batch = ""
 
 ##--------------------start-of-clear_log_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def clear_log_file(self):
+    @staticmethod
+    def clear_log_file():
 
         """
         
-        Clears the log file.\n
-
-        Parameters:\n
-        None.\n
-
-        Returns:\n
-        None.\n
+        Clears the log file.
         
         """
 
-        with open(self.log_file_path, 'w+', encoding="utf-8") as file:
+        with open(Logger.log_file_path, 'w+', encoding="utf-8") as file:
             file.truncate(0)

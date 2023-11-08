@@ -8,6 +8,8 @@ import typing
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from models.Kairyou import Name
 
+from modules.file_ensurer import FileEnsurer
+
 ## https://en.wikipedia.org/wiki/Katakana_(Unicode_block)
 KATAKANA_CHARSET = {
 '゠','ァ','ア','ィ','イ','ゥ','ウ','ェ','エ','ォ','オ','カ','ガ','キ','ギ','ク',
@@ -38,7 +40,7 @@ PUNCTUATION_CHARSET = {
 '⁦','⁧','⁨','⁩','«','»','×',"△","▼"
 } | set(string.punctuation) ## EN punctuation set
 
-##--------------------start-of-katakanaHandler------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##--------------------start-of-KatakanaHandler------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KatakanaHandler:
 
@@ -47,59 +49,38 @@ class KatakanaHandler:
     Has some helper functions for dealing with katakana characters while preprocessing.
 
     """
-##--------------------start-of-__init__()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, katakana_lib_file:str) -> None:
-
-        """
-        
-        Parameters:\n
-        katakana_lib_file (str) : path to the katakana library file.\n
-
-        Returns:\n
-        None.\n
-
-        """
-
-        self.load_katakana_words(katakana_lib_file)
+    katakana_words = []
 
 ##--------------------start-of-load_katakana_words()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def load_katakana_words(self, katakana_lib_file:str) -> None:
+    @staticmethod
+    def load_katakana_words() -> None:
 
         """
 
-        Loads the katakana library file into memory.\n
-        
-        Parameters:\n
-        self (object - katakanaHandler) : the katakanaHandler object.\n
-        katakana_lib_file (str) : path to the katakana library file.\n
-
-        Returns:\n
-        None.\n
+        Loads the katakana library file into memory.
 
         """
 
-        self.katakana_words = []
-
-        with open(katakana_lib_file, "r", encoding="utf-8") as file:
+        with open(FileEnsurer.katakana_words_path, "r", encoding="utf-8") as file:
             for line in file:
-                self.katakana_words.append(line.strip())
+                KatakanaHandler.katakana_words.append(line.strip())
 
 ##--------------------start-of-is_katakana_only()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def is_katakana_only(self, string:str) -> bool:
+    @staticmethod
+    def is_katakana_only(string:str) -> bool:
 
         """
 
-        Checks if the string is only katakana.\n
+        Checks if the string is only katakana.
         
-        Parameters:\n
-        self (object - katakanaHandler) : the katakanaHandler object.\n
-        string (str) : the string to check.\n
+        Parameters:
+        string (str) : the string to check.
 
-        Returns:\n
-        bool : True if the word is only katakana, False otherwise.\n
+        Returns:
+        bool : True if the word is only katakana, False otherwise.
 
         """
 
@@ -107,32 +88,30 @@ class KatakanaHandler:
 
 ##--------------------start-of-get_katakana_entities()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def get_katakana_entities(self, names:dict) -> typing.List[Name]:
+    @staticmethod
+    def get_katakana_entities(names:dict) -> typing.List[Name]:
 
         """
 
-        Gets the katakana entities from the names dictionary.\n
+        Gets the katakana entities from the names dictionary.
 
-        Parameters:\n
-        self (object - katakanaHandler) : the katakanaHandler object.\n
-
-        Returns:\n
-        list : a list of Name objects.\n
+        Returns:
+        list (Name) : a list of Name objects.
 
         """
 
-        return [Name(jap=j, eng=e) for e, j in names.items() if self.is_katakana_only(j)]
+        return [Name(jap=j, eng=e) for e, j in names.items() if KatakanaHandler.is_katakana_only(j)]
     
 ##--------------------start-of-is_actual_word()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def is_actual_word(self, jap:str) -> bool:
+    @staticmethod
+    def is_actual_word(jap:str) -> bool:
 
         """
         
         Checks if the given jap is an actual katakana word.
 
-        Parameters:\n
-        self (object - katakanaHandler) : the katakanaHandler object.
+        Parameters:
         jap (str) : the katakana word to check.
  
         Returns:
@@ -140,7 +119,7 @@ class KatakanaHandler:
 
         """
 
-        if(jap in self.katakana_words):
+        if(jap in KatakanaHandler.katakana_words):
             return True
         
         else:
@@ -148,18 +127,18 @@ class KatakanaHandler:
         
 ##--------------------start-of-is_punctuation()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def is_punctuation(self, string):
+    @staticmethod
+    def is_punctuation(string:str):
 
         """
         
         Checks if the given string is all punctuation.
 
         Parameters:
-        self (object - katakanaHandler) : the katakanaHandler object.
         string (str) : the string to check.
 
         Returns:
-        bool : True if the word is all punc otherwise false
+        bool : True if the word is all punctuation otherwise false
 
         """
 

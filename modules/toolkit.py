@@ -78,57 +78,57 @@ class Toolkit():
 
 ##-------------------start-of-maximize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-@staticmethod
-def maximize_window():
+    @staticmethod
+    def maximize_window():
 
-    """
-    
-    Maximizes the console window.
+        """
+        
+        Maximizes the console window.
 
-    """
+        """
 
-    try:
+        try:
 
-        system_name = platform.system()
+            system_name = platform.system()
 
-        if(system_name == "Windows"):
-            os.system('mode con: cols=140 lines=40')
+            if(system_name == "Windows"):
+                os.system('mode con: cols=140 lines=40')
 
-        elif(system_name == "Linux"):
-            print("\033[8;40;140t")
+            elif(system_name == "Linux"):
+                print("\033[8;40;140t")
 
-        elif(system_name == "Darwin"):
-            subprocess.call(["printf", "'\\e[8;40;140t'"])
+            elif(system_name == "Darwin"):
+                subprocess.call(["printf", "'\\e[8;40;140t'"])
 
-    except:
-        pass
+        except:
+            pass
 
 ##-------------------start-of-minimize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-@staticmethod
-def minimize_window():
+    @staticmethod
+    def minimize_window():
 
-    """
-    
-    Minimizes the console window.
+        """
+        
+        Minimizes the console window.
 
-    """
+        """
 
-    try:
+        try:
 
-        system_name = platform.system()
+            system_name = platform.system()
 
-        if(system_name == "Windows"):
-            os.system('mode con: cols=80 lines=25')
+            if(system_name == "Windows"):
+                os.system('mode con: cols=80 lines=25')
 
-        elif(system_name == "Linux"):
-            print("\033[8;25;80t")
+            elif(system_name == "Linux"):
+                print("\033[8;25;80t")
 
-        elif(system_name == "Darwin"):
-            subprocess.call(["printf", "'\\e[8;25;80t'"])
+            elif(system_name == "Darwin"):
+                subprocess.call(["printf", "'\\e[8;25;80t'"])
 
-    except:
-        pass
+        except:
+            pass
 
 ##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

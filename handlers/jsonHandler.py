@@ -1,7 +1,6 @@
 ## built-in libraries
 from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
 
-import os
 import ctypes
 import json
 import typing
@@ -9,79 +8,50 @@ import time
 
 ## custom modules
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
-    from modules.preloader import preloader
+    from modules.file_ensurer import FileEnsurer
 
-class jsonHandler:
+from modules.logger import Logger
+from modules.toolkit import Toolkit
 
-    '''
+class JsonHandler:
+
+    """
     
-    This class is used to handle the Kijiku Rules json file.\n
+    This class is used to handle the Kijiku Rules json file.
 
-    '''
+    """
 
-##--------------------start-of-__init__()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    current_kijiku_rules = dict()
 
-    def __init__(self, inc_preloader:preloader):
-
-        """
-        
-        Constructor for the jsonHandler class.\n
-
-        Parameters:\n
-        inc_preloader (preloader): The preloader object.\n
-
-        Returns:\n
-        None.\n
-
-        """
-
-        ## the preloader object
-        self.preloader = inc_preloader
-
-        ## path to the external kijiku rules json file
-        self.external_kijiku_rules_path = os.path.join(self.preloader.file_handler.script_dir,'Kijiku Rules.json')
-
-        ## the path to the kijiku rules json file
-        self.kijiku_rules_path = os.path.join(self.preloader.file_handler.config_dir,'Kijiku Rules.json')
-
-        ## the rules Kijiku will follow when interacting with the OpenAI API
-        self.kijiku_rules = dict()
-
-        ## the default settings for the Kijiku Rules.json file
-        self.default = {
-        "open ai settings": 
-        {
-            "model":"gpt-3.5-turbo",
-            "temp":1,
-            "top_p":1,
-            "n":1,
-            "stream":False,
-            "stop":None,
-            "max_tokens":9223372036854775807,
-            "presence_penalty":0,
-            "frequency_penalty":0,
-            "logit_bias":None,
-            "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
-            "message_mode":1,
-            "num_lines":13,
-            "sentence_fragmenter_mode":3,
-            "je_check_mode":2
-        }
-        }
+    default_kijiku_rules = {
+    "open ai settings": 
+    {
+        "model":"gpt-3.5-turbo",
+        "temp":1,
+        "top_p":1,
+        "n":1,
+        "stream":False,
+        "stop":None,
+        "max_tokens":9223372036854775807,
+        "presence_penalty":0,
+        "frequency_penalty":0,
+        "logit_bias":None,
+        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
+        "message_mode":1,
+        "num_lines":13,
+        "sentence_fragmenter_mode":3,
+        "je_check_mode":2
+    }
+    }
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def validate_json(self):
+    @staticmethod
+    def validate_json():
 
         """
 
-        Validates the Kijiku Rules.json file.\n
-
-        Parameters:\n
-        self (object - jsonHandler) : the jsonHandler object.\n
-
-        Returns:\n
-        None.\n
+        Validates the Kijiku Rules.json file.
 
         """
 
@@ -104,103 +74,83 @@ class jsonHandler:
          ]
         
 
-        if("open ai settings" not in self.kijiku_rules):
-            self.reset_kijiku_rules_to_default()
+        ## json is fucked, reset it
+        if("open ai settings" not in JsonHandler.current_kijiku_rules):
+            JsonHandler.reset_kijiku_rules_to_default()
 
-        if(all(key in self.kijiku_rules["open ai settings"] for key in keys_list)):
-            self.preloader.file_handler.logger.log_action("Kijiku Rules.json is valid")
+        if(all(key in JsonHandler.current_kijiku_rules["open ai settings"] for key in keys_list)):
+            Logger.log_action("Kijiku Rules.json is valid")
         
+        ## if not valid, reset it
         else:
-            self.reset_kijiku_rules_to_default()
+            Logger.log_action("Kijiku Rules.json is not valid, resetting...")
+            Logger.log_action(str(JsonHandler.current_kijiku_rules))
+            JsonHandler.reset_kijiku_rules_to_default()
 
 ##-------------------start-of-reset_kijiku_rules_to_default()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def reset_kijiku_rules_to_default(self) -> None:
+    @staticmethod
+    def reset_kijiku_rules_to_default() -> None:
 
         """
 
-        Resets the kijiku_rules json to default.\n
-
-        Parameters:\n
-        self (object - jsonHandler) : the jsonHandler object.\n
-        
-        Returns:\n
-        None.\n
+        Resets the kijiku_rules json to default.
 
         """
 
-        self.kijiku_rules = self.default
+        JsonHandler.current_kijiku_rules = JsonHandler.default_kijiku_rules
         
-        ## updates json file
-        self.dump_kijiku_rules()
 
-        ## loads json file
-        self.load_kijiku_rules()
+        JsonHandler.dump_kijiku_rules()
+
+        JsonHandler.load_kijiku_rules()
 
 ##-------------------start-of-dump_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def dump_kijiku_rules(self) -> None:
+    @staticmethod
+    def dump_kijiku_rules() -> None:
 
         """
 
-        Dumps the Kijiku Rules.json file.\n
-
-        Parameters:\n
-        self (object - jsonHandler) : the jsonHandler object.\n
-
-        Returns:\n
-        None.\n
+        Dumps the Kijiku Rules.json file.
 
         """
 
-        ## updates json file
-        with open(self.kijiku_rules_path, 'w+', encoding='utf-8') as file:
-            json.dump(self.kijiku_rules, file)
+        with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
+            json.dump(JsonHandler.current_kijiku_rules, file)
 
 ##-------------------start-of-load_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def load_kijiku_rules(self) -> None:
+    @staticmethod
+    def load_kijiku_rules() -> None:
 
         """
 
-        Loads the Kijiku Rules.json file.\n
-
-        Parameters:\n
-        self (object - jsonHandler) : the jsonHandler object.\n
-
-        Returns:\n
-        None.\n
+        Loads the Kijiku Rules.json file.
 
         """
 
-        ## loads the json file
-        with open(self.kijiku_rules_path, 'r', encoding='utf-8') as file:
-            self.kijiku_rules = json.load(file)
+        with open(FileEnsurer.config_kijiku_rules_path, 'r', encoding='utf-8') as file:
+            JsonHandler.current_kijiku_rules = json.load(file)
 
 
 #-------------------start-of-change_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def change_kijiku_settings(self) -> None:
+    @staticmethod
+    def change_kijiku_settings() -> None:
 
         """
 
-        Allows the user to change the settings of the Kijiku Rules.json file\n
-
-        Parameters:\n
-        self (object - jsonHandler) : the json object.\n
-
-        Returns:\n
-        None.\n
+        Allows the user to change the settings of the Kijiku Rules.json file
 
         """
         
-        ## maximize console window
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow() 
-        ctypes.windll.user32.ShowWindow(hwnd, 3)
+        Toolkit.maximize_window()
+
         
         while(True):
 
-            self.preloader.toolkit.clear_console()
+            Toolkit.clear_console()
 
             settings_print_message = "See https://platform.openai.com/docs/api-reference/chat/create for further details\n"
 
@@ -225,7 +175,7 @@ class jsonHandler:
             settings_print_message += "\n\nCurrent settings:\n\n----------------------------------------------------------------\n\n"
 
             ## print out the current settings
-            for key,value in self.kijiku_rules["open ai settings"].items(): 
+            for key,value in JsonHandler.current_kijiku_rules["open ai settings"].items(): 
                 settings_print_message += key + " : " + str(value) + '\n'
 
             settings_print_message += "\n\nEnter the name of the setting you want to change, type d to reset to default, type c to load an external/custom json directly, or type 'q' to quit settings change : "
@@ -238,51 +188,52 @@ class jsonHandler:
 
             ## loads a custom json directly
             if(action == "c"):
-                self.preloader.toolkit.clear_console()
+                Toolkit.clear_console()
 
                 ## saves old rules in case on invalid json
-                old_kijiku_rules = self.kijiku_rules
+                old_kijiku_rules = JsonHandler.current_kijiku_rules
 
                 try:
 
                     ## loads the custom json file
-                    with open(self.external_kijiku_rules_path, 'r', encoding='utf-8') as file:
-                        self.kijiku_rules = json.load(file) 
+                    with open(FileEnsurer.external_kijiku_rules_path, 'r', encoding='utf-8') as file:
+                        JsonHandler.current_kijiku_rules = json.load(file) 
 
-                    self.validate_json()
+                    JsonHandler.validate_json()
 
-                    assert self.kijiku_rules != self.default ## validate_json() sets a dict to default if it's invalid, so if it's still default, it's invalid
+                    assert JsonHandler.current_kijiku_rules != JsonHandler.default_kijiku_rules ## validate_json() sets a dict to default if it's invalid, so if it's still default, it's invalid
                     
-                    self.dump_kijiku_rules()
+                    JsonHandler.dump_kijiku_rules()
                 
                 except AssertionError:
                     print("Invalid JSON file. Please try again.")
-                    self.kijiku_rules = old_kijiku_rules
+                    JsonHandler.current_kijiku_rules = old_kijiku_rules
                     time.sleep(1)
+                    Toolkit.pause_console()
 
                 except FileNotFoundError:
                     print("Missing JSON file. Please try again.")
-                    self.kijiku_rules = old_kijiku_rules
+                    JsonHandler.current_kijiku_rules = old_kijiku_rules
                     time.sleep(1)
+                    Toolkit.pause_console()
 
             ## if the user wants to reset to default, do so
             elif(action == "d"): 
-                self.reset_kijiku_rules_to_default()
+                JsonHandler.reset_kijiku_rules_to_default()
 
-            elif(action not in self.kijiku_rules["open ai settings"]):
+            elif(action not in JsonHandler.current_kijiku_rules["open ai settings"]):
                 print("Invalid setting name. Please try again.")
                 time.sleep(1)
+                Toolkit.pause_console()
                 continue
 
             else:
 
                 new_value = input("\nEnter a new value for " + action + " : ")
 
-                self.kijiku_rules["open ai settings"][action] = new_value
+                JsonHandler.current_kijiku_rules["open ai settings"][action] = new_value
 
 
-        self.dump_kijiku_rules()
+        JsonHandler.dump_kijiku_rules()
 
-        ## minimize console window
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow() 
-        ctypes.windll.user32.ShowWindow(hwnd, 9)
+        Toolkit.minimize_window()

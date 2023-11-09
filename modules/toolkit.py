@@ -24,7 +24,7 @@ class Toolkit():
         Clears the console.
 
         """
-
+        
         os.system('cls' if os.name == 'nt' else 'clear')
 
 ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ class Toolkit():
         """
 
         Pauses the console.
-        Requires msvcrt on Windows and termios on Linux, will do nothing if neither are present.
+        Requires msvcrt on Windows and termios on Linux/Mac, will do nothing if neither are present.
 
         Parameters:
         message (string | optional) : The custom message to be displayed to the user.
@@ -54,8 +54,8 @@ class Toolkit():
                 
                 msvcrt.getch() 
 
-            ## Linux
-            else:  
+            ## Linux and Mac
+            elif(os.name == 'posix'):  
 
                 import termios
 

@@ -1,6 +1,8 @@
 ## built-in modules
 import os
 import typing
+import platform
+import subprocess
 
 class Toolkit():
 
@@ -73,6 +75,60 @@ class Toolkit():
         except ImportError:
 
             pass
+
+##-------------------start-of-maximize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+@staticmethod
+def maximize_window():
+
+    """
+    
+    Maximizes the console window.
+
+    """
+
+    try:
+
+        system_name = platform.system()
+
+        if(system_name == "Windows"):
+            os.system('mode con: cols=140 lines=40')
+
+        elif(system_name == "Linux"):
+            print("\033[8;40;140t")
+
+        elif(system_name == "Darwin"):
+            subprocess.call(["printf", "'\\e[8;40;140t'"])
+
+    except:
+        pass
+
+##-------------------start-of-minimize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+@staticmethod
+def minimize_window():
+
+    """
+    
+    Minimizes the console window.
+
+    """
+
+    try:
+
+        system_name = platform.system()
+
+        if(system_name == "Windows"):
+            os.system('mode con: cols=80 lines=25')
+
+        elif(system_name == "Linux"):
+            print("\033[8;25;80t")
+
+        elif(system_name == "Darwin"):
+            subprocess.call(["printf", "'\\e[8;25;80t'"])
+
+    except:
+        pass
 
 ##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -54,7 +54,7 @@ class FileEnsurer():
 
     ## kijiku rules
     external_kijiku_rules_path = os.path.join(script_dir,'Kijiku Rules.json')
-    sconfig_kijiku_rules_path = os.path.join(config_dir,'Kijiku Rules.json')
+    config_kijiku_rules_path = os.path.join(config_dir,'Kijiku Rules.json')
 
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

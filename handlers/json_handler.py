@@ -134,7 +134,7 @@ class JsonHandler:
             JsonHandler.current_kijiku_rules = json.load(file)
 
 
-#-------------------start-of-change_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-change_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def change_kijiku_settings() -> None:
@@ -174,66 +174,98 @@ class JsonHandler:
 
             settings_print_message += "\n\nCurrent settings:\n\n----------------------------------------------------------------\n\n"
 
-            ## print out the current settings
-            for key,value in JsonHandler.current_kijiku_rules["open ai settings"].items(): 
-                settings_print_message += key + " : " + str(value) + '\n'
+            for key, value in JsonHandler.current_kijiku_rules["open ai settings"].items():
+                settings_print_message += f"{key} : {json.dumps(value)}\n"
 
-            settings_print_message += "\n\nEnter the name of the setting you want to change, type d to reset to default, type c to load an external/custom json directly, or type 'q' to quit settings change : "
-
+            settings_print_message += "\n\nEnter the setting name to change or 'q' to quit: "
             action = input(settings_print_message).lower()
 
-            ## if the user wants to continue, do so
-            if(action == "q"): 
+            if(action == 'q'):
                 break
 
-            ## loads a custom json directly
-            if(action == "c"):
-                Toolkit.clear_console()
+            elif(action in JsonHandler.current_kijiku_rules["open ai settings"]):
 
-                ## saves old rules in case on invalid json
-                old_kijiku_rules = JsonHandler.current_kijiku_rules
+                new_value = input(f"\nEnter a new value for {action}: ")
 
-                try:
+                converted_value = JsonHandler.convert_to_correct_type(action, new_value)
 
-                    ## loads the custom json file
-                    with open(FileEnsurer.external_kijiku_rules_path, 'r', encoding='utf-8') as file:
-                        JsonHandler.current_kijiku_rules = json.load(file) 
+                if(converted_value is not None):
+                    JsonHandler.current_kijiku_rules["open ai settings"][action] = converted_value
+                    print(f"Updated {action} to {converted_value}.")
 
-                    JsonHandler.validate_json()
-
-                    assert JsonHandler.current_kijiku_rules != JsonHandler.default_kijiku_rules ## validate_json() sets a dict to default if it's invalid, so if it's still default, it's invalid
-                    
-                    JsonHandler.dump_kijiku_rules()
-                
-                except AssertionError:
-                    print("Invalid JSON file. Please try again.")
-                    JsonHandler.current_kijiku_rules = old_kijiku_rules
-                    time.sleep(1)
-                    Toolkit.pause_console()
-
-                except FileNotFoundError:
-                    print("Missing JSON file. Please try again.")
-                    JsonHandler.current_kijiku_rules = old_kijiku_rules
-                    time.sleep(1)
-                    Toolkit.pause_console()
-
-            ## if the user wants to reset to default, do so
-            elif(action == "d"): 
-                JsonHandler.reset_kijiku_rules_to_default()
-
-            elif(action not in JsonHandler.current_kijiku_rules["open ai settings"]):
-                print("Invalid setting name. Please try again.")
-                time.sleep(1)
-                Toolkit.pause_console()
-                continue
-
+                else:
+                    print("Invalid input. No changes made.")
             else:
+                print("Invalid setting name. Please try again.")
 
-                new_value = input("\nEnter a new value for " + action + " : ")
+            Toolkit.pause_console()
 
-                JsonHandler.current_kijiku_rules["open ai settings"][action] = new_value
+        ## Attempt to save the changes.
+        try:
+            JsonHandler.dump_kijiku_rules()
+            print("Settings saved successfully.")
 
-
-        JsonHandler.dump_kijiku_rules()
+        except Exception as e:
+            print(f"Failed to save settings: {e}")
 
         Toolkit.minimize_window()
+
+##-------------------start-of-convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def convert_to_correct_type(setting_name:str, value:str) -> typing.Any:
+
+        """
+
+        Converts the input string to the correct type based on the setting name.
+
+        Parameters:
+        setting_name (str): The name of the setting to convert.
+        value (str): The value to convert.
+
+        Returns:
+        The value converted to the correct type, or None if the input is invalid.
+
+        """
+        
+        type_expectations = {
+            "model": str,
+            "temp": float,
+            "top_p": float,
+            "n": int,
+            "stream": bool,
+            "stop": list,
+            "max_tokens": int,
+            "presence_penalty": float,
+            "frequency_penalty": float,
+            "logit_bias": dict,
+            "system_message": str,
+            "message_mode": int,
+            "num_lines": int,
+            "sentence_fragmenter_mode": int,
+            "je_check_mode": int,
+        }
+
+        # Special cases for None or complex types
+        if(setting_name in ["stop", "logit_bias"] and value.lower() == "none"):
+            return None
+
+
+        ## Check if the setting requires a specific type
+        if(setting_name in type_expectations):
+            try:
+
+                if(setting_name == "max_tokens"):
+                    int_value = int(value)
+
+                    if(int_value < 0 or int_value > 9223372036854775807):
+                        raise ValueError("max_tokens out of range")
+                    
+                    return int_value
+
+                return type_expectations[setting_name](value)
+            
+            except ValueError:
+                return None
+        else:
+            return value

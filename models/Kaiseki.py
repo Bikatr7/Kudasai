@@ -14,7 +14,9 @@ import deepl
 
 ## custom modules
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
-    from modules.preloader import preloader
+    from modules.toolkit import Toolkit
+    from modules.file_ensurer import FileEnsurer
+    from modules.logger import Logger
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28,125 +30,99 @@ class Kaiseki:
     
     """
 
-##-------------------start-of-__init__()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self, inc_text_to_translate:str, inc_preloader:preloader) -> None:
+    ## the deepl translator object
+    translator:deepl.Translator
 
-        """
+    ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        Constructor for the Kaiseki Class.\n
+    ## the text to translate
+    text_to_translate = []
 
-        Parameters:\n
-        inc_text_to_translate (str) : the path to the text file to translate.\n
-        inc_preloader (object - preloader) : the preloader object.\n
+    ## the translated text
+    translated_text = []
 
-        Returns:\n
-        None.\n
+    ## the text for j-e checking
+    je_check_text = []
 
-        """
+    ## the text for errors that occur during translation (if any)
+    error_text = []
 
-        self.preloader = inc_preloader
+    ## the print result for the translation
+    translation_print_result = ""
+    
+    ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ## parts of the current_sentence
+    sentence_parts = []
 
-        ## the text to translate
-        self.text_to_translate =  [line for line in inc_text_to_translate.split('\n')]
+    ## punctuation of the current_sentence
+    sentence_punctuation = []
 
-        ## the translated text
-        self.translated_text = []
+    ## if the sentence contains special punctuation
+    special_punctuation = [] ## [0] = "" [1] = ~ [2] = '' in Kaiseki.current_sentence but not entire Kaiseki.current_sentence [3] = '' but entire Kaiseki.current_sentence [3] if () in Kaiseki.current_sentence
 
-        ## the text for j-e checking
-        self.je_check_text = []
+    ## the current sentence being translated
+    current_sentence = ""
 
-        ## the text for errors that occur during translation (if any)
-        self.error_text = []
-
-        ## the print result for the translation
-        self.translation_print_result = ""
-        
-        ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        ## parts of the self.current_sentence
-        self.sentence_parts = []
-
-        ## if the self.current_sentence contains special punctuation
-        self.special_punctuation = [] ## [0] = "" [1] = ~ [2] = '' in self.current_sentence but not entire self.current_sentence [3] = '' but entire self.current_sentence [3] if () in self.current_sentence
-
-        ## the current self.current_sentence being translated
-        self.current_sentence = ""
-
-        ## the current translated self.current_sentence
-        self.translated_sentence = ""
-
-        ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        ## the path to the deepl api key
-        self.deepl_api_key_path = os.path.join(self.preloader.file_handler.config_dir, "DeeplApiKey.txt")
-        
+    ## the current translated sentence
+    translated_sentence = ""
+            
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def translate(self):
+    @staticmethod
+    def translate():
 
         """
 
-        Translates the text given to the Kaiseki object.\n
-
-        Parameters:\n
-        self (object - Kaiseki) : the Kaiseki object.\n
-
-        Returns:\n
-        None.\n
+        Translates the text.
 
         """
 
-        self.time_start = time.time() ## start time
+        time_start = time.time() ## start time
 
         try:
 
-            self.initialize() ## initialize the Kaiseki object
+            Kaiseki.initialize() ## initialize the Kaiseki object
 
-            self.time_start = time.time() ## offset time
+            time_start = time.time() ## offset time
 
-            self.commence_translation() ## commence the translation
+            Kaiseki.commence_translation() ## commence the translation
 
         except Exception as e:
             
-            self.translation_print_result += "An error has occurred, outputting results so far..."
+            Kaiseki.translation_print_result += "An error has occurred, outputting results so far..."
 
-            self.preloader.file_handler.handle_critical_exception(e)
+            FileEnsurer.handle_critical_exception(e)
 
         finally:
 
-            self.time_end = time.time() ## end time
+            time_end = time.time() ## end time
 
-            self.assemble_results() ## assemble the results
+            Kaiseki.assemble_results(time_start, time_end) ## assemble the results
 
 ##-------------------start-of-initialize()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def initialize(self) -> None:
+    @staticmethod
+    def initialize() -> None:
         
         """
 
-        Initializes the Kaiseki class by getting the api key and creating the translator object.\n
-
-        Parameters:\n
-        self (object - Kaiseki) : the Kaiseki object.\n
-
-        Returns:\n
-        None.\n
+        Initializes the Kaiseki class by getting the api key and creating the translator object.
 
         """
         
         ## get saved api key if exists
         try:
 
-            with open(self.deepl_api_key_path, 'r', encoding='utf-8') as file:
+            with open(FileEnsurer.deepl_api_key_path, 'r', encoding='utf-8') as file:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            self.translator = deepl.Translator(api_key)
+            Kaiseki.translator = deepl.Translator(api_key)
 
-            print("Used saved api key in " + self.deepl_api_key_path)
-            self.preloader.file_handler.logger.log_action("Used saved api key in " + self.deepl_api_key_path)
+            print("Used saved api key in " + FileEnsurer.deepl_api_key_path)
+            Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path)
 
         ## else try to get api key manually
         except Exception as e: 
@@ -156,283 +132,268 @@ class Kaiseki:
             ## if valid save the api key
             try: 
 
-                self.translator = deepl.Translator(api_key)
+                Kaiseki.translator = deepl.Translator(api_key)
 
                 time.sleep(.1)
                     
-                self.preloader.file_handler.standard_overwrite_file(self.deepl_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
+                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
 
                 time.sleep(.1)
                 
             ## if invalid key exit
             except deepl.exceptions.AuthorizationException: 
                     
-                self.preloader.toolkit.clear_console()
+                Toolkit.clear_console()
                     
                 print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKaiseki will now exit.\n")
                 
-                self.preloader.toolkit.pause_console()
+                Toolkit.pause_console()
                     
                 raise e
 
             ## other error, alert user and raise it
             except Exception as e: 
                 
-                self.preloader.toolkit.clear_console()
+                Toolkit.clear_console()
                     
                 print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKaiseki will now exit.\n")
                 
-                self.preloader.toolkit.pause_console()
+                Toolkit.pause_console()
 
                 raise e
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def commence_translation(self) -> None:
+    @staticmethod
+    def commence_translation() -> None:
 
         """
         
-        Commences the translation process using all the functions in the Kaiseki class.\n
-
-        Parameters:\n
-        self (object - Kaiseki) : the Kaiseki object.\n
-
-        Returns:\n 
-        None.\n
+        Commences the translation process using all the functions in the Kaiseki class.
 
         """
 
         i = 0 
 
-        while(i < len(self.text_to_translate)):
+        while(i < len(Kaiseki.text_to_translate)):
                 
-            self.current_sentence = self.text_to_translate[i]
+            Kaiseki.current_sentence = Kaiseki.text_to_translate[i]
             
-            self.preloader.file_handler.logger.log_action("Initial Sentence : " + self.current_sentence)
+            Logger.log_action("Initial Sentence : " + Kaiseki.current_sentence)
 
-            if(any(char in self.current_sentence for char in ["▼", "△", "◇"])):
-                self.translated_text.append(self.current_sentence + '\n')
-                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is a pov change... leaving intact.\n")
+            if(any(char in Kaiseki.current_sentence for char in ["▼", "△", "◇"])):
+                Kaiseki.translated_text.append(Kaiseki.current_sentence + '\n')
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is a pov change... leaving intact.\n")
 
-            elif("part" in self.current_sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in self.current_sentence) and not all(char in [" "] for char in self.current_sentence) and self.current_sentence != '"..."' and self.current_sentence != "..."):
-                self.translated_text.append(self.current_sentence + '\n') 
-                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is part marker... leaving intact.\n")
+            elif("part" in Kaiseki.current_sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in Kaiseki.current_sentence) and not all(char in [" "] for char in Kaiseki.current_sentence) and Kaiseki.current_sentence != '"..."' and Kaiseki.current_sentence != "..."):
+                Kaiseki.translated_text.append(Kaiseki.current_sentence + '\n') 
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is part marker... leaving intact.\n")
 
-            elif bool(re.match(r'^[\W_\s\n-]+$', self.current_sentence)) and not any(char in self.current_sentence for char in ["」", "「", "«", "»"]):
-                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is punctuation... skipping.\n")
-                self.translated_text.append(self.current_sentence + "\n")
+            elif bool(re.match(r'^[\W_\s\n-]+$', Kaiseki.current_sentence)) and not any(char in Kaiseki.current_sentence for char in ["」", "「", "«", "»"]):
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is punctuation... skipping.\n")
+                Kaiseki.translated_text.append(Kaiseki.current_sentence + "\n")
 
-            elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', self.current_sentence))):
-                self.preloader.file_handler.logger.log_action("Sentence : " + self.current_sentence + ", Sentence is english... skipping translation.\n")
-                self.translated_text.append(self.current_sentence + "\n")
+            elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', Kaiseki.current_sentence))):
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is english... skipping translation.\n")
+                Kaiseki.translated_text.append(Kaiseki.current_sentence + "\n")
 
-            elif(len(self.current_sentence) == 0 or self.current_sentence.isspace() == True):
-                self.preloader.file_handler.logger.log_action("Sentence is empty... skipping translation.\n")
-                self.translated_text.append(self.current_sentence + "\n") 
+            elif(len(Kaiseki.current_sentence) == 0 or Kaiseki.current_sentence.isspace() == True):
+                Logger.log_action("Sentence is empty... skipping translation.\n")
+                Kaiseki.translated_text.append(Kaiseki.current_sentence + "\n") 
 
             else:
         
-                self.separate_sentence()
+                Kaiseki.separate_sentence()
 
-                self.translate_sentence()
+                Kaiseki.translate_sentence()
 
                 ## this is for adding a period if it's missing 
-                if(len(self.translated_text[i]) > 0 and self.translated_text[i] != "" and self.translated_text[i][-2] not in string.punctuation and self.sentence_punctuation[-1] == None): 
-                    self.translated_text[i] = self.translated_text[i] + "."
+                if(len(Kaiseki.translated_text[i]) > 0 and Kaiseki.translated_text[i] != "" and Kaiseki.translated_text[i][-2] not in string.punctuation and Kaiseki.sentence_punctuation[-1] == None): 
+                    Kaiseki.translated_text[i] = Kaiseki.translated_text[i] + "."
                 
                 ## re-adds quotes
-                if(self.special_punctuation[0] == True): 
-                    self.translated_text[i] =  '"' + self.translated_text[i] + '"'
+                if(Kaiseki.special_punctuation[0] == True): 
+                    Kaiseki.translated_text[i] =  '"' + Kaiseki.translated_text[i] + '"'
 
                 ## replaces quotes because deepL messes up quotes
-                elif('"' in self.translated_text[i]): 
-                    self.translated_text[i] = self.translated_text[i].replace('"',"'")
+                elif('"' in Kaiseki.translated_text[i]): 
+                    Kaiseki.translated_text[i] = Kaiseki.translated_text[i].replace('"',"'")
 
                 ## re-adds single quotes
-                if(self.special_punctuation[3] == True): 
-                    self.translated_text[i] =  "'" + self.translated_text[i] + "'"
+                if(Kaiseki.special_punctuation[3] == True): 
+                    Kaiseki.translated_text[i] =  "'" + Kaiseki.translated_text[i] + "'"
 
                 ## re-adds parentheses
-                if(self.special_punctuation[4] == True): 
-                    self.translated_text[i] =  "(" + self.translated_text[i] + ")"
+                if(Kaiseki.special_punctuation[4] == True): 
+                    Kaiseki.translated_text[i] =  "(" + Kaiseki.translated_text[i] + ")"
 
-                self.translated_text[i] += "\n"
+                Kaiseki.translated_text[i] += "\n"
 
-                self.preloader.file_handler.logger.log_action("Translated and Reassembled Sentence : " + self.translated_text[i])
+                Logger.log_action("Translated and Reassembled Sentence : " + Kaiseki.translated_text[i])
 
-                self.je_check_text.append(str(i+1) + ": " + self.current_sentence +  "\n   " +  self.translated_text[i] + "\n")
+                Kaiseki.je_check_text.append(str(i+1) + ": " + Kaiseki.current_sentence +  "\n   " +  Kaiseki.translated_text[i] + "\n")
             
             i+=1
             
-            self.preloader.toolkit.clear_console()
+            Toolkit.clear_console()
             
-            print(str(i) + "/" + str(len(self.text_to_translate)) + " completed.")
+            print(str(i) + "/" + str(len(Kaiseki.text_to_translate)) + " completed.")
 
 ##-------------------start-of-separate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def separate_sentence(self) -> None: 
+    @staticmethod
+    def separate_sentence() -> None: 
 
         """
 
         This function separates the sentence into parts and punctuation.\n
-
-        Parameters:\n
-        self (object - Kaiseki) : The Kaiseki object.\n
-
-        Returns:\n
-        None.\n
         
         """
 
         ## resets variables for current_sentence
-        self.sentence_parts = [] 
-        self.sentence_punctuation = []
-        self.special_punctuation = [False,False,False,False,False] 
+        Kaiseki.sentence_parts = [] 
+        Kaiseki.sentence_punctuation = []
+        Kaiseki.special_punctuation = [False,False,False,False,False] 
 
         i = 0
 
         buildString = ""
 
         ## checks if quotes are in the sentence and removes them
-        if('"' in self.current_sentence):
-            self.current_sentence = self.current_sentence.replace('"', '')
-            self.special_punctuation[0] = True
+        if('"' in Kaiseki.current_sentence):
+            Kaiseki.current_sentence = Kaiseki.current_sentence.replace('"', '')
+            Kaiseki.special_punctuation[0] = True
 
         ## checks if tildes are in the sentence
-        if('~' in self.current_sentence):
-            self.special_punctuation[1] = True
+        if('~' in Kaiseki.current_sentence):
+            Kaiseki.special_punctuation[1] = True
 
         ## checks if apostrophes are in the sentence but not at the beginning or end
-        if(self.current_sentence.count("'") == 2 and (self.current_sentence[0] != "'" and self.current_sentence[-1] != "'")):
-            self.special_punctuation[2] = True
+        if(Kaiseki.current_sentence.count("'") == 2 and (Kaiseki.current_sentence[0] != "'" and Kaiseki.current_sentence[-1] != "'")):
+            Kaiseki.special_punctuation[2] = True
 
         ## checks if apostrophes are in the sentence and removes them
-        elif(self.current_sentence.count("'") == 2):
-            self.special_punctuation[3] = True
-            self.current_sentence = self.current_sentence.replace("'", "")
+        elif(Kaiseki.current_sentence.count("'") == 2):
+            Kaiseki.special_punctuation[3] = True
+            Kaiseki.current_sentence = Kaiseki.current_sentence.replace("'", "")
 
         ## checks if parentheses are in the sentence and removes them
-        if("(" in self.current_sentence and ")" in self.current_sentence):
-            self.special_punctuation[4] = True
-            self.current_sentence= self.current_sentence.replace("(","")
-            self.current_sentence= self.current_sentence.replace(")","")
+        if("(" in Kaiseki.current_sentence and ")" in Kaiseki.current_sentence):
+            Kaiseki.special_punctuation[4] = True
+            Kaiseki.current_sentence= Kaiseki.current_sentence.replace("(","")
+            Kaiseki.current_sentence= Kaiseki.current_sentence.replace(")","")
 
-        while(i < len(self.current_sentence)):
+        while(i < len(Kaiseki.current_sentence)):
                 
-            if(self.current_sentence[i] in [".","!","?","-"]): 
+            if(Kaiseki.current_sentence[i] in [".","!","?","-"]): 
 
-                if(i+5 < len(self.current_sentence) and self.current_sentence[i:i+6] in ["......"]):
+                if(i+5 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+6] in ["......"]):
 
-                    if(i+6 < len(self.current_sentence) and self.current_sentence[i:i+7] in ["......'"]):
+                    if(i+6 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+7] in ["......'"]):
                         buildString += "'"
                         i+=1
 
                     if(buildString != ""):
-                        self.sentence_parts.append(buildString)
+                        Kaiseki.sentence_parts.append(buildString)
 
-                    self.sentence_punctuation.append(self.current_sentence[i:i+6])
+                    Kaiseki.sentence_punctuation.append(Kaiseki.current_sentence[i:i+6])
                     i+=5
                     buildString = ""
                     
-                if(i+4 < len(self.current_sentence) and self.current_sentence[i:i+5] in [".....","...!?"]):
+                if(i+4 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+5] in [".....","...!?"]):
 
-                    if(i+5 < len(self.current_sentence) and self.current_sentence[i:i+6] in [".....'","...!?'"]):
+                    if(i+5 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+6] in [".....'","...!?'"]):
                         buildString += "'"
                         i+=1
 
                     if(buildString != ""):
-                        self.sentence_parts.append(buildString)
+                        Kaiseki.sentence_parts.append(buildString)
 
-                    self.sentence_punctuation.append(self.current_sentence[i:i+5])
+                    Kaiseki.sentence_punctuation.append(Kaiseki.current_sentence[i:i+5])
                     i+=4
                     buildString = ""
                                             
-                elif(i+3 < len(self.current_sentence) and self.current_sentence[i:i+4] in ["...!","...?","---.","....","!..."]):
+                elif(i+3 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+4] in ["...!","...?","---.","....","!..."]):
 
-                    if(i+4 < len(self.current_sentence) and self.current_sentence[i:i+5] in ["...!'","...?'","---.'","....'","!...'"]):
+                    if(i+4 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+5] in ["...!'","...?'","---.'","....'","!...'"]):
                         buildString += "'"
                         i+=1
 
                     if(buildString != ""):
-                        self.sentence_parts.append(buildString)
+                        Kaiseki.sentence_parts.append(buildString)
 
-                    self.sentence_punctuation.append(self.current_sentence[i:i+4])
+                    Kaiseki.sentence_punctuation.append(Kaiseki.current_sentence[i:i+4])
                     i+=3
                     buildString = ""
                         
-                elif(i+2 < len(self.current_sentence) and self.current_sentence[i:i+3] in ["---","..."]):
+                elif(i+2 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+3] in ["---","..."]):
 
-                    if(i+3 < len(self.current_sentence) and self.current_sentence[i:i+4] in ["---'","...'"]):
+                    if(i+3 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+4] in ["---'","...'"]):
                         buildString += "'"
                         i+=1
 
                     if(buildString != ""):
-                        self.sentence_parts.append(buildString)
+                        Kaiseki.sentence_parts.append(buildString)
 
-                    self.sentence_punctuation.append(self.current_sentence[i:i+3])
+                    Kaiseki.sentence_punctuation.append(Kaiseki.current_sentence[i:i+3])
                     i+=2
                     buildString = ""
 
-                elif(i+1 < len(self.current_sentence) and self.current_sentence[i:i+2] == '!?'):
+                elif(i+1 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+2] == '!?'):
 
-                    if(i+2 < len(self.current_sentence) and self.current_sentence[i:i+3] == "!?'"):
+                    if(i+2 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i:i+3] == "!?'"):
                         buildString += "'"
                         i+=1
 
                     if(buildString != ""):
-                        self.sentence_parts.append(buildString)
+                        Kaiseki.sentence_parts.append(buildString)
 
-                    self.sentence_punctuation.append(self.current_sentence[i:i+2])
+                    Kaiseki.sentence_punctuation.append(Kaiseki.current_sentence[i:i+2])
                     i+=1
                     buildString = ""
                         
                 ## if punctuation that was found is not a hyphen then just follow normal punctuation separation rules
-                elif(self.current_sentence[i] != "-"):
+                elif(Kaiseki.current_sentence[i] != "-"):
 
-                    if(i+1 < len(self.current_sentence) and self.current_sentence[i+1] == "'"):
+                    if(i+1 < len(Kaiseki.current_sentence) and Kaiseki.current_sentence[i+1] == "'"):
                         buildString += "'"
 
                     if(buildString != ""):
-                        self.sentence_parts.append(buildString)
+                        Kaiseki.sentence_parts.append(buildString)
 
-                    self.sentence_punctuation.append(self.current_sentence[i])
+                    Kaiseki.sentence_punctuation.append(Kaiseki.current_sentence[i])
                     buildString = ""
 
                 ## if it is just a singular hyphen, do not consider it punctuation as they are used in honorifics
                 else:
-                    buildString += self.current_sentence[i]
+                    buildString += Kaiseki.current_sentence[i]
             else:
-                buildString += self.current_sentence[i] 
+                buildString += Kaiseki.current_sentence[i] 
 
             i += 1
                 
         ## if end of line, add none punctuation which means a period needs to be added later
         if(buildString): 
-            self.sentence_parts.append(buildString)
-            self.sentence_punctuation.append(None)
+            Kaiseki.sentence_parts.append(buildString)
+            Kaiseki.sentence_punctuation.append(None)
 
-        self.preloader.file_handler.logger.log_action("Fragmented Sentence Parts " + str(self.sentence_parts))
-        self.preloader.file_handler.logger.log_action("Sentence Punctuation " + str(self.sentence_punctuation))
-        self.preloader.file_handler.logger.log_action("Does Sentence Have Special Punctuation : " + str(self.special_punctuation))
+        Logger.log_action("Fragmented Sentence Parts " + str(Kaiseki.sentence_parts))
+        Logger.log_action("Sentence Punctuation " + str(Kaiseki.sentence_punctuation))
+        Logger.log_action("Does Sentence Have Special Punctuation : " + str(Kaiseki.special_punctuation))
 
         ## strip the sentence parts
-        self.sentence_parts = [part.strip() for part in self.sentence_parts] 
+        Kaiseki.sentence_parts = [part.strip() for part in Kaiseki.sentence_parts] 
 
 ##-------------------start-of-translate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def translate_sentence(self) -> None:
+    @staticmethod
+    def translate_sentence() -> None:
 
         """
 
-        This function translates each part of a sentence.\n
-
-        Parameters:\n
-        self (object - Kaiseki) : the Kaiseki object.\n
-
-        Returns:\n
-        None.\n
+        This function translates each part of a sentence.
 
         """
 
@@ -445,17 +406,17 @@ class Kaiseki:
         tilde_active = False
         single_quote_active = False
 
-        while(i < len(self.sentence_parts)):
+        while(i < len(Kaiseki.sentence_parts)):
 
             ## if tilde is present in part, delete it and set tilde active to true, so we can add it back in a bit
-            if(self.special_punctuation[1] == True and "~" in self.sentence_parts[i]): 
-                self.sentence_parts[i] = self.sentence_parts[i].replace("~","")
+            if(Kaiseki.special_punctuation[1] == True and "~" in Kaiseki.sentence_parts[i]): 
+                Kaiseki.sentence_parts[i] = Kaiseki.sentence_parts[i].replace("~","")
                 tilde_active = True
 
             ## a quote is present in the sentence, but not enclosing the sentence, we need to isolate it
-            if(self.special_punctuation[2] == True and "'" in self.sentence_parts[i] and (self.sentence_parts[i][0] != "'" and self.sentence_parts[i][-1] != "'")): ## isolates the quote in the sentence
+            if(Kaiseki.special_punctuation[2] == True and "'" in Kaiseki.sentence_parts[i] and (Kaiseki.sentence_parts[i][0] != "'" and Kaiseki.sentence_parts[i][-1] != "'")): ## isolates the quote in the sentence
                 
-                sentence = self.sentence_parts[i]
+                sentence = Kaiseki.sentence_parts[i]
                 substring_start = sentence.index("'")
                 substring_end = 0
                 quote = ""
@@ -467,12 +428,12 @@ class Kaiseki:
                     ii+=1
                     
                 quote = sentence[substring_start+1:substring_end]
-                self.sentence_parts[i] = sentence[:substring_start+1] + "quote" + sentence[substring_end:]
+                Kaiseki.sentence_parts[i] = sentence[:substring_start+1] + "quote" + sentence[substring_end:]
 
                 single_quote_active = True
                 
             try:
-                results = str(self.translator.translate_text(self.sentence_parts[i], source_lang= "JA", target_lang="EN-US")) 
+                results = str(Kaiseki.translator.translate_text(Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")) 
 
                 translated_part = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                 translated_part = translated_part.rstrip() 
@@ -484,7 +445,7 @@ class Kaiseki:
 
                 ## translates the quote and readds it back to the sentence part
                 if(single_quote_active == True): 
-                    quote = str(self.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
+                    quote = str(Kaiseki.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
                     
                     quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                     quote = quote.rstrip() 
@@ -492,62 +453,61 @@ class Kaiseki:
                     translated_part = translated_part.replace("'quote'","'" + quote + "'",1)
 
                 ## if punctuation appears first and before any text, add the punctuation and remove it form the list.
-                if(len(self.sentence_punctuation) > len(self.sentence_parts)): 
-                    self.translated_sentence += self.sentence_punctuation[0]
-                    self.sentence_punctuation.pop(0)
+                if(len(Kaiseki.sentence_punctuation) > len(Kaiseki.sentence_parts)): 
+                    Kaiseki.translated_sentence += Kaiseki.sentence_punctuation[0]
+                    Kaiseki.sentence_punctuation.pop(0)
 
-                if(self.sentence_punctuation[i] != None):
-                    self.translated_sentence += translated_part + self.sentence_punctuation[i] 
+                if(Kaiseki.sentence_punctuation[i] != None):
+                    Kaiseki.translated_sentence += translated_part + Kaiseki.sentence_punctuation[i] 
                 else:
-                    self.translated_sentence += translated_part 
+                    Kaiseki.translated_sentence += translated_part 
 
-                if(i != len(self.sentence_punctuation)-1):
-                    self.translated_sentence += " "
+                if(i != len(Kaiseki.sentence_punctuation)-1):
+                    Kaiseki.translated_sentence += " "
                         
             except deepl.exceptions.QuotaExceededException as e:
 
                 print("\nDeepL API quota exceeded\n")
-                self.preloader.file_handler.logger.log_action("DeepL API quota exceeded\n")
+                Logger.log_action("DeepL API quota exceeded\n")
 
-                self.preloader.toolkit.pause_console()
+                Toolkit.pause_console()
                 
                 raise e
                     
             except ValueError as e:
 
                 if(str(e) == "Text must not be empty."):
-                    self.translated_sentence += ""
+                    Kaiseki.translated_sentence += ""
                 else:
-                    self.translated_sentence += "ERROR"
+                    Kaiseki.translated_sentence += "ERROR"
                     error = str(e)
 
-                    self.preloader.file_handler.logger.log_action("Error is : " + error)
-                    self.error_text.append("Error is : " + error)
+                    Logger.log_action("Error is : " + error)
+                    Kaiseki.error_text.append("Error is : " + error)
 
             i+=1
 
-        self.translated_text.append(self.translated_sentence)
-        self.translated_sentence = ""
+        Kaiseki.translated_text.append(Kaiseki.translated_sentence)
+        Kaiseki.translated_sentence = ""
 
 ##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def assemble_results(self) -> None:
+    @staticmethod
+    def assemble_results(time_start:float, time_end:float) -> None:
 
-        '''
+        """
 
         Prepares the results of the translation for printing.\n
 
-        Parameters:\n
-        self (object - Kaiseki) : the Kaiseki object.\n
+        Parameters:
+        time_start (float) : the time the translation started.
+        time_end (float) : the time the translation ended.
 
-        Returns:\n
-        None.\n
-
-        '''
+        """
         
-        self.translation_print_result += "Time Elapsed : " + self.preloader.toolkit.get_elapsed_time(self.time_start, self.time_end)
+        Kaiseki.translation_print_result += "Time Elapsed : " + Toolkit.get_elapsed_time(time_start, time_end)
 
-        self.translation_print_result += "\n\nDebug text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "debug log.txt")
-        self.translation_print_result += "\nJ->E text have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "jeCheck.txt")
-        self.translation_print_result += "\nTranslated text has been written to : " + os.path.join(self.preloader.file_handler.output_dir, "translatedText.txt")
-        self.translation_print_result += "\nErrors have been written to : " + os.path.join(self.preloader.file_handler.output_dir, "error log.txt") + "\n"
+        Kaiseki.translation_print_result += "\n\nDebug text have been written to : " + FileEnsurer.debug_log_path
+        Kaiseki.translation_print_result += "\nJ->E text have been written to : " + FileEnsurer.je_check_path
+        Kaiseki.translation_print_result += "\nTranslated text has been written to : " + FileEnsurer.translated_text_path
+        Kaiseki.translation_print_result += "\nErrors have been written to : " + FileEnsurer.error_log_path + "\n"

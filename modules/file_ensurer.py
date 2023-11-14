@@ -56,6 +56,9 @@ class FileEnsurer():
     external_kijiku_rules_path = os.path.join(script_dir,'Kijiku Rules.json')
     config_kijiku_rules_path = os.path.join(config_dir,'Kijiku Rules.json')
 
+    ## api keys
+    deepl_api_key_path = os.path.join(config_dir, "DeeplApiKey.txt")
+
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

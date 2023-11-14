@@ -58,6 +58,7 @@ class FileEnsurer():
 
     ## api keys
     deepl_api_key_path = os.path.join(config_dir, "DeeplApiKey.txt")
+    openai_api_key_path = os.path.join(config_dir,'GPTApiKey.txt')
 
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

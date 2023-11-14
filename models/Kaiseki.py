@@ -22,9 +22,9 @@ class Kaiseki:
 
     """
 
-    Kaiseki is a secondary class that is used to interact with the deepl API and translate Japanese text sentence by sentence.\n
+    Kaiseki is a secondary class that is used to interact with the deepl API and translate Japanese text sentence by sentence.
 
-    Kaiseki is considered Inferior to Kijiku, please consider using Kijiku instead.\n
+    Kaiseki is considered Inferior to Kijiku, please consider using Kijiku instead.
     
     """
 

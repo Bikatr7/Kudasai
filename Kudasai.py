@@ -1,19 +1,18 @@
-## built in modules
+## built-in libraries
 import os
 import sys
 import asyncio
-
-## third party modules
-
 import json
 
 ## custom modules
-from models.Kaiseki import Kaiseki 
-from models.Kijiku import Kijiku
-from models.Kairyou import Kairyou
+from models.kaiseki import Kaiseki 
+from models.kijiku import Kijiku
+from models.kairyou import Kairyou
 
-from modules.preloader import preloader
-
+from modules.toolkit import Toolkit
+from modules.file_ensurer import FileEnsurer
+from modules.logger import Logger
+from modules.results_assembler import ResultsAssembler
 
 ##-------------------start-of-Kudasai---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -21,66 +20,51 @@ class Kudasai:
 
     """
 
-    Kudasai class is the main class for the Kudasai program. It handles all the stuff except for the gui.\n
+    Kudasai class is the main class for the Kudasai program. It handles all the logic for the CLI and Console versions of Kudasai.
     
     """
-##-------------------start-of-__init__()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def __init__(self) -> None: 
+    connection:bool
+    
+##-------------------start-of-boot()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def boot(self) -> None:
 
         """
         
-        Constructor for Kudasai class.
+        If the user is running the CLI or Console version of Kudasai, this function is called to boot the program.\n
 
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
 
         """
 
         os.system("title " + "Kudasai CLI")
 
-        self.preloader = preloader()
+        Toolkit.clear_console()
 
-        self.preloader.toolkit.clear_console()
+        Logger.log_action("--------------------")
+        Logger.log_action("Initialized Kudasai")
+        Logger.log_action("--------------------\n")
 
-        self.preloader.file_handler.logger.log_action("--------------------")
-        self.preloader.file_handler.logger.log_action("Initialized Kudasai")
-        self.preloader.file_handler.logger.log_action("--------------------\n")
-
-        self.preloader.file_handler.logger.log_action("--------------------")
-        self.preloader.file_handler.logger.log_action("Kudasai started")
-        self.preloader.file_handler.logger.log_action("--------------------\n")
+        Logger.log_action("--------------------")
+        Logger.log_action("Kudasai started")
+        Logger.log_action("--------------------\n")
     
-        self.preloader.file_handler.logger.log_action("--------------------")
-        self.preloader.file_handler.logger.log_action("Current version: " + self.preloader.toolkit.CURRENT_VERSION)
-        self.preloader.file_handler.logger.log_action("-------------------\n")
-
-        self.kairyou_client = None
-
-        self.kaiseki_client = None
-
-        self.kijiku_client = None
-
-        self.connection = None
+        Logger.log_action("--------------------")
+        Logger.log_action("Current version: " + Toolkit.CURRENT_VERSION)
+        Logger.log_action("-------------------\n")
 
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    def setup_kairyou_for_cli(self, input_file, replacement_json_path) -> None:
+    @staticmethod
+    def setup_kairyou_for_cli(input_file, replacement_json_path) -> None:
 
         """
         
-        If the user is running the CLI version of Kudasai, this function is called to setup the text to be processed and the replacement json file.\n
+        If the user is running the CLI version of Kudasai, this function is called to setup the text to be processed and the replacement json file.
         
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-        input_file (str) : The path to the input file to be processed.\n
-        replacement_json (str) : The path to the replacement json file.\n
-
-        Returns:\n
-        None.\n
+        Parameters:
+        input_file (str) : The path to the input file to be processed.
+        replacement_json (str) : The path to the replacement json file.
 
         """
 
@@ -92,48 +76,41 @@ class Kudasai:
         except:
 
             print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-            self.preloader.file_handler.logger.log_action("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
+            Logger.log_action("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
 
-            self.preloader.toolkit.pause_console()
+            Toolkit.pause_console()
 
             exit()
 
         ## get name of json file
         ## Example "86 Replacements.json" would return 86
+        ## I remember needing this for something but I don't remember what
         name_of_replacement_json = os.path.basename(replacement_json_path)        
-
-
 
         with open(input_file, 'r', encoding='utf-8') as file: 
             japanese_text = file.read()
         
-        self.kairyou_client = Kairyou(replacement_json, japanese_text, self.preloader, name_of_replacement_json)
+        Kairyou.replacement_json = replacement_json 
+        Kairyou.text_to_preprocess = japanese_text
 
 ##-------------------start-of-setup_kairyou_for_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def setup_kairyou_for_console(self) -> None:
+    @staticmethod
+    def setup_kairyou_for_console() -> None:
 
         """
         
-        If the user is running the Console version of Kudasai, this function is called to setup the text to be processed and the replacement json file.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
+        If the user is running the Console version of Kudasai, this function is called to setup the text to be processed and the replacement json file.
 
         """
 
-        os.system("title " + "Kudasai Console")
-
         input_file = input("Please enter the path to the input file to be processed:\n").strip('"')
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
         replacement_json_path = input("Please enter the path to the replacement json file:\n").strip('"')
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
         try:
 
@@ -143,47 +120,48 @@ class Kudasai:
         except:
 
             print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-            self.preloader.file_handler.logger.log_action("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
+            Logger.log_action("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
 
-            self.preloader.toolkit.pause_console()
+            Toolkit.pause_console()
 
             exit()
 
 
+        ## get name of json file
+        ## Example "86 Replacements.json" would return 86
+        ## I remember needing this for something but I don't remember what
+        name_of_replacement_json = os.path.basename(replacement_json_path)        
+
         with open(input_file, 'r', encoding='utf-8') as file: 
             japanese_text = file.read()
         
-        self.kairyou_client = Kairyou(replacement_json, japanese_text, self.preloader, os.path.basename(replacement_json_path))
+        Kairyou.replacement_json = replacement_json 
+        Kairyou.text_to_preprocess = japanese_text
 
 ##-------------------start-of-run_kudasai_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def run_kudasai_console(self) -> None:
+    @staticmethod
+    async def run_kudasai_console() -> None:
 
         """
         
-        If the user is running the Console version of Kudasai, this function is called to run the program.\n
+        If the user is running the Console version of Kudasai, this function is called to run the program.
         
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
-
         """
 
-        self.handle_update_check_from_cli_or_console()
+        Kudasai.handle_update_check_from_cli_or_console()
 
-        self.kairyou_client.preprocess() ## type: ignore (we know it's not None)
+        Kairyou.preprocess()
 
-        print(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
+        print(Kairyou.preprocessing_log) 
 
-        self.preloader.write_kairyou_results(self.kairyou_client) ## type: ignore (we know it's not None)
+        ResultsAssembler.write_kairyou_results() ## type: ignore (we know it's not None)
 
-        self.preloader.toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
+        Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
-        await self.determine_autotranslation_module()
+        await Kudasai.determine_autotranslation_module()
 
-        self.preloader.toolkit.pause_console("\nPress any key to exit...")
+        Toolkit.pause_console("\nPress any key to exit...")
 
 ##-------------------start-of-run_kudasai_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -209,7 +187,7 @@ class Kudasai:
 
         self.preloader.write_kairyou_results(self.kairyou_client) ## type: ignore (we know it's not None)
 
-        self.preloader.toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
+        Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
         await self.determine_autotranslation_module()
 
@@ -229,14 +207,14 @@ class Kudasai:
 
         """
 
-        self.connection, update_prompt = self.preloader.toolkit.check_update() # type: ignore
+        self.connection, update_prompt = Toolkit.check_update() # type: ignore
 
         if(update_prompt):
             
             print(update_prompt)
 
-            self.preloader.toolkit.pause_console()
-            self.preloader.toolkit.clear_console()
+            Toolkit.pause_console()
+            Toolkit.clear_console()
         
 
 ##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -256,14 +234,14 @@ class Kudasai:
         """
 
         if(not self.connection):
-            self.preloader.toolkit.clear_console()
+            Toolkit.clear_console()
 
             print("You are not connected to the internet. Please connect to the internet to use the autotranslation feature.\n")
-            self.preloader.toolkit.pause_console()
+            Toolkit.pause_console()
 
             exit()
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
         pathing = ""
 
@@ -271,14 +249,14 @@ class Kudasai:
 
         pathing = input(pathing_msg)
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
         if(pathing == "1"):
             self.run_kaiseki()
         elif(pathing == "2"):
             await self.run_kijiku()
         else:
-            self.preloader.toolkit.clear_console()
+            Toolkit.clear_console()
             exit()
 
 ##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -297,15 +275,15 @@ class Kudasai:
 
         """
 
-        self.preloader.file_handler.logger.log_action("--------------------")
-        self.preloader.file_handler.logger.log_action("Kaiseki started")
-        self.preloader.file_handler.logger.log_action("--------------------\n")
+        Logger.log_action("--------------------")
+        Logger.log_action("Kaiseki started")
+        Logger.log_action("--------------------\n")
 
         self.kaiseki_client = Kaiseki(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
 
         self.kaiseki_client.translate()
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
         print(self.kaiseki_client.translation_print_result)
 
@@ -327,17 +305,17 @@ class Kudasai:
 
         """
 
-        self.preloader.file_handler.logger.log_action("--------------------")
-        self.preloader.file_handler.logger.log_action("Kijiku started")
-        self.preloader.file_handler.logger.log_action("--------------------\n")
+        Logger.log_action("--------------------")
+        Logger.log_action("Kijiku started")
+        Logger.log_action("--------------------\n")
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
         self.kijiku_client = Kijiku(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
 
         await self.kijiku_client.translate()
 
-        self.preloader.toolkit.clear_console()
+        Toolkit.clear_console()
 
         print(self.kijiku_client.translation_print_result)
 

@@ -6,7 +6,7 @@ import typing
 
 ## custom modules
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
-    from models.Kairyou import Name
+    from models.kairyou import Name
 
 from modules.file_ensurer import FileEnsurer
 

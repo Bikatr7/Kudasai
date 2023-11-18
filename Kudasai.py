@@ -155,7 +155,7 @@ class Kudasai:
 
         print(Kairyou.preprocessing_log) 
 
-        ResultsAssembler.write_kairyou_results() ## type: ignore (we know it's not None)
+        ResultsAssembler.write_kairyou_results() 
 
         Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
@@ -165,49 +165,37 @@ class Kudasai:
 
 ##-------------------start-of-run_kudasai_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def run_kudasai_cli(self) -> None:
+    @staticmethod
+    async def run_kudasai_cli() -> None:
 
         """
         
-        If the user is running the CLI version of Kudasai, this function is called to run the program.\n
-        
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
+        If the user is running the CLI version of Kudasai, this function is called to run the program.
 
         """
 
-        self.handle_update_check_from_cli_or_console()
+        Kudasai.handle_update_check_from_cli_or_console()
 
-        self.kairyou_client.preprocess() ## type: ignore (we know it's not None)
+        Kairyou.preprocess()
 
-        print(self.kairyou_client.preprocessing_log) ## type: ignore (we know it's not None)
-
-        self.preloader.write_kairyou_results(self.kairyou_client) ## type: ignore (we know it's not None)
+        ResultsAssembler.write_kairyou_results()
 
         Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
-        await self.determine_autotranslation_module()
+        await Kudasai.determine_autotranslation_module()
 
 ##-------------------start-of-handle_update_check_from_cli_or_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def handle_update_check_from_cli_or_console(self) -> None:
+    @staticmethod
+    def handle_update_check_from_cli_or_console() -> None:
 
         """
 
-        If the user is running the CLI or Console version of Kudasai, this function is called to check for updates.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
+        If the user is running the CLI or Console version of Kudasai, this function is called to check for updates.
 
         """
 
-        self.connection, update_prompt = Toolkit.check_update() # type: ignore
+        Kudasai.connection, update_prompt = Toolkit.check_update()
 
         if(update_prompt):
             
@@ -219,21 +207,16 @@ class Kudasai:
 
 ##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def determine_autotranslation_module(self) -> None:
+    @staticmethod
+    async def determine_autotranslation_module() -> None:
 
         """
         
-        If the user is running the CLI or Console version of Kudasai, this function is called to determine which autotranslation module to use.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
+        If the user is running the CLI or Console version of Kudasai, this function is called to determine which autotranslation module to use.
 
         """
 
-        if(not self.connection):
+        if(not Kudasai.connection):
             Toolkit.clear_console()
 
             print("You are not connected to the internet. Please connect to the internet to use the autotranslation feature.\n")
@@ -252,26 +235,21 @@ class Kudasai:
         Toolkit.clear_console()
 
         if(pathing == "1"):
-            self.run_kaiseki()
+            Kudasai.run_kaiseki()
         elif(pathing == "2"):
-            await self.run_kijiku()
+            await Kudasai.run_kijiku()
         else:
             Toolkit.clear_console()
             exit()
 
 ##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def run_kaiseki(self) -> None:
+    @staticmethod
+    def run_kaiseki() -> None:
 
         """
         
-        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kaiseki module.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
+        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kaiseki module.
 
         """
 
@@ -279,29 +257,24 @@ class Kudasai:
         Logger.log_action("Kaiseki started")
         Logger.log_action("--------------------\n")
 
-        self.kaiseki_client = Kaiseki(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
+        Kaiseki.text_to_translate = [line for line in Kairyou.text_to_preprocess.splitlines()]
 
-        self.kaiseki_client.translate()
+        Kaiseki.translate()
 
         Toolkit.clear_console()
 
-        print(self.kaiseki_client.translation_print_result)
+        print(Kaiseki.translation_print_result)
 
-        self.preloader.write_kaiseki_results(self.kaiseki_client) ## type: ignore (we know it's not None)
+        ResultsAssembler.write_kaiseki_results() 
 
 ##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    async def run_kijiku(self) -> None:
+    @staticmethod
+    async def run_kijiku() -> None:
 
         """
         
-        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kijiku module.\n
-
-        Parameters:\n
-        self (object - Kudasai) : the Kudasai object.\n
-
-        Returns:\n
-        None.\n
+        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kijiku module.
 
         """
 
@@ -311,21 +284,19 @@ class Kudasai:
 
         Toolkit.clear_console()
 
-        self.kijiku_client = Kijiku(self.kairyou_client.text_to_preprocess,self.preloader) ## type: ignore (we know it's not None)
+        Kijiku.text_to_translate = [line for line in Kairyou.text_to_preprocess.splitlines()]
 
-        await self.kijiku_client.translate()
+        await Kijiku.translate()
 
         Toolkit.clear_console()
 
-        print(self.kijiku_client.translation_print_result)
+        print(Kijiku.translation_print_result)
 
-        self.preloader.write_kijiku_results(self.kijiku_client) ## type: ignore (we know it's not None)
+        ResultsAssembler.write_kijiku_results()
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 async def main() -> None:
-
-    client = Kudasai()
 
     try:
 
@@ -335,20 +306,20 @@ async def main() -> None:
             ## if running console version
             if(len(sys.argv) <= 1):
                 
-                client.setup_kairyou_for_console()
+                Kudasai.setup_kairyou_for_console()
 
-                await client.run_kudasai_console()
+                await Kudasai.run_kudasai_console()
 
-                client.preloader.file_handler.logger.push_batch()
+                Logger.push_batch()
 
             ## if running cli version
             elif(len(sys.argv) == 3):
 
-                client.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
+                Kudasai.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
 
-                await client.run_kudasai_cli()
+                await Kudasai.run_kudasai_cli()
 
-                client.preloader.file_handler.logger.push_batch()
+                Logger.push_batch()
 
             ## print usage statement
             else:
@@ -356,15 +327,15 @@ async def main() -> None:
                     print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
                     print("or run Kudasai.py without any arguments to run the console version.\n\n")
     
-                    client.preloader.file_handler.logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
+                    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
     
-                    client.preloader.toolkit.pause_console()
+                    Toolkit.pause_console()
     
                     exit()
 
     except Exception as e:
 
-        client.preloader.file_handler.handle_critical_exception(e)
+        FileEnsurer.handle_critical_exception(e)
 
 ##---------------------------------/
 

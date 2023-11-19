@@ -171,11 +171,43 @@ class JsonHandler:
             for key, value in JsonHandler.current_kijiku_rules["open ai settings"].items():
                 settings_print_message += f"{key} : {json.dumps(value)}\n"
 
-            settings_print_message += "\n\nEnter the setting name to change or 'q' to quit: "
+            settings_print_message += "\n\nEnter the name of the setting you want to change, type d to reset to default, type c to load an external/custom json directly, or type 'q' to quit settings change : "
             action = input(settings_print_message).lower()
 
             if(action == 'q'):
                 break
+
+            ## loads a custom json directly
+            if(action == "c"):
+                Toolkit.clear_console()
+
+                ## saves old rules in case on invalid json
+                old_kijiku_rules = JsonHandler.current_kijiku_rules
+
+                try:
+
+                    ## loads the custom json file
+                    with open(FileEnsurer.external_kijiku_rules_path, 'r', encoding='utf-8') as file:
+                        JsonHandler.current_kijiku_rules = json.load(file) 
+
+                    JsonHandler.validate_json()
+
+                    ## validate_json() sets a dict to default if it's invalid, so if it's still default, it's invalid
+                    assert JsonHandler.current_kijiku_rules != JsonHandler.default_kijiku_rules 
+                    
+                    JsonHandler.dump_kijiku_rules()
+                
+                except AssertionError:
+                    print("Invalid JSON file. Please try again.")
+                    JsonHandler.current_kijiku_rules = old_kijiku_rules
+
+
+                except FileNotFoundError:
+                    print("Missing JSON file. Please try again.")
+                    JsonHandler.current_kijiku_rules = old_kijiku_rules
+
+            elif(action == "d"):
+                JsonHandler.reset_kijiku_rules_to_default()
 
             elif(action in JsonHandler.current_kijiku_rules["open ai settings"]):
 
@@ -191,6 +223,7 @@ class JsonHandler:
                     print("Invalid input. No changes made.")
             else:
                 print("Invalid setting name. Please try again.")
+
 
             Toolkit.pause_console()
 

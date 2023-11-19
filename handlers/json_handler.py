@@ -1,15 +1,9 @@
 ## built-in libraries
-from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
-
-import ctypes
 import json
 import typing
-import time
 
 ## custom modules
-if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
-    from modules.file_ensurer import FileEnsurer
-
+from modules.file_ensurer import FileEnsurer
 from modules.logger import Logger
 from modules.toolkit import Toolkit
 

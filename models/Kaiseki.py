@@ -1,9 +1,5 @@
 ## built-in libraries
-from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
-
 import string
-import typing
-import os
 import time
 import re
 import base64
@@ -13,10 +9,9 @@ import time
 import deepl
 
 ## custom modules
-if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
-    from modules.toolkit import Toolkit
-    from modules.file_ensurer import FileEnsurer
-    from modules.logger import Logger
+from modules.toolkit import Toolkit
+from modules.file_ensurer import FileEnsurer
+from modules.logger import Logger
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

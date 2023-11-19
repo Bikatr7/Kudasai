@@ -1,6 +1,4 @@
-## built-in libraries
-from __future__ import annotations ## used for cheating the circular import issue that occurs when i need to type check some things
-
+## built-in libaries
 import base64
 import re
 import os
@@ -23,9 +21,7 @@ from openai.error import APIConnectionError, APIError, AuthenticationError, Serv
 from handlers.json_handler import JsonHandler
 from modules.file_ensurer import FileEnsurer
 from modules.logger import Logger
-
-if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
-    from modules.toolkit import Toolkit
+from modules.toolkit import Toolkit
 
 
 

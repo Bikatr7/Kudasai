@@ -24,10 +24,10 @@ from handlers.json_handler import JsonHandler
 from modules.file_ensurer import FileEnsurer
 from modules.logger import Logger
 
-from .Kijiku import Kijiku
-
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from modules.toolkit import Toolkit
+
+
 
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -489,8 +489,8 @@ class Kijiku:
 ##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ## backoff wrapper for retrying on errors
-    @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError),on_backoff=Kijiku.log_retry)
     @staticmethod
+    @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError), on_backoff=lambda details: Kijiku.log_retry(details))
     async def translate_message(translation_instructions:dict, translation_prompt:dict) -> str:
 
         """
@@ -758,3 +758,30 @@ class Kijiku:
         Kijiku.translation_print_result += "\nJ->E text have been written to : " + os.path.join(FileEnsurer.output_dir, "jeCheck.txt")
         Kijiku.translation_print_result += "\nTranslated text has been written to : " + os.path.join(FileEnsurer.output_dir, "translatedText.txt")
         Kijiku.translation_print_result += "\nErrors have been written to : " + os.path.join(FileEnsurer.output_dir, "error log.txt") + "\n"
+
+##-------------------start-of-write_kijiku_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def write_kijiku_results() -> None:
+
+        """
+        
+        This function is called to write the results of the Kijiku translation module to the output directory.
+
+        """
+
+        ## ensures the output directory exists, cause it could get moved or fucked with.
+        FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
+
+        with open(FileEnsurer.error_log_path, 'a+', encoding='utf-8') as file:
+            file.writelines(Kijiku.error_text)
+
+        with open(FileEnsurer.je_check_path, 'w', encoding='utf-8') as file:
+            file.writelines(Kijiku.je_check_text)
+
+        with open(FileEnsurer.translated_text_path, 'w', encoding='utf-8') as file:
+            file.writelines(Kijiku.translated_text)
+
+        ## pushes the tl debug log to the file
+        Logger.clear_log_file()
+        Logger.push_batch()

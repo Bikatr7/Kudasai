@@ -12,7 +12,6 @@ from models.kairyou import Kairyou
 from modules.toolkit import Toolkit
 from modules.file_ensurer import FileEnsurer
 from modules.logger import Logger
-from modules.results_assembler import ResultsAssembler
 
 ##-------------------start-of-Kudasai---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -155,7 +154,7 @@ class Kudasai:
 
         print(Kairyou.preprocessing_log) 
 
-        ResultsAssembler.write_kairyou_results() 
+        Kairyou.write_kairyou_results() 
 
         Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
@@ -178,7 +177,7 @@ class Kudasai:
 
         Kairyou.preprocess()
 
-        ResultsAssembler.write_kairyou_results()
+        Kairyou.write_kairyou_results()
 
         Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
@@ -265,7 +264,7 @@ class Kudasai:
 
         print(Kaiseki.translation_print_result)
 
-        ResultsAssembler.write_kaiseki_results() 
+        Kaiseki.write_kaiseki_results() 
 
 ##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -292,7 +291,7 @@ class Kudasai:
 
         print(Kijiku.translation_print_result)
 
-        ResultsAssembler.write_kijiku_results()
+        Kijiku.write_kijiku_results()
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -302,6 +301,8 @@ async def main() -> None:
 
         ## determines if we will run the Kudasai CLI or the Kudasai Console
         if(__name__ == '__main__'):
+
+            Toolkit.clear_console()
 
             ## if running console version
             if(len(sys.argv) <= 1):

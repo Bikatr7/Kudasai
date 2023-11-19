@@ -110,3 +110,10 @@ lib/dicts/Cote Replacements.json_sudachi_dict.dic
 lib/dicts/Cote Replacements.json_sudachi_dict.csv
 lib/dicts/system.dic
 lib/dicts/system.zip
+output/debug_log.txt
+output/error_log.txt
+output/je_check_text.txt
+output/preprocessed_text.txt
+output/preprocessing_results.txt
+output/translated_text.txt
+kijiku_rules.json

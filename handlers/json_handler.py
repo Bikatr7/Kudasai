@@ -139,9 +139,7 @@ class JsonHandler:
 
         """
         
-        Toolkit.maximize_window()
 
-        
         while(True):
 
             Toolkit.clear_console()
@@ -171,6 +169,8 @@ class JsonHandler:
             for key, value in JsonHandler.current_kijiku_rules["open ai settings"].items():
                 settings_print_message += f"{key} : {json.dumps(value)}\n"
 
+            settings_print_message += "\nIt is recommended that you maximize the console window for this.\n"
+
             settings_print_message += "\n\nEnter the name of the setting you want to change, type d to reset to default, type c to load an external/custom json directly, or type 'q' to quit settings change : "
             action = input(settings_print_message).lower()
 
@@ -196,6 +196,8 @@ class JsonHandler:
                     assert JsonHandler.current_kijiku_rules != JsonHandler.default_kijiku_rules 
                     
                     JsonHandler.dump_kijiku_rules()
+
+                    print("Settings loaded successfully.")
                 
                 except AssertionError:
                     print("Invalid JSON file. Please try again.")
@@ -203,7 +205,7 @@ class JsonHandler:
 
 
                 except FileNotFoundError:
-                    print("Missing JSON file. Please try again.")
+                    print("Missing JSON file. Make sure you have a json in the same directory as kudasai.py and that the json is named \"kijiku_rules.json\". Please try again.")
                     JsonHandler.current_kijiku_rules = old_kijiku_rules
 
             elif(action == "d"):
@@ -234,8 +236,6 @@ class JsonHandler:
 
         except Exception as e:
             print(f"Failed to save settings: {e}")
-
-        Toolkit.minimize_window()
 
 ##-------------------start-of-convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -750,10 +750,10 @@ class Kijiku:
 
         Kijiku.translation_print_result += "Time Elapsed : " + Toolkit.get_elapsed_time(time_start, time_end)
 
-        Kijiku.translation_print_result += "\n\nDebug text have been written to : " + os.path.join(FileEnsurer.output_dir, "debug log.txt")
-        Kijiku.translation_print_result += "\nJ->E text have been written to : " + os.path.join(FileEnsurer.output_dir, "jeCheck.txt")
-        Kijiku.translation_print_result += "\nTranslated text has been written to : " + os.path.join(FileEnsurer.output_dir, "translatedText.txt")
-        Kijiku.translation_print_result += "\nErrors have been written to : " + os.path.join(FileEnsurer.output_dir, "error log.txt") + "\n"
+        Kijiku.translation_print_result += "\n\nDebug text have been written to : " + FileEnsurer.debug_log_path
+        Kijiku.translation_print_result += "\nJ->E text have been written to : " + FileEnsurer.je_check_path
+        Kijiku.translation_print_result += "\nTranslated text has been written to : " + FileEnsurer.translated_text_path
+        Kijiku.translation_print_result += "\nErrors have been written to : " + FileEnsurer.error_log_path + "\n"
 
 ##-------------------start-of-write_kijiku_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

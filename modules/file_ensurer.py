@@ -15,7 +15,7 @@ class FileEnsurer():
 
     ## main dirs
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    output_dir = os.path.join(script_dir, "KudasaiOutput")
+    output_dir = os.path.join(script_dir, "output")
 
     if(os.name == 'nt'):  ## Windows
         config_dir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
@@ -53,12 +53,12 @@ class FileEnsurer():
     katakana_words_path = os.path.join(sudachi_lib, "katakana_words.txt")
 
     ## kijiku rules
-    external_kijiku_rules_path = os.path.join(script_dir,'Kijiku Rules.json')
-    config_kijiku_rules_path = os.path.join(config_dir,'Kijiku Rules.json')
+    external_kijiku_rules_path = os.path.join(script_dir,'kijiku_rules.json')
+    config_kijiku_rules_path = os.path.join(config_dir,'kijiku_rules.json')
 
     ## api keys
-    deepl_api_key_path = os.path.join(config_dir, "DeeplApiKey.txt")
-    openai_api_key_path = os.path.join(config_dir,'GPTApiKey.txt')
+    deepl_api_key_path = os.path.join(config_dir, "deepl_api_key.txt")
+    openai_api_key_path = os.path.join(config_dir,'openai_api_key.txt')
 
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -19,7 +19,7 @@ class Kudasai:
 
     """
 
-    Kudasai class is the main class for the Kudasai program. It handles all the logic for the CLI and Console versions of Kudasai.
+    Kudasai class is the main class for the Kudasai program. It handles all the logic for all versions of Kudasai.
     
     """
 

@@ -1,0 +1,14 @@
+,Batch,Name,Price,Recommended Replacement,Depreciation Date,Shutdown Date (earliest)
+,,,,,,
+,First (depreciated),gpt-3.5-turbo-0301,$0.0015 / 1K input tokens + $0.0020 / 1K output tokens,gpt-3.5-turbo-0613,"June 13, 2023","June 13, 2024"
+,,gpt-4-0314,$0.03 / 1K input tokens + $0.06 / 1K output tokens,gpt-4-0613,"June 13, 2023","June 13, 2024"
+,,gpt-4-32k-0314,$0.06 / 1K input tokens + $0.12 / 1K output tokens,gpt-4-32k-0613,"June 13, 2023","June 13, 2024"
+,,,,,,
+,Second (depreciated),gpt-3.5-turbo-0613,$0.0015 / 1K input tokens + $0.0020 / 1K output tokens,gpt-3.5-turbo-1106,"November 6,2023","June 13, 2024"
+,,gpt-3.5-turbo-16k-0613,$0.0030 / 1K input tokens + $0.0040 / 1K output tokens,gpt-3.5-turbo-1106,"November 6,2023","June 13, 2024"
+,,,,,,
+,Third (Current),gpt-3.5-turbo-1106,$0.0010 / 1K input tokens + $0.0020 / 1K output tokens,N/A,N/A,N/A
+,,gpt-4-0613,$0.03 / 1K input tokens + $0.06 / 1K output tokens,N/A,N/A,N/A
+,,gpt-4-32k-0613,$0.06 / 1K input tokens + $0.012 / 1K output tokens,N/A,N/A,N/A
+,,,,,,
+,Fourth (Future),gpt-4-1106-preview,$0.01 / 1K input tokens + $0.03 / 1K output tokens,N/A,N/A,N/A

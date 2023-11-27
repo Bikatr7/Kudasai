@@ -1,29 +1,52 @@
 ## built-in libaries
+import typing
 import base64
 import re
-import os
 import time
 import typing
 import asyncio
 
-
 ## third party modules
-from aiohttp import ClientSession
+from openai import AsyncOpenAI
+from openai import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
 
-import openai
 import backoff
 import tiktoken
 import spacy
 
-from openai.error import APIConnectionError, APIError, AuthenticationError, ServiceUnavailableError, RateLimitError, Timeout
-
 ## custom modules
 from handlers.json_handler import JsonHandler
+
 from modules.file_ensurer import FileEnsurer
 from modules.logger import Logger
 from modules.toolkit import Toolkit
 
+##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+class SystemTranslationMessage(typing.TypedDict):
+
+    """
+
+    SystemTranslationMessage is a type that is used to interact with the OpenAI API and translates the text by batch, specifically for the system message.
+
+    """
+
+    role: typing.Literal['system']
+    content: str
+
+##-------------------start-of-ModelTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+class ModelTranslationMessage(typing.TypedDict):
+
+    """
+
+    ModelTranslationMessage is a type that is used to interact with the OpenAI API and translates the text by batch, specifically for the model/user message.
+
+    """
+
+    role: typing.Literal['user']
+    content: str
 
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -52,6 +75,9 @@ class Kijiku:
     ## model message is the text that will be translated  
     translation_batches = []
 
+    ## async client session
+    client = AsyncOpenAI(max_retries=0, api_key="Dummy")
+
     ##--------------------------------------------------------------------------------------------------------------------------
 
     translation_print_result = ""
@@ -75,9 +101,6 @@ class Kijiku:
         Translate the text in the file at the path given.
 
         """
-
-        ## ngl i have basically no idea what this does, but it's needed for openai async to work
-        openai.aiosession.set(ClientSession())
 
         ## set this here cause the try-except could throw before we get past the settings configuration
         time_start = time.time()
@@ -107,12 +130,6 @@ class Kijiku:
 
             Kijiku.assemble_results(time_start, time_end)
 
-            ## more session stuff that i don't understand
-            session = openai.aiosession.get()
-
-            if(session):
-                await session.close()
-
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -129,13 +146,13 @@ class Kijiku:
             with open(FileEnsurer.openai_api_key_path, 'r', encoding='utf-8') as file: 
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            openai.api_key = api_key
+            Kijiku.client.api_key = api_key
 
             ## make dummy request to check if api key is valid
-            await openai.Completion.acreate(
-                engine="davinci",
-                prompt="This is a test.",
-                max_tokens=5
+            await Kijiku.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role":"user","content":"This is a test."}],
+                max_tokens=1
             )
         
             print("Used saved api key in " + FileEnsurer.openai_api_key_path)
@@ -151,13 +168,13 @@ class Kijiku:
             ## if valid save the api key
             try: 
 
-                openai.api_key = api_key
+                Kijiku.client.api_key = api_key
 
                 ## make dummy request to check if api key is valid
-                await openai.Completion.acreate(
-                    engine="davinci",
-                    prompt="This is a test.",
-                    max_tokens=5
+                await Kijiku.client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role":"user","content":"This is a test."}],
+                    max_tokens=1
                 )
 
                 FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
@@ -369,20 +386,14 @@ class Kijiku:
             prompt = ''.join(prompt)
 
             if(Kijiku.message_mode == 1):
-                system_msg = {}
-                system_msg["role"] = "system"
-                system_msg["content"] = Kijiku.translation_instructions
+                system_msg = SystemTranslationMessage(role="system", content=Kijiku.translation_instructions)
 
             else:
-                system_msg = {}
-                system_msg["role"] = "user"
-                system_msg["content"] = Kijiku.translation_instructions
+                system_msg = ModelTranslationMessage(role="user", content=Kijiku.translation_instructions)
 
             Kijiku.translation_batches.append(system_msg)
 
-            model_msg = {}
-            model_msg["role"] = "user"
-            model_msg["content"] = prompt
+            model_msg = ModelTranslationMessage(role="user", content=prompt)
 
             Kijiku.translation_batches.append(model_msg)
 
@@ -486,8 +497,8 @@ class Kijiku:
 
     ## backoff wrapper for retrying on errors
     @staticmethod
-    @backoff.on_exception(backoff.expo, (ServiceUnavailableError, RateLimitError, Timeout, APIError, APIConnectionError), on_backoff=lambda details: Kijiku.log_retry(details))
-    async def translate_message(translation_instructions:dict, translation_prompt:dict) -> str:
+    @backoff.on_exception(backoff.expo, exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details))
+    async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
 
         """
 
@@ -504,7 +515,7 @@ class Kijiku:
 
         ## max_tokens and logit bias are currently excluded due to a lack of need, and the fact that i am lazy
 
-        response = await openai.ChatCompletion.acreate(
+        response = await Kijiku.client.chat.completions.create(
             model=Kijiku.MODEL,
             messages=[
                 translation_instructions,
@@ -513,23 +524,22 @@ class Kijiku:
 
             temperature = float(JsonHandler.current_kijiku_rules["open ai settings"]["temp"]),
             top_p = float(JsonHandler.current_kijiku_rules["open ai settings"]["top_p"]),
-            n = int(JsonHandler.current_kijiku_rules["open ai settings"]["top_p"]),
+            n = int(JsonHandler.current_kijiku_rules["open ai settings"]["n"]),
             stream = JsonHandler.current_kijiku_rules["open ai settings"]["stream"],
             stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"],
             presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"]),
-            frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"]),
+            frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"]),            
 
         )
 
-        ## note, pylance flags this as a 'GeneralTypeIssue', however i see nothing wrong with it, and it works fine
-        output = response['choices'][0]['message']['content'] ## type: ignore
+        output = response.choices[0].message.content
         
         return output
     
 ##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def handle_translation(index:int, length:int, translation_instructions:dict, translation_prompt:dict) -> tuple[int, dict, str]:
+    async def handle_translation(index:int, length:int, translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> tuple[int, ModelTranslationMessage, str]:
 
         """
 
@@ -578,7 +588,7 @@ class Kijiku:
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def check_if_translation_is_good(translated_message:str, translation_prompt:dict):
+    async def check_if_translation_is_good(translated_message:str, translation_prompt:ModelTranslationMessage) -> bool:
 
         """
         

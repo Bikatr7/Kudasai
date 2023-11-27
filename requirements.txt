@@ -4,7 +4,7 @@ spacy[en]
 ja_core_news_lg
 en_core_web_lg
 deepl
-openai
+openai>1.2.0
 backoff
 requests
 tiktoken

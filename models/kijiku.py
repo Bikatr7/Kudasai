@@ -157,6 +157,7 @@ class Kijiku:
         
             print("Used saved api key in " + FileEnsurer.openai_api_key_path)
             Logger.log_action("Used saved api key in " + FileEnsurer.openai_api_key_path)
+            Logger.log_barrier()
 
         ## else try to get api key manually
         except:
@@ -280,14 +281,12 @@ class Kijiku:
         ## get cost estimate and confirm
         num_tokens, min_cost, Kijiku.MODEL = Kijiku.estimate_cost(Kijiku.MODEL)
 
-        print("Not that the cost estimate is not always accurate, and may be higher than the actual cost. Cost now includes output tokens\n\n")
+        print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. Cost now includes output tokens.\n")
         print("Estimated number of tokens : " + str(num_tokens))
-        print("Estimated minimum cost : " + str(min_cost) + " USD\n\n")
+        print("Estimated minimum cost : " + str(min_cost) + " USD")
 
         Logger.log_action("Estimated number of tokens : " + str(num_tokens))
-        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD\n\n")
-        Logger.log_barrier()
-
+        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD")
         Logger.log_barrier()
 
         if(input("\nContinue? (1 for yes or 2 for no) : ") == "1"):
@@ -302,7 +301,8 @@ class Kijiku:
         Logger.log_barrier()
         
         Logger.log_action("Starting Translation")
-        print("Starting Translation...\n\n")
+        Logger.log_barrier()
+        print("Starting Translation...\n")
 
         ## requests to run asynchronously
         async_requests = []
@@ -314,11 +314,15 @@ class Kijiku:
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
 
+        Logger.log_barrier()
         print("\n\nTranslation Complete!\n\n")
         Logger.log_action("Translation Complete!")
 
+        Logger.log_barrier()
         print("Starting Redistribution...\n\n")
         Logger.log_action("Starting Redistribution...")
+
+        Logger.log_barrier()
 
         ## Sort results based on the index to maintain order
         sorted_results = sorted(results, key=lambda x: x[0])
@@ -335,6 +339,7 @@ class Kijiku:
 
         print("Done!\n\n")
         Logger.log_action("Done!")
+        Logger.log_barrier()
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

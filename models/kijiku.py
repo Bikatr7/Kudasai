@@ -76,6 +76,9 @@ class Kijiku:
     ## model message is the text that will be translated  
     translation_batches = []
 
+    ## number of malformed batches that have occurred
+    malformed_batches = 0
+
     ## async client session
     client = AsyncOpenAI(max_retries=0, api_key="Dummy")
 
@@ -657,6 +660,7 @@ class Kijiku:
             else:
                 num_tries += 1
                 Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
+                Kijiku.malformed_batches += 1
 
         Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
 
@@ -838,6 +842,7 @@ class Kijiku:
         """
 
         Kijiku.translation_print_result += "Time Elapsed : " + Toolkit.get_elapsed_time(time_start, time_end)
+        Kijiku.translation_print_result += "Number of malformed batches : " + str(Kijiku.malformed_batches)
 
         Kijiku.translation_print_result += "\n\nDebug text have been written to : " + FileEnsurer.debug_log_path
         Kijiku.translation_print_result += "\nJ->E text have been written to : " + FileEnsurer.je_check_path

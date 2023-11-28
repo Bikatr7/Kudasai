@@ -1,8 +1,11 @@
-## built-in modules
+## built-in libraries
+from datetime import datetime
+
 import os
 import typing
 import platform
 import subprocess
+
 
 class Toolkit():
 
@@ -203,3 +206,21 @@ class Toolkit():
             is_connection = False 
                     
             return is_connection, update_prompt
+
+##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------        
+
+    @staticmethod
+    def get_timestamp() -> str:
+
+        """
+        
+        Generates a timestamp for an action taken by Kudasai.
+
+        Returns:
+        time_stamp (string) : The timestamp for the action.        
+        
+        """
+
+        time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
+
+        return time_stamp

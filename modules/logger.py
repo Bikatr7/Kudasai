@@ -1,5 +1,5 @@
-## built-in imports
-import datetime
+## custom modules
+from modules.toolkit import Toolkit
 
 class Logger:
 
@@ -12,28 +12,6 @@ class Logger:
     log_file_path = ""
 
     current_batch = ""
-
-##--------------------start-of-get_time_stamp()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def get_time_stamp():
-
-        """
-        
-        Gets the time stamp for a logging action taken.
-
-        Returns:\n
-        time_stamp (str) : The time stamp for the logging action.
-
-        """
-
-        current_date = datetime.date.today().strftime("%Y-%m-%d")
-
-        current_time = datetime.datetime.now().time().strftime("%H:%M:%S")
-
-        time_stamp = "(" + current_date + " " + current_time + ") : "
-
-        return time_stamp
     
 ##--------------------start-of-log_action()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -49,7 +27,7 @@ class Logger:
  
         """
 
-        time_stamp = Logger.get_time_stamp()
+        time_stamp = Toolkit.get_timestamp()
 
         Logger.current_batch += time_stamp + action + "\n"
 

@@ -16,6 +16,7 @@ import spacy
 
 ## custom modules
 from handlers.json_handler import JsonHandler
+from handlers.katakana_handler import KatakanaHandler
 
 from modules.file_ensurer import FileEnsurer
 from modules.logger import Logger
@@ -361,17 +362,17 @@ class Kijiku:
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(sentence + '\n')
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.\n")
+                    Logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.")
 
                 elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
                     prompt.append(sentence + '\n') 
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.\n")
+                    Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.")
 
-                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not any(char in sentence for char in ["」", "「", "«", "»",'"','"'])):
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.\n")
+                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not KatakanaHandler.is_punctuation(sentence)):
+                    Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
             
                 elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
-                    Logger.log_action("Sentence is empty... skipping translation.\n")
+                    Logger.log_action("Sentence is empty... skipping translation.")
 
                 else:
                     prompt.append(sentence + "\n")

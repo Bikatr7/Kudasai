@@ -1,6 +1,8 @@
 ## custom modules
 from modules.toolkit import Toolkit
 
+from models.kijiku import Kijiku
+
 class Logger:
 
     """
@@ -16,7 +18,7 @@ class Logger:
 ##--------------------start-of-log_action()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def log_action(action:str, output:bool=False, omit_timestamp:bool=False):
+    def log_action(action:str, output:bool=False, omit_timestamp:bool=False, is_error:bool=False):
 
         """
         
@@ -26,6 +28,7 @@ class Logger:
         action (str) : the action being logged.
         output (bool | optional | defaults to false) : whether or not to output the action to the console.
         omit_timestamp (bool | optional | defaults to false) : whether or not to omit the timestamp from the action.
+        is_error (bool | optional | defaults to false) : whether or not the action is an error.
  
         """
 
@@ -38,6 +41,9 @@ class Logger:
 
         if(output):
             print(time_stamp + action + "\n")
+
+        if(is_error):
+            Kijiku.error_text += time_stamp + action + "\n"
 
 ##--------------------start-of-log_barrier()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

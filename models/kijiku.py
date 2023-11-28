@@ -656,7 +656,7 @@ class Kijiku:
 
             else:
                 num_tries += 1
-                Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
+                Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
 
         Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
 
@@ -708,7 +708,7 @@ class Kijiku:
         retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
 
         Logger.log_barrier()
-        Logger.log_action(retry_msg)
+        Logger.log_action(retry_msg, is_error=True)
         Logger.log_barrier()
 
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

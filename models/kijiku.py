@@ -643,7 +643,6 @@ class Kijiku:
 
         """
 
-        translated_message = ""
         num_tries = 0
 
         while True:
@@ -658,6 +657,8 @@ class Kijiku:
             ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
             except:
                 translated_message = translation_prompt["content"]
+                Logger.log_action(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True, is_error=True)
+                continue
 
             ## do not even bother if not a gpt 4 model
             if("gpt-4" not in Kijiku.MODEL):

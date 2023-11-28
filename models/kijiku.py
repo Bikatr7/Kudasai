@@ -155,8 +155,7 @@ class Kijiku:
                 max_tokens=1
             )
         
-            print("Used saved api key in " + FileEnsurer.openai_api_key_path)
-            Logger.log_action("Used saved api key in " + FileEnsurer.openai_api_key_path)
+            Logger.log_action("Used saved api key in " + FileEnsurer.openai_api_key_path, output=True)
             Logger.log_barrier()
 
         ## else try to get api key manually
@@ -185,8 +184,7 @@ class Kijiku:
                     
                 Toolkit.clear_console()
                         
-                print("Authorization error with setting up openai, please double check your api key as it appears to be incorrect.\n")
-                Logger.log_action("Authorization error with setting up openai, please double check your api key as it appears to be incorrect.\n")
+                Logger.log_action("Authorization error with setting up openai, please double check your api key as it appears to be incorrect.", output=True)
 
                 Toolkit.pause_console()
                         
@@ -197,8 +195,7 @@ class Kijiku:
 
                 Toolkit.clear_console()
                         
-                print("Unknown error with setting up openai, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
-                Logger.log_action("Unknown error with setting up openai, The error is as follows " + str(e)  + "\nThe exception will now be raised.\n")
+                Logger.log_action("Unknown error with setting up openai, The error is as follows " + str(e)  + "\nThe exception will now be raised.", output=True)
 
                 Toolkit.pause_console()
 
@@ -225,7 +222,7 @@ class Kijiku:
 
         """
 
-        Prompts the user to confirm the settings in the kijiku rules file.\n
+        Prompts the user to confirm the settings in the kijiku rules file.
 
         """
 
@@ -252,7 +249,7 @@ class Kijiku:
 
         """
 
-        Uses all the other functions to translate the text provided by Kudasai.\n
+        Uses all the other functions to translate the text provided by Kudasai.
 
         """
         
@@ -281,12 +278,10 @@ class Kijiku:
         ## get cost estimate and confirm
         num_tokens, min_cost, Kijiku.MODEL = Kijiku.estimate_cost(Kijiku.MODEL)
 
-        print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. Cost now includes output tokens.\n")
-        print("Estimated number of tokens : " + str(num_tokens))
-        print("Estimated minimum cost : " + str(min_cost) + " USD")
+        print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
-        Logger.log_action("Estimated number of tokens : " + str(num_tokens))
-        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD")
+        Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True)
+        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True)
         Logger.log_barrier()
 
         if(input("\nContinue? (1 for yes or 2 for no) : ") == "1"):
@@ -300,9 +295,8 @@ class Kijiku:
 
         Logger.log_barrier()
         
-        Logger.log_action("Starting Translation")
+        Logger.log_action("Starting Translation...", output=True)
         Logger.log_barrier()
-        print("Starting Translation...\n")
 
         ## requests to run asynchronously
         async_requests = []
@@ -315,12 +309,10 @@ class Kijiku:
         results = await asyncio.gather(*async_requests)
 
         Logger.log_barrier()
-        print("\n\nTranslation Complete!\n\n")
-        Logger.log_action("Translation Complete!")
+        Logger.log_action("Translation Complete!", output=True)
 
         Logger.log_barrier()
-        print("Starting Redistribution...\n\n")
-        Logger.log_action("Starting Redistribution...")
+        Logger.log_action("Starting Redistribution...", output=True)
 
         Logger.log_barrier()
 
@@ -337,8 +329,7 @@ class Kijiku:
 
         Toolkit.clear_console()
 
-        print("Done!\n\n")
-        Logger.log_action("Done!")
+        Logger.log_action("Done!", output=True)
         Logger.log_barrier()
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -408,9 +399,11 @@ class Kijiku:
 
             prompt = ''.join(prompt)
 
+            ## message mode one structures the first message as a system message and the second message as a model message
             if(Kijiku.message_mode == 1):
                 system_msg = SystemTranslationMessage(role="system", content=Kijiku.translation_instructions)
 
+            ## while message mode two structures the first message as a model message and the second message as a system message, typically used for non-gpt-4 models if at all
             else:
                 system_msg = ModelTranslationMessage(role="user", content=Kijiku.translation_instructions)
 
@@ -451,6 +444,11 @@ class Kijiku:
         model (string) : the model used to translate the text.
         price_case (int) : the price case used to calculate the cost.
 
+        Returns:
+        num_tokens (int) : the number of tokens used.
+        min_cost (float) : the minimum cost of translation.
+        model (string) : the model used to translate the text.
+
         """
         
         allowed_models = [
@@ -469,6 +467,7 @@ class Kijiku:
 
         assert model in allowed_models, f"""Kudasai does not support : {model}. See https://github.com/OpenAI/OpenAI-python/blob/main/chatml.md for information on how messages are converted to tokens."""
 
+        ## default models are first, then the rest are sorted by price case
         if(price_case is None):
 
             if(model == "gpt-3.5-turbo"):
@@ -617,7 +616,7 @@ class Kijiku:
 
         Handles the translation for a given system and user message.
 
-        Parameters:\n
+        Parameters:
         index (int) : the index of the message in the original list.
         translation_instructions (dict) : the system message also known as the instructions.
         translation_prompt (dict) : the user message also known as the prompt.
@@ -636,8 +635,7 @@ class Kijiku:
         while True:
         
             message_number = (index // 2) + 1
-            print(f"Trying translation for batch {message_number} of {length//2}...")
-            Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...")
+            Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
 
             translated_message = await Kijiku.translate_message(translation_instructions, translation_prompt)
 
@@ -650,11 +648,9 @@ class Kijiku:
 
             else:
                 num_tries += 1
-                print(f"Batch {message_number} of {length//2} was malformed, retrying...")
-                Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...")
+                Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
 
-        print(f"Translation for batch {message_number} of {length//2} successful!")
-        Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!")
+        Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
 
         return index, translation_prompt, translated_message
     
@@ -696,12 +692,13 @@ class Kijiku:
 
         Logs the retry message.
 
-        Parameters:\n
+        Parameters:
         details (dict) : the details of the retry.
 
         """
 
-        retry_msg = f"Backing off {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['value']}."
+        retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['value']}."
+
         Logger.log_barrier()
         Logger.log_action(retry_msg)
         Logger.log_barrier()
@@ -779,12 +776,12 @@ class Kijiku:
 
         """
 
-        Fixes the J->E text to be more j-e check friendly.\n
+        Fixes the J->E text to be more j-e check friendly.
 
-        Note that fix_je() is not always accurate, and may use standard j-e formatting instead of the corrected formatting.\n
+        Note that fix_je() is not always accurate, and may use standard j-e formatting instead of the corrected formatting.
 
-        Returns:\n
-        final_list (list - str) : the fixed J->E text.\n
+        Returns:
+        final_list (list - str) : the fixed J->E text.
 
         """
         

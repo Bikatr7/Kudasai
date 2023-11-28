@@ -16,7 +16,7 @@ class Logger:
 ##--------------------start-of-log_action()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def log_action(action:str):
+    def log_action(action:str, output:bool=False):
 
         """
         
@@ -24,12 +24,16 @@ class Logger:
 
         Parameters:
         action (str) : the action being logged.
+        output (bool | optional | defaults to false) : whether or not to output the action to the console.
  
         """
 
         time_stamp = Toolkit.get_timestamp()
 
         Logger.current_batch += time_stamp + action + "\n"
+
+        if(output):
+            print(time_stamp + action + "\n")
 
 ##--------------------start-of-log_barrier()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

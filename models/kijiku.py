@@ -158,6 +158,8 @@ class Kijiku:
             Logger.log_action("Used saved api key in " + FileEnsurer.openai_api_key_path, output=True)
             Logger.log_barrier()
 
+            time.sleep(2)
+
         ## else try to get api key manually
         except:
 
@@ -280,8 +282,8 @@ class Kijiku:
 
         print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
-        Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True)
-        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True)
+        Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
+        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
         Logger.log_barrier()
 
         if(input("\nContinue? (1 for yes or 2 for no) : ") == "1"):
@@ -697,7 +699,7 @@ class Kijiku:
 
         """
 
-        retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['value']}."
+        retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
 
         Logger.log_barrier()
         Logger.log_action(retry_msg)

@@ -16,7 +16,7 @@ class Logger:
 ##--------------------start-of-log_action()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def log_action(action:str, output:bool=False):
+    def log_action(action:str, output:bool=False, omit_timestamp:bool=False):
 
         """
         
@@ -25,10 +25,14 @@ class Logger:
         Parameters:
         action (str) : the action being logged.
         output (bool | optional | defaults to false) : whether or not to output the action to the console.
+        omit_timestamp (bool | optional | defaults to false) : whether or not to omit the timestamp from the action.
  
         """
 
         time_stamp = Toolkit.get_timestamp()
+
+        if(omit_timestamp):
+            time_stamp = ""
 
         Logger.current_batch += time_stamp + action + "\n"
 

@@ -144,7 +144,8 @@ class JsonHandler:
 
             Toolkit.clear_console()
 
-            settings_print_message = "See https://platform.openai.com/docs/api-reference/chat/create for further details\n"
+            settings_print_message = "See https://platform.openai.com/docs/api-reference/chat/create for further details"
+            settings_print_message = "----------------------------------------------------------------------------------"
 
             settings_print_message += "\n\nmodel : ID of the model to use. As of right now, Kijiku only works with 'chat' models."
             settings_print_message += "\n\ntemperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower Values are typically better for translation"

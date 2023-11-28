@@ -14,6 +14,8 @@
         "message_mode": 1,
         "num_lines": "36",
         "sentence_fragmenter_mode": "3",
-        "je_check_mode": "2"
+        "je_check_mode": "2",
+        "num_malformed_batch_retries": "1",
+        "batch_retry_timeout": "5"
     }
 }

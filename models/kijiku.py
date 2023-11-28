@@ -94,6 +94,8 @@ class Kijiku:
     prompt_size = 0
     sentence_fragmenter_mode = 0
     je_check_mode = 0
+    num_of_malform_retries = 0
+    max_batch_duration = 0
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -272,6 +274,8 @@ class Kijiku:
         Kijiku.prompt_size = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_lines"])
         Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
         Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"])
+        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
+        Kijiku.max_batch_duration = int(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
 
         Toolkit.clear_console()
 
@@ -578,7 +582,7 @@ class Kijiku:
 
     ## backoff wrapper for retrying on errors
     @staticmethod
-    @backoff.on_exception(backoff.expo, exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details))
+    @backoff.on_exception(backoff.expo, max_time=float(max_batch_duration), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details))
     async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
 
         """
@@ -640,7 +644,6 @@ class Kijiku:
         """
 
         translated_message = ""
-        NUM_TRIES_ALLOWED = 1
         num_tries = 0
 
         while True:
@@ -648,13 +651,19 @@ class Kijiku:
             message_number = (index // 2) + 1
             Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
 
-            translated_message = await Kijiku.translate_message(translation_instructions, translation_prompt)
+
+            try:
+                translated_message = await Kijiku.translate_message(translation_instructions, translation_prompt)
+
+            ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
+            except:
+                translated_message = translation_prompt["content"]
 
             ## do not even bother if not a gpt 4 model
             if("gpt-4" not in Kijiku.MODEL):
                 break
 
-            if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt) or num_tries >= NUM_TRIES_ALLOWED):
+            if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt) or num_tries >= Kijiku.num_of_malform_retries):
                 break
 
             else:
@@ -713,6 +722,26 @@ class Kijiku:
 
         Logger.log_barrier()
         Logger.log_action(retry_msg, is_error=True)
+        Logger.log_barrier()
+
+##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def log_failure(details):
+
+        """
+        
+        Logs the translation batch failure message.
+
+        Parameters:
+        details (dict) : the details of the failure.
+
+        """
+
+        error_msg = f"Exceeded duration, returning untranslated text after {details['tries']} tries {details['target']}."
+
+        Logger.log_barrier()
+        Logger.log_action(error_msg, is_error=True)
         Logger.log_barrier()
 
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -34,7 +34,9 @@ class JsonHandler:
         "message_mode":1,
         "num_lines":13,
         "sentence_fragmenter_mode":3,
-        "je_check_mode":2
+        "je_check_mode":2,
+        "num_malformed_batch_retries":1,
+        "batch_retry_timeout":5
     }
     }
 
@@ -64,7 +66,9 @@ class JsonHandler:
         "message_mode",
         "num_lines",
         "sentence_fragmenter_mode",
-        "je_check_mode"
+        "je_check_mode",
+        "num_malformed_batch_retries",
+        "batch_retry_timeout"
          ]
         
 
@@ -162,6 +166,8 @@ class JsonHandler:
             settings_print_message += "\n\nnum_lines : the number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines."
             settings_print_message += "\n\nsentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all."
             settings_print_message += "\n\nje_check_mode : 1 or 2, 1 will print out the 'num_lines' amount of jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will do 1."
+            settings_print_message += "\n\nnum_malformed_batch_retries : How many times Kudasai will attempt to mend a malformed batch, only for gpt4. Defaults to 1, careful with increasing as cost increases at (cost * length * n) at worst case."
+            settings_print_message += "\n\nbatch_retry_timeout : How long Kudasai will try to attempt to requery a translation batch in minutes, if a requests exceeds this duration, Kudasai will leave it untranslated."
 
             settings_print_message += "\n\nPlease note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them."
 
@@ -272,12 +278,13 @@ class JsonHandler:
             "num_lines": int,
             "sentence_fragmenter_mode": int,
             "je_check_mode": int,
+            "num_malformed_batch_retries": int,
+            "batch_retry_timeout": int
         }
 
         # Special cases for None or complex types
         if(setting_name in ["stop", "logit_bias"] and value.lower() == "none"):
             return None
-
 
         ## Check if the setting requires a specific type
         if(setting_name in type_expectations):
@@ -286,7 +293,7 @@ class JsonHandler:
                 if(setting_name == "max_tokens"):
                     int_value = int(value)
 
-                    if(int_value < 0 or int_value > 9223372036854775807):
+                    if(int_value < 0 or int_value > 5000):
                         raise ValueError("max_tokens out of range")
                     
                     return int_value

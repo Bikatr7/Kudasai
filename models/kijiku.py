@@ -283,6 +283,10 @@ class Kijiku:
 
         print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
+        Logger.log_barrier()
+        Logger.log_action("Calculating cost")
+        Logger.log_barrier()
+        
         Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
         Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
         Logger.log_barrier()
@@ -416,6 +420,7 @@ class Kijiku:
 
             Kijiku.translation_batches.append(model_msg)
 
+        Logger.log_barrier()
         Logger.log_action("Built Messages : ")
         Logger.log_barrier()
 

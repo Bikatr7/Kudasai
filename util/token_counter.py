@@ -71,7 +71,7 @@ class TokenCounter:
         Gives a cost estimate for translating a text using Kudasai.
     
         Parameters:
-        self (object - TokenCounter) : The TokenCounter object.
+        self (object - TokenCounter) : The TokenCounter object.r
 
         Returns:
         num_tokens (int) The number of tokens in the text.
@@ -94,7 +94,7 @@ class TokenCounter:
             "gpt-4-1106-preview"
         ]
 
-        assert model in allowed_models, f"""Kudasai does not support : {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+        assert model in allowed_models, f"""Kudasai does not support : {model}. See https://github.com/OpenAI/OpenAI-python/blob/main/chatml.md for information on how messages are converted to tokens."""
 
         if(price_case is None):
 
@@ -107,32 +107,32 @@ class TokenCounter:
                 return self.calculate_min_cost("gpt-4-1106-preview", price_case=4)
             
             elif(model == "gpt-3.5-turbo-0613"):
-                print("Warning: gpt-3.5-turbo-0613 is considered depreciated by openai as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
+                print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
                 return self.calculate_min_cost(model, price_case=1)
 
             elif(model == "gpt-3.5-turbo-0301"):
-                print("Warning: gpt-3.5-turbo-0301 is considered depreciated by openai as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106 unless you are specifically trying to break the filter.")
+                print("Warning: gpt-3.5-turbo-0301 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106 unless you are specifically trying to break the filter.")
                 return self.calculate_min_cost(model, price_case=1)
             
             elif(model == "gpt-3.5-turbo-1106"):
                 return self.calculate_min_cost(model, price_case=2)
             
             elif(model == "gpt-3.5-turbo-16k-0613"):
-                print("Warning: gpt-3.5-turbo-16k-0613 is considered depreciated by openai as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
+                print("Warning: gpt-3.5-turbo-16k-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
                 return self.calculate_min_cost(model, price_case=3)
             
             elif(model == "gpt-4-1106-preview"):
                 return self.calculate_min_cost(model, price_case=4)
             
             elif(model == "gpt-4-0314"):
-                print("Warning: gpt-4-0314 is considered depreciated by openai as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-0613.")
+                print("Warning: gpt-4-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-0613.")
                 return self.calculate_min_cost(model, price_case=5)
             
             elif(model == "gpt-4-0613"):
                 return self.calculate_min_cost(model, price_case=5)
             
             elif(model == "gpt-4-32k-0314"):
-                print("Warning: gpt-4-32k-0314 is considered depreciated by openai as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-32k-0613.")
+                print("Warning: gpt-4-32k-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-32k-0613.")
                 return self.calculate_min_cost(model, price_case=6)
             
             elif(model == "gpt-4-32k-0613"):
@@ -186,7 +186,7 @@ class TokenCounter:
 
             return num_tokens, min_cost, model
         
-        raise Exception("An unknown error occurred.")
+        raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

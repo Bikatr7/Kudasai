@@ -16,37 +16,37 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
 
-Simply run Kudasai.py which will take a few seconds to load, insert a replacement json path (use Blank Replacements.json if not using preprocessing functionality), and then insert a text path. 
+Simply run Kudasai.py which will take a few seconds to load, insert a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can use the blank replacement json file provided in the replacements folder. This also serves as a template for making your own replacement json files. 
 
 After preprocessing is completed, you will be prompted to run the translation modules.
 
 I recommend using Kijiku as it is vastly superior.
 
-See the [Kijiku Settings](#kijiku-settings) section for more information on Kijiku's settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them.
+See the [Kijiku Settings](#kijiku-settings) section for more information on Kijiku's settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them. There is also a demo txt file in the demo folder that you can use to test Kudasai.
 
 Follow the prompts and you should be good to go, results will be stored in the KudasaiOutput folder in the same directory as Kudasai.py.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Notes**<a name="notes"></a>
 
-Built for Windows, should work on Linux/MacOS but is untested.
+Built for Windows, should work on Linux/MacOS but is untested. I welcome any feedback on this.
 
 Python version: 3.8+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
-Preprocessor originally derived from https://github.com/Atreyagaurav/mtl-related-scripts
+Preprocessor originally derived from https://github.com/Atreyagaurav/mtl-related-scripts and heavily modified since.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Naming Conventions**<a name="naming-conventions"></a> 
 
-Kudasai.py - Main Script - ください　- Please
+kudasai.py - Main Script - ください　- Please
 
-Kairyou.py - preprocessing module - 改良 - Reform
+kairyou.py - Preprocessing module - 改良 - Reform
 
-Kaiseki.py - deepL translation module - 解析 - Parsing
+kaiseki.py - deepL translation module - 解析 - Parsing
 
-Kijiku.py - openai translation module - 基軸 - Foundation
+kijiku.py - OpenAI translation module - 基軸 - Foundation
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>
@@ -63,7 +63,7 @@ en_core_web_lg
 
 deepl
 
-openai
+openai>1.2.0
 
 backoff
 
@@ -87,6 +87,8 @@ if these do not work, either reinstall spacy or try:
 python -m spacy download ja_core_news_lg
 
 python -m spacy download en_core_web_lg
+
+If that still does not work, try uninstalling all dependencies and reinstalling them exactly as they are in requirements.txt.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -120,29 +122,29 @@ Many replacement json files are included in the replacements jsons folder, you c
 
 If you do not wish to use a replacement json file, you can use the blank replacement json file provided in the replacements folder. This also serves as a template for making your own replacement json files.
 
-Upon Kudasai being run, it will create a folder called "KudasaiOutput" which will contain 5 files. It is located in the same directory as Kudasai.py.
+Upon Kudasai being run, it will create a folder called "output" which will contain 5 files. It is located in the same directory as kudasai.py.
 
 These files are:
 
-    "debug log.txt" : A log of most actions taken by Kudasai, useful for debugging.
+    "debug_log.txt" : A log of crucial information that occurred during Kudasai's run, useful for debugging or reporting issues as well as seeing what was done.
 
-    "error log.txt" : A log of errors that occurred during Kudasai's run, useful for debugging or reporting issues.
+    "error_log.txt" : A log of errors that occurred during Kudasai's run if any, useful for debugging or reporting issues.
 
-    "jeCheck.txt" : A log of the Japanese and English sentences that were paired together, useful for checking the accuracy of the translation and further editing of a machine translation.
+    "je_check_text.txt" : A log of the Japanese and English sentences that were paired together, useful for checking the accuracy of the translation and further editing of a machine translation.
 
-    "Kairyou Results.txt" : A log of the results of Kairyou's run, shows what was replaced and how many times it was replaced.
+    "preprocessed_text.txt" : The preprocessed text, the text output by Kairyou (preprocessor).
 
-    "preprocessedText.txt" : The preprocessed text, the preprocessed text output by Kairyou.
+    "preprocessing_results.txt" : A log of the results of the preprocessing, shows what was replaced and how many times.
 
-    "translatedText.txt" : The translated text, the translated text output by Kaiseki or Kijiku.
+    "translated_text.txt" : The translated text, the text output by Kaiseki or Kijiku.
 
-After preprocessing is completed, you will be prompted to run the translation modules.
+After preprocessing is completed, you will be prompted to run a translation module. If you choose to do so, you will be prompted to choose between Kaiseki and Kijiku. See the sections below for more information on each translation module.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 **Kaiseki**<a name="kaiseki"></a>
 
-Kaiseki is a deepl translation module, it is used to translate Japanese to English. It is flawed and not very accurate compared to Kijiku although plans are in place to develop a better version *eventually*.
+Kaiseki is the deepL translation module, it is used to translate Japanese to English. It is flawed and not very accurate compared to Kijiku although plans are in place to develop a better version *eventually*. See kansei.py for more information on this.
 
 Please note an api key is required for Kaiseki to work, you can get one here: https://www.deepl.com/pro#developer.
 
@@ -156,23 +158,21 @@ Kaiseki will store your obfuscated api key locally under KudasaiConfig under you
 
 **Kijiku**<a name="kijiku"></a>
 
-Kijiku is an openai translation module, it is used to translate Japanese to English. It is very accurate and is the recommended translation module. 
+Kijiku is the OpenAI translation module, it is used to translate Japanese to English. It is very accurate and is the recommended translation module. 
 
 You also need an api key for Kijiku to work, you can get one here: https://beta.openai.com/
 
-Currently, you can get a free api trial credit that lasts for a month and is worth around 15 dollars.
+Currently, you can get a free API trial credit that lasts for a month and is worth around 15 dollars.
 
 Kijiku is vastly more complicated and has a lot of steps, so let's go over them.
 
-Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to enter your api key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them.
+Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to enter your api key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them. Kijiku will store your obfuscated api key locally under KudasaiConfig under your user directory. 
 
-Kijiku will store your obfuscated api key locally under KudasaiConfig under your user directory. 
+You will be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu, including changing your api key. If you want to change anything about the settings, you do it here.
 
-You will also be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu. If you want to change anything about the settings, you do it here.
+You can also choose to upload your own settings file in the settings change menu, this is useful if you want to use someone else's settings file. You would do so by placing the json file in the same directory as kudasai.py and then selecting 'c' in the settings change menu. This will load the file in and use it as your settings.
 
-You can also choose to upload your own settings file in the settings change menu, this is useful if you want to use someone else's settings file. You would do so by placing the json file in the same directory as Kudasai.py and then selecting 'c' in the settings change menu. This will load the file in and use it as your settings.
-
-After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text. Kijiku will then run and translate the preprocessed text and no other input is required.
+After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text. Kijiku will then prompt for confirmation, run, and translate the preprocessed text and no other input is required.
 
 Also note that Kijiku's settings are very complex, please see the section below for more information on them.
 

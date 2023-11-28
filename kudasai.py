@@ -40,17 +40,10 @@ class Kudasai:
 
         Toolkit.clear_console()
 
-        Logger.log_action("--------------------")
-        Logger.log_action("Initialized Kudasai")
-        Logger.log_action("--------------------\n")
-
-        Logger.log_action("--------------------")
+        Logger.log_barrier()
         Logger.log_action("Kudasai started")
-        Logger.log_action("--------------------\n")
-    
-        Logger.log_action("--------------------")
         Logger.log_action("Current version: " + Toolkit.CURRENT_VERSION)
-        Logger.log_action("-------------------\n")
+        Logger.log_barrier()
 
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -254,7 +247,7 @@ class Kudasai:
 
         Logger.log_action("--------------------")
         Logger.log_action("Kaiseki started")
-        Logger.log_action("--------------------\n")
+        Logger.log_action("--------------------")
 
         Kaiseki.text_to_translate = [line for line in Kairyou.text_to_preprocess.splitlines()]
 
@@ -279,7 +272,7 @@ class Kudasai:
 
         Logger.log_action("--------------------")
         Logger.log_action("Kijiku started")
-        Logger.log_action("--------------------\n")
+        Logger.log_action("--------------------")
 
         Toolkit.clear_console()
 

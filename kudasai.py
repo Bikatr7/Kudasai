@@ -318,14 +318,14 @@ async def main() -> None:
             ## print usage statement
             else:
                     
-                    print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
-                    print("or run Kudasai.py without any arguments to run the console version.\n\n")
-    
-                    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
-    
-                    Toolkit.pause_console()
-    
-                    exit()
+                print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
+                print("or run Kudasai.py without any arguments to run the console version.\n\n")
+
+                Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
+
+                Toolkit.pause_console()
+
+                exit()
 
     except Exception as e:
 

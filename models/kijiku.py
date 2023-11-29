@@ -147,6 +147,33 @@ class Kijiku:
     
         """
 
+        await Kijiku.setup_api_key()
+
+        ## try to load the kijiku rules
+        try: 
+
+            JsonHandler.load_kijiku_rules()
+
+        ## if the kijiku rules don't exist, create them
+        except: 
+            
+            JsonHandler.reset_kijiku_rules_to_default()
+
+            JsonHandler.load_kijiku_rules()
+            
+        Toolkit.clear_console()
+
+##-------------------start-of-setup_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def setup_api_key() -> None:
+
+        """
+        
+        Sets up the api key.
+
+        """
+
         ## get saved api key if exists
         try:
             with open(FileEnsurer.openai_api_key_path, 'r', encoding='utf-8') as file: 
@@ -208,20 +235,6 @@ class Kijiku:
                 Toolkit.pause_console()
 
                 raise e
-            
-        ## try to load the kijiku rules
-        try: 
-
-            JsonHandler.load_kijiku_rules()
-
-        ## if the kijiku rules don't exist, create them
-        except: 
-            
-            JsonHandler.reset_kijiku_rules_to_default()
-
-            JsonHandler.load_kijiku_rules()
-            
-        Toolkit.clear_console()
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -660,7 +673,7 @@ class Kijiku:
                 Logger.log_action(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True, is_error=True)
                 continue
 
-            ## do not even bother if not a gpt 4 model
+            ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
             if("gpt-4" not in Kijiku.MODEL):
                 break
 

@@ -110,14 +110,9 @@ class Kudasai:
                 replacement_json = json.load(file) 
     
         except:
-
-            print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-            Logger.log_action("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-
-            Toolkit.pause_console()
-
-            exit()
-
+            
+            Kairyou.need_to_run = False
+            replacement_json = {}
 
         ## get name of json file
         ## Example "86 Replacements.json" would return 86

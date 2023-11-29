@@ -87,7 +87,9 @@ class Kairyou:
     total_replacements = 0
     
     ## How japanese names are separated in the japanese text
-    JAPANESE_NAME_SEPARATORS = ["・", ""] 
+    JAPANESE_NAME_SEPARATORS = ["・", ""]
+
+    need_to_run = True
 
     ##------------------------/
 
@@ -103,6 +105,10 @@ class Kairyou:
         Preprocesses the text to be translated.
 
         """
+
+        ## If we don't need to run, don't run.
+        if(not Kairyou.need_to_run):
+            return
 
         Toolkit.clear_console()
 

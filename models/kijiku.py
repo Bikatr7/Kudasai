@@ -117,7 +117,7 @@ class Kijiku:
 
             JsonHandler.validate_json()
 
-            Kijiku.check_settings()
+            await Kijiku.check_settings()
 
             ## set actual start time to the end of the settings configuration
             time_start = time.time()
@@ -239,7 +239,7 @@ class Kijiku:
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def check_settings() -> None:
+    async def check_settings() -> None:
 
         """
 
@@ -262,6 +262,14 @@ class Kijiku:
             JsonHandler.change_kijiku_settings()
 
         Toolkit.clear_console()
+
+        print("Do you want to change your api key? (1 for yes or 2 for no) : ")
+
+        if(input("\n") == "1"):
+            await Kijiku.setup_api_key()
+
+        Toolkit.clear_console()
+
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

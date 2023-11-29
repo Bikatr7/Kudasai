@@ -5,6 +5,7 @@ import re
 import time
 import typing
 import asyncio
+import os
 
 ## third party modules
 from openai import AsyncOpenAI
@@ -266,6 +267,7 @@ class Kijiku:
         print("Do you want to change your api key? (1 for yes or 2 for no) : ")
 
         if(input("\n") == "1"):
+            os.remove(FileEnsurer.openai_api_key_path)
             await Kijiku.setup_api_key()
 
         Toolkit.clear_console()
@@ -893,7 +895,7 @@ class Kijiku:
         """
 
         Kijiku.translation_print_result += "Time Elapsed : " + Toolkit.get_elapsed_time(time_start, time_end)
-        Kijiku.translation_print_result += "Number of malformed batches : " + str(Kijiku.malformed_batches)
+        Kijiku.translation_print_result += "\nNumber of malformed batches : " + str(Kijiku.malformed_batches)
 
         Kijiku.translation_print_result += "\n\nDebug text have been written to : " + FileEnsurer.debug_log_path
         Kijiku.translation_print_result += "\nJ->E text have been written to : " + FileEnsurer.je_check_path

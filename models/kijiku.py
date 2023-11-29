@@ -678,7 +678,7 @@ class Kijiku:
             ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
             except:
                 translated_message = translation_prompt["content"]
-                Logger.log_action(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True, is_error=True)
+                Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True, is_error=True)
                 continue
 
             ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
@@ -690,7 +690,7 @@ class Kijiku:
 
             else:
                 num_tries += 1
-                Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
+                Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
                 Kijiku.malformed_batches += 1
 
         Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
@@ -743,7 +743,7 @@ class Kijiku:
         retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
 
         Logger.log_barrier()
-        Logger.log_action(retry_msg, is_error=True)
+        Kijiku.error_text += Logger.log_action(retry_msg, is_error=True)
         Logger.log_barrier()
 
 ##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -763,7 +763,7 @@ class Kijiku:
         error_msg = f"Exceeded duration, returning untranslated text after {details['tries']} tries {details['target']}."
 
         Logger.log_barrier()
-        Logger.log_action(error_msg, is_error=True)
+        Kijiku.error_text += Logger.log_action(error_msg, is_error=True)
         Logger.log_barrier()
 
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

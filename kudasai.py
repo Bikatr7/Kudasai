@@ -126,7 +126,7 @@ class Kudasai:
             
         except:
                 
-            Logger.log_action("The first path you provided is either invalid, not a text file, or the text file has an error.", output=True, is_error=True)
+            Logger.log_action("The first path you provided is either invalid, not a text file, or the text file has an error.", output=True, is_error=True, omit_timestamp=True)
 
             Toolkit.pause_console()
 

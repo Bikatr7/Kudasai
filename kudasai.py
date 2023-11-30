@@ -119,8 +119,18 @@ class Kudasai:
         ## I remember needing this for something but I don't remember what
         name_of_replacement_json = os.path.basename(replacement_json_path)        
 
-        with open(input_file, 'r', encoding='utf-8') as file: 
-            japanese_text = file.read()
+        try:
+
+            with open(input_file, 'r', encoding='utf-8') as file: 
+                japanese_text = file.read()
+            
+        except:
+                
+            Logger.log_action("The first path you provided is either invalid, not a text file, or the text file has an error.", output=True, is_error=True)
+
+            Toolkit.pause_console()
+
+            exit()
         
         Kairyou.replacement_json = replacement_json 
         Kairyou.text_to_preprocess = japanese_text

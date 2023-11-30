@@ -631,11 +631,11 @@ class Kijiku:
         Translates system and user message.
 
         Parameters:
-        translation_instructions (dict) : the system message also known as the instructions.
-        translation_prompt (dict) : the user message also known as the prompt.
+        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : the system message also known as the instructions.
+        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
 
         Returns:
-        output (string) a string that gpt gives to us also known as the translation.\n
+        output (string) a string that gpt gives to us also known as the translation.
 
         """
 
@@ -689,12 +689,12 @@ class Kijiku:
 
         Parameters:
         index (int) : the index of the message in the original list.
-        translation_instructions (dict) : the system message also known as the instructions.
-        translation_prompt (dict) : the user message also known as the prompt.
-
+        length (int) : the length of the original list.
+        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : the system message also known as the instructions.
+        
         Returns:\n
         index (int) : the index of the message in the original list.
-        translation_prompt (dict) : the user message also known as the prompt.
+        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
         translated_message (str) : the translated message.
 
         """
@@ -744,7 +744,7 @@ class Kijiku:
 
         Parameters:
         translated_message (string) : the translated message.
-        translation_prompt (dict) : the user message also known as the prompt.
+        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
 
         Returns:
         is_valid (bool) : whether or not the translation is valid.
@@ -814,7 +814,7 @@ class Kijiku:
         Puts translated text back into the text file.
 
         Parameters:
-        Kijiku (object - Kijiku) : the Kijiku object.
+        translation_prompt (dict) : the user message also known as the prompt.
         translated_message (string) : the translated message.
 
         """
@@ -927,6 +927,10 @@ class Kijiku:
         """
 
         Outputs results to a string.
+
+        Parameters:
+        time_start (float) : When the translation started.
+        time_end (float) : When the translation finished.
 
         """
 

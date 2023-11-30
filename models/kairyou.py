@@ -89,6 +89,7 @@ class Kairyou:
     ## How japanese names are separated in the japanese text
     JAPANESE_NAME_SEPARATORS = ["・", ""]
 
+    ## will be set to false if given an invalid json file
     need_to_run = True
 
     ##------------------------/
@@ -143,15 +144,15 @@ class Kairyou:
 ##-------------------start-of-replace_non_katakana()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def replace_non_katakana(replacement_rules:list, replaced_names:dict):
+    def replace_non_katakana(replacement_rules:list, replaced_names:dict) -> None:
 
         """
         
         Handles non-katakana replacements.
 
-        Parameters:\n
-        replacement_rules (dict) : The rules to replace by.
-        replaced_names : Names we have replaced.
+        Parameters:
+        replacement_rules (list) : The rules to replace by.
+        replaced_names (dict - str) : Names we have replaced.
 
         """
 
@@ -165,7 +166,8 @@ class Kairyou:
                 try:
                     for eng, jap in Kairyou.replacement_json[json_key].items(): 
 
-                        if(isinstance(jap, list) == False):  ## makes jap entries into a list if not already
+                        ## makes jap entries into a list if not already
+                        if(isinstance(jap, list) == False):
                             jap = [jap]
 
                         current_name = Name(" ".join(jap), eng)
@@ -187,7 +189,6 @@ class Kairyou:
                         num_replacements = Kairyou.replace_single_word(jap, eng, is_potential_name=False)
 
                         if(num_replacements > 0):
-
                             Kairyou.preprocessing_log += str(jap) + " → " + str(eng) + " : " + str(num_replacements) + "\n"
 
 
@@ -199,15 +200,15 @@ class Kairyou:
 ##-------------------start-of-replace_katakana()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def replace_katakana(replacement_rules:list, replaced_names:dict):
+    def replace_katakana(replacement_rules:list, replaced_names:dict) -> None:
 
         """
         
         Handles katakana replacements.
 
         Parameters:
-        replacement_rules (dict) : The rules to replace by.
-        replaced_names : Names we have replaced.
+        replacement_rules (list) : The rules to replace by.
+        replaced_names (dict - str) : Names we have replaced.
 
         """
 
@@ -337,6 +338,8 @@ class Kairyou:
 
         Replaces a single word in the Japanese text, with an additional check for Katakana words.
 
+        The function is extremely picky with katakana in general.
+
         Parameters:
         word (string) : The word to be replaced.
         replacement (string) : The replacement for the word.
@@ -348,7 +351,6 @@ class Kairyou:
         """
             
         num_occurrences = 0
-
 
         if(is_katakana):
             if(KatakanaHandler.is_actual_word(word)):
@@ -407,6 +409,7 @@ class Kairyou:
                 replacement_data[honorific_english] = Kairyou.replace_single_word(
                     f'{jap}{honor}',
                     f'{eng}-{honorific_english}',
+
                     ## if honorifics, don't worry about additonal checking
                     is_potential_name=False,
                     is_katakana=False,
@@ -454,7 +457,7 @@ class Kairyou:
 
         Parameters:
         jap (str) : Japanese to be replaced.
-        replacement (str) : the replacement for kanji.
+        replacement (str) : the replacement for the Japanese
 
         Returns:
         jap_replace_count (int) : How many japanese replacements that were made.
@@ -513,5 +516,4 @@ class Kairyou:
             file.truncate()
 
         ## pushes the tl debug log to the file
-        Logger.clear_log_file()
         Logger.push_batch()

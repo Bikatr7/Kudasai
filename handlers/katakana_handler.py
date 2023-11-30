@@ -96,7 +96,7 @@ class KatakanaHandler:
         Gets the katakana entities from the names dictionary.
 
         Returns:
-        list (Name) : a list of Name objects.
+        list (object - Name) : a list of Name objects.
 
         """
 

@@ -243,7 +243,7 @@ class Kaiseki:
 
         """
 
-        This function separates the sentence into parts and punctuation.\n
+        This function separates the sentence into parts and punctuation.
         
         """
 
@@ -492,7 +492,7 @@ class Kaiseki:
 
         """
 
-        Prepares the results of the translation for printing.\n
+        Prepares the results of the translation for printing.
 
         Parameters:
         time_start (float) : the time the translation started.

@@ -16,15 +16,15 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
 
-Simply run Kudasai.py which will take a few seconds to load, insert a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can use the blank replacement json file provided in the replacements folder. This also serves as a template for making your own replacement json files. 
+Simply run Kudasai.py which will take a few seconds to load, insert a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input whatever and Kudasai will skip preprocessing and go straight to translation.
 
-After preprocessing is completed, you will be prompted to run the translation modules.
+After preprocessing is completed (if triggered), you will be prompted to run the translation modules.
 
 I recommend using Kijiku as it is vastly superior.
 
 See the [Kijiku Settings](#kijiku-settings) section for more information on Kijiku's settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them. There is also a demo txt file in the demo folder that you can use to test Kudasai.
 
-Follow the prompts and you should be good to go, results will be stored in the KudasaiOutput folder in the same directory as Kudasai.py.
+Follow the prompts and you should be good to go, results will be stored in the output folder in the same directory as kudasai.py.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Notes**<a name="notes"></a>
@@ -90,6 +90,8 @@ python -m spacy download en_core_web_lg
 
 If that still does not work, try uninstalling all dependencies and reinstalling them exactly as they are in requirements.txt.
 
+Also note that if you are updating since v2.2.0, you will need to update openai to 1.2.0 or higher.
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 **Kairyou**<a name="kairyou"></a>
@@ -120,7 +122,7 @@ Many replacement json files are included in the replacements jsons folder, you c
 
 ![Example JSON](https://i.imgur.com/u3FnUia.jpg)
 
-If you do not wish to use a replacement json file, you can use the blank replacement json file provided in the replacements folder. This also serves as a template for making your own replacement json files.
+If you do not wish to use a replacement json file, you can use the blank replacement json file provided in the replacements folder or simply input whatever and Kudasai will skip preprocessing and go straight to translation.
 
 Upon Kudasai being run, it will create a folder called "output" which will contain 5 files. It is located in the same directory as kudasai.py.
 
@@ -184,7 +186,7 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 
     model : ID of the model to use. As of right now, Kijiku only works with 'chat' models.
 
-    temperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower Values are typically better for translation
+    temperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
 
     top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
 
@@ -194,7 +196,7 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 
     stop : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
 
-    max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this
+    max_tokens : The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this.
 
     presence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
 
@@ -204,17 +206,19 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 
     system_message : Instructions to the model. Do not change this unless you know what you're doing.
 
-    message_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treating as a user message. 1 is recommend for gpt-4 otherwise either works.
+    message_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treating as a user message. 1 is recommended for gpt-4 otherwise either works.
 
-    num_lines : the number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines.
+    num_lines : the number of lines to be built into a prompt at once. Theoretically, more lines would be more cost-effective, but other complications may occur with higher lines.
 
-    sentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all.
+    sentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from AI return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.
 
-    je_check_mode : 1 or 2, 1 will print out the 'num_lines' amount of jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If  it cannot, it will do 1.
+    je_check_mode : 1 or 2, 1 will print out the 'num_lines' amount of Japanese then the English below separated by ---, 2 will attempt to pair the English and Japanese sentences, placing the Japanese above the English. If it cannot, it will do 1. Use 2 for gpt-4.
 
-    num_malformed_batch_retries : How many times Kudasai will attempt to mend a malformed batch, only for gpt4. Defaults to 1, careful with increasing as cost increases at (cost * length * n) at worst case."
+    num_malformed_batch_retries : How many times Kudasai will attempt to mend a malformed batch, only for gpt4. Defaults to 1, careful with increasing as cost increases at (cost * length * n) at worst case.
 
-    batch_retry_timeout : How long Kudasai will try to attempt to requery a translation batch in seconds, if a requests exceeds this duration, Kudasai will leave it untranslated.
+    batch_retry_timeout : How long Kudasai will try to attempt to requery a translation batch in seconds, if a request exceeds this duration, Kudasai will leave it untranslated.
+
+    num_concurrent_batches : How many translation batches Kudasai will send to OpenAI at a time.
 
     Please note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them.
 
@@ -233,5 +237,7 @@ Please note that this information is a brief summary of the GPL. For a detailed 
 If you have any questions, comments, or concerns, please feel free to contact me at [Tetralon07@gmail.com](mailto:Tetralon07@gmail.com).
 
 For any bugs or suggestions please use the issues tab [here](https://github.com/Bikatr7/Kudasai/issues).
+
+Once again, I actively encourage and welcome any feedback on this project.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------

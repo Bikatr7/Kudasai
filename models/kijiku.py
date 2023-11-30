@@ -50,6 +50,18 @@ class ModelTranslationMessage(typing.TypedDict):
     role: typing.Literal['user']
     content: str
 
+##-------------------start-of-MaxBatchDurationExceeded--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class MaxBatchDurationExceeded(Exception):
+
+    """
+
+    MaxBatchDurationExceeded is an exception that is raised when the max batch duration is exceeded.
+
+    """
+
+    pass
+
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -82,6 +94,8 @@ class Kijiku:
 
     ## async client session
     client = AsyncOpenAI(max_retries=0, api_key="Dummy")
+
+    _semaphore = asyncio.Semaphore(30)
 
     ##--------------------------------------------------------------------------------------------------------------------------
 
@@ -298,7 +312,7 @@ class Kijiku:
         Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
         Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"])
         Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
-        Kijiku.max_batch_duration = int(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
+        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
 
         Toolkit.clear_console()
 
@@ -605,7 +619,7 @@ class Kijiku:
 
     ## backoff wrapper for retrying on errors
     @staticmethod
-    @backoff.on_exception(backoff.expo, max_time=float(max_batch_duration), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details))
+    @backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
     async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
 
         """
@@ -645,6 +659,21 @@ class Kijiku:
         
         return output
     
+##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def get_max_batch_duration() -> float:
+
+        """
+        
+        Returns the max batch duration.
+
+        Returns:
+        max_batch_duration (float) : the max batch duration.
+
+        """
+
+        return Kijiku.max_batch_duration
+    
 ##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -666,38 +695,39 @@ class Kijiku:
 
         """
 
-        num_tries = 0
+        async with Kijiku._semaphore:
+            num_tries = 0
 
-        while True:
-        
-            message_number = (index // 2) + 1
-            Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
+            while True:
+            
+                message_number = (index // 2) + 1
+                Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
 
 
-            try:
-                translated_message = await Kijiku.translate_message(translation_instructions, translation_prompt)
+                try:
+                    translated_message = await Kijiku.translate_message(translation_instructions, translation_prompt)
 
-            ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
-            except:
-                translated_message = translation_prompt["content"]
-                Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True, is_error=True)
-                continue
+                ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
+                except MaxBatchDurationExceeded:
+                    translated_message = translation_prompt["content"]
+                    Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True, is_error=True)
+                    break
 
-            ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
-            if("gpt-4" not in Kijiku.MODEL):
-                break
+                ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
+                if("gpt-4" not in Kijiku.MODEL):
+                    break
 
-            if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt) or num_tries >= Kijiku.num_of_malform_retries):
-                break
+                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt) or num_tries >= Kijiku.num_of_malform_retries):
+                    break
 
-            else:
-                num_tries += 1
-                Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
-                Kijiku.malformed_batches += 1
+                else:
+                    num_tries += 1
+                    Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
+                    Kijiku.malformed_batches += 1
 
-        Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
+            Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
 
-        return index, translation_prompt, translated_message
+            return index, translation_prompt, translated_message
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -767,6 +797,8 @@ class Kijiku:
         Logger.log_barrier()
         Kijiku.error_text += Logger.log_action(error_msg, is_error=True)
         Logger.log_barrier()
+
+        raise MaxBatchDurationExceeded(error_msg)
 
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

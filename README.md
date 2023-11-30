@@ -214,7 +214,7 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 
     num_malformed_batch_retries : How many times Kudasai will attempt to mend a malformed batch, only for gpt4. Defaults to 1, careful with increasing as cost increases at (cost * length * n) at worst case."
 
-    batch_retry_timeout : How long Kudasai will try to attempt to requery a translation batch in minutes, if a requests exceeds this duration, Kudasai will leave it untranslated.
+    batch_retry_timeout : How long Kudasai will try to attempt to requery a translation batch in seconds, if a requests exceeds this duration, Kudasai will leave it untranslated.
 
     Please note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them.
 

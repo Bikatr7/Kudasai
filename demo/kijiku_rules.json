@@ -16,6 +16,6 @@
         "sentence_fragmenter_mode": "3",
         "je_check_mode": "2",
         "num_malformed_batch_retries": "1",
-        "batch_retry_timeout": "5"
+        "batch_retry_timeout": "300"
     }
 }

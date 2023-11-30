@@ -30,15 +30,20 @@ class Logger:
  
         """
 
-        time_stamp = Toolkit.get_timestamp()
+        timestamp = Toolkit.get_timestamp() 
 
-        Logger.current_batch += time_stamp + action + "\n"
+        log_line = timestamp + action + "\n"
+
+        Logger.current_batch += log_line
+
+        if(omit_timestamp):
+            log_line = action
 
         if(output):
-            print(action + "\n")
+            print(log_line)
 
         if(is_error):
-            return time_stamp + action + "\n"
+            return timestamp + log_line
         
         return ""
 

@@ -111,6 +111,7 @@ class Kijiku:
     je_check_mode = 0
     num_of_malform_retries = 0
     max_batch_duration = 0
+    num_concurrent_batches = 0
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -313,6 +314,9 @@ class Kijiku:
         Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"])
         Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
         Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
+        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
+
+        Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 
         Toolkit.clear_console()
 

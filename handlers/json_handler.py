@@ -36,7 +36,8 @@ class JsonHandler:
         "sentence_fragmenter_mode":3,
         "je_check_mode":2,
         "num_malformed_batch_retries":1,
-        "batch_retry_timeout":300
+        "batch_retry_timeout":300,
+        "num_concurrent_batches":30
     }
     }
 
@@ -69,6 +70,7 @@ class JsonHandler:
         "je_check_mode",
         "num_malformed_batch_retries",
         "batch_retry_timeout"
+        "num_concurrent_batches"
          ]
         
 
@@ -168,6 +170,7 @@ class JsonHandler:
             settings_print_message += "\n\nje_check_mode : 1 or 2, 1 will print out the 'num_lines' amount of jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will do 1."
             settings_print_message += "\n\nnum_malformed_batch_retries : How many times Kudasai will attempt to mend a malformed batch, only for gpt4. Defaults to 1, careful with increasing as cost increases at (cost * length * n) at worst case."
             settings_print_message += "\n\nbatch_retry_timeout : How long Kudasai will try to attempt to requery a translation batch in seconds, if a requests exceeds this duration, Kudasai will leave it untranslated."
+            settings_print_message += "\n\nnum_concurrent_batches : How many translations batches Kudasai will send to OpenAI at a time."
 
             settings_print_message += "\n\nPlease note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them."
 
@@ -279,7 +282,8 @@ class JsonHandler:
             "sentence_fragmenter_mode": int,
             "je_check_mode": int,
             "num_malformed_batch_retries": int,
-            "batch_retry_timeout": int
+            "batch_retry_timeout": int,
+            "num_concurrent_batches": int
         }
 
         # Special cases for None or complex types

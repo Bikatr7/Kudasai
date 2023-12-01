@@ -31,12 +31,11 @@ class Kudasai:
 
         """
         
-        If the user is running the CLI or Console version of Kudasai, this function is called to boot the program.\n
-
+        If the user is running the CLI or Console version of Kudasai, this function is called to boot the program.
 
         """
 
-        os.system("title " + "Kudasai CLI")
+        os.system("title " + "Kudasai")
 
         Toolkit.clear_console()
 
@@ -48,7 +47,7 @@ class Kudasai:
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def setup_kairyou_for_cli(input_file, replacement_json_path) -> None:
+    def setup_kairyou_for_cli(input_file:str, replacement_json_path:str) -> None:
 
         """
         

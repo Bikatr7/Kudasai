@@ -67,7 +67,7 @@ class FileEnsurer():
 
         """
 
-        Ensures that the required files and directories exist.\n
+        Ensures that the required files and directories exist.
 
         """
 
@@ -176,16 +176,16 @@ class FileEnsurer():
 
         """
 
-        Handles a critical exception by logging it and then throwing it.\n
+        Handles a critical exception by logging it and then throwing it.
 
         Parameters:\n
-        critical_exception (object - Exception) : the exception to be handled.\n
+        critical_exception (object - Exception) : the exception to be handled.
 
         """
 
         ## if crash, catch and log, then throw
         Logger.log_action("--------------------------------------------------------------")
-        Logger.log_action("Please send the following to the developer on github:")  
+        Logger.log_action("Please send the following to the developer on github at https://github.com/Bikatr7/Kudasai/issues :")  
         Logger.log_action("Kudasai has crashed")
 
         traceback_str = traceback.format_exc()

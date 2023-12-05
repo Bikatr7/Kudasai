@@ -113,7 +113,7 @@ with gr.Blocks() as interface:
                 Tab1_output3 = gr.Textbox(label='Debug Log', lines=10, max_lines=25)
 
 
-# -----------------UI functionality-----------------#
+
     # Functionality for Tab 1
     Tab1_run_btn.click(fn=gradio_run_kudasai, inputs=[Tab1_txt_file, Tab1_json_file, Tab1_auto_TL_mode], outputs=None)
     Tab1_copy_btn.click(fn=copy_to_clipboard, inputs=Tab1_output1, outputs=None)

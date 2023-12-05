@@ -1,6 +1,9 @@
 ## third-party libraries
 import gradio as gr
 
+## custom modules
+from models.kairyou import Kairyou
+
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -40,7 +43,7 @@ class KudasaiGUI:
                                 self.mode_selection = gr.Dropdown(label='Mode', choices=['Preprocess only', 'AutoTL with OpenAI', 'AutoTL with DeepL'], value='Preprocess only', type='index', interactive=True)
 
                             with gr.Row():
-                                self.api_key_input = gr.Textbox(label='API Key', lines=1, show_label=True, interactive=True, type='password')
+                                self.api_key_input = gr.Textbox(label='API Key (Not needed for preprocess)', lines=1, show_label=True, interactive=True, type='password')
 
                             ## run and clear buttons
                             with gr.Row():
@@ -49,13 +52,13 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=27, show_label=True, interactive=False, show_copy_button=True)
+                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=33, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_one = gr.Button('Save As')
                             
                         with gr.Column():
-                            self.translation_output_field = gr.Textbox(label='Translated Text', lines=27, show_label=True, interactive=False, show_copy_button=True)
+                            self.translation_output_field = gr.Textbox(label='Translated Text', lines=33, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_two = gr.Button('Save As')
@@ -69,7 +72,6 @@ class KudasaiGUI:
 
                     with gr.Row():
                         self.error_log = gr.Textbox(label='Error Log', lines=10, interactive=False)
-
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

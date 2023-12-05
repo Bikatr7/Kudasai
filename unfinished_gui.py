@@ -37,7 +37,10 @@ class KudasaiGUI:
 
                             ## mode selection 
                             with gr.Row():
-                                self.mode_selection = gr.Radio(label='Mode', choices=['Preprocess only', 'AutoTL with OpenAI', 'AutoTL with DeepL'], value='Preprocess only', type='index', interactive=True)
+                                self.mode_selection = gr.Dropdown(label='Mode', choices=['Preprocess only', 'AutoTL with OpenAI', 'AutoTL with DeepL'], value='Preprocess only', type='index', interactive=True)
+
+                            with gr.Row():
+                                self.api_key_input = gr.Textbox(label='API Key', lines=1, show_label=True, interactive=True, type='password')
 
                             ## run and clear buttons
                             with gr.Row():

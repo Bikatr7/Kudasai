@@ -60,7 +60,11 @@ class KudasaiGUI:
                 with gr.Tab("Logging") as self.results_tab:
                     with gr.Row():
                         self.preprocessing_results = gr.Textbox(label='Preprocessing Results', lines=10, interactive=False)
+
+                    with gr.Row():
                         self.debug_log = gr.Textbox(label='Debug Log', lines=10, interactive=False)
+
+                    with gr.Row():
                         self.error_log = gr.Textbox(label='Error Log', lines=10, interactive=False)
 
 

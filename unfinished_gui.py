@@ -1,12 +1,23 @@
+## third-party libraries
 import gradio as gr
 
-class KudasaiInterface:
-    def __init__(self):
-        self.interface = None
-        self.build_interface()
+##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def build_interface(self):
-        with gr.Blocks() as interface:
+class KudasaiGUI:
+
+    """
+    
+    KudasaiGUI is a class that contains the GUI for Kudasai.
+
+    """
+
+    interface: gr.Blocks
+
+##-------------------start-of-build_interface---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def build_interface():
+        with gr.Blocks() as KudasaiGUI.interface:
 
             with gr.Tab("Kudasai"):  # Tab1
                 with gr.Tab('Kairyou + Kijiku') as KairyouTab:
@@ -43,12 +54,9 @@ class KudasaiInterface:
                     with gr.Row():
                         self.Tab1_output3 = gr.Textbox(label='Debug Log', lines=10, max_lines=25)
 
-        self.interface = interface
+    @staticmethod
+    def launch():
+        KudasaiGUI.interface.queue().launch(inbrowser=True, show_error=True, server_name="127.0.0.1")
 
-    def launch(self):
-        if self.interface:
-            self.interface.queue().launch(inbrowser=True, show_error=True, server_name="127.0.0.1")
-
-if __name__ == '__main__':
-    kudasai_interface = KudasaiInterface()
-    kudasai_interface.launch()
+if(__name__ == '__main__'):
+    KudasaiGUI.launch()

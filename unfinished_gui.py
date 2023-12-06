@@ -32,8 +32,8 @@ class KudasaiGUI:
 
                         ## input files
                         with gr.Column():
-                            self.input_txt_file = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath')
-                            self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
+                            self.input_txt_file = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
+                            self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='file')
 
                             ## mode selection 
                             with gr.Row():
@@ -71,19 +71,18 @@ class KudasaiGUI:
                         self.error_log = gr.Textbox(label='Error Log', lines=10, interactive=False)
 
 
-            def run_button_click():
-            
+            def run_button_click(filepath):
+
                 if(self.input_txt_file is not None):
 
-                    txt_file_path = self.input_txt_file.name ## type: ignore
+                    txt_file_path = filepath.name ## type: ignore
 
                     with open(txt_file_path, "r", encoding='utf-8') as file:
                         text = file.read()
 
-                    self.preprocess_output_field.value = text
+                    return text
 
-            
-            self.run_button.click(fn=run_button_click)
+            self.run_button.click(fn=run_button_click, inputs=[self.input_txt_file], outputs=[self.preprocess_output_field])
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

@@ -1,9 +1,6 @@
 ## third-party libraries
 import gradio as gr
 
-## custom modules
-from models.kairyou import Kairyou
-
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -35,8 +32,8 @@ class KudasaiGUI:
 
                         ## input files
                         with gr.Column():
-                            self.input_txt_file = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
-                            self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='file')
+                            self.input_txt_file = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath')
+                            self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
 
                             ## mode selection 
                             with gr.Row():
@@ -72,6 +69,21 @@ class KudasaiGUI:
 
                     with gr.Row():
                         self.error_log = gr.Textbox(label='Error Log', lines=10, interactive=False)
+
+
+            def run_button_click():
+            
+                if(self.input_txt_file is not None):
+
+                    txt_file_path = self.input_txt_file.name ## type: ignore
+
+                    with open(txt_file_path, "r", encoding='utf-8') as file:
+                        text = file.read()
+
+                    self.preprocess_output_field.value = text
+
+            
+            self.run_button.click(fn=run_button_click)
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

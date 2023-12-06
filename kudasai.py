@@ -40,10 +40,14 @@ class Kudasai:
 
         Toolkit.clear_console()
 
+        Logger.clear_log_file()
+
         Logger.log_barrier()
         Logger.log_action("Kudasai started")
         Logger.log_action("Current version: " + Toolkit.CURRENT_VERSION)
         Logger.log_barrier()
+
+        Logger.push_batch()
 
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

@@ -4,6 +4,7 @@ import gradio as gr
 ## custom modules
 from modules.toolkit import Toolkit
 from modules.logger import Logger
+from modules.file_ensurer import FileEnsurer
 
 from models.kairyou import Kairyou
 
@@ -124,5 +125,14 @@ class KudasaiGUI:
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 if(__name__ == '__main__'):
-    kudasai_gui = KudasaiGUI()
-    kudasai_gui.launch()
+
+    try:
+
+        kudasai_gui = KudasaiGUI()
+        kudasai_gui.launch()
+
+        Logger.push_batch()
+
+    except Exception as e:
+
+        FileEnsurer.handle_critical_exception(e)

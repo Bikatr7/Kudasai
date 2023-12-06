@@ -27,11 +27,12 @@ class Kudasai:
     
 ##-------------------start-of-boot()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def boot(self) -> None:
+    @staticmethod
+    def boot() -> None:
 
         """
         
-        If the user is running the CLI or Console version of Kudasai, this function is called to boot the program.
+        Does some logging and sets up the console window, regardless of whether the user is running the CLI, WebGUI, or Console version of Kudasai.
 
         """
 
@@ -293,6 +294,14 @@ class Kudasai:
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 async def main() -> None:
+
+    """
+
+    The main function of the Kudasai program.
+
+    """
+
+    Kudasai.boot()
 
     try:
 

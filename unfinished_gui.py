@@ -1,6 +1,14 @@
 ## third-party libraries
 import gradio as gr
 
+## custom modules
+from modules.toolkit import Toolkit
+from modules.logger import Logger
+
+from models.kairyou import Kairyou
+
+from kudasai import Kudasai
+
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -10,6 +18,7 @@ class KudasaiGUI:
     Kudasai is a class that contains the GUI for Kudasai.
 
     """
+
 
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -106,6 +115,8 @@ class KudasaiGUI:
         Launches the GUI.
 
         """
+
+        Kudasai.boot()
 
         self.build_gui()
         self.gui.queue().launch(inbrowser=True, show_error=True)

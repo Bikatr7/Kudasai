@@ -1,4 +1,4 @@
-spacy
+spacy==3.5.4
 spacy[jp]
 spacy[en]
 ja_core_news_lg
@@ -8,3 +8,4 @@ openai>1.2.0
 backoff
 requests
 tiktoken
+gradio==3.50.2

@@ -7,7 +7,7 @@ from modules.common.toolkit import Toolkit
 from modules.common.logger import Logger
 from modules.common.file_ensurer import FileEnsurer
 
-from modules.gui.gui_file_util import gui_get_text_from_file
+from modules.gui.gui_file_util import gui_get_text_from_file, gui_get_json_from_file
 
 from models.kairyou import Kairyou
 
@@ -86,7 +86,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def preprocessing_run_button_click(input_txt_file:gr.File):
+            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File) -> str:
 
                 """
 
@@ -98,16 +98,27 @@ class KudasaiGUI:
                 """
 
                 if(input_txt_file is not None):
-                    text = gui_get_text_from_file(input_txt_file)
 
-                    return text
+                    if(input_json_file is not None):
+                        text = gui_get_text_from_file(input_txt_file)
+                        replacements = gui_get_json_from_file(input_json_file)
+
+                    
+
+                        return text
+                    
+                    else:
+                        raise gr.Error("No JSON file selected")
                 
                 else:
-                    return "No file selected"
+                    raise gr.Error("No TXT file selected")
                 
+
+
+
 ##-------------------start-of-Listeners---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.preprocessing_run_button.click(fn=preprocessing_run_button_click, inputs=[self.input_txt_file], outputs=[self.preprocess_output_field])
+            self.preprocessing_run_button.click(fn=preprocessing_run_button_click, inputs=[self.input_txt_file,self.input_json_file], outputs=[self.preprocess_output_field])
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

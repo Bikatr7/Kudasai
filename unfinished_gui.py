@@ -1,5 +1,7 @@
+## built-in libraries
+import typing
+
 ## third-party libraries
-from fastapi import File
 import gradio as gr
 
 ## custom modules
@@ -63,13 +65,13 @@ class KudasaiGUI:
                                 self.save_to_file_preprocessed_text = gr.Button('Save As')
                             
                         with gr.Column():
-                            self.preprocessing_results = gr.Textbox(label='Preprocessing Results', lines=22, interactive=False, show_copy_button=True)
+                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=22, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessing_results = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log = gr.Textbox(label='Debug Log', lines=22, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=22, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log = gr.Button('Save As')
@@ -79,33 +81,46 @@ class KudasaiGUI:
                 with gr.Tab("Logging") as self.results_tab:
 
                     with gr.Row():
-                        self.debug_log = gr.Textbox(label='Debug Log', lines=10, interactive=False)
+                        self.debug_log_output_field_log_tab = gr.Textbox(label='Debug Log', lines=10, interactive=False)
 
                     with gr.Row():
                         self.error_log = gr.Textbox(label='Error Log', lines=10, interactive=False)
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File) -> str:
+            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File) -> typing.Tuple[str, str, str, str]:
 
                 """
 
-                Runs the preprocessing and displays the results in the preprocessing_results field. If no txt file is selected, output field will display "No file selected".
+                Runs the preprocessing and displays the results in the preprocessing output field. If no txt file is selected, an error is raised. If no json file is selected, an error is raised.
+                Also displays the preprocessing results, and the debug log.
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
+                input_json_file (gr.File) : The input json file.
 
                 """
 
                 if(input_txt_file is not None):
 
                     if(input_json_file is not None):
-                        text = gui_get_text_from_file(input_txt_file)
+                        text_to_preprocess = gui_get_text_from_file(input_txt_file)
                         replacements = gui_get_json_from_file(input_json_file)
 
-                    
+                        Kairyou.text_to_preprocess = text_to_preprocess
+                        Kairyou.replacement_json = replacements
 
-                        return text
+                        Kairyou.preprocess()
+
+                        Kairyou.write_kairyou_results()
+
+                        ## Log text and Preprocessing is cleared from the client, so we need to get it from the log file
+                        log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+                        preprocessing_log = FileEnsurer.standard_read_file(FileEnsurer.kairyou_log_path)
+
+                        ## Kairyou is a "in-place" replacement, so we can just return the text_to_preprocess, as for the double log text return, we do that because we want to display the log text on the log tab, and on the preprocess tab
+                        return Kairyou.text_to_preprocess, preprocessing_log, log_text, log_text
+                        
                     
                     else:
                         raise gr.Error("No JSON file selected")
@@ -114,11 +129,18 @@ class KudasaiGUI:
                     raise gr.Error("No TXT file selected")
                 
 
-
-
 ##-------------------start-of-Listeners---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.preprocessing_run_button.click(fn=preprocessing_run_button_click, inputs=[self.input_txt_file,self.input_json_file], outputs=[self.preprocess_output_field])
+            self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
+                                                inputs=[
+                                                    self.input_txt_file,
+                                                    self.input_json_file], 
+                                                                                           
+                                                outputs=[
+                                                    self.preprocess_output_field,  ## preprocessed text
+                                                    self.preprocessing_results_output_field,  ## kairyou results
+                                                    self.debug_log_output_field_preprocess_tab, ## debug log on preprocess tab
+                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

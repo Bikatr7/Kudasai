@@ -1,10 +1,13 @@
 ## third-party libraries
+from fastapi import File
 import gradio as gr
 
 ## custom modules
 from modules.common.toolkit import Toolkit
 from modules.common.logger import Logger
 from modules.common.file_ensurer import FileEnsurer
+
+from modules.gui.gui_file_util import gui_get_text_from_file
 
 from models.kairyou import Kairyou
 
@@ -83,25 +86,24 @@ class KudasaiGUI:
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def preprocessing_run_button_click(filepath):
+            def preprocessing_run_button_click(input_txt_file:gr.File):
 
                 """
 
-                Runs the preprocessing.
+                Runs the preprocessing and displays the results in the preprocessing_results field. If no txt file is selected, output field will display "No file selected".
 
                 Parameters:
-                filepath (str) : The path to the input file.
+                input_txt_file (gr.File) : The input txt file.
 
                 """
 
-                if(self.input_txt_file is not None):
-
-                    txt_file_path = filepath.name ## type: ignore | name is not type hinting for some fucking reason
-
-                    with open(txt_file_path, "r", encoding='utf-8') as file:
-                        text = file.read()
+                if(input_txt_file is not None):
+                    text = gui_get_text_from_file(input_txt_file)
 
                     return text
+                
+                else:
+                    return "No file selected"
                 
 ##-------------------start-of-Listeners---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -118,7 +120,7 @@ class KudasaiGUI:
         """
 
         self.build_gui()
-        self.gui.queue().launch(inbrowser=True, show_error=True)
+        self.gui.launch(inbrowser=True, show_error=True)
 
         Kudasai.boot()
 

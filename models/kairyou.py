@@ -515,5 +515,8 @@ class Kairyou:
         with open(FileEnsurer.translated_text_path, 'w', encoding='utf-8') as file:
             file.truncate()
 
+        ## need to clear preprocessing results as it could be run consecutively
+        Kairyou.preprocessing_log = ""
+
         ## pushes the tl debug log to the file
         Logger.push_batch()

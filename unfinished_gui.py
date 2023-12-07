@@ -58,7 +58,7 @@ class KudasaiGUI:
             with gr.Tab("Kudasai") as self.kudasai_tab:
 
                 ## tab 2 | preprocessing
-                with gr.Tab("Preprocessing") as self.preprocessing_tab:
+                with gr.Tab("Preprocessing | Kairyou") as self.preprocessing_tab:
                     with gr.Row():
 
                         ## input files
@@ -93,7 +93,34 @@ class KudasaiGUI:
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
 
 
-                ## tab 3 | Logging
+                ## tab 3 | Translation Model 1 | Kaiseki
+                with gr.Tab("Translation With DeepL | Kaiseki") as self.kaiseki_tab:
+                    with gr.Row():
+
+                        ## input file or text input, gui allows for both but will prioritize file input
+                        with gr.Column():
+                            self.input_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
+                            self.input_text_kaiseki = gr.Textbox(label='Japanese Text', value='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
+
+                            with gr.Row():
+                                self.translate_button_kaiseki = gr.Button('Translate')
+                                self.clear_button_kaiseki = gr.Button('Clear', variant='stop')
+
+                        ## output fields
+                        with gr.Column():
+                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=24, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_kaiseki = gr.Button('Save As')
+
+                        with gr.Column():
+                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=24, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
+
+
+                ## tab 4 | Logging
                 with gr.Tab("Logging") as self.results_tab:
 
                     with gr.Row():

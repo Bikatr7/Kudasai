@@ -1,6 +1,7 @@
 ## built-in libraries
 import io
 from os import error
+from re import S
 import typing
 
 ## third-party libraries
@@ -247,7 +248,7 @@ class KudasaiGUI:
                 _js=(self.save_as_js).replace("downloaded_text.txt", "preprocessing_results.txt")
             )
 
-##-------------------start-of-save_to_file_debug_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-save_to_file_debug_log_processing_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.save_to_file_debug_log_preprocessing_tab.click(lambda text: text, ## save text as is
                 inputs=[self.debug_log_output_field_preprocess_tab],
@@ -255,7 +256,29 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
+                _js=(self.save_as_js).replace("downloaded_text.txt", "processing_debug_log.txt")
+            )
+
+##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_debug_log_logging_tab.click(lambda text: text, ## save text as is
+                inputs=[self.debug_log_output_field_log_tab],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_all.txt")
+            )
+
+##-------------------start-of-save_to_file_error_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_error_log.click(lambda text: text, ## save text as is
+                inputs=[self.error_log],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "error_log.txt")
             )
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                

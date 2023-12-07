@@ -18,7 +18,7 @@ def gui_get_text_from_file(file) -> str:
 
     """
 
-    file_path:str = filepath.name ## type: ignore | name is not type hinting for some fucking reason
+    file_path:str = file.name ## type: ignore | name is not type hinting for some fucking reason
 
     with open(file_path, "r", encoding='utf-8') as file:
         text = file.read()
@@ -38,7 +38,7 @@ def gui_get_json_from_file(file) -> dict:
     
     """
 
-    file_path:str = filepath.name ## type: ignore | name is not type hinting for some fucking reason
+    file_path:str = file.name ## type: ignore | name is not type hinting for some fucking reason
 
     with open(file_path, 'r', encoding='utf-8') as file: 
         json_dict = json.load(file) 

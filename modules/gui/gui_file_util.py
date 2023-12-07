@@ -1,23 +1,46 @@
+## built-in libraries
+import json
+
 ## third-party libraries
 import gradio as gr
 
 
 ##-------------------start-of-gui_get_text_from_file()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def gui_get_text_from_file(filepath) -> str:
+def gui_get_text_from_file(file) -> str:
 
     """
 
-    Runs the preprocessing.
+    This function extracts the text from a file.
 
     Parameters:
-    filepath (str) : The path to the input file.
+    file (gr.File) : The file to extract the text from.
 
     """
 
-    txt_file_path:str = filepath.name ## type: ignore | name is not type hinting for some fucking reason
+    file_path:str = filepath.name ## type: ignore | name is not type hinting for some fucking reason
 
-    with open(txt_file_path, "r", encoding='utf-8') as file:
+    with open(file_path, "r", encoding='utf-8') as file:
         text = file.read()
 
     return text
+
+##-------------------start-of-gui_get_json_from_file()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def gui_get_json_from_file(file) -> dict:
+
+    """
+    
+    This functions extracts the text from a json file and forms it into a dict.
+
+    Parameters:
+    file (gr.File) : The file to form a json from.
+    
+    """
+
+    file_path:str = filepath.name ## type: ignore | name is not type hinting for some fucking reason
+
+    with open(file_path, 'r', encoding='utf-8') as file: 
+        json_dict = json.load(file) 
+
+    return json_dict

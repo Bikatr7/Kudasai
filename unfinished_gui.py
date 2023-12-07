@@ -199,10 +199,31 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=self.save_as_js
+                _js=(self.save_as_js).replace("downloaded_text.txt", "preprocessed_text.txt")
             )
             
-            
+##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_preprocessing_results.click(lambda text: text, ## save text as is
+                inputs=[self.preprocessing_results_output_field],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "preprocessing_results.txt")
+            )
+
+##-------------------start-of-save_to_file_debug_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_debug_log.click(lambda text: text, ## save text as is
+                inputs=[self.debug_log_output_field_preprocess_tab],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
+            )
+
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
     def launch(self):

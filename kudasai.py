@@ -19,7 +19,7 @@ class Kudasai:
 
     """
 
-    Kudasai class is the main class for the Kudasai program. It handles all the logic for all versions of Kudasai.
+    Kudasai class is the main class for the Kudasai program. It handles all logic for all versions of Kudasai.
     
     """
 
@@ -39,6 +39,8 @@ class Kudasai:
         os.system("title " + "Kudasai")
 
         Toolkit.clear_console()
+
+        FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
 
         Logger.clear_log_file()
 

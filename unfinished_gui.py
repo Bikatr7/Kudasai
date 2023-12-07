@@ -1,5 +1,6 @@
 ## built-in libraries
 import io
+from os import error
 import typing
 
 ## third-party libraries
@@ -171,6 +172,21 @@ class KudasaiGUI:
 
                 return input_txt_file, input_json_file, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab, debug_log_output_field_log_tab
             
+##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+            def clear_log_button_click() -> typing.Tuple[str, str]:
+
+                """
+
+                Clears the logs on the log tab.
+
+                """
+
+                debug_log_output_field_log_tab = ""
+                error_log = ""
+
+                return debug_log_output_field_log_tab, error_log
+            
 ##-------------------start-of-Listeners---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -198,6 +214,15 @@ class KudasaiGUI:
                                                       self.preprocessing_results_output_field,
                                                       self.debug_log_output_field_preprocess_tab,
                                                       self.debug_log_output_field_log_tab])
+            
+##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.clear_log_button.click(clear_log_button_click,
+                                        inputs=[],
+
+                                        outputs=[
+                                            self.debug_log_output_field_log_tab,
+                                            self.error_log])
             
         
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

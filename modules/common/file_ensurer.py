@@ -3,7 +3,7 @@ import os
 import traceback
 
 ## custom modules
-from modules.logger import Logger
+from modules.common.logger import Logger
 
 class FileEnsurer():
 

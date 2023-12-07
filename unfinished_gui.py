@@ -127,9 +127,30 @@ class KudasaiGUI:
                 
                 else:
                     raise gr.Error("No TXT file selected")
-                
+
+##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
+
+            def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str, str]:
+
+                """
+
+                Clears all fields on the preprocessing tab. As well as the input fields.
+
+                """
+
+                input_txt_file = None
+                input_json_file = None
+
+                preprocess_output_field = ""
+                preprocessing_results_output_field = ""
+                debug_log_output_field_preprocess_tab = ""
+                debug_log_output_field_log_tab = ""
+
+                return input_txt_file, input_json_file, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab, debug_log_output_field_log_tab
 
 ##-------------------start-of-Listeners---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
                                                 inputs=[
@@ -141,7 +162,20 @@ class KudasaiGUI:
                                                     self.preprocessing_results_output_field,  ## kairyou results
                                                     self.debug_log_output_field_preprocess_tab, ## debug log on preprocess tab
                                                     self.debug_log_output_field_log_tab]) ## debug log on log tab
+            
+##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+            self.preprocessing_clear_button.click(preprocessing_clear_button_click,
+                                                  inputs=[],
+
+                                                  outputs=[
+                                                      self.input_txt_file,
+                                                      self.input_json_file,
+                                                      self.preprocess_output_field,
+                                                      self.preprocessing_results_output_field,
+                                                      self.debug_log_output_field_preprocess_tab,
+                                                      self.debug_log_output_field_log_tab])
+            
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
     def launch(self):

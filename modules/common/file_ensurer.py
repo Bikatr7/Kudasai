@@ -169,6 +169,47 @@ class FileEnsurer():
         
         Logger.log_action(file_path + " was overwritten with the following content: " + content_to_write)
 
+##--------------------start-of-clear_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def clear_file(file_path:str) -> None:
+
+        """
+
+        Clears a file, as well as logs what occurred.
+
+        Parameters:
+        file_path (str) : path to the file to be cleared.
+
+        """
+
+        with open(file_path, "w+", encoding="utf-8") as file:
+            file.truncate()
+
+        Logger.log_action(file_path + " was cleared")
+
+##--------------------start-of-standard_read_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def standard_read_file(file_path:str) -> str:
+
+        """
+
+        Reads a file.
+
+        Parameters:
+        file_path (str) : path to the file to be read.
+
+        Returns:
+        str : the content of the file.
+
+        """
+
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+
+        return content
+
 ##-------------------start-of-handle_critical_exception()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

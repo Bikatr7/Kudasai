@@ -1,4 +1,5 @@
 ## built-in libraries
+import io
 import typing
 
 ## third-party libraries
@@ -23,6 +24,19 @@ class KudasaiGUI:
     
     Kudasai is a class that contains the GUI for Kudasai.
 
+    """
+
+    ## scary javascript code that allows us to save textbox contents to a file
+    save_as_js = """
+    (text) => {
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'downloaded_text.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
     """
 
 
@@ -147,7 +161,7 @@ class KudasaiGUI:
                 debug_log_output_field_log_tab = ""
 
                 return input_txt_file, input_json_file, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab, debug_log_output_field_log_tab
-
+            
 ##-------------------start-of-Listeners---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -175,6 +189,19 @@ class KudasaiGUI:
                                                       self.preprocessing_results_output_field,
                                                       self.debug_log_output_field_preprocess_tab,
                                                       self.debug_log_output_field_log_tab])
+            
+        
+##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_preprocessed_text.click(lambda text: text, ## save text as is
+                inputs=[self.preprocess_output_field],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=self.save_as_js
+            )
+            
             
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

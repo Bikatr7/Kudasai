@@ -16,7 +16,7 @@ parent_dir = current_dir.parent
 sys.path.append(str(parent_dir))
 
 ## custom modules
-from modules.toolkit import Toolkit
+from modules.common.toolkit import Toolkit
 
 class TokenCounter:
 

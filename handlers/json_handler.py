@@ -3,9 +3,9 @@ import json
 import typing
 
 ## custom modules
-from modules.file_ensurer import FileEnsurer
-from modules.logger import Logger
-from modules.toolkit import Toolkit
+from modules.common.file_ensurer import FileEnsurer
+from modules.common.logger import Logger
+from modules.common.toolkit import Toolkit
 
 class JsonHandler:
 

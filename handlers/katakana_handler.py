@@ -8,7 +8,7 @@ import typing
 if(typing.TYPE_CHECKING): ## used for cheating the circular import issue that occurs when i need to type check some things
     from models.kairyou import Name
 
-from modules.file_ensurer import FileEnsurer
+from modules.common.file_ensurer import FileEnsurer
 
 ## https://en.wikipedia.org/wiki/Katakana_(Unicode_block)
 KATAKANA_CHARSET = {

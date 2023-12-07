@@ -14,7 +14,7 @@ class FileEnsurer():
     """
 
     ## main dirs
-    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    script_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     output_dir = os.path.join(script_dir, "output")
 
     if(os.name == 'nt'):  ## Windows

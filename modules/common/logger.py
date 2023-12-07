@@ -1,5 +1,5 @@
 ## custom modules
-from modules.toolkit import Toolkit
+from modules.common.toolkit import Toolkit
 
 class Logger:
 

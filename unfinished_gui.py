@@ -2,9 +2,9 @@
 import gradio as gr
 
 ## custom modules
-from modules.toolkit import Toolkit
-from modules.logger import Logger
-from modules.file_ensurer import FileEnsurer
+from modules.common.toolkit import Toolkit
+from modules.common.logger import Logger
+from modules.common.file_ensurer import FileEnsurer
 
 from models.kairyou import Kairyou
 

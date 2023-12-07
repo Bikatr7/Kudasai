@@ -3,7 +3,7 @@ import gradio as gr
 import tkinter as tk
 import pyperclip
 from tkinter import filedialog
-from Kudasai import Kudasai
+from kudasai import Kudasai
 
 
 # -----------------START OF HELPER FUNCTIONS------------#

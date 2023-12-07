@@ -19,9 +19,9 @@ import spacy
 from handlers.json_handler import JsonHandler
 from handlers.katakana_handler import KatakanaHandler
 
-from modules.file_ensurer import FileEnsurer
-from modules.logger import Logger
-from modules.toolkit import Toolkit
+from modules.common.file_ensurer import FileEnsurer
+from modules.common.logger import Logger
+from modules.common.toolkit import Toolkit
 
 ##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

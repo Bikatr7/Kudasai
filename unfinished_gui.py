@@ -88,7 +88,7 @@ class KudasaiGUI:
                             self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=22, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_debug_log = gr.Button('Save As')
+                                self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
 
 
                 ## tab 3 | Logging
@@ -98,7 +98,16 @@ class KudasaiGUI:
                         self.debug_log_output_field_log_tab = gr.Textbox(label='Debug Log', lines=10, interactive=False)
 
                     with gr.Row():
+                        self.save_to_file_debug_log_logging_tab = gr.Button('Save As')
+
+                    with gr.Row():
                         self.error_log = gr.Textbox(label='Error Log', lines=10, interactive=False)
+
+                    with gr.Row():
+                        self.save_to_file_error_log = gr.Button('Save As')
+
+                    with gr.Row():
+                        self.clear_log_button = gr.Button('Clear Log', variant='stop')
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -215,7 +224,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_debug_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.save_to_file_debug_log.click(lambda text: text, ## save text as is
+            self.save_to_file_debug_log_preprocessing_tab.click(lambda text: text, ## save text as is
                 inputs=[self.debug_log_output_field_preprocess_tab],
 
                 outputs=[],

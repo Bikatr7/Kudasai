@@ -99,7 +99,7 @@ class KudasaiGUI:
 
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
-                            self.input_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
+                            self.input_file_kaiseki = gr.File(label='TXT file with Japanese Text', value= None, file_count='single', file_types=['.txt'], type='file')
                             self.input_text_kaiseki = gr.Textbox(label='Japanese Text', value='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
 
                             with gr.Row():
@@ -108,13 +108,13 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=24, interactive=False, show_copy_button=True)
+                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=24,max_lines=24, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_kaiseki = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=24, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=24,max_lines=24, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
@@ -137,6 +137,8 @@ class KudasaiGUI:
 
                     with gr.Row():
                         self.clear_log_button = gr.Button('Clear Log', variant='stop')
+
+##-------------------start-of-Listener-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -182,7 +184,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
-            def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str, str]:
+            def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str]:
 
                 """
 
@@ -196,9 +198,26 @@ class KudasaiGUI:
                 preprocess_output_field = ""
                 preprocessing_results_output_field = ""
                 debug_log_output_field_preprocess_tab = ""
-                debug_log_output_field_log_tab = ""
 
-                return input_txt_file, input_json_file, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab, debug_log_output_field_log_tab
+                return input_txt_file, input_json_file, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
+            
+##-------------------start-of-kaiseki_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            def kaiseki_clear_button_click() -> typing.Tuple[None, str, str, str]:
+
+                """
+                
+                Clears all fields on the Kaiseki tab. As well as the input fields.
+
+                """
+
+                input_file_kaiseki = None
+                input_text_kaiseki = ""
+
+                output_field_kaiseki = ""
+                debug_log_output_field_kaiseki_tab = ""
+
+                return input_file_kaiseki, input_text_kaiseki, output_field_kaiseki, debug_log_output_field_kaiseki_tab
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -215,7 +234,7 @@ class KudasaiGUI:
 
                 return debug_log_output_field_log_tab, error_log
             
-##-------------------start-of-Listeners---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -236,12 +255,22 @@ class KudasaiGUI:
                                                   inputs=[],
 
                                                   outputs=[
-                                                      self.input_txt_file,
-                                                      self.input_json_file,
-                                                      self.preprocess_output_field,
-                                                      self.preprocessing_results_output_field,
-                                                      self.debug_log_output_field_preprocess_tab,
-                                                      self.debug_log_output_field_log_tab])
+                                                      self.input_txt_file, ## input txt file
+                                                      self.input_json_file, ## input json file
+                                                      self.preprocess_output_field, ## preprocessed text output field
+                                                      self.preprocessing_results_output_field, ## preprocessing results output field
+                                                      self.debug_log_output_field_preprocess_tab])## debug log on preprocess tab
+
+##-------------------start-of-clear_button_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.clear_button_kaiseki.click(kaiseki_clear_button_click,
+                                            inputs=[],
+
+                                            outputs=[
+                                                self.input_file_kaiseki, ## input txt file
+                                                self.input_text_kaiseki, ## input text
+                                                self.output_field_kaiseki, ## translation output field
+                                                self.debug_log_output_field_kaiseki_tab]) ## debug log on kaiseki tab
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

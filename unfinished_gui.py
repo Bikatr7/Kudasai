@@ -63,7 +63,7 @@ class KudasaiGUI:
 
                         ## input files
                         with gr.Column():
-                            self.input_txt_file = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
+                            self.input_txt_file_preprocessing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
                             self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='file')
 
                             ##self.api_key_input = gr.Textbox(label='API Key (Not needed for preprocess)', lines=1, show_label=True, interactive=True, type='password')
@@ -99,7 +99,7 @@ class KudasaiGUI:
 
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
-                            self.input_file_kaiseki = gr.File(label='TXT file with Japanese Text', value= None, file_count='single', file_types=['.txt'], type='file')
+                            self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file',interactive=True)
                             self.input_text_kaiseki = gr.Textbox(label='Japanese Text', value='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
 
                             with gr.Row():
@@ -240,7 +240,7 @@ class KudasaiGUI:
 
             self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
                                                 inputs=[
-                                                    self.input_txt_file,
+                                                    self.input_txt_file_preprocessing,
                                                     self.input_json_file], 
                                                                                            
                                                 outputs=[
@@ -255,7 +255,7 @@ class KudasaiGUI:
                                                   inputs=[],
 
                                                   outputs=[
-                                                      self.input_txt_file, ## input txt file
+                                                      self.input_txt_file_preprocessing, ## input txt file
                                                       self.input_json_file, ## input json file
                                                       self.preprocess_output_field, ## preprocessed text output field
                                                       self.preprocessing_results_output_field, ## preprocessing results output field
@@ -267,7 +267,7 @@ class KudasaiGUI:
                                             inputs=[],
 
                                             outputs=[
-                                                self.input_file_kaiseki, ## input txt file
+                                                self.input_txt_file_kaiseki, ## input txt file
                                                 self.input_text_kaiseki, ## input text
                                                 self.output_field_kaiseki, ## translation output field
                                                 self.debug_log_output_field_kaiseki_tab]) ## debug log on kaiseki tab

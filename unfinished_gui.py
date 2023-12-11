@@ -66,8 +66,6 @@ class KudasaiGUI:
                             self.input_txt_file_preprocessing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
                             self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='file')
 
-                            ##self.api_key_input = gr.Textbox(label='API Key (Not needed for preprocess)', lines=1, show_label=True, interactive=True, type='password')
-
                             ## run and clear buttons
                             with gr.Row():
                                 self.preprocessing_run_button = gr.Button('Run')
@@ -102,19 +100,23 @@ class KudasaiGUI:
                             self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file',interactive=True)
                             self.input_text_kaiseki = gr.Textbox(label='Japanese Text', value='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
 
+
+                            with gr.Row():
+                                self.api_key_input = gr.Textbox(label='API Key', lines=1, show_label=True, interactive=True, type='password')
+
                             with gr.Row():
                                 self.translate_button_kaiseki = gr.Button('Translate')
                                 self.clear_button_kaiseki = gr.Button('Clear', variant='stop')
 
                         ## output fields
                         with gr.Column():
-                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=24,max_lines=24, interactive=False, show_copy_button=True)
+                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_kaiseki = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=24,max_lines=24, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
@@ -313,6 +315,29 @@ class KudasaiGUI:
 
                 ## javascript code that allows us to save textbox contents to a file
                 _js=(self.save_as_js).replace("downloaded_text.txt", "processing_debug_log.txt")
+            )
+
+
+##-------------------start-of-save_to_file_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_kaiseki.click(lambda text: text, ## save text as is
+                inputs=[self.output_field_kaiseki],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
+            )
+
+##-------------------start-of-save_to_file_debug_log_kaiseki_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_debug_log_kaiseki_tab.click(lambda text: text, ## save text as is
+                inputs=[self.debug_log_output_field_kaiseki_tab],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "kaiseki_debug_log.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

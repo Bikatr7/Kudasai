@@ -114,7 +114,7 @@ class Kaiseki:
             with open(FileEnsurer.deepl_api_key_path, 'r', encoding='utf-8') as file:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            Kaiseki.translator = deepl.Translator(api_key)
+            Kaiseki.setup_api_key(api_key)
 
             print("Used saved api key in " + FileEnsurer.deepl_api_key_path)
             Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path)
@@ -127,7 +127,7 @@ class Kaiseki:
             ## if valid save the api key
             try: 
 
-                Kaiseki.translator = deepl.Translator(api_key)
+                Kaiseki.setup_api_key(api_key)
 
                 time.sleep(.1)
                     
@@ -158,6 +158,23 @@ class Kaiseki:
                 raise e
 
         Toolkit.clear_console()
+
+
+##-------------------start-of-setup_api_key()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def setup_api_key(api_key:str):
+
+        """
+
+        Sets up the api key for the Kaiseki class.
+
+        Parameters:
+        api_key (str) : the api key to use.
+
+        """
+
+        Kaiseki.translator = deepl.Translator(api_key)
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

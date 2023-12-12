@@ -98,7 +98,7 @@ class KudasaiGUI:
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
                             self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file',interactive=True)
-                            self.input_text_kaiseki = gr.Textbox(label='Japanese Text', value='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
+                            self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
 
 
                             with gr.Row():

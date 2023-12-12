@@ -183,6 +183,37 @@ class KudasaiGUI:
                 
                 else:
                     raise gr.Error("No TXT file selected")
+                
+##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            def kaiseki_translate_button_click(input_txt_file:gr.File, input_text:gr.Textbox, api_key_input:gr.Textbox) -> typing.Tuple[str, str, str]:
+
+                """
+                
+                Translates the text in the input_txt_file or input_text using the DeepL API. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
+                Displays the translated text, and the debug log.
+
+                Parameters:
+                input_txt_file (gr.File) : The input txt file.
+                input_text (gr.Textbox) : The input text.
+                api_key_input (gr.Textbox) : The API key input.
+
+                """
+
+                if(input_txt_file is None and input_text == ""):
+                    raise gr.Error("No TXT file or text selected")
+                
+                if(api_key_input == ""):
+                    raise gr.Error("No API key provided")
+                
+                if(input_txt_file is not None):
+                    text_to_translate = gui_get_text_from_file(input_txt_file)
+
+                else:
+                    text_to_translate = input_text
+
+                return str(text_to_translate), "Debug log", "Debug log" 
+
 
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
@@ -249,6 +280,20 @@ class KudasaiGUI:
                                                     self.preprocess_output_field,  ## preprocessed text
                                                     self.preprocessing_results_output_field,  ## kairyou results
                                                     self.debug_log_output_field_preprocess_tab, ## debug log on preprocess tab
+                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
+            
+
+##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.translate_button_kaiseki.click(kaiseki_translate_button_click,
+                                                inputs=[
+                                                    self.input_txt_file_kaiseki,
+                                                    self.input_text_kaiseki,
+                                                    self.api_key_input],
+                                                
+                                                outputs=[
+                                                    self.output_field_kaiseki, ## translated text
+                                                    self.debug_log_output_field_kaiseki_tab, ## debug log on kaiseki tab
                                                     self.debug_log_output_field_log_tab]) ## debug log on log tab
             
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

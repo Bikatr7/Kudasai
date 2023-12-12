@@ -6,6 +6,7 @@ import typing
 
 ## third-party libraries
 import gradio as gr
+from models.kaiseki import Kaiseki
 
 ## custom modules
 from modules.common.toolkit import Toolkit
@@ -15,6 +16,7 @@ from modules.common.file_ensurer import FileEnsurer
 from modules.gui.gui_file_util import gui_get_text_from_file, gui_get_json_from_file
 
 from models.kairyou import Kairyou
+from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
@@ -212,7 +214,14 @@ class KudasaiGUI:
                 else:
                     text_to_translate = input_text
 
-                return str(text_to_translate), "Debug log", "Debug log" 
+                try:
+                    Kaiseki.setup_api_key(str(api_key_input))
+
+                except:
+                    raise gr.Error("Invalid API key")
+
+                return str(text_to_translate), "Debug log", "Debug log"
+                 
 
 
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                

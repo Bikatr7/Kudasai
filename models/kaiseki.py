@@ -178,7 +178,7 @@ class Kaiseki:
 
         ## perform a test translation to see if the api key is valid
         try:
-            Kaiseki.translator.translate_text("test", source_lang= "EN-US", target_lang="JA")
+            Kaiseki.translator.translate_text("test", target_lang="JA")
         
         except deepl.exceptions.AuthorizationException as e:
             raise e

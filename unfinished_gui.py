@@ -219,11 +219,18 @@ class KudasaiGUI:
 
                 except:
                     raise gr.Error("Invalid API key")
+                
 
-                return str(text_to_translate), "Debug log", "Debug log"
+                Kaiseki.text_to_translate  = [line for line in str(text_to_translate).splitlines()]
+
+                Kaiseki.commence_translation()
+                Kaiseki.write_kaiseki_results()
+
+                ## Log text is cleared from the client, so we need to get it from the log file
+                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+
+                return str(Kaiseki.translated_text), log_text, log_text
                  
-
-
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
             def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str]:

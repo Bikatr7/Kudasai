@@ -201,6 +201,12 @@ class KudasaiGUI:
                 api_key_input (gr.Textbox) : The API key input.
 
                 """
+                
+                ## to do
+                ## make translated text a proper string instead of a string rep of a list of lines
+                ## add auto api key fill from saved api key
+                ## for log text in kaiseki tab, make it auto update with the batch value, not just the log file, leave that for the log tab
+                ## add je check text field to kaiseki tab
 
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
@@ -440,7 +446,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-if(__name__ == '__main__'):
+if(__name__ == '__main__'):#
 
     try:
 

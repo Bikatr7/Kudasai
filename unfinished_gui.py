@@ -1,12 +1,8 @@
 ## built-in libraries
-import io
-from os import error
-from re import S
 import typing
 
 ## third-party libraries
 import gradio as gr
-from models.kaiseki import Kaiseki
 
 ## custom modules
 from modules.common.toolkit import Toolkit
@@ -43,6 +39,24 @@ class KudasaiGUI:
     }
     """
 
+    ## scary javascript code that allows us to update the log
+    kaiseki_log_inject_js = """
+    async function updateLog() {
+        try {
+            const logContent = await pywebio.scope.kudasai_gui.fetch_log_content();
+            document.getElementById('debug_log_output_field_kaiseki_tab').value = logContent;
+        } catch (e) {
+            console.error('Error fetching log content:', e);
+        }
+        setTimeout(updateLog, 500); // Schedule next update after 500ms
+    }
+    updateLog(); // Start updating the log
+    """
+
+##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    def fetch_log_content(self):
+        return Logger.current_batch
 
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -98,7 +112,7 @@ class KudasaiGUI:
 
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
-                            self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file',interactive=True)
+                            self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file', interactive=True)
                             self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
 
 
@@ -188,8 +202,7 @@ class KudasaiGUI:
 
                         ## Kairyou is a "in-place" replacement, so we can just return the text_to_preprocess, as for the double log text return, we do that because we want to display the log text on the log tab, and on the preprocess tab
                         return Kairyou.text_to_preprocess, preprocessing_log, log_text, log_text
-                        
-                    
+  
                     else:
                         raise gr.Error("No JSON file selected")
                 
@@ -221,7 +234,6 @@ class KudasaiGUI:
                 ## make translated text a proper string instead of a string rep of a list of lines
                 ## add auto api key fill from saved api key
                 ## for log text in kaiseki tab, make it auto update with the batch value, not just the log file, leave that for the log tab
-                ## add je check text field to kaiseki tab
 
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
@@ -250,7 +262,12 @@ class KudasaiGUI:
                 ## Log text is cleared from the client, so we need to get it from the log file
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
-                return str(Kaiseki.translated_text), log_text, log_text
+                ## je check text and translated text are lists of strings, so we need to convert them to strings
+                translated_text = "\n".join(Kaiseki.translated_text)
+                je_check_text = "\n".join(Kaiseki.je_check_text)
+
+
+                return translated_text, je_check_text, log_text
                  
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
@@ -336,8 +353,11 @@ class KudasaiGUI:
                                                     self.preprocess_output_field,  ## preprocessed text
                                                     self.preprocessing_results_output_field,  ## kairyou results
                                                     self.debug_log_output_field_preprocess_tab, ## debug log on preprocess tab
-                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
+                                                    self.debug_log_output_field_log_tab], ## debug log on log tab
             
+                                                _js = KudasaiGUI.kaiseki_log_inject_js, ## debug log on kaiseki tab
+
+                                                every=.5)
 
 ##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -349,7 +369,7 @@ class KudasaiGUI:
                                                 
                                                 outputs=[
                                                     self.output_field_kaiseki, ## translated text
-                                                    self.debug_log_output_field_kaiseki_tab, ## debug log on kaiseki tab
+                                                    self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
                                                     self.debug_log_output_field_log_tab]) ## debug log on log tab
             
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -484,7 +504,7 @@ class KudasaiGUI:
         """
 
         self.build_gui()
-        self.gui.launch(inbrowser=True, show_error=True)
+        self.gui.queue().launch(inbrowser=True, show_error=True)
 
         Kudasai.boot()
 

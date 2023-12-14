@@ -92,7 +92,6 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
 
-
                 ## tab 3 | Translation Model 1 | Kaiseki
                 with gr.Tab("Translation With DeepL | Kaiseki") as self.kaiseki_tab:
                     with gr.Row():
@@ -123,6 +122,11 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
 
+                        with gr.Column():
+                            self.kaiseki_je_check_text_field = gr.Textbox(label='JE Check Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_je_check_text_kaiseki = gr.Button('Save As')
 
                 ## tab 4 | Logging
                 with gr.Tab("Logging") as self.results_tab:
@@ -156,6 +160,12 @@ class KudasaiGUI:
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
                 input_json_file (gr.File) : The input json file.
+
+                Returns:
+                text_to_preprocess (str) : The preprocessed text.
+                preprocessing_log (str) : The preprocessing log.
+                log_text (str) : The log text for the Kairyou tab.
+                log_text (str) : The log text for the log tab.
 
                 """
 
@@ -199,6 +209,11 @@ class KudasaiGUI:
                 input_txt_file (gr.File) : The input txt file.
                 input_text (gr.Textbox) : The input text.
                 api_key_input (gr.Textbox) : The API key input.
+
+                Returns:
+                translated_text (str) : The translated text.
+                log_text (str) : The log text.
+                log_text (str) : The log text.
 
                 """
                 
@@ -245,6 +260,13 @@ class KudasaiGUI:
 
                 Clears all fields on the preprocessing tab. As well as the input fields.
 
+                Returns:
+                input_txt_file (gr.File) : An empty file.
+                input_json_file (gr.File) : An empty file.
+                preprocess_output_field (str) : An empty string.
+                preprocessing_results_output_field (str) : An empty string.
+                debug_log_output_field_preprocess_tab (str) : An empty string.
+
                 """
 
                 input_txt_file = None
@@ -258,11 +280,18 @@ class KudasaiGUI:
             
 ##-------------------start-of-kaiseki_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def kaiseki_clear_button_click() -> typing.Tuple[None, str, str, str]:
+            def kaiseki_clear_button_click() -> typing.Tuple[None, str, str, str, str]:
 
                 """
                 
                 Clears all fields on the Kaiseki tab. As well as the input fields.
+
+                Returns:
+                input_txt_file_kaiseki (gr.File) : An empty file.
+                input_text_kaiseki (str) : An empty string.
+                output_field_kaiseki (str) : An empty string.
+                debug_log_output_field_kaiseki_tab (str) : An empty string.
+                je_check_text_field_kaiseki (str) : An empty string.
 
                 """
 
@@ -271,8 +300,9 @@ class KudasaiGUI:
 
                 output_field_kaiseki = ""
                 debug_log_output_field_kaiseki_tab = ""
+                je_check_text_field_kaiseki = ""
 
-                return input_file_kaiseki, input_text_kaiseki, output_field_kaiseki, debug_log_output_field_kaiseki_tab
+                return input_file_kaiseki, input_text_kaiseki, output_field_kaiseki, debug_log_output_field_kaiseki_tab, je_check_text_field_kaiseki
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -281,6 +311,10 @@ class KudasaiGUI:
                 """
 
                 Clears the logs on the log tab.
+
+                Returns:
+                debug_log_output_field_log_tab (str) : An empty string.
+                error_log (str) : An empty string.
 
                 """
 
@@ -339,7 +373,8 @@ class KudasaiGUI:
                                                 self.input_txt_file_kaiseki, ## input txt file
                                                 self.input_text_kaiseki, ## input text
                                                 self.output_field_kaiseki, ## translation output field
-                                                self.debug_log_output_field_kaiseki_tab]) ## debug log on kaiseki tab
+                                                self.debug_log_output_field_kaiseki_tab, ## debug log on kaiseki tab
+                                                self.kaiseki_je_check_text_field]) ## je check text field on kaiseki tab
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -405,6 +440,15 @@ class KudasaiGUI:
 
                 ## javascript code that allows us to save textbox contents to a file
                 _js=(self.save_as_js).replace("downloaded_text.txt", "kaiseki_debug_log.txt")
+            )
+
+            self.save_to_file_je_check_text_kaiseki.click(lambda text: text, ## save text as is
+                inputs=[self.kaiseki_je_check_text_field],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -39,23 +39,12 @@ class KudasaiGUI:
     }
     """
 
-    ## scary javascript code that allows us to update the log
-    kaiseki_log_inject_js = """
-    async function updateLog() {
-        try {
-            const logContent = await pywebio.scope.kudasai_gui.fetch_log_content();
-            document.getElementById('debug_log_output_field_kaiseki_tab').value = logContent;
-        } catch (e) {
-            console.error('Error fetching log content:', e);
-        }
-        setTimeout(updateLog, 500); // Schedule next update after 500ms
-    }
-    updateLog(); // Start updating the log
-    """
-
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    ## need to refactor the shit out of this and logger cause of how it functions currently, log clears itself, the Logger.current_batch i mean, once it pushes it's files to batch.
     def fetch_log_content(self):
+        if(Logger.current_batch == ""):
+            return "No log content found."
         return Logger.current_batch
 
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -137,7 +126,7 @@ class KudasaiGUI:
                                 self.save_to_file_je_check_text_kaiseki = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True, elem_id='debug_log_output_field_kaiseki_tab')
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
@@ -201,6 +190,7 @@ class KudasaiGUI:
                         preprocessing_log = FileEnsurer.standard_read_file(FileEnsurer.kairyou_log_path)
 
                         ## Kairyou is a "in-place" replacement, so we can just return the text_to_preprocess, as for the double log text return, we do that because we want to display the log text on the log tab, and on the preprocess tab
+                        ## Kairyou doesn't have any advanced logging, so we can just return the log text for both the log tab and the preprocess tab, no need to do what we did for the Kaiseki tab or Kijiku tab
                         return Kairyou.text_to_preprocess, preprocessing_log, log_text, log_text
   
                     else:
@@ -225,16 +215,11 @@ class KudasaiGUI:
 
                 Returns:
                 translated_text (str) : The translated text.
-                log_text (str) : The log text.
-                log_text (str) : The log text.
+                je_check_text (str) : The je check text.
+                log_text (str) : The log text for the Log tab.
 
                 """
                 
-                ## to do
-                ## make translated text a proper string instead of a string rep of a list of lines
-                ## add auto api key fill from saved api key
-                ## for log text in kaiseki tab, make it auto update with the batch value, not just the log file, leave that for the log tab
-
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
                 
@@ -265,7 +250,6 @@ class KudasaiGUI:
                 ## je check text and translated text are lists of strings, so we need to convert them to strings
                 translated_text = "\n".join(Kaiseki.translated_text)
                 je_check_text = "\n".join(Kaiseki.je_check_text)
-
 
                 return translated_text, je_check_text, log_text
                  
@@ -307,19 +291,20 @@ class KudasaiGUI:
                 input_txt_file_kaiseki (gr.File) : An empty file.
                 input_text_kaiseki (str) : An empty string.
                 output_field_kaiseki (str) : An empty string.
-                debug_log_output_field_kaiseki_tab (str) : An empty string.
                 je_check_text_field_kaiseki (str) : An empty string.
+                debug_log_output_field_kaiseki_tab (str) : An empty string.
 
                 """
 
                 input_file_kaiseki = None
+
                 input_text_kaiseki = ""
 
                 output_field_kaiseki = ""
-                debug_log_output_field_kaiseki_tab = ""
                 je_check_text_field_kaiseki = ""
+                debug_log_output_field_kaiseki_tab = ""
 
-                return input_file_kaiseki, input_text_kaiseki, output_field_kaiseki, debug_log_output_field_kaiseki_tab, je_check_text_field_kaiseki
+                return input_file_kaiseki, input_text_kaiseki, output_field_kaiseki, je_check_text_field_kaiseki, debug_log_output_field_kaiseki_tab
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -346,31 +331,35 @@ class KudasaiGUI:
 
             self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
                                                 inputs=[
-                                                    self.input_txt_file_preprocessing,
-                                                    self.input_json_file], 
+                                                    self.input_txt_file_preprocessing, ## input txt file to preprocess
+                                                    self.input_json_file], ## replacements json file
                                                                                            
                                                 outputs=[
                                                     self.preprocess_output_field,  ## preprocessed text
                                                     self.preprocessing_results_output_field,  ## kairyou results
                                                     self.debug_log_output_field_preprocess_tab, ## debug log on preprocess tab
-                                                    self.debug_log_output_field_log_tab], ## debug log on log tab
-            
-                                                _js = KudasaiGUI.kaiseki_log_inject_js, ## debug log on kaiseki tab
-
-                                                every=.5)
+                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
 
 ##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+            ## for the actual translation, and the je check text
             self.translate_button_kaiseki.click(kaiseki_translate_button_click,
                                                 inputs=[
-                                                    self.input_txt_file_kaiseki,
-                                                    self.input_text_kaiseki,
-                                                    self.api_key_input],
+                                                    self.input_txt_file_kaiseki, ## input txt file to translate
+                                                    self.input_text_kaiseki, ## input text to translate
+                                                    self.api_key_input], ## api key input
                                                 
                                                 outputs=[
                                                     self.output_field_kaiseki, ## translated text
-                                                    self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
-                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
+                                                    self.kaiseki_je_check_text_field]) ## je check text field on kaiseki tab
+            
+            ## for the kaiseki debug log
+            self.translate_button_kaiseki.click(fn=self.fetch_log_content,
+                                                inputs=[],
+
+                                                outputs=[self.debug_log_output_field_kaiseki_tab], ## debug log on kaiseki tab
+
+                                                every=.1) ## update every 100ms
             
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -393,8 +382,8 @@ class KudasaiGUI:
                                                 self.input_txt_file_kaiseki, ## input txt file
                                                 self.input_text_kaiseki, ## input text
                                                 self.output_field_kaiseki, ## translation output field
-                                                self.debug_log_output_field_kaiseki_tab, ## debug log on kaiseki tab
-                                                self.kaiseki_je_check_text_field]) ## je check text field on kaiseki tab
+                                                self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
+                                                self.debug_log_output_field_kaiseki_tab]) ## debug log on kaiseki tab
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -405,7 +394,6 @@ class KudasaiGUI:
                                             self.debug_log_output_field_log_tab,
                                             self.error_log])
             
-        
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.save_to_file_preprocessed_text.click(lambda text: text, ## save text as is

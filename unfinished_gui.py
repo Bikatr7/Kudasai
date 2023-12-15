@@ -131,16 +131,16 @@ class KudasaiGUI:
                                 self.save_to_file_kaiseki = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
-
-                            with gr.Row():
-                                self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
-
-                        with gr.Column():
                             self.kaiseki_je_check_text_field = gr.Textbox(label='JE Check Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_je_check_text_kaiseki = gr.Button('Save As')
+
+                        with gr.Column():
+                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
 
                 ## tab 4 | Logging
                 with gr.Tab("Logging") as self.results_tab:

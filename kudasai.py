@@ -312,44 +312,43 @@ async def main() -> None:
     try:
 
         ## determines if we will run the Kudasai CLI or the Kudasai Console
-        if(__name__ == '__main__'):
 
-            Toolkit.clear_console()
+        Toolkit.clear_console()
 
-            ## if running console version
-            if(len(sys.argv) <= 1):
+        ## if running console version
+        if(len(sys.argv) <= 1):
+            
+            Kudasai.setup_kairyou_for_console()
+
+            await Kudasai.run_kudasai_console()
+
+            Logger.push_batch()
+
+        ## if running cli version
+        elif(len(sys.argv) == 3):
+
+            Kudasai.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
+
+            await Kudasai.run_kudasai_cli()
+
+            Logger.push_batch()
+
+        ## print usage statement
+        else:
                 
-                Kudasai.setup_kairyou_for_console()
+            print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
+            print("or run Kudasai.py without any arguments to run the console version.\n\n")
 
-                await Kudasai.run_kudasai_console()
+            Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
 
-                Logger.push_batch()
+            Toolkit.pause_console()
 
-            ## if running cli version
-            elif(len(sys.argv) == 3):
-
-                Kudasai.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
-
-                await Kudasai.run_kudasai_cli()
-
-                Logger.push_batch()
-
-            ## print usage statement
-            else:
-                    
-                print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
-                print("or run Kudasai.py without any arguments to run the console version.\n\n")
-
-                Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
-
-                Toolkit.pause_console()
-
-                exit()
+            exit()
 
     except Exception as e:
 
         FileEnsurer.handle_critical_exception(e)
 
 ##---------------------------------/
-
-asyncio.run(main())
+if(__name__ == '__main__'):
+    asyncio.run(main())

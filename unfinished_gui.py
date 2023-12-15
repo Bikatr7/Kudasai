@@ -39,14 +39,6 @@ class KudasaiGUI:
     }
     """
 
-##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ## need to refactor the shit out of this and logger cause of how it functions currently, log clears itself, the Logger.current_batch i mean, once it pushes it's files to batch.
-    def fetch_log_content(self):
-        if(Logger.current_batch == ""):
-            return "No log content found."
-        return Logger.current_batch
-
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def build_gui(self):
@@ -148,6 +140,16 @@ class KudasaiGUI:
 
                     with gr.Row():
                         self.clear_log_button = gr.Button('Clear Log', variant='stop')
+
+##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            ## need to refactor the shit out of this and logger cause of how it functions currently, log clears itself, the Logger.current_batch i mean, once it pushes it's files to batch.
+            def fetch_log_content(self):
+                if(Logger.current_batch == ""):
+                    return "No log content found."
+                return Logger.current_batch
 
 ##-------------------start-of-Listener-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -354,7 +356,7 @@ class KudasaiGUI:
                                                     self.kaiseki_je_check_text_field]) ## je check text field on kaiseki tab
             
             ## for the kaiseki debug log
-            self.translate_button_kaiseki.click(fn=self.fetch_log_content,
+            self.translate_button_kaiseki.click(fn=fetch_log_content,
                                                 inputs=[],
 
                                                 outputs=[self.debug_log_output_field_kaiseki_tab], ## debug log on kaiseki tab

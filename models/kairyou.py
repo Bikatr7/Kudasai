@@ -109,6 +109,7 @@ class Kairyou:
 
         ## If we don't need to run, don't run.
         if(not Kairyou.need_to_run):
+            print("Preprocessing skipped.")
             return
         
         ## in case of successive runs

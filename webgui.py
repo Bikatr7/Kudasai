@@ -664,7 +664,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "kaiseki_debug_log.txt")
+                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
             )
 
 ##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -697,7 +697,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "kijiku_debug_log.txt")
+                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

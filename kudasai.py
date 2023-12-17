@@ -43,9 +43,7 @@ class Kudasai:
 
         Toolkit.clear_console()
 
-        FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
-
-        Logger.clear_log_file()
+        FileEnsurer.setup_needed_files()
 
         Logger.log_barrier()
         Logger.log_action("Kudasai started")
@@ -81,12 +79,7 @@ class Kudasai:
 
             Toolkit.pause_console()
 
-            exit()
-
-        ## get name of json file
-        ## Example "86 Replacements.json" would return 86
-        ## I remember needing this for something but I don't remember what
-        name_of_replacement_json = os.path.basename(replacement_json_path)        
+            exit() 
 
         with open(input_file, 'r', encoding='utf-8') as file: 
             japanese_text = file.read()
@@ -122,11 +115,6 @@ class Kudasai:
             
             Kairyou.need_to_run = False
             replacement_json = {}
-
-        ## get name of json file
-        ## Example "86 Replacements.json" would return 86
-        ## I remember needing this for something but I don't remember what
-        name_of_replacement_json = os.path.basename(replacement_json_path)        
 
         try:
 

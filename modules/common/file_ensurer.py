@@ -78,12 +78,15 @@ class FileEnsurer():
         ## creates and clears the log file
         Logger.clear_log_file()
 
-        ## creates the remaining 5 output files
+        ## creates the 5 output files
         FileEnsurer.standard_create_file(FileEnsurer.preprocessed_text_path)
         FileEnsurer.standard_create_file(FileEnsurer.translated_text_path)
         FileEnsurer.standard_create_file(FileEnsurer.je_check_path)
         FileEnsurer.standard_create_file(FileEnsurer.kairyou_log_path)
         FileEnsurer.standard_create_file(FileEnsurer.error_log_path)
+
+        ## creates the kijiku rules file if it doesn't exist
+        FileEnsurer.modified_create_file(FileEnsurer.config_kijiku_rules_path, "{}")
 
         if(not os.path.exists(FileEnsurer.katakana_words_path)):
            raise FileNotFoundError(f"Katakana words file not found at {FileEnsurer.katakana_words_path}. Can not continue, preprocess failed.")

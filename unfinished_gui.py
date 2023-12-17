@@ -1,5 +1,6 @@
 ## built-in libraries
 import typing
+import base64
 
 ## third-party libraries
 import gradio as gr
@@ -51,6 +52,35 @@ class KudasaiGUI:
 
         with gr.Blocks() as self.gui:
 
+##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            ## need to refactor the shit out of this and logger cause of how it functions currently, log clears itself, the Logger.current_batch i mean, once it pushes it's files to batch.
+            def fetch_log_content():
+                if(Logger.current_batch == ""):
+                    return "No log content found."
+                return Logger.current_batch
+            
+##-------------------start-of-get_saved_kaiseki_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            def get_saved_kaiseki_api_key():
+
+                """
+                
+                Gets the saved api key from the config folder, if it exists.
+
+                """
+
+                try:
+                    ## Api key is encoded in base 64 so we need to decode it before returning
+                    return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.deepl_api_key_path).encode('utf-8')).decode('utf-8')
+                
+                except:
+                    return ""
+            
+##-------------------start-of-GUI-Structure---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
             ## tab 1 | Main
             with gr.Tab("Kudasai") as self.kudasai_tab:
 
@@ -98,7 +128,7 @@ class KudasaiGUI:
 
 
                             with gr.Row():
-                                self.api_key_input = gr.Textbox(label='API Key', lines=1, show_label=True, interactive=True, type='password')
+                                self.api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True)
 
                             with gr.Row():
                                 self.translate_button_kaiseki = gr.Button('Translate')
@@ -140,16 +170,6 @@ class KudasaiGUI:
 
                     with gr.Row():
                         self.clear_log_button = gr.Button('Clear Log', variant='stop')
-
-##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            ## need to refactor the shit out of this and logger cause of how it functions currently, log clears itself, the Logger.current_batch i mean, once it pushes it's files to batch.
-            def fetch_log_content(self):
-                if(Logger.current_batch == ""):
-                    return "No log content found."
-                return Logger.current_batch
 
 ##-------------------start-of-Listener-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -493,14 +513,14 @@ class KudasaiGUI:
 
         """
 
+        Kudasai.boot()
+
         self.build_gui()
         self.gui.queue().launch(inbrowser=True, show_error=True)
 
-        Kudasai.boot()
-
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-if(__name__ == '__main__'):#
+if(__name__ == '__main__'):
 
     try:
 

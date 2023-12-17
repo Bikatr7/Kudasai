@@ -36,6 +36,9 @@ class Kudasai:
 
         """
 
+        ## done for in the case of usage by webgui
+        Logger.clear_batch()
+
         os.system("title " + "Kudasai")
 
         Toolkit.clear_console()

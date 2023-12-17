@@ -10,7 +10,6 @@ import spacy
 ## custom modules
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
-from modules.common.logger import Logger
 
 from handlers.katakana_handler import KatakanaHandler
 
@@ -517,6 +516,3 @@ class Kairyou:
 
         ## need to clear preprocessing results as it could be run consecutively
         Kairyou.preprocessing_log = ""
-
-        ## pushes the tl debug log to the file
-        Logger.push_batch()

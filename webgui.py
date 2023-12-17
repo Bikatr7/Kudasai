@@ -200,10 +200,10 @@ class KudasaiGUI:
                         with gr.Column():
                             self.input_txt_file_kijiku = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file', interactive=True)
                             self.input_text_kijiku = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
-                            self.input_kijiku_rules_file = gr.File(label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
+                            self.input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
 
                             with gr.Row():
-                                self.api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, show_label=True, interactive=True)
+                                self.api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, max_lines=2, show_label=True, interactive=True)
 
                             with gr.Row():
                                 self.translate_button_kijiku = gr.Button('Translate')

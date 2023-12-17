@@ -2,8 +2,6 @@
 import json
 import typing
 
-from click import File
-
 ## custom modules
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
@@ -32,16 +30,16 @@ class JsonHandler:
 
         keys_list = [
         "model",
+        "system_message",
         "temp",
         "top_p",
         "n",
         "stream",
         "stop",
+        "logit_bias",
         "max_tokens",
         "presence_penalty",
         "frequency_penalty",
-        "logit_bias",
-        "system_message",
         "message_mode",
         "num_lines",
         "sentence_fragmenter_mode",
@@ -131,16 +129,16 @@ class JsonHandler:
             settings_print_message = "----------------------------------------------------------------------------------"
 
             settings_print_message += "\n\nmodel : ID of the model to use. As of right now, Kijiku only works with 'chat' models."
-            settings_print_message += "\n\ntemperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation."
+            settings_print_message += "\n\nsystem_message : Instructions to the model. Do not change this unless you know what you're doing."
+            settings_print_message += "\n\ntemp : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation."
             settings_print_message += "\n\ntop_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both."
             settings_print_message += "\n\nn : How many chat completion choices to generate for each input message. Do not change this."
             settings_print_message += "\n\nstream : If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI Cookbook for example code. Do not change this."
             settings_print_message += "\n\nstop : Up to 4 sequences where the API will stop generating further tokens. Do not change this."
+            settings_print_message += "\n\nlogit_bias : Modify the likelihood of specified tokens appearing in the completion. Do not change this."
             settings_print_message += "\n\nmax_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this."
             settings_print_message += "\n\npresence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."
             settings_print_message += "\n\nfrequency_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim."
-            settings_print_message += "\n\nlogit_bias : Modify the likelihood of specified tokens appearing in the completion. Do not change this."
-            settings_print_message += "\n\nsystem_message : Instructions to the model. Do not change this unless you know what you're doing."
             settings_print_message += "\n\nmessage_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treating as a user message. 1 is recommend for gpt-4 otherwise either works."
             settings_print_message += "\n\nnum_lines : the number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines."
             settings_print_message += "\n\nsentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4."
@@ -244,16 +242,16 @@ class JsonHandler:
         
         type_expectations = {
             "model": str,
+            "system_message": str,
             "temp": float,
             "top_p": float,
             "n": int,
             "stream": bool,
-            "stop": list,
+            "stop": list | None,
+            "logit_bias": dict | None,
             "max_tokens": int,
             "presence_penalty": float,
             "frequency_penalty": float,
-            "logit_bias": dict,
-            "system_message": str,
             "message_mode": int,
             "num_lines": int,
             "sentence_fragmenter_mode": int,
@@ -288,6 +286,42 @@ class JsonHandler:
                         raise ValueError(f"{setting_name} out of range")
 
                     return float_value
+                
+                ## similar float checks for penalty values
+                if(setting_name in ["presence_penalty", "frequency_penalty"]):
+                    float_value = float(value)
+
+                    if(float_value < -2 or float_value > 2):
+                        raise ValueError(f"{setting_name} out of range")
+
+                    return float_value
+                
+                ## rang checks for message_mode
+                if(setting_name == "message_mode"):
+                    int_value = int(value)
+
+                    if(int_value < 1 or int_value > 2):
+                        raise ValueError("message_mode out of range")
+
+                    return int_value
+                
+                ## range checks for sentence_fragmenter_mode
+                if(setting_name == "sentence_fragmenter_mode"):
+                    int_value = int(value)
+
+                    if(int_value < 1 or int_value > 3):
+                        raise ValueError("sentence_fragmenter_mode out of range")
+
+                    return int_value
+                
+                ## range checks for je_check_mode
+                if(setting_name == "je_check_mode"):
+                    int_value = int(value)
+
+                    if(int_value < 1 or int_value > 2):
+                        raise ValueError("je_check_mode out of range")
+
+                    return int_value
                 
                 return type_expectations[setting_name](value)
             

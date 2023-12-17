@@ -75,15 +75,17 @@ class Kaiseki:
 
         """
 
-        time_start = time.time() ## start time
+        Logger.clear_batch()
+
+        time_start = time.time()
 
         try:
 
-            Kaiseki.initialize() ## initialize the Kaiseki object
+            Kaiseki.initialize() 
 
             time_start = time.time() ## offset time
 
-            Kaiseki.commence_translation() ## commence the translation
+            Kaiseki.commence_translation()
 
         except Exception as e:
             
@@ -93,9 +95,9 @@ class Kaiseki:
 
         finally:
 
-            time_end = time.time() ## end time
+            time_end = time.time()
 
-            Kaiseki.assemble_results(time_start, time_end) ## assemble the results
+            Kaiseki.assemble_results(time_start, time_end)
 
 ##-------------------start-of-initialize()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -116,8 +118,7 @@ class Kaiseki:
 
             Kaiseki.setup_api_key(api_key)
 
-            print("Used saved api key in " + FileEnsurer.deepl_api_key_path)
-            Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path)
+            Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path, output=True)
 
         ## else try to get api key manually
         except Exception as e: 
@@ -140,7 +141,7 @@ class Kaiseki:
                     
                 Toolkit.clear_console()
                     
-                print("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKaiseki will now exit.\n")
+                Logger.log_action("Authorization error with creating translator object, please double check your api key as it appears to be incorrect.\nKaiseki will now exit.", output=True)
                 
                 Toolkit.pause_console()
                     
@@ -151,14 +152,13 @@ class Kaiseki:
                 
                 Toolkit.clear_console()
                     
-                print("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKaiseki will now exit.\n")
+                Logger.log_action("Unknown error with creating translator object, The error is as follows " + str(e)  + "\nKaiseki will now exit.", output=True)
                 
                 Toolkit.pause_console()
 
                 raise e
 
         Toolkit.clear_console()
-
 
 ##-------------------start-of-setup_api_key()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -179,6 +179,8 @@ class Kaiseki:
         ## perform a test translation to see if the api key is valid
         try:
             Kaiseki.translator.translate_text("test", target_lang="JA")
+
+            Logger.log_action("API key is valid.", output=True)
         
         except deepl.exceptions.AuthorizationException as e:
             raise e
@@ -204,18 +206,18 @@ class Kaiseki:
 
             if(any(char in Kaiseki.current_sentence for char in ["▼", "△", "◇"])):
                 Kaiseki.translated_text.append(Kaiseki.current_sentence + '\n')
-                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is a pov change... leaving intact.\n")
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is a pov change... leaving intact.")
 
             elif("part" in Kaiseki.current_sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in Kaiseki.current_sentence) and not all(char in [" "] for char in Kaiseki.current_sentence) and Kaiseki.current_sentence != '"..."' and Kaiseki.current_sentence != "..."):
                 Kaiseki.translated_text.append(Kaiseki.current_sentence + '\n') 
-                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is part marker... leaving intact.\n")
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is part marker... leaving intact.")
 
             elif bool(re.match(r'^[\W_\s\n-]+$', Kaiseki.current_sentence)) and not any(char in Kaiseki.current_sentence for char in ["」", "「", "«", "»"]):
-                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is punctuation... skipping.\n")
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is punctuation... skipping.")
                 Kaiseki.translated_text.append(Kaiseki.current_sentence + "\n")
 
             elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', Kaiseki.current_sentence))):
-                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is english... skipping translation.\n")
+                Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is english... skipping translation.")
                 Kaiseki.translated_text.append(Kaiseki.current_sentence + "\n")
 
             elif(len(Kaiseki.current_sentence) == 0 or Kaiseki.current_sentence.isspace() == True):
@@ -258,7 +260,7 @@ class Kaiseki:
             
             Toolkit.clear_console()
             
-            print(str(i) + "/" + str(len(Kaiseki.text_to_translate)) + " completed.")
+            Logger.log_action(str(i) + "/" + str(len(Kaiseki.text_to_translate)) + " completed.", output=True)
 
 ##-------------------start-of-separate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -486,8 +488,7 @@ class Kaiseki:
                         
             except deepl.exceptions.QuotaExceededException as e:
 
-                print("\nDeepL API quota exceeded\n")
-                Logger.log_action("DeepL API quota exceeded\n")
+                Logger.log_action("DeepL API quota exceeded.", output=True)
 
                 Toolkit.pause_console()
                 

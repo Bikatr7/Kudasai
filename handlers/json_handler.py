@@ -2,6 +2,8 @@
 import json
 import typing
 
+from click import File
+
 ## custom modules
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
@@ -16,30 +18,6 @@ class JsonHandler:
     """
 
     current_kijiku_rules = dict()
-
-    default_kijiku_rules = {
-    "open ai settings": 
-    {
-        "model":"gpt-3.5-turbo",
-        "temp":0.3,
-        "top_p":1,
-        "n":1,
-        "stream":False,
-        "stop":None,
-        "max_tokens":9223372036854775807,
-        "presence_penalty":0,
-        "frequency_penalty":0,
-        "logit_bias":None,
-        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
-        "message_mode":1,
-        "num_lines":13,
-        "sentence_fragmenter_mode":3,
-        "je_check_mode":2,
-        "num_malformed_batch_retries":1,
-        "batch_retry_timeout":300,
-        "num_concurrent_batches":30
-    }
-    }
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -98,7 +76,7 @@ class JsonHandler:
 
         """
 
-        JsonHandler.current_kijiku_rules = JsonHandler.default_kijiku_rules
+        JsonHandler.current_kijiku_rules = FileEnsurer.default_kijiku_rules
         
         JsonHandler.dump_kijiku_rules()
 
@@ -202,7 +180,7 @@ class JsonHandler:
                     JsonHandler.validate_json()
 
                     ## validate_json() sets a dict to default if it's invalid, so if it's still default, it's invalid
-                    assert JsonHandler.current_kijiku_rules != JsonHandler.default_kijiku_rules 
+                    assert JsonHandler.current_kijiku_rules != FileEnsurer.default_kijiku_rules 
                     
                     JsonHandler.dump_kijiku_rules()
 

@@ -60,6 +60,31 @@ class FileEnsurer():
     deepl_api_key_path = os.path.join(config_dir, "deepl_api_key.txt")
     openai_api_key_path = os.path.join(config_dir,'openai_api_key.txt')
 
+    ## default kijiku rules
+    default_kijiku_rules = {
+    "open ai settings": 
+    {
+        "model":"gpt-3.5-turbo",
+        "temp":0.3,
+        "top_p":1,
+        "n":1,
+        "stream":False,
+        "stop":None,
+        "max_tokens":9223372036854775807,
+        "presence_penalty":0,
+        "frequency_penalty":0,
+        "logit_bias":None,
+        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
+        "message_mode":1,
+        "num_lines":13,
+        "sentence_fragmenter_mode":3,
+        "je_check_mode":2,
+        "num_malformed_batch_retries":1,
+        "batch_retry_timeout":300,
+        "num_concurrent_batches":30
+    }
+    }
+
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -86,8 +111,8 @@ class FileEnsurer():
         FileEnsurer.standard_create_file(FileEnsurer.error_log_path)
 
         ## creates the kijiku rules file if it doesn't exist
-        FileEnsurer.modified_create_file(FileEnsurer.config_kijiku_rules_path, "{}")
-
+        FileEnsurer.modified_create_file(FileEnsurer.config_kijiku_rules_path, str(FileEnsurer.default_kijiku_rules))
+        
         if(not os.path.exists(FileEnsurer.katakana_words_path)):
            raise FileNotFoundError(f"Katakana words file not found at {FileEnsurer.katakana_words_path}. Can not continue, preprocess failed.")
 
@@ -131,7 +156,7 @@ class FileEnsurer():
 ##--------------------start-of-modified_create_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def modified_create_file(file_path:str, content_to_write:str) -> None:
+    def modified_create_file(file_path:str, content_to_write:str) -> bool:
 
         """
 
@@ -141,12 +166,21 @@ class FileEnsurer():
         file_path (str) : path to the file to be created.
         content to write (str) : content to be written to the file.
 
+        Returns:
+        bool : whether or not the file was overwritten.
+
         """
+
+        did_overwrite = False
 
         if(os.path.exists(file_path) == False or os.path.getsize(file_path) == 0):
             Logger.log_action(file_path + " was created due to lack of the file or because it is blank")
             with open(file_path, "w+", encoding="utf-8") as file:
                 file.write(content_to_write)
+
+            did_overwrite = True
+
+        return did_overwrite
 
 ##--------------------start-of-standard_overwrite_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

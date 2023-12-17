@@ -10,6 +10,7 @@ import spacy
 ## custom modules
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
+from modules.common.logger import Logger
 
 from handlers.katakana_handler import KatakanaHandler
 
@@ -109,6 +110,10 @@ class Kairyou:
         ## If we don't need to run, don't run.
         if(not Kairyou.need_to_run):
             return
+        
+        ## in case of successive runs
+        Logger.clear_log_file()
+        Kairyou.total_replacements = 0
 
         Toolkit.clear_console()
 

@@ -23,7 +23,7 @@ class KudasaiGUI:
 
     """
     
-    Kudasai is a class that contains the GUI for Kudasai.
+    KudasaiGUI is a class that contains the GUI for Kudasai.
 
     """
 
@@ -39,6 +39,8 @@ class KudasaiGUI:
         URL.revokeObjectURL(url);
     }
     """
+
+    is_translation_ongoing = False
 
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -56,10 +58,20 @@ class KudasaiGUI:
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            ## need to refactor the shit out of this and logger cause of how it functions currently, log clears itself, the Logger.current_batch i mean, once it pushes it's files to batch.
             def fetch_log_content():
+
+                """
+                
+                Fetches the log content from the log file and displays it in the debug log field on the current translation tab.
+
+                """
+
+                if(self.is_translation_ongoing == False):
+                    return "No translation ongoing"
+
                 if(Logger.current_batch == ""):
                     return "No log content found."
+                
                 return Logger.current_batch
             
 ##-------------------start-of-get_saved_kaiseki_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -241,6 +253,12 @@ class KudasaiGUI:
                 log_text (str) : The log text for the Log tab.
 
                 """
+
+                ## in case of subsequent runs, we need to clear the batch
+                Logger.clear_batch()
+
+                ## if translate button is clicked, we can assume that the translation is ongoing
+                self.is_translation_ongoing = True
                 
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
@@ -317,6 +335,9 @@ class KudasaiGUI:
                 debug_log_output_field_kaiseki_tab (str) : An empty string.
 
                 """
+
+                ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
+                self.is_translation_ongoing = False
 
                 input_file_kaiseki = None
 

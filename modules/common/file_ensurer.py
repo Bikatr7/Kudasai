@@ -65,16 +65,16 @@ class FileEnsurer():
     "open ai settings": 
     {
         "model":"gpt-3.5-turbo",
+        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well.",
         "temp":0.3,
         "top_p":1,
         "n":1,
         "stream":False,
         "stop":None,
+        "logit_bias":None,
         "max_tokens":9223372036854775807,
         "presence_penalty":0,
         "frequency_penalty":0,
-        "logit_bias":None,
-        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well. ",
         "message_mode":1,
         "num_lines":13,
         "sentence_fragmenter_mode":3,

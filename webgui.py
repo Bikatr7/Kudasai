@@ -237,6 +237,11 @@ class KudasaiGUI:
                             self.model_input_field = gr.Textbox(label='Model', info="ID of the model to use. As of right now, Kijiku only works with 'chat' models.", lines=1, max_lines=1, show_label=True, interactive=True)
                             self.temperature_input_field = gr.Textbox(label='Temperature', info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.", lines=1, max_lines=1, show_label=True, interactive=True)
 
+                    with gr.Row():
+                        self.apply_changes_button = gr.Button('Apply Changes')
+                        self.discard_changes_button = gr.Button('Discard Changes', variant='stop')
+
+
                 ## tab 6 | Logging
                 with gr.Tab("Logging") as self.results_tab:
 

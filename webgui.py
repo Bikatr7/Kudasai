@@ -228,7 +228,16 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
 
-                ## tab 5 | Logging
+
+                ## tab 5 | Kijiku Settings
+                with gr.Tab("Kijiku Settings") as self.kijiku_settings_tab:
+                    with gr.Row():
+
+                        with gr.Column():
+                            self.model_input_field = gr.Textbox(label='Model', info="ID of the model to use. As of right now, Kijiku only works with 'chat' models.", lines=1, max_lines=1, show_label=True, interactive=True)
+                            self.temperature_input_field = gr.Textbox(label='Temperature', info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.", lines=1, max_lines=1, show_label=True, interactive=True)
+
+                ## tab 6 | Logging
                 with gr.Tab("Logging") as self.results_tab:
 
                     with gr.Row():
@@ -355,7 +364,31 @@ class KudasaiGUI:
                 je_check_text = "\n".join(Kaiseki.je_check_text)
 
                 return translated_text, je_check_text, log_text
-                 
+            
+##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            def kijiku_translate_button_click(input_txt_file:gr.File, input_text:gr.Textbox, api_key_input:gr.Textbox, input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, str]:
+
+                """
+                
+                Translates the text in the input_txt_file or input_text using the OpenAI API. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
+                Displays the translated text, and the debug log.
+
+                Parameters:
+                input_txt_file (gr.File) : The input txt file.
+                input_text (gr.Textbox) : The input text.
+                api_key_input (gr.Textbox) : The API key input.
+                input_kijiku_rules_file (gr.File) : The kijiku rules file.
+
+                Returns:
+                translated_text (str) : The translated text.
+                je_check_text (str) : The je check text.
+                log_text (str) : The log text for the Log tab.
+                
+                """
+
+                return "", "", ""
+
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
             def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str]:
@@ -412,6 +445,38 @@ class KudasaiGUI:
 
                 return input_file_kaiseki, input_text_kaiseki, output_field_kaiseki, je_check_text_field_kaiseki, debug_log_output_field_kaiseki_tab
             
+##-------------------start-of-kijiku_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            def kijiku_clear_button_click() -> typing.Tuple[None, str, gr.File, str, str, str]:
+
+                """
+                
+                Clears all fields on the Kijiku tab. As well as the input fields.
+
+                Returns:
+                input_txt_file_kijiku (gr.File) : An empty file.
+                input_text_kijiku (str) : An empty string.
+                output_field_kijiku (str) : An empty string.
+                je_check_text_field_kijiku (str) : An empty string.
+                debug_log_output_field_kijiku_tab (str) : An empty string.
+
+                """
+
+                ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
+                self.is_translation_ongoing = False
+
+                input_file_kijiku = None
+
+                input_text_kijiku = ""
+
+                input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
+
+                output_field_kijiku = ""
+                je_check_text_field_kijiku = ""
+                debug_log_output_field_kijiku_tab = ""
+
+                return input_file_kijiku, input_text_kijiku, input_kijiku_rules_file, output_field_kijiku, je_check_text_field_kijiku, debug_log_output_field_kijiku_tab
+            
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
             def clear_log_button_click() -> typing.Tuple[str, str]:
@@ -467,6 +532,29 @@ class KudasaiGUI:
 
                                                 every=.1) ## update every 100ms
             
+
+##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            ## for the actual translation, and the je check text
+            self.translate_button_kijiku.click(kijiku_translate_button_click,
+                                                inputs=[
+                                                    self.input_txt_file_kijiku, ## input txt file to translate
+                                                    self.input_text_kijiku, ## input text to translate
+                                                    self.api_key_input, ## api key input
+                                                    self.input_kijiku_rules_file], ## kijiku rules file
+                                                
+                                                outputs=[
+                                                    self.output_field_kijiku, ## translated text
+                                                    self.kijiku_je_check_text_field]) ## je check text field on kijiku tab
+            
+            ## for the kijiku debug log
+            self.translate_button_kijiku.click(fn=fetch_log_content,
+                                                inputs=[],
+
+                                                outputs=[self.debug_log_output_field_kijiku_tab], ## debug log on kijiku tab
+
+                                                every=.1) ## update every 100ms
+            
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.preprocessing_clear_button.click(preprocessing_clear_button_click,
@@ -490,6 +578,19 @@ class KudasaiGUI:
                                                 self.output_field_kaiseki, ## translation output field
                                                 self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
                                                 self.debug_log_output_field_kaiseki_tab]) ## debug log on kaiseki tab
+            
+##-------------------start-of-clear_button_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.clear_button_kijiku.click(kijiku_clear_button_click,
+                                            inputs=[],
+
+                                            outputs=[
+                                                self.input_txt_file_kijiku, ## input txt file
+                                                self.input_text_kijiku, ## input text
+                                                self.input_kijiku_rules_file, ## kijiku rules file
+                                                self.output_field_kijiku, ## translation output field
+                                                self.kijiku_je_check_text_field, ## je check text field on kijiku tab
+                                                self.debug_log_output_field_kijiku_tab]) ## debug log on kijiku tab
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -533,7 +634,6 @@ class KudasaiGUI:
                 _js=(self.save_as_js).replace("downloaded_text.txt", "processing_debug_log.txt")
             )
 
-
 ##-------------------start-of-save_to_file_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.save_to_file_kaiseki.click(lambda text: text, ## save text as is
@@ -543,6 +643,17 @@ class KudasaiGUI:
 
                 ## javascript code that allows us to save textbox contents to a file
                 _js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
+            )
+
+##-------------------start-of-save_to_file_je_check_text_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.save_to_file_je_check_text_kaiseki.click(lambda text: text, ## save text as is
+                inputs=[self.kaiseki_je_check_text_field],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_kaiseki_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -556,13 +667,37 @@ class KudasaiGUI:
                 _js=(self.save_as_js).replace("downloaded_text.txt", "kaiseki_debug_log.txt")
             )
 
-            self.save_to_file_je_check_text_kaiseki.click(lambda text: text, ## save text as is
-                inputs=[self.kaiseki_je_check_text_field],
+##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.save_to_file_kijiku.click(lambda text: text, ## save text as is
+                inputs=[self.output_field_kijiku],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
+            )
+
+##-------------------start-of-save_to_file_je_check_text_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.save_to_file_je_check_text_kijiku.click(lambda text: text, ## save text as is
+                inputs=[self.kijiku_je_check_text_field],
 
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
                 _js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
+            )
+
+##-------------------start-of-save_to_file_debug_log_kijiku_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.save_to_file_debug_log_kijiku_tab.click(lambda text: text, ## save text as is
+                inputs=[self.debug_log_output_field_kijiku_tab],
+
+                outputs=[],
+
+                ## javascript code that allows us to save textbox contents to a file
+                _js=(self.save_as_js).replace("downloaded_text.txt", "kijiku_debug_log.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -64,6 +64,9 @@ class KudasaiGUI:
                 
                 Fetches the log content from the log file and displays it in the debug log field on the current translation tab.
 
+                Returns:
+                log_text (str) : The log text.
+
                 """
 
                 if(self.is_translation_ongoing == False):
@@ -80,13 +83,36 @@ class KudasaiGUI:
 
                 """
                 
-                Gets the saved api key from the config folder, if it exists.
+                Gets the saved kaiseki api key from the config folder, if it exists.
+
+                Returns:
+                api_key (str) : The api key.
 
                 """
 
                 try:
                     ## Api key is encoded in base 64 so we need to decode it before returning
                     return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.deepl_api_key_path).encode('utf-8')).decode('utf-8')
+                
+                except:
+                    return ""
+                
+##-------------------start-of-get_saved_kijiku_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
+            def get_saved_kijiku_api_key():
+
+                """
+                
+                Gets the kijiku saved api key from the config folder, if it exists.
+
+                Returns:
+                api_key (str) : The api key.
+
+                """
+
+                try:
+                    ## Api key is encoded in base 64 so we need to decode it before returning
+                    return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.openai_api_key_path).encode('utf-8')).decode('utf-8')
                 
                 except:
                     return ""
@@ -165,7 +191,44 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
 
-                ## tab 4 | Logging
+
+                ## tab 4 | Translation Model 2 | Kijiku
+                with gr.Tab("Translation With OpenAI | Kijiku") as self.kijiku_tab:
+                    with gr.Row():
+
+                        ## input file or text input, gui allows for both but will prioritize file input
+                        with gr.Column():
+                            self.input_txt_file_kijiku = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file', interactive=True)
+                            self.input_text_kijiku = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
+                            self.input_kijiku_rules_file = gr.File(label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
+
+                            with gr.Row():
+                                self.api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, show_label=True, interactive=True)
+
+                            with gr.Row():
+                                self.translate_button_kijiku = gr.Button('Translate')
+                                self.clear_button_kijiku = gr.Button('Clear', variant='stop')
+
+                        ## output fields
+                        with gr.Column():
+                            self.output_field_kijiku = gr.Textbox(label='Translated Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_kijiku = gr.Button('Save As')
+
+                        with gr.Column():
+                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_je_check_text_kijiku = gr.Button('Save As')
+
+                        with gr.Column():
+                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True, elem_id='debug_log_output_field_kijiku_tab')
+
+                            with gr.Row():
+                                self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
+
+                ## tab 5 | Logging
                 with gr.Tab("Logging") as self.results_tab:
 
                     with gr.Row():

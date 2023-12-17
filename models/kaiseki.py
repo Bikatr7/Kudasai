@@ -159,6 +159,7 @@ class Kaiseki:
                 raise e
 
         Toolkit.clear_console()
+        Logger.log_barrier()
 
 ##-------------------start-of-setup_api_key()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -250,9 +251,9 @@ class Kaiseki:
                 if(Kaiseki.special_punctuation[4] == True): 
                     Kaiseki.translated_text[i] =  "(" + Kaiseki.translated_text[i] + ")"
 
-                Kaiseki.translated_text[i] += "\n"
-
                 Logger.log_action("Translated and Reassembled Sentence : " + Kaiseki.translated_text[i])
+
+                Kaiseki.translated_text[i] += "\n"
 
                 Kaiseki.je_check_text.append(str(i+1) + ": " + Kaiseki.current_sentence +  "\n   " +  Kaiseki.translated_text[i] + "\n")
             
@@ -261,6 +262,7 @@ class Kaiseki:
             Toolkit.clear_console()
             
             Logger.log_action(str(i) + "/" + str(len(Kaiseki.text_to_translate)) + " completed.", output=True)
+            Logger.log_barrier()
 
 ##-------------------start-of-separate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

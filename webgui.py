@@ -654,7 +654,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-on_new_kaiseki_api_key_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def on_new_kijiku_rules_file_upload(input_kijiku_rules_file:gr.File) -> None:
+            def on_new_kijiku_rules_file_upload(input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
 
                 """
                 
@@ -665,31 +665,29 @@ class KudasaiGUI:
 
                 """
 
-                ## incase i forget, you can't modify the values directly, gotta return them in the listner
-
                 ## assume that the user has uploaded a valid kijiku rules file, if it's not, that's on them
                 try:
                     GuiJsonUtil.current_kijiku_rules = input_kijiku_rules_file.name # type: ignore
 
                     ## update the default values on the Kijiku Settings tab manually
-                    self.model_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("model")
-                    self.system_message_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("system_message")
-                    self.temperature_input_field.value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("temp"))
-                    self.top_p_input_field.value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("top_p"))
-                    self.n_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("n")
-                    self.stream_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stream")
-                    self.stop_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stop")
-                    self.logit_bias_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("logit_bias")
-                    self.max_tokens_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("max_tokens")
-                    self.presence_penalty_input_field.value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("presence_penalty"))
-                    self.frequency_penalty_input_field.value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("frequency_penalty"))
-                    self.message_mode_input_field.value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("message_mode"))
-                    self.num_lines_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_lines")
-                    self.sentence_fragmenter_mode_input_field.value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("sentence_fragmenter_mode"))
-                    self.je_check_mode_input_field.value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("je_check_mode"))
-                    self.num_malformed_batch_retries_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_malformed_batch_retries")
-                    self.batch_retry_timeout_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("batch_retry_timeout")
-                    self.num_concurrent_batches_input_field.value = GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_concurrent_batches")
+                    model_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("model"))
+                    system_message_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("system_message"))
+                    temperature_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("temp"))
+                    top_p_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("top_p"))
+                    n_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("n"))
+                    stream_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stream"))
+                    stop_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stop"))
+                    logit_bias_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("logit_bias"))
+                    max_tokens_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("max_tokens"))
+                    presence_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("presence_penalty"))
+                    frequency_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("frequency_penalty"))
+                    message_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("message_mode")) 
+                    num_lines_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_lines"))
+                    sentence_fragmenter_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("sentence_fragmenter_mode"))
+                    je_check_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("je_check_mode"))
+                    num_malformed_batch_retries_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_malformed_batch_retries"))
+                    batch_retry_timeout_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("batch_retry_timeout"))
+                    num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_concurrent_batches"))
 
                 except Exception as e:
 
@@ -698,8 +696,10 @@ class KudasaiGUI:
 
                     GuiJsonUtil.current_kijiku_rules = FileEnsurer.config_kijiku_rules_path
                     raise gr.Error("Invalid Custom Kijiku Rules File")
-            
+                
 
+                return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
+            
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -810,7 +810,25 @@ class KudasaiGUI:
             self.input_kijiku_rules_file.upload(on_new_kijiku_rules_file_upload,
                                                 inputs=[self.input_kijiku_rules_file],
                                                 
-                                                outputs=[])
+                                                outputs=[
+                                                    self.model_input_field,
+                                                    self.system_message_input_field,
+                                                    self.temperature_input_field,
+                                                    self.top_p_input_field,
+                                                    self.n_input_field,
+                                                    self.stream_input_field,
+                                                    self.stop_input_field,
+                                                    self.logit_bias_input_field,
+                                                    self.max_tokens_input_field,
+                                                    self.presence_penalty_input_field,
+                                                    self.frequency_penalty_input_field,
+                                                    self.message_mode_input_field,
+                                                    self.num_lines_input_field,
+                                                    self.sentence_fragmenter_mode_input_field,
+                                                    self.je_check_mode_input_field,
+                                                    self.num_malformed_batch_retries_input_field,
+                                                    self.batch_retry_timeout_input_field,
+                                                    self.num_concurrent_batches_input_field])
             
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -1,6 +1,7 @@
 ## built-in libaries
 import os
 import traceback
+import json
 
 ## custom modules
 from modules.common.logger import Logger
@@ -10,6 +11,8 @@ class FileEnsurer():
     """
     
     FileEnsurer is a class that is used to ensure that the required files and directories exist.
+    Also serves as a place to store the paths to the files and directories. Some file related functions are also stored here.
+    As well as some variables that are used to store the default kijiku rules and the allowed models across Kudasai.
 
     """
 
@@ -85,6 +88,44 @@ class FileEnsurer():
     }
     }
 
+    allowed_models = [
+        "gpt-3.5-turbo",
+        "gpt-4",
+        "gpt-3.5-turbo-0301",
+        "gpt-4-0314",
+        "gpt-4-32k-0314",
+        "gpt-3.5-turbo-0613",
+        "gpt-3.5-turbo-16k-0613",
+        "gpt-3.5-turbo-1106",
+        "gpt-4-0613",
+        "gpt-4-32k-0613",
+        "gpt-4-1106-preview"
+    ]
+
+    invalid_kijiku_rules_placeholder = {
+    "open ai settings": 
+    {
+        "model":"INVALID JSON",
+        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well.",
+        "temp":0.3,
+        "top_p":1,
+        "n":1,
+        "stream":False,
+        "stop":None,
+        "logit_bias":None,
+        "max_tokens":9223372036854775807,
+        "presence_penalty":0,
+        "frequency_penalty":0,
+        "message_mode":1,
+        "num_lines":13,
+        "sentence_fragmenter_mode":3,
+        "je_check_mode":2,
+        "num_malformed_batch_retries":1,
+        "batch_retry_timeout":300,
+        "num_concurrent_batches":30
+    }
+    }
+
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -111,7 +152,9 @@ class FileEnsurer():
         FileEnsurer.standard_create_file(FileEnsurer.error_log_path)
 
         ## creates the kijiku rules file if it doesn't exist
-        FileEnsurer.modified_create_file(FileEnsurer.config_kijiku_rules_path, str(FileEnsurer.default_kijiku_rules))
+        if(os.path.exists(FileEnsurer.config_kijiku_rules_path) == False):
+            with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
+                json.dump(FileEnsurer.default_kijiku_rules, file)
         
         if(not os.path.exists(FileEnsurer.katakana_words_path)):
            raise FileNotFoundError(f"Katakana words file not found at {FileEnsurer.katakana_words_path}. Can not continue, preprocess failed.")

@@ -18,6 +18,11 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
+## to do
+## add api key save after successful usage
+## change model text input to dropdown
+## add replacements json validation
+
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -158,8 +163,14 @@ class KudasaiGUI:
                     17 : "num_concurrent_batches"
                 }
 
-                for setting in kijiku_settings:
-                    key_value_tuple_pairs.append((kijiku_settings_key_names[kijiku_settings.index(setting)], setting))
+                for index, setting in enumerate(kijiku_settings):
+                    key = kijiku_settings_key_names.get(index)
+
+                    if(key is not None):
+                        ## Convert empty strings to None
+                        value = None if setting == '' else setting
+
+                        key_value_tuple_pairs.append((key, value))
 
                 return key_value_tuple_pairs
             
@@ -212,7 +223,7 @@ class KudasaiGUI:
 
 
                             with gr.Row():
-                                self.api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True)
+                                self.kaiseki_api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True)
 
                             with gr.Row():
                                 self.translate_button_kaiseki = gr.Button('Translate')
@@ -249,7 +260,7 @@ class KudasaiGUI:
                             self.input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
 
                             with gr.Row():
-                                self.api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, max_lines=2, show_label=True, interactive=True)
+                                self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, max_lines=2, show_label=True, interactive=True)
 
                             with gr.Row():
                                 self.translate_button_kijiku = gr.Button('Translate')
@@ -555,7 +566,6 @@ class KudasaiGUI:
                 except:
                     raise gr.Error("Invalid API key")
                 
-
                 Kaiseki.text_to_translate  = [line for line in str(text_to_translate).splitlines()]
 
                 Kaiseki.commence_translation()
@@ -770,8 +780,15 @@ class KudasaiGUI:
                 ## create the new key-value pair list
                 new_key_value_tuple_pairs = create_new_key_value_tuple_pairs(settings_list)
 
-                ## and then have the GuiJsonUtil apply the new kijiku settings
-                GuiJsonUtil.update_kijiku_settings_with_new_values(new_key_value_tuple_pairs)
+                
+                try:
+                    ## and then have the GuiJsonUtil apply the new kijiku settings
+                    GuiJsonUtil.update_kijiku_settings_with_new_values(new_key_value_tuple_pairs)
+
+                except:
+                    raise gr.Error("Invalid Kijiku Settings")
+            
+                gr.Info("Kijiku Settings Applied")
             
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -860,7 +877,7 @@ class KudasaiGUI:
                                                 inputs=[
                                                     self.input_txt_file_kaiseki, ## input txt file to translate
                                                     self.input_text_kaiseki, ## input text to translate
-                                                    self.api_key_input], ## api key input
+                                                    self.kaiseki_api_key_input], ## api key input
                                                 
                                                 outputs=[
                                                     self.output_field_kaiseki, ## translated text
@@ -882,7 +899,7 @@ class KudasaiGUI:
                                                 inputs=[
                                                     self.input_txt_file_kijiku, ## input txt file to translate
                                                     self.input_text_kijiku, ## input text to translate
-                                                    self.api_key_input, ## api key input
+                                                    self.kijiku_api_key_input, ## api key input
                                                     self.input_kijiku_rules_file], ## kijiku rules file
                                                 
                                                 outputs=[

@@ -50,8 +50,29 @@ class GuiJsonUtil:
         with open(GuiJsonUtil.current_kijiku_rules, "r") as file:
             data = json.load(file)
 
-        for key, value in new_values:
-            data["open ai settings"][key] = value
+        ## save old json in case of need to revert
+        old_data = data
 
-        with open(GuiJsonUtil.current_kijiku_rules, "w") as file:
-            json.dump(data, file)
+        JsonHandler.current_kijiku_rules = data
+
+        try:
+
+            for key, value in new_values:
+                data["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, value)
+
+            with open(GuiJsonUtil.current_kijiku_rules, "w") as file:
+                json.dump(data, file)
+
+            JsonHandler.validate_json()
+
+            ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
+            assert JsonHandler.current_kijiku_rules != FileEnsurer.invalid_kijiku_rules_placeholder
+
+        except Exception as e:
+
+            ## revert to old data
+            with open(GuiJsonUtil.current_kijiku_rules, "w") as file:
+                json.dump(old_data, file)
+
+            ## throw error so webgui can tell user
+            raise e

@@ -36,7 +36,7 @@ class Kudasai:
 
         """
 
-        ## done for in the case of usage by webgui
+        ## done for in the case of usage by webgui, I think. I don't really remember gonna keep it here for now.
         Logger.clear_batch()
 
         os.system("title " + "Kudasai")

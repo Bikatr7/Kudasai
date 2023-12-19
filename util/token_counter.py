@@ -17,6 +17,7 @@ sys.path.append(str(parent_dir))
 
 ## custom modules
 from modules.common.toolkit import Toolkit
+from modules.common.file_ensurer import FileEnsurer
 
 class TokenCounter:
 
@@ -80,21 +81,7 @@ class TokenCounter:
 
         """
 
-        allowed_models = [
-            "gpt-3.5-turbo",
-            "gpt-4",
-            "gpt-3.5-turbo-0301",
-            "gpt-4-0314",
-            "gpt-4-32k-0314",
-            "gpt-3.5-turbo-0613",
-            "gpt-3.5-turbo-16k-0613",
-            "gpt-3.5-turbo-1106",
-            "gpt-4-0613",
-            "gpt-4-32k-0613",
-            "gpt-4-1106-preview"
-        ]
-
-        assert model in allowed_models, f"""Kudasai does not support : {model}. See https://github.com/OpenAI/OpenAI-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+        assert model in FileEnsurer.allowed_models, f"""Kudasai does not support : {model}. See https://github.com/OpenAI/OpenAI-python/blob/main/chatml.md for information on how messages are converted to tokens."""
 
         if(price_case is None):
 

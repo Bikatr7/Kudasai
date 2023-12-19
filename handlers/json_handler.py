@@ -45,23 +45,71 @@ class JsonHandler:
         "sentence_fragmenter_mode",
         "je_check_mode",
         "num_malformed_batch_retries",
-        "batch_retry_timeout"
+        "batch_retry_timeout",
         "num_concurrent_batches"
          ]
         
 
-        ## json is fucked, reset it
-        if("open ai settings" not in JsonHandler.current_kijiku_rules):
-            JsonHandler.reset_kijiku_rules_to_default()
+        try:
 
-        if(all(key in JsonHandler.current_kijiku_rules["open ai settings"] for key in keys_list)):
-            Logger.log_action("Kijiku Rules.json is valid")
-        
-        ## if not valid, reset it
-        else:
-            Logger.log_action("Kijiku Rules.json is not valid, resetting...")
+            ## ensure category is present
+            assert "open ai settings" in JsonHandler.current_kijiku_rules
+
+            ## ensure all keys are present
+            assert all(key in JsonHandler.current_kijiku_rules["open ai settings"] for key in keys_list)
+
+            ## check if model is in range
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["model"] not in FileEnsurer.allowed_models):
+                raise ValueError("Invalid model")
+            
+            ## do float checks for temp and top_p
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["temp"] < 0 or JsonHandler.current_kijiku_rules["open ai settings"]["top_p"] > 2):
+                raise ValueError("temp or top_p out of range")
+            
+            ## make sure n is 1
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["n"] != 1):
+                raise ValueError("n must be 1")
+            
+            ## stream must be false
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["stream"] != False):
+                raise ValueError("stream must be false")
+
+            ## force stop/logit_bias into None
+            JsonHandler.current_kijiku_rules["open ai settings"]["stop"] = None
+            JsonHandler.current_kijiku_rules["open ai settings"]["logit_bias"] = None
+
+            ## ensure max token isn't like negative or overflow
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"] < 0 or JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"] > 9223372036854775807):
+                raise ValueError("max_tokens out of range")
+            
+            ## similar float checks for penalty values
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"] < -2 or JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"] > 2):
+                raise ValueError("presence_penalty out of range")
+            
+            ## range checks for message_mode
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["message_mode"] < 1 or JsonHandler.current_kijiku_rules["open ai settings"]["message_mode"] > 2):
+                raise ValueError("message_mode out of range")
+            
+            ## range checks for sentence_fragmenter_mode
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"] < 1 or JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"] > 3):
+                raise ValueError("sentence_fragmenter_mode out of range")
+            
+            ## range checks for je_check_mode
+            if(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"] < 1 or JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"] > 2):
+                raise ValueError("je_check_mode out of range")
+            
+        except Exception as e:
+
+            import traceback
+            print(traceback.format_exc())
+
+            Logger.log_action("Kijiku Rules.json is not valid, setting to invalid_placeholder, current:")
             Logger.log_action(str(JsonHandler.current_kijiku_rules))
-            JsonHandler.reset_kijiku_rules_to_default()
+            
+            JsonHandler.current_kijiku_rules = FileEnsurer.invalid_kijiku_rules_placeholder
+
+        Logger.log_action("Kijiku Rules.json is valid, current:")
+        Logger.log_action(str(JsonHandler.current_kijiku_rules))
 
 ##-------------------start-of-reset_kijiku_rules_to_default()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -177,8 +225,8 @@ class JsonHandler:
 
                     JsonHandler.validate_json()
 
-                    ## validate_json() sets a dict to default if it's invalid, so if it's still default, it's invalid
-                    assert JsonHandler.current_kijiku_rules != FileEnsurer.default_kijiku_rules 
+                    ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
+                    assert JsonHandler.current_kijiku_rules != FileEnsurer.invalid_kijiku_rules_placeholder
                     
                     JsonHandler.dump_kijiku_rules()
 
@@ -247,8 +295,8 @@ class JsonHandler:
             "top_p": float,
             "n": int,
             "stream": bool,
-            "stop": list | None,
-            "logit_bias": dict | None,
+            "stop": None,
+            "logit_bias": None,
             "max_tokens": int,
             "presence_penalty": float,
             "frequency_penalty": float,
@@ -261,92 +309,81 @@ class JsonHandler:
             "num_concurrent_batches": int
         }
 
-        allowed_models = [
-            "gpt-3.5-turbo",
-            "gpt-4",
-            "gpt-3.5-turbo-0301",
-            "gpt-4-0314",
-            "gpt-4-32k-0314",
-            "gpt-3.5-turbo-0613",
-            "gpt-3.5-turbo-16k-0613",
-            "gpt-3.5-turbo-1106",
-            "gpt-4-0613",
-            "gpt-4-32k-0613",
-            "gpt-4-1106-preview"
-        ]
-
         ## Special case for model
         if(setting_name == "model"):
-            if(value.lower() in allowed_models):
+            if(value.lower() in FileEnsurer.allowed_models):
                 return value.lower()
             else:
                 raise ValueError("Invalid model")
 
         ## Special cases for None or complex types
-        if(setting_name in ["stop", "logit_bias"] and value.lower() == "none"):
+        if(setting_name in ["stop", "logit_bias"]):
             return None
 
         ## Check if the setting requires a specific type
         if(setting_name in type_expectations):
-            try:
 
-                ## Special cases
-                if(setting_name == "max_tokens"):
-                    int_value = int(value)
+            ## do float checks for temp and top_p
+            if(setting_name in ["temp", "top_p"]):
+                float_value = float(value)
 
-                    if(int_value < 0 or int_value > 9223372036854775807):
-                        raise ValueError("max_tokens out of range")
-                    
-                    return int_value
-                
-                ## do float checks for temp and top_p
-                if(setting_name in ["temp", "top_p"]):
-                    float_value = float(value)
+                if(float_value < 0 or float_value > 2):
+                    raise ValueError(f"{setting_name} out of range")
 
-                    if(float_value < 0 or float_value > 2):
-                        raise ValueError(f"{setting_name} out of range")
-
-                    return float_value
-                
-                ## similar float checks for penalty values
-                if(setting_name in ["presence_penalty", "frequency_penalty"]):
-                    float_value = float(value)
-
-                    if(float_value < -2 or float_value > 2):
-                        raise ValueError(f"{setting_name} out of range")
-
-                    return float_value
-                
-                ## rang checks for message_mode
-                if(setting_name == "message_mode"):
-                    int_value = int(value)
-
-                    if(int_value < 1 or int_value > 2):
-                        raise ValueError("message_mode out of range")
-
-                    return int_value
-                
-                ## range checks for sentence_fragmenter_mode
-                if(setting_name == "sentence_fragmenter_mode"):
-                    int_value = int(value)
-
-                    if(int_value < 1 or int_value > 3):
-                        raise ValueError("sentence_fragmenter_mode out of range")
-
-                    return int_value
-                
-                ## range checks for je_check_mode
-                if(setting_name == "je_check_mode"):
-                    int_value = int(value)
-
-                    if(int_value < 1 or int_value > 2):
-                        raise ValueError("je_check_mode out of range")
-
-                    return int_value
-                
-                return type_expectations[setting_name](value)
+                return float_value
             
-            except ValueError:
-                return None
+            ## make sure n is 1
+            if(setting_name == "n"):
+                return 1
+            
+            ## stream must be false
+            if(setting_name == "stream"):
+                return False
+
+            ## Special cases
+            if(setting_name == "max_tokens"):
+                int_value = int(value)
+
+                if(int_value < 0 or int_value > 9223372036854775807):
+                    raise ValueError("max_tokens out of range")
+                
+                return int_value
+            
+            ## similar float checks for penalty values
+            if(setting_name in ["presence_penalty", "frequency_penalty"]):
+                float_value = float(value)
+
+                if(float_value < -2 or float_value > 2):
+                    raise ValueError(f"{setting_name} out of range")
+
+                return float_value
+            
+            ## range checks for message_mode
+            if(setting_name == "message_mode"):
+                int_value = int(value)
+
+                if(int_value < 1 or int_value > 2):
+                    raise ValueError("message_mode out of range")
+
+                return int_value
+            
+            ## range checks for sentence_fragmenter_mode
+            if(setting_name == "sentence_fragmenter_mode"):
+                int_value = int(value)
+
+                if(int_value < 1 or int_value > 3):
+                    raise ValueError("sentence_fragmenter_mode out of range")
+
+                return int_value
+            
+            ## range checks for je_check_mode
+            if(setting_name == "je_check_mode"):
+                int_value = int(value)
+
+                if(int_value < 1 or int_value > 2):
+                    raise ValueError("je_check_mode out of range")
+
+                return int_value
+            
         else:
-            return value
+            raise ValueError("Invalid setting name")

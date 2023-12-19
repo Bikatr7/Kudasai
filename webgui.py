@@ -41,6 +41,7 @@ class KudasaiGUI:
     }
     """
 
+    ## used for whether the debug log tab for kaiseki/kijiku should be actively refreshing based of Logger.current_batch
     is_translation_ongoing = False
 
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -63,7 +64,7 @@ class KudasaiGUI:
 
                 """
                 
-                Fetches the log content from the log file and displays it in the debug log field on the current translation tab.
+                Fetches the log content from the current log batch.
 
                 Returns:
                 log_text (str) : The log text.
@@ -163,7 +164,7 @@ class KudasaiGUI:
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
                             self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file', interactive=True)
-                            self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
+                            self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True)
 
 
                             with gr.Row():
@@ -187,7 +188,7 @@ class KudasaiGUI:
                                 self.save_to_file_je_check_text_kaiseki = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True, elem_id='debug_log_output_field_kaiseki_tab')
+                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
@@ -224,7 +225,7 @@ class KudasaiGUI:
                                 self.save_to_file_je_check_text_kijiku = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True, elem_id='debug_log_output_field_kijiku_tab')
+                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
@@ -516,12 +517,12 @@ class KudasaiGUI:
                 Kaiseki.commence_translation()
                 Kaiseki.write_kaiseki_results()
 
-                ## Log text is cleared from the client, so we need to get it from the log file
-                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
-
                 ## je check text and translated text are lists of strings, so we need to convert them to strings
                 translated_text = "\n".join(Kaiseki.translated_text)
                 je_check_text = "\n".join(Kaiseki.je_check_text)
+
+                ## Log text is cleared from the client, so we need to get it from the log file
+                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
                 return translated_text, je_check_text, log_text
             
@@ -716,6 +717,26 @@ class KudasaiGUI:
                 Parameters:
                 input_kijiku_rules_file (gr.File) : The input kijiku rules file.
 
+                Returns:
+                model_input_field_value (str) : The new model input field value.
+                system_message_input_field_value (str) : The new system message input field value.
+                temperature_input_field_value (float) : The new temperature input field value.
+                top_p_input_field_value (float) : The new top p input field value.
+                n_input_field_value (str) : The new n input field value.
+                stream_input_field_value (str) : The new stream input field value.
+                stop_input_field_value (str) : The new stop input field value.
+                logit_bias_input_field_value (str) : The new logit bias input field value.
+                max_tokens_input_field_value (str) : The new max tokens input field value.
+                presence_penalty_input_field_value (float) : The new presence penalty input field value.
+                frequency_penalty_input_field_value (float) : The new frequency penalty input field value.
+                message_mode_input_field_value (int) : The new message mode input field value.
+                num_lines_input_field_value (str) : The new num lines input field value.
+                sentence_fragmenter_mode_input_field_value (int) : The new sentence fragmenter mode input field value.
+                je_check_mode_input_field_value (int) : The new je check mode input field value.
+                num_malformed_batch_retries_input_field_value (str) : The new num malformed batch retries input field value.
+                batch_retry_timeout_input_field_value (str) : The new batch retry timeout input field value.
+                num_concurrent_batches_input_field_value (str) : The new num concurrent batches input field value.
+
                 """
 
                 ## assume that the user has uploaded a valid kijiku rules file, if it's not, that's on them
@@ -742,7 +763,7 @@ class KudasaiGUI:
                     batch_retry_timeout_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("batch_retry_timeout"))
                     num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_concurrent_batches"))
 
-                except Exception as e:
+                except:
 
                     GuiJsonUtil.current_kijiku_rules = FileEnsurer.config_kijiku_rules_path
                     raise gr.Error("Invalid Custom Kijiku Rules File")
@@ -859,24 +880,24 @@ class KudasaiGUI:
             
             self.apply_changes_button.click(apply_new_kijiku_settings,
                                             inputs=[
-                                                self.model_input_field,
-                                                self.system_message_input_field,
-                                                self.temperature_input_field,
-                                                self.top_p_input_field,
-                                                self.n_input_field,
-                                                self.stream_input_field,
-                                                self.stop_input_field,
-                                                self.logit_bias_input_field,
-                                                self.max_tokens_input_field,
-                                                self.presence_penalty_input_field,
-                                                self.frequency_penalty_input_field,
-                                                self.message_mode_input_field,
-                                                self.num_lines_input_field,
-                                                self.sentence_fragmenter_mode_input_field,
-                                                self.je_check_mode_input_field,
-                                                self.num_malformed_batch_retries_input_field,
-                                                self.batch_retry_timeout_input_field,
-                                                self.num_concurrent_batches_input_field],
+                                                self.model_input_field, ## model input field
+                                                self.system_message_input_field, ## system message input field
+                                                self.temperature_input_field, ## temperature input field
+                                                self.top_p_input_field, ## top p input field
+                                                self.n_input_field, ## n input field
+                                                self.stream_input_field, ## stream input field
+                                                self.stop_input_field, ## stop input field
+                                                self.logit_bias_input_field, ## logit bias input field
+                                                self.max_tokens_input_field, ## max tokens input field
+                                                self.presence_penalty_input_field, ## presence penalty input field
+                                                self.frequency_penalty_input_field, ## frequency penalty input field
+                                                self.message_mode_input_field, ## message mode input field
+                                                self.num_lines_input_field, ## num lines input field
+                                                self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
+                                                self.je_check_mode_input_field, ## je check mode input field
+                                                self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                self.batch_retry_timeout_input_field, ## batch retry timeout input field
+                                                self.num_concurrent_batches_input_field], ## num concurrent batches input field
                                             
                                             outputs=[])
 
@@ -886,24 +907,25 @@ class KudasaiGUI:
                                               inputs=[self.input_kijiku_rules_file],
                                               
                                               outputs=[
-                                                  self.model_input_field,
-                                                  self.system_message_input_field,
-                                                  self.temperature_input_field,
-                                                  self.top_p_input_field,
-                                                  self.n_input_field,
-                                                  self.stream_input_field,
-                                                  self.stop_input_field,
-                                                  self.logit_bias_input_field,
-                                                  self.max_tokens_input_field,
-                                                  self.presence_penalty_input_field,
-                                                  self.frequency_penalty_input_field,
-                                                  self.message_mode_input_field,
-                                                  self.num_lines_input_field,
-                                                  self.sentence_fragmenter_mode_input_field,
-                                                  self.je_check_mode_input_field,
-                                                  self.num_malformed_batch_retries_input_field,
-                                                  self.batch_retry_timeout_input_field,
-                                                  self.num_concurrent_batches_input_field])
+                                                self.model_input_field, ## model input field
+                                                self.system_message_input_field, ## system message input field
+                                                self.temperature_input_field, ## temperature input field
+                                                self.top_p_input_field, ## top p input field
+                                                self.n_input_field, ## n input field
+                                                self.stream_input_field, ## stream input field
+                                                self.stop_input_field, ## stop input field
+                                                self.logit_bias_input_field, ## logit bias input field
+                                                self.max_tokens_input_field, ## max tokens input field
+                                                self.presence_penalty_input_field, ## presence penalty input field
+                                                self.frequency_penalty_input_field, ## frequency penalty input field
+                                                self.message_mode_input_field, ## message mode input field
+                                                self.num_lines_input_field, ## num lines input field
+                                                self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
+                                                self.je_check_mode_input_field, ## je check mode input field
+                                                self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                self.batch_retry_timeout_input_field, ## batch retry timeout input field
+                                                self.num_concurrent_batches_input_field]) ## num concurrent batches input field
+
 
 ##-------------------start-of-input_kijiku_rules_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -911,24 +933,24 @@ class KudasaiGUI:
                                                 inputs=[self.input_kijiku_rules_file],
                                                 
                                                 outputs=[
-                                                    self.model_input_field,
-                                                    self.system_message_input_field,
-                                                    self.temperature_input_field,
-                                                    self.top_p_input_field,
-                                                    self.n_input_field,
-                                                    self.stream_input_field,
-                                                    self.stop_input_field,
-                                                    self.logit_bias_input_field,
-                                                    self.max_tokens_input_field,
-                                                    self.presence_penalty_input_field,
-                                                    self.frequency_penalty_input_field,
-                                                    self.message_mode_input_field,
-                                                    self.num_lines_input_field,
-                                                    self.sentence_fragmenter_mode_input_field,
-                                                    self.je_check_mode_input_field,
-                                                    self.num_malformed_batch_retries_input_field,
-                                                    self.batch_retry_timeout_input_field,
-                                                    self.num_concurrent_batches_input_field])
+                                                    self.model_input_field, ## model input field
+                                                    self.system_message_input_field, ## system message input field
+                                                    self.temperature_input_field, ## temperature input field
+                                                    self.top_p_input_field, ## top p input field
+                                                    self.n_input_field, ## n input field
+                                                    self.stream_input_field, ## stream input field
+                                                    self.stop_input_field, ## stop input field
+                                                    self.logit_bias_input_field, ## logit bias input field
+                                                    self.max_tokens_input_field, ## max tokens input field
+                                                    self.presence_penalty_input_field, ## presence penalty input field
+                                                    self.frequency_penalty_input_field, ## frequency penalty input field
+                                                    self.message_mode_input_field, ## message mode input field
+                                                    self.num_lines_input_field, ## num lines input field
+                                                    self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
+                                                    self.je_check_mode_input_field, ## je check mode input field
+                                                    self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                    self.batch_retry_timeout_input_field, ## batch retry timeout input field
+                                                    self.num_concurrent_batches_input_field]) ## num concurrent batches input field
             
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

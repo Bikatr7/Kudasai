@@ -21,7 +21,7 @@ from kudasai import Kudasai
 ## to do
 ## add api key save after successful usage
 ## change model text input to dropdown
-## add replacements json validation
+## need to add some way of interrupting translations... possibly by having a static flag in kaiseki/kijiku that is checked every batch, and then have the clear functions set it to false
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

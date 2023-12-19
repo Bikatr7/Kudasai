@@ -652,13 +652,13 @@ class KudasaiGUI:
 
                 return debug_log_output_field_log_tab, error_log
             
-##-------------------start-of-on_new_kaiseki_api_key_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def on_new_kijiku_rules_file_upload(input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
+            def refresh_kijiku_settings_fields(input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
 
                 """
                 
-                If a new kijiku rules file is uploaded, we need to update the one Kudasai is actively using, as well as change all the default values on the Kijiku Settings tab.
+                Refreshes the kijiku settings fields with the values from the kijiku rules file.
 
                 Parameters:
                 input_kijiku_rules_file (gr.File) : The input kijiku rules file.
@@ -690,9 +690,6 @@ class KudasaiGUI:
                     num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_concurrent_batches"))
 
                 except Exception as e:
-
-                    import traceback
-                    print(traceback.format_exc())
 
                     GuiJsonUtil.current_kijiku_rules = FileEnsurer.config_kijiku_rules_path
                     raise gr.Error("Invalid Custom Kijiku Rules File")
@@ -807,7 +804,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-input_kijiku_rules_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.input_kijiku_rules_file.upload(on_new_kijiku_rules_file_upload,
+            self.input_kijiku_rules_file.upload(refresh_kijiku_settings_fields,
                                                 inputs=[self.input_kijiku_rules_file],
                                                 
                                                 outputs=[

@@ -655,6 +655,55 @@ class KudasaiGUI:
                 error_log = ""
 
                 return debug_log_output_field_log_tab, error_log
+
+##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            def apply_new_kijiku_settings(model_input_field:gr.Textbox, 
+                                        system_message_input_field:gr.Textbox, 
+                                        temperature_input_field:gr.Slider, 
+                                        top_p_input_field:gr.Slider, 
+                                        n_input_field:gr.Textbox, 
+                                        stream_input_field:gr.Textbox, 
+                                        stop_input_field:gr.Textbox, 
+                                        logit_bias_input_field:gr.Textbox, 
+                                        max_tokens_input_field:gr.Textbox, 
+                                        presence_penalty_input_field:gr.Slider, 
+                                        frequency_penalty_input_field:gr.Slider, 
+                                        message_mode_input_field:gr.Dropdown, 
+                                        num_lines_input_field:gr.Textbox, 
+                                        sentence_fragmenter_mode_input_field:gr.Dropdown, 
+                                        je_check_mode_input_field:gr.Dropdown, 
+                                        num_malformed_batch_retries_input_field:gr.Textbox, 
+                                        batch_retry_timeout_input_field:gr.Textbox, 
+                                        num_concurrent_batches_input_field:gr.Textbox) -> None:
+                
+                """
+
+                Applies the new kijiku settings to the uploaded kijiku rules file.
+
+                Parameters:
+                model_input_field (gr.Textbox) : The model input field.
+                system_message_input_field (gr.Textbox) : The system message input field.
+                temperature_input_field (gr.Slider) : The temperature input field.
+                top_p_input_field (gr.Slider) : The top p input field.
+                n_input_field (gr.Textbox) : The n input field.
+                stream_input_field (gr.Textbox) : The stream input field.
+                stop_input_field (gr.Textbox) : The stop input field.
+                logit_bias_input_field (gr.Textbox) : The logit bias input field.
+                max_tokens_input_field (gr.Textbox) : The max tokens input field.
+                presence_penalty_input_field (gr.Slider) : The presence penalty input field.
+                frequency_penalty_input_field (gr.Slider) : The frequency penalty input field.
+                message_mode_input_field (gr.Dropdown) : The message mode input field.
+                num_lines_input_field (gr.Textbox) : The num lines input field.
+                sentence_fragmenter_mode_input_field (gr.Dropdown) : The sentence fragmenter mode input field.
+                je_check_mode_input_field (gr.Dropdown) : The je check mode input field.
+                num_malformed_batch_retries_input_field (gr.Textbox) : The num malformed batch retries input field.
+                batch_retry_timeout_input_field (gr.Textbox) : The batch retry timeout input field.
+                num_concurrent_batches_input_field (gr.Textbox) : The num concurrent batches input field.
+
+                """
+
+                pass
             
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

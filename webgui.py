@@ -255,8 +255,6 @@ class KudasaiGUI:
                                                                      minimum=0.0, 
                                                                      maximum=2.0, 
                                                                      info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.", 
-                                                                     lines=1, 
-                                                                     max_lines=1, 
                                                                      show_label=True, 
                                                                      interactive=True)
                             
@@ -265,16 +263,12 @@ class KudasaiGUI:
                                                                minimum=0.0, 
                                                                maximum=1.0, 
                                                                info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.", 
-                                                               lines=1, 
-                                                               max_lines=1, 
                                                                show_label=True, 
                                                                interactive=True)
                             
                             self.n_input_field = gr.Textbox(label='N', 
                                                             value=(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("n")), 
                                                             info="How many chat completion choices to generate for each input message. Do not change this.", 
-                                                            lines=1, 
-                                                            max_lines=1, 
                                                             show_label=True, 
                                                             interactive=False)
                             
@@ -315,8 +309,6 @@ class KudasaiGUI:
                                                                           minimum=-2.0, 
                                                                           maximum=2.0,  
                                                                           info="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.", 
-                                                                          lines=1, 
-                                                                          max_lines=1, 
                                                                           show_label=True, 
                                                                           interactive=True)
                             
@@ -325,8 +317,6 @@ class KudasaiGUI:
                                                                            minimum=-2.0, 
                                                                            maximum=2.0, 
                                                                            info="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.", 
-                                                                           lines=1, 
-                                                                           max_lines=1, 
                                                                            show_label=True, 
                                                                            interactive=True)
                             
@@ -334,8 +324,6 @@ class KudasaiGUI:
                                                                         value=int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("message_mode")), 
                                                                         choices=[1,2], 
                                                                         info="1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works.", 
-                                                                        lines=1, 
-                                                                        max_lines=1, 
                                                                         show_label=True, 
                                                                         interactive=True)
                             
@@ -351,8 +339,6 @@ class KudasaiGUI:
                                                                                     value=int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("sentence_fragmenter_mode")), 
                                                                                     choices=[1,2,3],
                                                                                       info="1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.", 
-                                                                                      lines=1, 
-                                                                                      max_lines=1, 
                                                                                       show_label=True, 
                                                                                       interactive=True)
                             
@@ -360,8 +346,6 @@ class KudasaiGUI:
                                                                          value=int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("je_check_mode")),
                                                                          choices=[1,2],
                                                                          info="1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will do 1. Use 2 for gpt-4.", 
-                                                                         lines=1, 
-                                                                         max_lines=1, 
                                                                          show_label=True, 
                                                                          interactive=True)
                             

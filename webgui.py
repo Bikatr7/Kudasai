@@ -19,7 +19,6 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## to do
-## change model text input to dropdown
 ## need to add some way of interrupting translations... possibly by having a static flag in kaiseki/kijiku that is checked every batch, and then have the clear functions set it to false
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -290,11 +289,10 @@ class KudasaiGUI:
                     with gr.Row():
 
                         with gr.Column():
-                            self.model_input_field = gr.Textbox(label='Model', 
-                                                                value=GuiJsonUtil.fetch_kijiku_settings_tab_default_values("model"), 
-                                                                info="ID of the model to use. As of right now, Kijiku only works with 'chat' models.", 
-                                                                lines=1, 
-                                                                max_lines=1, 
+                            self.model_input_field = gr.Dropdown(label='Model', 
+                                                                value=GuiJsonUtil.fetch_kijiku_settings_tab_default_values("model"),
+                                                                choices=FileEnsurer.allowed_models, ## type: ignore
+                                                                info="ID of the model to use. As of right now, Kijiku only works with 'chat' models.",  
                                                                 show_label=True, 
                                                                 interactive=True,
                                                                 elem_id="model")

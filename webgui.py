@@ -118,6 +118,50 @@ class KudasaiGUI:
                 
                 except:
                     return ""
+
+##-------------------start-of-create_new_key_value_tuple_pairs()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
+
+            def create_new_key_value_tuple_pairs(kijiku_settings:typing.List[str]) -> typing.List[typing.Tuple[str, str]]:
+                
+                """
+
+                Applies the new kijiku settings to the uploaded kijiku rules file.
+
+                Parameters:
+                kijiku_settings (typing.List[typing.Union[gr.Textbox,gr.Slider,gr.Dropdown]]) : The kijiku setting values
+
+                Returns:
+                key_value_tuple_pairs (typing.List[typing.Tuple[str, str]]) : The new key value tuple pairs.
+
+                """
+
+                key_value_tuple_pairs = []
+
+                kijiku_settings_key_names = {
+                    0 : "model",
+                    1 : "system_message",
+                    2 : "temp",
+                    3 : "top_p",
+                    4 : "n",
+                    5 : "stream",
+                    6 : "stop",
+                    7 : "logit_bias",
+                    8 : "max_tokens",
+                    9 : "presence_penalty",
+                    10 : "frequency_penalty",
+                    11 : "message_mode",
+                    12 : "num_lines",
+                    13 : "sentence_fragmenter_mode",
+                    14 : "je_check_mode",
+                    15 : "num_malformed_batch_retries",
+                    16 : "batch_retry_timeout",
+                    17 : "num_concurrent_batches"
+                }
+
+                for setting in kijiku_settings:
+                    key_value_tuple_pairs.append((kijiku_settings_key_names[kijiku_settings.index(setting)], setting))
+
+                return key_value_tuple_pairs
             
 ##-------------------start-of-GUI-Structure---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -703,8 +747,31 @@ class KudasaiGUI:
                 num_concurrent_batches_input_field (gr.Textbox) : The num concurrent batches input field.
 
                 """
+                ## build the new kijiku settings list so we can create a key-value pair list
+                settings_list = [model_input_field,
+                                system_message_input_field,
+                                temperature_input_field,
+                                top_p_input_field,
+                                n_input_field,
+                                stream_input_field,
+                                stop_input_field,
+                                logit_bias_input_field,
+                                max_tokens_input_field,
+                                presence_penalty_input_field,
+                                frequency_penalty_input_field,
+                                message_mode_input_field,
+                                num_lines_input_field,
+                                sentence_fragmenter_mode_input_field,
+                                je_check_mode_input_field,
+                                num_malformed_batch_retries_input_field,
+                                batch_retry_timeout_input_field,
+                                num_concurrent_batches_input_field]
+                
+                ## create the new key-value pair list
+                new_key_value_tuple_pairs = create_new_key_value_tuple_pairs(settings_list)
 
-                pass
+                ## and then have the GuiJsonUtil apply the new kijiku settings
+                GuiJsonUtil.update_kijiku_settings_with_new_values(new_key_value_tuple_pairs)
             
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

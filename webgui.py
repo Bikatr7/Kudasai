@@ -19,7 +19,6 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## to do
-## add api key save after successful usage
 ## change model text input to dropdown
 ## need to add some way of interrupting translations... possibly by having a static flag in kaiseki/kijiku that is checked every batch, and then have the clear functions set it to false
 
@@ -577,6 +576,9 @@ class KudasaiGUI:
 
                 ## Log text is cleared from the client, so we need to get it from the log file
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+
+                ## also gonna want to update the api key file with the new api key
+                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'))
 
                 return translated_text, je_check_text, log_text
             

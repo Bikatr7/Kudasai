@@ -802,6 +802,31 @@ class KudasaiGUI:
                                             self.debug_log_output_field_log_tab,
                                             self.error_log])
             
+##-------------------start-of-discard_changes_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.discard_changes_button.click(refresh_kijiku_settings_fields,
+                                              inputs=[self.input_kijiku_rules_file],
+                                              
+                                              outputs=[
+                                                  self.model_input_field,
+                                                  self.system_message_input_field,
+                                                  self.temperature_input_field,
+                                                  self.top_p_input_field,
+                                                  self.n_input_field,
+                                                  self.stream_input_field,
+                                                  self.stop_input_field,
+                                                  self.logit_bias_input_field,
+                                                  self.max_tokens_input_field,
+                                                  self.presence_penalty_input_field,
+                                                  self.frequency_penalty_input_field,
+                                                  self.message_mode_input_field,
+                                                  self.num_lines_input_field,
+                                                  self.sentence_fragmenter_mode_input_field,
+                                                  self.je_check_mode_input_field,
+                                                  self.num_malformed_batch_retries_input_field,
+                                                  self.batch_retry_timeout_input_field,
+                                                  self.num_concurrent_batches_input_field])
+
 ##-------------------start-of-input_kijiku_rules_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.input_kijiku_rules_file.upload(refresh_kijiku_settings_fields,

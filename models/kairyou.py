@@ -14,7 +14,8 @@ from modules.common.logger import Logger
 
 from handlers.katakana_handler import KatakanaHandler
 
-
+## to do
+## add replacements json validation
 
 ##-------------------start-of-Name---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

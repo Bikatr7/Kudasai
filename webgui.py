@@ -21,8 +21,13 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
-## to do
-## add kijiku translation functionality
+## known bugs
+## Batch Retry Timeout, Num malformed batches, num lines per batch and num concurrent batches are not being saved to the json file properly, keep reverting to None, something of note, all of these are string inputs in a textbox converted to int
+## Kijiku values are stacking, similar to kaiseki before we fixed that, so we need to fix that
+## logging tab doesn't seem to function at all, we need to fix that
+
+## features i'd like to add
+## update check in webgui
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

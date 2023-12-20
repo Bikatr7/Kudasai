@@ -19,7 +19,6 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## to do
-## resize kijiku window, also add a calculate costs button
 ## need to add some way of interrupting translations... possibly by having a static flag in kaiseki/kijiku that is checked every batch, and then have the clear functions set it to false
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -189,7 +188,7 @@ class KudasaiGUI:
 
                             ## run and clear buttons
                             with gr.Row():
-                                self.preprocessing_run_button = gr.Button('Run')
+                                self.preprocessing_run_button = gr.Button('Run', variant='primary')
                                 self.preprocessing_clear_button = gr.Button('Clear', variant='stop')
 
                         ## output fields
@@ -225,7 +224,7 @@ class KudasaiGUI:
                                 self.kaiseki_api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True)
 
                             with gr.Row():
-                                self.translate_button_kaiseki = gr.Button('Translate')
+                                self.translate_button_kaiseki = gr.Button('Translate', variant="primary")
                                 self.clear_button_kaiseki = gr.Button('Clear', variant='stop')
 
                         ## output fields
@@ -262,7 +261,10 @@ class KudasaiGUI:
                                 self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, max_lines=2, show_label=True, interactive=True)
 
                             with gr.Row():
-                                self.translate_button_kijiku = gr.Button('Translate')
+                                self.translate_button_kijiku = gr.Button('Translate', variant="primary")
+                                self.calculate_costs_button_kijiku = gr.Button('Calculate Costs', variant='secondary')
+
+                            with gr.Row():
                                 self.clear_button_kijiku = gr.Button('Clear', variant='stop')
 
                         ## output fields

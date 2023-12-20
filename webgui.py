@@ -659,10 +659,7 @@ class KudasaiGUI:
 
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
-
-                ## also need to adjust the Kaiseki static variable
-                Kaiseki.do_interrupt = True
-
+                
                 input_file_kaiseki = None
 
                 input_text_kaiseki = ""
@@ -886,7 +883,7 @@ class KudasaiGUI:
 ##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             ## for the actual translation, and the je check text
-            self.translate_button_kaiseki.click(kaiseki_translate_button_click,
+            kaiseki_translation_process = self.translate_button_kaiseki.click(kaiseki_translate_button_click,
                                                 inputs=[
                                                     self.input_txt_file_kaiseki, ## input txt file to translate
                                                     self.input_text_kaiseki, ## input text to translate
@@ -949,8 +946,9 @@ class KudasaiGUI:
                                                 self.input_text_kaiseki, ## input text
                                                 self.output_field_kaiseki, ## translation output field
                                                 self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
-                                                self.debug_log_output_field_kaiseki_tab]) ## debug log on kaiseki tab
-            
+                                                self.debug_log_output_field_kaiseki_tab], ## debug log on kaiseki tab
+
+                                            cancels=kaiseki_translation_process) ## cancels the translation process
 ##-------------------start-of-clear_button_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.clear_button_kijiku.click(kijiku_clear_button_click,

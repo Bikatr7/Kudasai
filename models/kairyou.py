@@ -97,6 +97,36 @@ class Kairyou:
 
     ner = spacy.load("ja_core_news_lg")
 
+##-------------------start-of-validate_replace_json()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def validate_replace_json() -> None:
+
+        """
+
+        Validates the replacement json file.
+
+        """
+
+        ## make sure the json has the right keys
+        try:
+            assert "kutouten" in Kairyou.replacement_json
+            assert "unicode" in Kairyou.replacement_json
+            assert "phrases" in Kairyou.replacement_json
+            assert "single_words" in Kairyou.replacement_json
+            assert "enhanced_check_whitelist" in Kairyou.replacement_json
+            assert "full_names" in Kairyou.replacement_json
+            assert "single_names" in Kairyou.replacement_json
+            assert "name_like" in Kairyou.replacement_json
+            assert "honorifics" in Kairyou.replacement_json
+
+        except AssertionError as e:
+
+            Logger.log_action("Invalid replacement json file. Missing keys. Please check the jsons folder for an example replacement json file.", output=True, is_error=True, omit_timestamp=True)
+
+            raise e
+
+
 ##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

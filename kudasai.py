@@ -67,25 +67,33 @@ class Kudasai:
 
         """
 
+        ## try to load the replacement json file
         try:
 
             with open(replacement_json_path, 'r', encoding='utf-8') as file: 
                 replacement_json = json.load(file) 
     
+        ## if not just skip preprocessing
         except:
-
-            print("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-            Logger.log_action("The second path you provided is either invalid, not a JSON file, or the JSON file has an error.\n")
-
-            Toolkit.pause_console()
-
-            exit() 
+            
+            Kairyou.need_to_run = False
+            replacement_json = {}
 
         with open(input_file, 'r', encoding='utf-8') as file: 
             japanese_text = file.read()
         
         Kairyou.replacement_json = replacement_json 
         Kairyou.text_to_preprocess = japanese_text
+
+        ## if given a replacement json file, validate it
+        if(Kairyou.replacement_json != {}):
+
+            try:
+                Kairyou.validate_replace_json()
+
+            except:
+                Kairyou.need_to_run = False
+                replacement_json = {}
 
 ##-------------------start-of-setup_kairyou_for_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -106,11 +114,13 @@ class Kudasai:
 
         Toolkit.clear_console()
 
+        ## try to load the replacement json file
         try:
 
             with open(replacement_json_path, 'r', encoding='utf-8') as file: 
                 replacement_json = json.load(file) 
     
+        ## if not just skip preprocessing
         except:
             
             Kairyou.need_to_run = False
@@ -131,6 +141,16 @@ class Kudasai:
         
         Kairyou.replacement_json = replacement_json 
         Kairyou.text_to_preprocess = japanese_text
+
+        ## if given a replacement json file, validate it
+        if(Kairyou.replacement_json != {}):
+
+            try:
+                Kairyou.validate_replace_json()
+
+            except:
+                Kairyou.need_to_run = False
+                replacement_json = {}
 
 ##-------------------start-of-run_kudasai_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

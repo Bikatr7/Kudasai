@@ -242,6 +242,7 @@ class JsonHandler:
                     JsonHandler.current_kijiku_rules = old_kijiku_rules
 
             elif(action == "d"):
+                print("Resetting to default settings.")
                 JsonHandler.reset_kijiku_rules_to_default()
 
             elif(action in JsonHandler.current_kijiku_rules["open ai settings"]):

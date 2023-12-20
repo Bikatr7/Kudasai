@@ -19,6 +19,7 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## to do
+## resize kijiku window, also add a calculate costs button
 ## need to add some way of interrupting translations... possibly by having a static flag in kaiseki/kijiku that is checked every batch, and then have the clear functions set it to false
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -499,6 +500,13 @@ class KudasaiGUI:
 
                         Kairyou.text_to_preprocess = text_to_preprocess
                         Kairyou.replacement_json = replacements
+
+                        ## validate the json file
+                        try:
+                            Kairyou.validate_replacement_json()
+                        
+                        except:
+                            raise gr.Error("Invalid replacement json file. Missing keys. Please check the jsons folder for an example replacement json file.")
 
                         Kairyou.preprocess()
 

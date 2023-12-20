@@ -14,9 +14,6 @@ from modules.common.logger import Logger
 
 from handlers.katakana_handler import KatakanaHandler
 
-## to do
-## add replacements json validation
-
 ##-------------------start-of-Name---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Name(typing.NamedTuple):
@@ -100,7 +97,7 @@ class Kairyou:
 ##-------------------start-of-validate_replace_json()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def validate_replace_json() -> None:
+    def validate_replacement_json() -> None:
 
         """
 

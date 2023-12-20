@@ -89,7 +89,7 @@ class Kudasai:
         if(Kairyou.replacement_json != {}):
 
             try:
-                Kairyou.validate_replace_json()
+                Kairyou.validate_replacement_json()
 
             except:
                 Kairyou.need_to_run = False
@@ -146,7 +146,7 @@ class Kudasai:
         if(Kairyou.replacement_json != {}):
 
             try:
-                Kairyou.validate_replace_json()
+                Kairyou.validate_replacement_json()
 
             except:
                 Kairyou.need_to_run = False

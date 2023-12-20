@@ -410,6 +410,91 @@ class Kijiku:
         Logger.log_action("Done!", output=True)
         Logger.log_barrier()
 
+##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def webgui_commence_translation() -> None:
+
+        """
+
+        Uses all the other functions to translate the text provided by Kudasai.
+        For use with the webgui.
+
+        """
+        
+        Logger.log_barrier()
+        Logger.log_action("Kijiku Activated, Settings are as follows : ")
+        Logger.log_barrier()
+
+        for key,value in JsonHandler.current_kijiku_rules["open ai settings"].items():
+            Logger.log_action(key + " : " + str(value))
+
+        Kijiku.MODEL = JsonHandler.current_kijiku_rules["open ai settings"]["model"]
+        Kijiku.translation_instructions = JsonHandler.current_kijiku_rules["open ai settings"]["system_message"]
+        Kijiku.message_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["message_mode"])
+        Kijiku.prompt_size = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_lines"])
+        Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
+        Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"])
+        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
+        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
+        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
+
+        Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
+
+        Logger.log_barrier()
+        Logger.log_action("Starting Prompt Building")
+        Logger.log_barrier()
+
+        Kijiku.build_translation_batches()
+
+        ## get cost estimate and confirm
+        num_tokens, min_cost, Kijiku.MODEL = Kijiku.estimate_cost(Kijiku.MODEL)
+
+        Logger.log_barrier()
+        Logger.log_action("Calculating cost")
+        Logger.log_barrier()
+        
+        Logger.log_action("Estimated number of tokens : " + str(num_tokens))
+        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD")
+        Logger.log_barrier()
+
+        Logger.log_barrier()
+        
+        Logger.log_action("Starting Translation...")
+        Logger.log_barrier()
+
+        ## requests to run asynchronously
+        async_requests = []
+        length = len(Kijiku.translation_batches)
+
+        for i in range(0, length, 2):
+            async_requests.append(Kijiku.handle_translation(i, length, Kijiku.translation_batches[i], Kijiku.translation_batches[i+1]))
+
+        ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
+        results = await asyncio.gather(*async_requests)
+
+        Logger.log_barrier()
+        Logger.log_action("Translation Complete!")
+
+        Logger.log_barrier()
+        Logger.log_action("Starting Redistribution...")
+
+        Logger.log_barrier()
+
+        ## Sort results based on the index to maintain order
+        sorted_results = sorted(results, key=lambda x: x[0])
+
+        ## Redistribute the sorted results
+        for index, translated_prompt, translated_message in sorted_results:
+            Kijiku.redistribute(translated_prompt, translated_message)
+
+        ## try to pair the text for j-e checking if the mode is 2
+        if(Kijiku.je_check_mode == 2):
+            Kijiku.je_check_text = Kijiku.fix_je()
+
+        Logger.log_action("Done!")
+        Logger.log_barrier()
+
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

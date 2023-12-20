@@ -614,6 +614,12 @@ class KudasaiGUI:
                 
                 """
 
+                ## in case of subsequent runs, we need to clear the batch
+                Logger.clear_batch()
+
+                ## if translate button is clicked, we can assume that the translation is ongoing
+                self.is_translation_ongoing = True
+
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
                 ## Yes i know JsonHandler has it as the actual value, while gui_json_util has it as the path location, but i just need it to work for now, we'll fix it later
                 with open(GuiJsonUtil.current_kijiku_rules, 'r', encoding='utf-8') as file:
@@ -639,7 +645,22 @@ class KudasaiGUI:
                 ## need to convert to list of strings
                 Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
 
-                return "", "", ""
+
+                ## commence translation
+                await Kijiku.webgui_commence_translation()
+                Kijiku.write_kijiku_results()
+
+                ## je check text and translated text are lists of strings, so we need to convert them to strings
+                translated_text = "\n".join(Kijiku.translated_text)
+                je_check_text = "\n".join(Kijiku.je_check_text)
+
+                ## Log text is cleared from the client, so we need to get it from the log file
+                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+
+                ## also gonna want to update the api key file with the new api key
+                FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'))
+
+                return translated_text, je_check_text, log_text
             
 ##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -971,7 +992,7 @@ class KudasaiGUI:
 ##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             ## for the actual translation, and the je check text
-            self.translate_button_kijiku.click(kijiku_translate_button_click,
+            kijiku_translation_process = self.translate_button_kijiku.click(kijiku_translate_button_click,
                                                 inputs=[
                                                     self.input_txt_file_kijiku, ## input txt file to translate
                                                     self.input_text_kijiku, ## input text to translate
@@ -1035,8 +1056,9 @@ class KudasaiGUI:
                                                 self.input_kijiku_rules_file, ## kijiku rules file
                                                 self.kijiku_translated_text_output_field, ## translation output field
                                                 self.kijiku_je_check_text_field, ## je check text field on kijiku tab
-                                                self.debug_log_output_field_kijiku_tab]) ## debug log on kijiku tab
+                                                self.debug_log_output_field_kijiku_tab], ## debug log on kijiku tab
             
+                                            cancels=kijiku_translation_process)
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.clear_log_button.click(clear_log_button_click,

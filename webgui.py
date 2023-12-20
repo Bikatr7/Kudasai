@@ -660,6 +660,9 @@ class KudasaiGUI:
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
 
+                ## also need to adjust the Kaiseki static variable
+                Kaiseki.do_interrupt = True
+
                 input_file_kaiseki = None
 
                 input_text_kaiseki = ""

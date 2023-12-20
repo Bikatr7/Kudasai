@@ -161,7 +161,7 @@ class Kijiku:
     
         """
 
-        await Kijiku.setup_api_key()
+        await Kijiku.init_api_key()
 
         ## try to load the kijiku rules
         try: 
@@ -180,7 +180,7 @@ class Kijiku:
 ##-------------------start-of-setup_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def setup_api_key() -> None:
+    async def init_api_key() -> None:
 
         """
         
@@ -217,14 +217,8 @@ class Kijiku:
             ## if valid save the api key
             try: 
 
-                Kijiku.client.api_key = api_key
 
-                ## make dummy request to check if api key is valid
-                await Kijiku.client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role":"user","content":"This is a test."}],
-                    max_tokens=1
-                )
+                await Kijiku.setup_api_key(api_key)
 
                 FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
                 
@@ -249,6 +243,38 @@ class Kijiku:
                 Toolkit.pause_console()
 
                 raise e
+
+##-------------------start-of-setup_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def setup_api_key(api_key) -> None:
+
+        """
+
+        Sets up the api key.
+
+        Parameters:
+        api_key (string) : the api key to set.
+
+        """
+
+        ## if valid save the api key
+        try: 
+
+            Kijiku.client.api_key = api_key
+
+            ## make dummy request to check if api key is valid
+            await Kijiku.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role":"user","content":"This is a test."}],
+                max_tokens=1
+            )
+
+            Logger.log_action("API key is valid.", output=True)
+            
+        ## if invalid key exit
+        except AuthenticationError as e:
+            raise e
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -281,7 +307,7 @@ class Kijiku:
 
         if(input("\n") == "1"):
             os.remove(FileEnsurer.openai_api_key_path)
-            await Kijiku.setup_api_key()
+            await Kijiku.init_api_key()
 
         Toolkit.clear_console()
 

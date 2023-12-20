@@ -1,5 +1,5 @@
 ## built-in libraries
-from math import e
+import json
 import typing
 import base64
 
@@ -13,6 +13,8 @@ from modules.common.file_ensurer import FileEnsurer
 
 from modules.gui.gui_file_util import gui_get_text_from_file, gui_get_json_from_file
 from modules.gui.gui_json_util import GuiJsonUtil
+
+from handlers.json_handler import JsonHandler
 
 from models.kairyou import Kairyou
 from models.kaiseki import Kaiseki
@@ -593,7 +595,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def kijiku_translate_button_click(input_txt_file:gr.File, input_text:gr.Textbox, api_key_input:gr.Textbox, input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, str]:
+            async def kijiku_translate_button_click(input_txt_file:gr.File, input_text:gr.Textbox, api_key_input:gr.Textbox) -> typing.Tuple[str, str, str]:
 
                 """
                 
@@ -604,7 +606,6 @@ class KudasaiGUI:
                 input_txt_file (gr.File) : The input txt file.
                 input_text (gr.Textbox) : The input text.
                 api_key_input (gr.Textbox) : The API key input.
-                input_kijiku_rules_file (gr.File) : The kijiku rules file.
 
                 Returns:
                 translated_text (str) : The translated text.
@@ -612,6 +613,31 @@ class KudasaiGUI:
                 log_text (str) : The log text for the Log tab.
                 
                 """
+
+                ## first, set the json in the json handler to the json currently set as in gui_json_util
+                ## Yes i know JsonHandler has it as the actual value, while gui_json_util has it as the path location, but i just need it to work for now, we'll fix it later
+                with open(GuiJsonUtil.current_kijiku_rules, 'r', encoding='utf-8') as file:
+                    JsonHandler.current_kijiku_rules = json.load(file)
+
+                ## next api key
+                try:
+                    await Kijiku.setup_api_key(str(api_key_input))
+
+                except:
+                    raise gr.Error("Invalid API key")
+                
+                ## setup text to translate
+                if(input_txt_file is None and input_text == ""):
+                    raise gr.Error("No TXT file or text selected")
+                
+                if(input_txt_file is not None):
+                    text_to_translate = gui_get_text_from_file(input_txt_file)
+                
+                else:
+                    text_to_translate = input_text
+
+                ## need to convert to list of strings
+                Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
 
                 return "", "", ""
             
@@ -949,8 +975,7 @@ class KudasaiGUI:
                                                 inputs=[
                                                     self.input_txt_file_kijiku, ## input txt file to translate
                                                     self.input_text_kijiku, ## input text to translate
-                                                    self.kijiku_api_key_input, ## api key input
-                                                    self.input_kijiku_rules_file], ## kijiku rules file
+                                                    self.kijiku_api_key_input], ## api key input
                                                 
                                                 outputs=[
                                                     self.kijiku_translated_text_output_field, ## translated text

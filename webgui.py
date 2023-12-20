@@ -5,6 +5,7 @@ import base64
 
 ## third-party libraries
 import gradio as gr
+from models.kijiku import Kijiku
 
 ## custom modules
 from modules.common.logger import Logger
@@ -19,7 +20,7 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## to do
-## add kijiku translation and calculate cost functionality
+## add kijiku translation functionality
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -269,7 +270,7 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.output_field_kijiku = gr.Textbox(label='Translated Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_kijiku = gr.Button('Save As')
@@ -293,7 +294,7 @@ class KudasaiGUI:
 
                         with gr.Column():
                             self.model_input_field = gr.Dropdown(label='Model', 
-                                                                value=GuiJsonUtil.fetch_kijiku_settings_tab_default_values("model"),
+                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("model"),
                                                                 choices=FileEnsurer.allowed_models, ## type: ignore
                                                                 info="ID of the model to use. As of right now, Kijiku only works with 'chat' models.",  
                                                                 show_label=True, 
@@ -301,7 +302,7 @@ class KudasaiGUI:
                                                                 elem_id="model")
                             
                             self.system_message_input_field = gr.Textbox(label='System Message', 
-                                                                        value=GuiJsonUtil.fetch_kijiku_settings_tab_default_values("system_message"), 
+                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("system_message"), 
                                                                         info="Instructions to the model. Do not change this unless you know what you're doing.", 
                                                                         lines=1, 
                                                                         max_lines=1, 
@@ -310,7 +311,7 @@ class KudasaiGUI:
                                                                         elem_id="system_message")
                             
                             self.temperature_input_field = gr.Slider(label='Temperature', 
-                                                                    value=float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("temp")), 
+                                                                    value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("temp")), 
                                                                     minimum=0.0, 
                                                                     maximum=2.0, 
                                                                     info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.", 
@@ -319,7 +320,7 @@ class KudasaiGUI:
                                                                     elem_id="temp")
                             
                             self.top_p_input_field = gr.Slider(label='Top P', 
-                                                               value=float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("top_p")), 
+                                                               value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("top_p")), 
                                                                minimum=0.0, 
                                                                maximum=1.0, 
                                                                info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.", 
@@ -328,14 +329,14 @@ class KudasaiGUI:
                                                                elem_id="top_p")
                             
                             self.n_input_field = gr.Textbox(label='N', 
-                                                            value=(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("n")), 
+                                                            value=(GuiJsonUtil.fetch_kijiku_setting_key_values("n")), 
                                                             info="How many chat completion choices to generate for each input message. Do not change this.", 
                                                             show_label=True, 
                                                             interactive=False,
                                                             elem_id="n")
                             
                             self.stream_input_field = gr.Textbox(label='Stream', 
-                                                                value=(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stream")), 
+                                                                value=(GuiJsonUtil.fetch_kijiku_setting_key_values("stream")), 
                                                                 info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI Cookbook for example code. Do not change this.", 
                                                                 lines=1, 
                                                                 max_lines=1, 
@@ -344,7 +345,7 @@ class KudasaiGUI:
                                                                 elem_id="stream")
                             
                             self.stop_input_field = gr.Textbox(label='Stop', 
-                                                               value=(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stop")), 
+                                                               value=(GuiJsonUtil.fetch_kijiku_setting_key_values("stop")), 
                                                                info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.", 
                                                                lines=1, 
                                                                max_lines=1, 
@@ -353,7 +354,7 @@ class KudasaiGUI:
                                                                 elem_id="stop")
                             
                             self.logit_bias_input_field = gr.Textbox(label='Logit Bias', 
-                                                                    value=(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("logit_bias")), 
+                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias")), 
                                                                     info="Modify the likelihood of specified tokens appearing in the completion. Do not change this.", 
                                                                     lines=1, 
                                                                     max_lines=1, 
@@ -362,7 +363,7 @@ class KudasaiGUI:
                                                                     elem_id="logit_bias")
                             
                             self.max_tokens_input_field = gr.Textbox(label='Max Tokens', 
-                                                                    value=(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("max_tokens")), 
+                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens")), 
                                                                     info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this.", 
                                                                     lines=1, 
                                                                     max_lines=1, 
@@ -371,7 +372,7 @@ class KudasaiGUI:
                                                                     elem_id="max_tokens")
                             
                             self.presence_penalty_input_field = gr.Slider(label='Presence Penalty', 
-                                                                          value=float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("presence_penalty")), 
+                                                                          value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("presence_penalty")), 
                                                                           minimum=-2.0, 
                                                                           maximum=2.0,  
                                                                           info="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.", 
@@ -380,7 +381,7 @@ class KudasaiGUI:
                                                                           elem_id="presence_penalty")
                             
                             self.frequency_penalty_input_field = gr.Slider(label='Frequency Penalty', 
-                                                                           value=float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("frequency_penalty")), 
+                                                                           value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("frequency_penalty")), 
                                                                            minimum=-2.0, 
                                                                            maximum=2.0, 
                                                                            info="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.", 
@@ -389,7 +390,7 @@ class KudasaiGUI:
                                                                            elem_id="frequency_penalty")
                             
                             self.message_mode_input_field = gr.Dropdown(label='Message Mode', 
-                                                                        value=int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("message_mode")), 
+                                                                        value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("message_mode")), 
                                                                         choices=[1,2], 
                                                                         info="1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works.", 
                                                                         show_label=True, 
@@ -397,7 +398,7 @@ class KudasaiGUI:
                                                                         elem_id="message_mode")
                             
                             self.num_lines_input_field = gr.Textbox(label='Number of Lines Per Batch', 
-                                                                    value=(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_lines")), 
+                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("num_lines")), 
                                                                     info="The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 36.", 
                                                                     lines=1,
                                                                     max_lines=1, 
@@ -406,7 +407,7 @@ class KudasaiGUI:
                                                                     elem_id="num_lines")
                             
                             self.sentence_fragmenter_mode_input_field = gr.Dropdown(label='Sentence Fragmenter Mode', 
-                                                                                    value=int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("sentence_fragmenter_mode")), 
+                                                                                    value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode")), 
                                                                                     choices=[1,2,3],
                                                                                     info="1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.", 
                                                                                     show_label=True, 
@@ -414,7 +415,7 @@ class KudasaiGUI:
                                                                                     elem_id="sentence_fragmenter_mode")
                             
                             self.je_check_mode_input_field = gr.Dropdown(label='JE Check Mode', 
-                                                                        value=int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("je_check_mode")),
+                                                                        value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("je_check_mode")),
                                                                         choices=[1,2],
                                                                         info="1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will do 1. Use 2 for gpt-4.", 
                                                                         show_label=True, 
@@ -423,7 +424,7 @@ class KudasaiGUI:
 
                             
                             self.num_malformed_batch_retries_input_field = gr.Textbox(label='Number of Malformed Batch Retries', 
-                                                                                      value=GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_malformed_batch_retries"), 
+                                                                                      value=GuiJsonUtil.fetch_kijiku_setting_key_values("num_malformed_batch_retries"), 
                                                                                       info="How many times Kudasai will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case.", 
                                                                                       lines=1, 
                                                                                       max_lines=1, 
@@ -432,7 +433,7 @@ class KudasaiGUI:
                                                                                       elem_id="num_malformed_batch_retries")
                             
                             self.batch_retry_timeout_input_field = gr.Textbox(label='Batch Retry Timeout', 
-                                                                              value=GuiJsonUtil.fetch_kijiku_settings_tab_default_values("batch_retry_timeout"), 
+                                                                              value=GuiJsonUtil.fetch_kijiku_setting_key_values("batch_retry_timeout"), 
                                                                               info="How long Kudasai will try to attempt to requery a translation batch in seconds, if a requests exceeds this duration, Kudasai will leave it untranslated.", 
                                                                               lines=1, 
                                                                               max_lines=1, 
@@ -441,7 +442,7 @@ class KudasaiGUI:
                                                                               elem_id="batch_retry_timeout")  
                            
                             self.num_concurrent_batches_input_field = gr.Textbox(label='Number of Concurrent Batches Allowed', 
-                                                                                value=GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_concurrent_batches"), 
+                                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("num_concurrent_batches"), 
                                                                                 info="How many translations batches Kudasai will send to OpenAI at a time.", 
                                                                                 lines=1, 
                                                                                 max_lines=1, 
@@ -613,6 +614,45 @@ class KudasaiGUI:
                 """
 
                 return "", "", ""
+            
+##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            def kijiku_calculate_costs_button_click(input_txt_file:gr.File, input_text:gr.Textbox) -> str:
+
+
+                """
+                
+                Calculates the cost of the text in the input_txt_file or input_text using the OpenAI API. If no txt file or text is selected, an error is raised.
+                Displays the cost, and the debug log.
+
+                Parameters:
+                input_txt_file (gr.File) : The input txt file.
+                input_text (gr.Textbox) : The input text.
+
+                Returns:
+                cost_estimation (str) : The cost estimation formatted as a string.
+                
+                """
+
+                model = GuiJsonUtil.fetch_kijiku_setting_key_values("model")
+
+                if(input_txt_file is None and input_text == ""):
+                    raise gr.Error("No TXT file or text selected")
+                
+                if(input_txt_file is not None):
+                    text_to_translate = gui_get_text_from_file(input_txt_file)
+
+                else:
+                    text_to_translate = input_text
+
+                ## need to convert to list of strings
+                Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
+
+                num_tokens, estimated_cost, model = Kijiku.estimate_cost(model)
+
+                cost_estimation = "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
+
+                return cost_estimation
 
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
@@ -681,7 +721,7 @@ class KudasaiGUI:
                 Returns:
                 input_txt_file_kijiku (gr.File) : An empty file.
                 input_text_kijiku (str) : An empty string.
-                output_field_kijiku (str) : An empty string.
+                kijiku_translated_text_output_field (str) : An empty string.
                 je_check_text_field_kijiku (str) : An empty string.
                 debug_log_output_field_kijiku_tab (str) : An empty string.
 
@@ -696,11 +736,11 @@ class KudasaiGUI:
 
                 input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
 
-                output_field_kijiku = ""
+                kijiku_translated_text_output_field = ""
                 je_check_text_field_kijiku = ""
                 debug_log_output_field_kijiku_tab = ""
 
-                return input_file_kijiku, input_text_kijiku, input_kijiku_rules_file, output_field_kijiku, je_check_text_field_kijiku, debug_log_output_field_kijiku_tab
+                return input_file_kijiku, input_text_kijiku, input_kijiku_rules_file, kijiku_translated_text_output_field, je_check_text_field_kijiku, debug_log_output_field_kijiku_tab
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -838,24 +878,24 @@ class KudasaiGUI:
                     GuiJsonUtil.current_kijiku_rules = input_kijiku_rules_file.name # type: ignore
 
                     ## update the default values on the Kijiku Settings tab manually
-                    model_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("model"))
-                    system_message_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("system_message"))
-                    temperature_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("temp"))
-                    top_p_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("top_p"))
-                    n_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("n"))
-                    stream_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stream"))
-                    stop_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("stop"))
-                    logit_bias_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("logit_bias"))
-                    max_tokens_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("max_tokens"))
-                    presence_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("presence_penalty"))
-                    frequency_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("frequency_penalty"))
-                    message_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("message_mode")) 
-                    num_lines_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_lines"))
-                    sentence_fragmenter_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("sentence_fragmenter_mode"))
-                    je_check_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("je_check_mode"))
-                    num_malformed_batch_retries_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_malformed_batch_retries"))
-                    batch_retry_timeout_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("batch_retry_timeout"))
-                    num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_settings_tab_default_values("num_concurrent_batches"))
+                    model_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("model"))
+                    system_message_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("system_message"))
+                    temperature_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("temp"))
+                    top_p_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("top_p"))
+                    n_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("n"))
+                    stream_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stream"))
+                    stop_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stop"))
+                    logit_bias_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias"))
+                    max_tokens_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens"))
+                    presence_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("presence_penalty"))
+                    frequency_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("frequency_penalty"))
+                    message_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("message_mode")) 
+                    num_lines_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_lines"))
+                    sentence_fragmenter_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode"))
+                    je_check_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("je_check_mode"))
+                    num_malformed_batch_retries_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_malformed_batch_retries"))
+                    batch_retry_timeout_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("batch_retry_timeout"))
+                    num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_concurrent_batches"))
 
                 except:
 
@@ -913,7 +953,7 @@ class KudasaiGUI:
                                                     self.input_kijiku_rules_file], ## kijiku rules file
                                                 
                                                 outputs=[
-                                                    self.output_field_kijiku, ## translated text
+                                                    self.kijiku_translated_text_output_field, ## translated text
                                                     self.kijiku_je_check_text_field]) ## je check text field on kijiku tab
             
             ## for the kijiku debug log
@@ -923,6 +963,16 @@ class KudasaiGUI:
                                                 outputs=[self.debug_log_output_field_kijiku_tab], ## debug log on kijiku tab
 
                                                 every=.1) ## update every 100ms
+            
+
+##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.calculate_costs_button_kijiku.click(kijiku_calculate_costs_button_click,
+                                                        inputs=[
+                                                            self.input_txt_file_kijiku, ## input txt file to calculate costs
+                                                            self.input_text_kijiku], ## input text to calculate costs
+                
+                                                        outputs=[self.kijiku_translated_text_output_field]) ## functions as an output field for the cost output field
             
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -958,7 +1008,7 @@ class KudasaiGUI:
                                                 self.input_txt_file_kijiku, ## input txt file
                                                 self.input_text_kijiku, ## input text
                                                 self.input_kijiku_rules_file, ## kijiku rules file
-                                                self.output_field_kijiku, ## translation output field
+                                                self.kijiku_translated_text_output_field, ## translation output field
                                                 self.kijiku_je_check_text_field, ## je check text field on kijiku tab
                                                 self.debug_log_output_field_kijiku_tab]) ## debug log on kijiku tab
             
@@ -1116,7 +1166,7 @@ class KudasaiGUI:
 ##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.save_to_file_kijiku.click(lambda text: text, ## save text as is
-                inputs=[self.output_field_kijiku],
+                inputs=[self.kijiku_translated_text_output_field],
 
                 outputs=[],
 

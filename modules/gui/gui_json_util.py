@@ -11,10 +11,10 @@ class GuiJsonUtil:
 
     current_kijiku_rules = FileEnsurer.config_kijiku_rules_path
 
-##-------------------start-of-fetch_kijiku_settings_tab_default_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-fetch_kijiku_setting_key_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def fetch_kijiku_settings_tab_default_values(key_name:str) -> str:
+    def fetch_kijiku_setting_key_values(key_name:str) -> str:
         
         """
         

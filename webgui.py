@@ -589,7 +589,7 @@ class KudasaiGUI:
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
                 ## also gonna want to update the api key file with the new api key
-                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'))
+                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
 
                 return translated_text, je_check_text, log_text
             
@@ -658,7 +658,7 @@ class KudasaiGUI:
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
                 ## also gonna want to update the api key file with the new api key
-                FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'))
+                FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
 
                 return translated_text, je_check_text, log_text
             

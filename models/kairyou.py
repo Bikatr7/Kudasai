@@ -22,7 +22,7 @@ from handlers.katakana_handler import KatakanaHandler
 class Name(typing.NamedTuple):
 
     """
-
+    
     Represents a Japanese name along with its equivalent english name.
     The Name class extends the NamedTuple class, allowing for the creation of a tuple with named fields.
 

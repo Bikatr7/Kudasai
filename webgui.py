@@ -19,7 +19,7 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## to do
-## need to add some way of interrupting translations... possibly by having a static flag in kaiseki/kijiku that is checked every batch, and then have the clear functions set it to false
+## add kijiku translation and calculate cost functionality
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

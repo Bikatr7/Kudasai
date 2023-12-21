@@ -20,16 +20,13 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
-## known bugs
-## need to make error log update properly, likely gonna set it to update when logging tab is selected
+## features i'd like to add
+## update check in webgui
 
 ## backlog
 ## add countermeasures not allowing apply/discard when now kijiku files uploaded
 ## not allow translate button to be pressed while it's already translating 
 ## further investigate why kijiku settings are seemingly being replaced with none at random
-
-## features i'd like to add
-## update check in webgui
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -462,7 +459,7 @@ class KudasaiGUI:
                         self.discard_changes_button = gr.Button('Discard Changes', variant='stop')
 
                 ## tab 6 | Logging
-                with gr.Tab("Logging") as self.results_tab:
+                with gr.Tab("Logging") as self.logging_tab:
 
                     with gr.Row():
                         self.debug_log_output_field_log_tab = gr.Textbox(label='Debug Log', lines=10, interactive=False)
@@ -960,6 +957,25 @@ class KudasaiGUI:
                 
                 return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
             
+##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            def fetch_debug_log_content() -> typing.Tuple[str, str]:
+            
+                """
+                
+                Fetches the log content from the log file.
+
+                Returns:
+                log_text (str) : The log text.
+                error_log (str) : The error log.
+
+                """
+
+                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+                error_log = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
+
+                return log_text, error_log
+
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1151,6 +1167,13 @@ class KudasaiGUI:
                                                     self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                     self.num_concurrent_batches_input_field]) ## num concurrent batches input field
+
+##-------------------start-of-logging_tab.select()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.logging_tab.select(fetch_debug_log_content,
+                                    inputs=[],
+                                    
+                                    outputs=[self.debug_log_output_field_log_tab, self.error_log])
             
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

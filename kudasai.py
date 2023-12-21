@@ -38,9 +38,6 @@ class Kudasai:
 
         """
 
-        ## done for in the case of usage by webgui, I think. I don't really remember gonna keep it here for now.
-        Logger.clear_batch()
-
         os.system("title " + "Kudasai")
 
         Toolkit.clear_console()
@@ -54,7 +51,7 @@ class Kudasai:
 
         Logger.push_batch()
 
-        with open (FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
+        with open(FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
            JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
 
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

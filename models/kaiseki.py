@@ -228,6 +228,9 @@ class Kaiseki:
 
         while(i < len(Kaiseki.text_to_translate)):
 
+            if(FileEnsurer.do_interrupt == True):
+                raise Exception("Interrupted by user.")
+
             Kaiseki.current_sentence = Kaiseki.text_to_translate[i]
             
             Logger.log_action("Initial Sentence : " + Kaiseki.current_sentence)

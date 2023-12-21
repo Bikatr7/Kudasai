@@ -22,8 +22,8 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
+
 ## backlog
-## not allow translate button to be pressed while it's already translating 
 ## further investigate why kijiku settings are seemingly being replaced with none at random
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -571,6 +571,8 @@ class KudasaiGUI:
                 ## in case of subsequent runs, we need to reset the static variables
                 Kaiseki.reset_static_variables()
 
+                FileEnsurer.do_interrupt = False
+
                 ## if translate button is clicked, we can assume that the translation is ongoing
                 self.is_translation_ongoing = True
                 
@@ -595,6 +597,7 @@ class KudasaiGUI:
                 Kaiseki.text_to_translate  = [line for line in str(text_to_translate).splitlines()]
 
                 Kaiseki.commence_translation()
+
                 Kaiseki.write_kaiseki_results()
 
                 ## je check text and translated text are lists of strings, so we need to convert them to strings
@@ -635,6 +638,8 @@ class KudasaiGUI:
 
                 ## in case of subsequent runs, we need to reset the static variables
                 Kijiku.reset_static_variables()
+
+                FileEnsurer.do_interrupt = False
 
                 ## if translate button is clicked, we can assume that the translation is ongoing
                 self.is_translation_ongoing = True
@@ -769,6 +774,8 @@ class KudasaiGUI:
 
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
+
+                FileEnsurer.do_interrupt = True
                 
                 input_file_kaiseki = None
 
@@ -799,6 +806,8 @@ class KudasaiGUI:
 
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
+
+                FileEnsurer.do_interrupt = True
 
                 input_file_kijiku = None
 

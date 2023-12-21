@@ -491,8 +491,12 @@ class Kijiku:
         for i in range(0, length, 2):
             async_requests.append(Kijiku.handle_translation(i, length, Kijiku.translation_batches[i], Kijiku.translation_batches[i+1]))
 
-        ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
-        results = await asyncio.gather(*async_requests)
+        try:
+            ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
+            results = await asyncio.gather(*async_requests)
+
+        except Exception:
+            raise Exception("Interrupted by user.")
 
         Logger.log_barrier()
         Logger.log_action("Translation Complete!")
@@ -813,6 +817,9 @@ class Kijiku:
         translated_message (str) : the translated message.
 
         """
+
+        if(FileEnsurer.do_interrupt == True):
+            raise Exception("Interrupted by user.")
 
         async with Kijiku._semaphore:
             num_tries = 0

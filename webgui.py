@@ -1,4 +1,5 @@
 ## built-in libraries
+from turtle import update
 import typing
 import base64
 
@@ -7,6 +8,7 @@ import gradio as gr
 from models.kijiku import Kijiku
 
 ## custom modules
+from modules.common.toolkit import Toolkit
 from modules.common.logger import Logger
 from modules.common.file_ensurer import FileEnsurer
 
@@ -21,7 +23,7 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## features i'd like to add
-## update check in webgui
+## utilize Kudasai.connection in webgui for potential translation failure due to no internet connection
 
 ## backlog
 ## add countermeasures not allowing apply/discard when now kijiku files uploaded
@@ -477,6 +479,19 @@ class KudasaiGUI:
                         self.clear_log_button = gr.Button('Clear Log', variant='stop')
 
 ##-------------------start-of-Listener-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            def webgui_update_check() -> None:
+
+                """
+                
+                Checks for if a Kudasai update is available.
+
+                """
+
+                Kudasai.connection, update_prompt = Toolkit.check_update()
+
+                if(update_prompt):
+                    gr.Info("Update available, see https://github.com/Bikatr7/Kudasai/releases/latest/ for more information.")
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -977,6 +992,10 @@ class KudasaiGUI:
                 return log_text, error_log
 
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+##-------------------start-of-load()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.gui.load(webgui_update_check)
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

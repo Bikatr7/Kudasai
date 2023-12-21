@@ -9,7 +9,7 @@ from handlers.json_handler import JsonHandler
 
 class GuiJsonUtil:
 
-    current_kijiku_rules = FileEnsurer.config_kijiku_rules_path
+    current_kijiku_rules = dict()
 
 ##-------------------start-of-fetch_kijiku_setting_key_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28,10 +28,7 @@ class GuiJsonUtil:
 
         """
 
-        with open(GuiJsonUtil.current_kijiku_rules, "r") as file:
-            data = json.load(file)
-
-        return data["open ai settings"][key_name] if data["open ai settings"][key_name] is not None else "None"
+        return GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] if GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] is not None else "None"
     
 ##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -47,21 +44,18 @@ class GuiJsonUtil:
 
         """
 
-        with open(GuiJsonUtil.current_kijiku_rules, "r") as file:
-            data = json.load(file)
-
         ## save old json in case of need to revert
-        old_data = data
-
-        JsonHandler.current_kijiku_rules = data
+        old_rules = GuiJsonUtil.current_kijiku_rules
 
         try:
 
             for key, value in new_values:
-                data["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, value)
+                GuiJsonUtil.current_kijiku_rules["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, value)
 
-            with open(GuiJsonUtil.current_kijiku_rules, "w") as file:
-                json.dump(data, file)
+            with open(FileEnsurer.config_kijiku_rules_path, "w") as file:
+                json.dump(GuiJsonUtil.current_kijiku_rules, file)
+
+            JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
             JsonHandler.validate_json()
 
@@ -71,8 +65,10 @@ class GuiJsonUtil:
         except Exception as e:
 
             ## revert to old data
-            with open(GuiJsonUtil.current_kijiku_rules, "w") as file:
-                json.dump(old_data, file)
+            with open(FileEnsurer.config_kijiku_rules_path, "w") as file:
+                json.dump(old_rules, file)
+
+            GuiJsonUtil.current_kijiku_rules = old_rules
 
             ## throw error so webgui can tell user
             raise e

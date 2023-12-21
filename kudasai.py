@@ -9,6 +9,8 @@ from models.kaiseki import Kaiseki
 from models.kijiku import Kijiku
 from models.kairyou import Kairyou
 
+from handlers.json_handler import JsonHandler
+
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
@@ -51,6 +53,9 @@ class Kudasai:
         Logger.log_barrier()
 
         Logger.push_batch()
+
+        with open (FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
+           JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
 
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

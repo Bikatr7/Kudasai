@@ -631,9 +631,7 @@ class KudasaiGUI:
                 self.is_translation_ongoing = True
 
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
-                ## Yes i know JsonHandler has it as the actual value, while gui_json_util has it as the path location, but i just need it to work for now, we'll fix it later
-                with open(GuiJsonUtil.current_kijiku_rules, 'r', encoding='utf-8') as file:
-                    JsonHandler.current_kijiku_rules = json.load(file)
+                JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
                 ## next api key
                 try:
@@ -885,16 +883,8 @@ class KudasaiGUI:
                                 batch_retry_timeout,
                                 num_concurrent_batches]
                 
-                [print(setting) for setting in settings_list]
-
-                print("\n")
-                
                 ## create the new key-value pair list
                 new_key_value_tuple_pairs = create_new_key_value_tuple_pairs(settings_list)
-
-                for pair in new_key_value_tuple_pairs:
-                    print(str(pair))
-                    print()
 
                 try:
                     ## and then have the GuiJsonUtil apply the new kijiku settings
@@ -907,7 +897,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def refresh_kijiku_settings_fields(input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
+            def refresh_kijiku_settings_fields(input_kijiku_rules_file) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
 
                 """
                 
@@ -940,7 +930,7 @@ class KudasaiGUI:
 
                 ## assume that the user has uploaded a valid kijiku rules file, if it's not, that's on them
                 try:
-                    GuiJsonUtil.current_kijiku_rules = input_kijiku_rules_file.name # type: ignore
+                    GuiJsonUtil.current_kijiku_rules = gui_get_json_from_file(input_kijiku_rules_file)
 
                     ## update the default values on the Kijiku Settings tab manually
                     model_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("model"))
@@ -964,7 +954,7 @@ class KudasaiGUI:
 
                 except:
 
-                    GuiJsonUtil.current_kijiku_rules = FileEnsurer.config_kijiku_rules_path
+                    GuiJsonUtil.current_kijiku_rules = JsonHandler.current_kijiku_rules
                     raise gr.Error("Invalid Custom Kijiku Rules File")
                 
 
@@ -1294,6 +1284,8 @@ class KudasaiGUI:
         """
 
         Kudasai.boot()
+
+        GuiJsonUtil.current_kijiku_rules = JsonHandler.current_kijiku_rules
 
         self.build_gui()
         self.gui.queue().launch(inbrowser=True, show_error=True)

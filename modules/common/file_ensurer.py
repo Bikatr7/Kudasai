@@ -156,6 +156,7 @@ class FileEnsurer():
             with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
                 json.dump(FileEnsurer.default_kijiku_rules, file)
         
+        
         if(not os.path.exists(FileEnsurer.katakana_words_path)):
            raise FileNotFoundError(f"Katakana words file not found at {FileEnsurer.katakana_words_path}. Can not continue, preprocess failed.")
 

@@ -51,10 +51,15 @@ class Kudasai:
 
         Logger.push_batch()
 
-        with open(FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
-           JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
+        try:
 
-        JsonHandler.validate_json()
+            with open(FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
+                JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
+
+            JsonHandler.validate_json()
+
+        except:
+            raise Exception("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again.")
 
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

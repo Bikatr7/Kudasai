@@ -176,6 +176,9 @@ class KudasaiGUI:
                         ## Convert empty strings to None
                         value = None if setting == '' else setting
 
+                        if(value is None):
+                            value = "None"
+
                         key_value_tuple_pairs.append((key, value))
 
                 return key_value_tuple_pairs
@@ -348,7 +351,7 @@ class KudasaiGUI:
                                                                max_lines=1,
                                                                show_label=True,
                                                                interactive=False,
-                                                                elem_id="stop")
+                                                               elem_id="stop")
 
                             self.logit_bias_input_field = gr.Textbox(label='Logit Bias',
                                                                     value=(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias")),
@@ -817,81 +820,89 @@ class KudasaiGUI:
 
 ##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def apply_new_kijiku_settings(model_input_field:gr.Textbox, 
-                                        system_message_input_field:gr.Textbox, 
-                                        temperature_input_field:gr.Slider, 
-                                        top_p_input_field:gr.Slider, 
-                                        n_input_field:gr.Textbox, 
-                                        stream_input_field:gr.Textbox, 
-                                        stop_input_field:gr.Textbox, 
-                                        logit_bias_input_field:gr.Textbox, 
-                                        max_tokens_input_field:gr.Textbox, 
-                                        presence_penalty_input_field:gr.Slider, 
-                                        frequency_penalty_input_field:gr.Slider, 
-                                        message_mode_input_field:gr.Dropdown, 
-                                        num_lines_input_field:gr.Textbox, 
-                                        sentence_fragmenter_mode_input_field:gr.Dropdown, 
-                                        je_check_mode_input_field:gr.Dropdown, 
-                                        num_malformed_batch_retries_input_field:gr.Textbox, 
-                                        batch_retry_timeout_input_field:gr.Textbox, 
-                                        num_concurrent_batches_input_field:gr.Textbox) -> None:
+            def apply_new_kijiku_settings(model:str,
+                                        system_message:str,
+                                        temperature:str,
+                                        top_p:str,
+                                        n:str,
+                                        stream:str, 
+                                        stop:str, 
+                                        logit_bias:str, 
+                                        max_tokens:str, 
+                                        presence_penalty:str, 
+                                        frequency_penalty:str, 
+                                        message_mode:str, 
+                                        num_lines:str,
+                                        sentence_fragmenter_mode:str,
+                                        je_check_mode:str,
+                                        num_malformed_batch:str,
+                                        batch_retry_timeout:str,
+                                        num_concurrent_batches:str) -> None:
                 
                 """
 
                 Applies the new kijiku settings to the uploaded kijiku rules file.
 
                 Parameters:
-                model_input_field (gr.Textbox) : The model input field.
-                system_message_input_field (gr.Textbox) : The system message input field.
-                temperature_input_field (gr.Slider) : The temperature input field.
-                top_p_input_field (gr.Slider) : The top p input field.
-                n_input_field (gr.Textbox) : The n input field.
-                stream_input_field (gr.Textbox) : The stream input field.
-                stop_input_field (gr.Textbox) : The stop input field.
-                logit_bias_input_field (gr.Textbox) : The logit bias input field.
-                max_tokens_input_field (gr.Textbox) : The max tokens input field.
-                presence_penalty_input_field (gr.Slider) : The presence penalty input field.
-                frequency_penalty_input_field (gr.Slider) : The frequency penalty input field.
-                message_mode_input_field (gr.Dropdown) : The message mode input field.
-                num_lines_input_field (gr.Textbox) : The num lines input field.
-                sentence_fragmenter_mode_input_field (gr.Dropdown) : The sentence fragmenter mode input field.
-                je_check_mode_input_field (gr.Dropdown) : The je check mode input field.
-                num_malformed_batch_retries_input_field (gr.Textbox) : The num malformed batch retries input field.
-                batch_retry_timeout_input_field (gr.Textbox) : The batch retry timeout input field.
-                num_concurrent_batches_input_field (gr.Textbox) : The num concurrent batches input field.
+                model (str) : The model.
+                system_message (str) : The system message.
+                temperature (str) : The temperature.
+                top_p (str) : The top p.
+                n (str) : The n.
+                stream (str) : The stream.
+                stop (str) : The stop.
+                logit_bias (str) : The logit bias.
+                max_tokens (str) : The max tokens.
+                presence_penalty (str) : The presence penalty.
+                frequency_penalty (str) : The frequency penalty.
+                message_mode (str) : The message mode.
+                num_lines (str) : The number of lines.
+                sentence_fragmenter_mode (str) : The sentence fragmenter mode.
+                je_check_mode (str) : The je check mode.
+                num_malformed_batch (str) : The number of malformed batch retries.
+                batch_retry_timeout (str) : The batch retry timeout.
+                num_concurrent_batches (str) : The number of concurrent batches.
+
 
                 """
                 ## build the new kijiku settings list so we can create a key-value pair list
-                settings_list = [model_input_field,
-                                system_message_input_field,
-                                temperature_input_field,
-                                top_p_input_field,
-                                n_input_field,
-                                stream_input_field,
-                                stop_input_field,
-                                logit_bias_input_field,
-                                max_tokens_input_field,
-                                presence_penalty_input_field,
-                                frequency_penalty_input_field,
-                                message_mode_input_field,
-                                num_lines_input_field,
-                                sentence_fragmenter_mode_input_field,
-                                je_check_mode_input_field,
-                                num_malformed_batch_retries_input_field,
-                                batch_retry_timeout_input_field,
-                                num_concurrent_batches_input_field]
+                settings_list = [model, 
+                                system_message, 
+                                temperature, 
+                                top_p, 
+                                n, 
+                                stream, 
+                                stop, 
+                                logit_bias, 
+                                max_tokens, 
+                                presence_penalty, 
+                                frequency_penalty, 
+                                message_mode, 
+                                num_lines,
+                                sentence_fragmenter_mode,
+                                je_check_mode,
+                                num_malformed_batch,
+                                batch_retry_timeout,
+                                num_concurrent_batches]
+                
+                [print(setting) for setting in settings_list]
+
+                print("\n")
                 
                 ## create the new key-value pair list
                 new_key_value_tuple_pairs = create_new_key_value_tuple_pairs(settings_list)
 
-                
+                for pair in new_key_value_tuple_pairs:
+                    print(str(pair))
+                    print()
+
                 try:
                     ## and then have the GuiJsonUtil apply the new kijiku settings
                     GuiJsonUtil.update_kijiku_settings_with_new_values(new_key_value_tuple_pairs)
 
                 except:
                     raise gr.Error("Invalid Kijiku Settings")
-            
+
                 gr.Info("Kijiku Settings Applied")
             
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -31,7 +31,7 @@ class GuiJsonUtil:
         with open(GuiJsonUtil.current_kijiku_rules, "r") as file:
             data = json.load(file)
 
-        return data["open ai settings"][key_name]
+        return data["open ai settings"][key_name] if data["open ai settings"][key_name] is not None else "None"
     
 ##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

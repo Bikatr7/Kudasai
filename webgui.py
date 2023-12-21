@@ -172,14 +172,7 @@ class KudasaiGUI:
                 for index, setting in enumerate(kijiku_settings):
                     key = kijiku_settings_key_names.get(index)
 
-                    if(key is not None):
-                        ## Convert empty strings to None
-                        value = None if setting == '' else setting
-
-                        if(value is None):
-                            value = "None"
-
-                        key_value_tuple_pairs.append((key, value))
+                    key_value_tuple_pairs.append((key, setting))
 
                 return key_value_tuple_pairs
             
@@ -957,7 +950,6 @@ class KudasaiGUI:
                     GuiJsonUtil.current_kijiku_rules = JsonHandler.current_kijiku_rules
                     raise gr.Error("Invalid Custom Kijiku Rules File")
                 
-
                 return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
             
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

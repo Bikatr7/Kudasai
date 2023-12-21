@@ -368,6 +368,12 @@ class JsonHandler:
 
                 return int_value
             
+            ## type checks for num_lines
+            if(setting_name == "num_lines"):
+                int_value = int(value)
+
+                return int_value
+            
             ## range checks for sentence_fragmenter_mode
             if(setting_name == "sentence_fragmenter_mode"):
                 int_value = int(value)
@@ -386,5 +392,24 @@ class JsonHandler:
 
                 return int_value
             
+
+            ## type checks for num_malformed_batch_retries
+            if(setting_name == "num_malformed_batch_retries"):
+                int_value = int(value)
+
+                return int_value
+            
+            ## type checks for batch_retry_timeout
+            if(setting_name == "batch_retry_timeout"):
+                int_value = int(value)
+
+                return int_value
+            
+            ## type checks for num_concurrent_batches
+            if(setting_name == "num_concurrent_batches"):
+                int_value = int(value)
+
+                return int_value
+        
         else:
             raise ValueError("Invalid setting name")

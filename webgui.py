@@ -22,9 +22,6 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
-## backlog
-## https://discord.com/channels/@me/1163373803624210432/1187448732296429588
-## resize kijiku tab to line up with buttons on left side
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -197,19 +194,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=22, max_lines=22, show_label=True, interactive=False, show_copy_button=True)
+                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=26, max_lines=26, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessed_text = gr.Button('Save As')
                             
                         with gr.Column():
-                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=22, interactive=False, show_copy_button=True)
+                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=26, max_lines=26, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessing_results = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=22, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=26, max_lines=26, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
@@ -272,19 +269,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=36,max_lines=36, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_kijiku = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=36,max_lines=36, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_je_check_text_kijiku = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=36, max_lines=36, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')

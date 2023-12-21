@@ -21,9 +21,12 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## known bugs
-## Batch Retry Timeout, Num malformed batches, num lines per batch and num concurrent batches are not being saved to the json file properly, keep reverting to None, something of note, all of these are string inputs in a textbox converted to int
 ## Kijiku values are stacking, similar to kaiseki before we fixed that, so we need to fix that
 ## logging tab doesn't seem to function at all, we need to fix that
+
+## backlog
+## add countermeasures not allowing apply/discard when now kijiku files uploaded
+## investigate why kijiku settings are seemingly being replaced with none at random
 
 ## features i'd like to add
 ## update check in webgui
@@ -624,6 +627,13 @@ class KudasaiGUI:
 
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
                 JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
+
+                ## due to the bug with the settings need to validate json
+                try:
+                    JsonHandler.validate_json()
+
+                except:
+                    raise gr.Error("Issue with Kijiku settings detected, please look at the settings tab and ensure all values are valid. This is a known bug, and will be hopefully fixed in the future.")
 
                 ## next api key
                 try:

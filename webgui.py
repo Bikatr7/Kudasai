@@ -191,6 +191,10 @@ class KudasaiGUI:
                                 self.preprocessing_run_button = gr.Button('Run', variant='primary')
                                 self.preprocessing_clear_button = gr.Button('Clear', variant='stop')
 
+                            with gr.Row():
+                                self.send_to_kaiseki = gr.Button('Send to Kaiseki (DeepL)')
+                                self.send_to_kijiku = gr.Button('Send to Kijiku (OpenAI)')
+
                         ## output fields
                         with gr.Column():
                             self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=22, max_lines=22, show_label=True, interactive=False, show_copy_button=True)
@@ -917,7 +921,7 @@ class KudasaiGUI:
 
                 try:
                     ## and then have the GuiJsonUtil apply the new kijiku settings
-                    GuiJsonUtil.update_kijiku_settings_with_new_values(new_key_value_tuple_pairs)
+                    GuiJsonUtil.update_kijiku_settings_with_new_values(input_kijiku_rules_file, new_key_value_tuple_pairs)
 
                 except:
                     raise gr.Error("Invalid Kijiku Settings")
@@ -1389,6 +1393,11 @@ class KudasaiGUI:
                 ## javascript code that allows us to save textbox contents to a file
                 _js=(self.save_as_js).replace("downloaded_text.txt", "error_log.txt")
             )
+
+##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.send_to_kaiseki.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kaiseki])
+            self.send_to_kijiku.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kijiku])
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

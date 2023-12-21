@@ -2,6 +2,9 @@
 import json
 import typing
 
+## third-party libraries
+import gradio as gr
+
 ## custom modules
 from modules.common.file_ensurer import FileEnsurer
 
@@ -33,7 +36,7 @@ class GuiJsonUtil:
 ##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def update_kijiku_settings_with_new_values(new_values:typing.List[typing.Tuple[str,str]]) -> None:
+    def update_kijiku_settings_with_new_values(gradio_kijiku_rule:gr.File, new_values:typing.List[typing.Tuple[str,str]]) -> None:
 
         """
         
@@ -55,6 +58,11 @@ class GuiJsonUtil:
             with open(FileEnsurer.config_kijiku_rules_path, "w") as file:
                 json.dump(GuiJsonUtil.current_kijiku_rules, file)
 
+            ## so, because of how gradio deals with temp file, we need to both dump into the settings file from FileEnsurer AND the gradio_kijiku_rule file which is stored in the temp folder under AppData
+            ## name is the path to the file btw
+            with open(gradio_kijiku_rule.name, "w") as file: ## type: ignore
+                json.dump(GuiJsonUtil.current_kijiku_rules, file)
+
             JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
             JsonHandler.validate_json()
@@ -66,6 +74,9 @@ class GuiJsonUtil:
 
             ## revert to old data
             with open(FileEnsurer.config_kijiku_rules_path, "w") as file:
+                json.dump(old_rules, file)
+
+            with open(gradio_kijiku_rule.name, "w") as file: ## type: ignore
                 json.dump(old_rules, file)
 
             GuiJsonUtil.current_kijiku_rules = old_rules

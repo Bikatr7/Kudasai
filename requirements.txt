@@ -8,4 +8,4 @@ openai>1.2.0
 backoff
 requests
 tiktoken
-gradio==3.50.2
+gradio==4.11.0

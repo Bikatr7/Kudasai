@@ -276,6 +276,27 @@ class Kijiku:
         except AuthenticationError as e:
             raise e
 
+##-------------------start-of-reset_static_variables()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def reset_static_variables() -> None:
+
+        """
+
+        Resets the static variables.
+
+        """
+
+        Logger.clear_batch()
+
+        Kijiku.text_to_translate = []
+        Kijiku.translated_text = []
+        Kijiku.je_check_text = []
+        Kijiku.error_text = []
+        Kijiku.translation_batches = []
+        Kijiku.num_occurred_malformed_batches = 0
+        Kijiku.translation_print_result = ""
+
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -421,13 +442,6 @@ class Kijiku:
         For use with the webgui.
 
         """
-
-        ## for prevention of stacking output values
-        Logger.clear_batch()
-
-        Kijiku.translated_text = []
-        Kijiku.error_text = []
-        Kijiku.je_check_text = []
         
         Logger.log_barrier()
         Logger.log_action("Kijiku Activated, Settings are as follows : ")

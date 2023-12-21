@@ -65,9 +65,6 @@ class Kaiseki:
     translated_sentence = ""
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ## used by the webgui to interrupt the translation process in case the clear button is pressed
-    do_interrupt = False
             
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -190,6 +187,31 @@ class Kaiseki:
         
         except deepl.exceptions.AuthorizationException as e:
             raise e
+        
+##-------------------start-of-reset_static_variables()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def reset_static_variables() -> None:
+
+        """
+
+        Resets the static variables of the Kaiseki class.
+        For when running multiple translations in a row.
+
+        """
+
+        Logger.clear_batch()
+
+        Kaiseki.text_to_translate = []
+        Kaiseki.translated_text = []
+        Kaiseki.je_check_text = []
+        Kaiseki.error_text = []
+        Kaiseki.translation_print_result = ""
+        Kaiseki.sentence_parts = []
+        Kaiseki.sentence_punctuation = []
+        Kaiseki.special_punctuation = []
+        Kaiseki.current_sentence = ""
+        Kaiseki.translated_sentence = ""
 
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -206,11 +228,6 @@ class Kaiseki:
 
         while(i < len(Kaiseki.text_to_translate)):
 
-            cancel_flag = Kaiseki.do_interrupt
-
-            if(cancel_flag == True):
-                raise Exception("Translation interrupted.")
-                
             Kaiseki.current_sentence = Kaiseki.text_to_translate[i]
             
             Logger.log_action("Initial Sentence : " + Kaiseki.current_sentence)
@@ -273,8 +290,6 @@ class Kaiseki:
             
             Logger.log_action(str(i) + "/" + str(len(Kaiseki.text_to_translate)) + " completed.", output=True)
             Logger.log_barrier()
-
-            cancel_flag = Kaiseki.do_interrupt
 
 ##-------------------start-of-separate_sentence()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

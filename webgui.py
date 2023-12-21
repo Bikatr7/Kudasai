@@ -21,12 +21,11 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## known bugs
-## Kaiseki & Kijiku values are stacking, similar to kaiseki before we fixed that, so we need to fix that
 ## logging tab doesn't seem to function at all, we need to fix that
 
 ## backlog
 ## add countermeasures not allowing apply/discard when now kijiku files uploaded
-## not allow translate button to be pressed while it's already translating | Pretty sure this is fixed, but need to test
+## not allow translate button to be pressed while it's already translating 
 ## further investigate why kijiku settings are seemingly being replaced with none at random
 
 ## features i'd like to add
@@ -558,12 +557,8 @@ class KudasaiGUI:
 
                 """
 
-                ## if already translating, we don't want to allow the user to translate again
-                if(self.is_translation_ongoing == True):
-                    raise gr.Error("Translation already ongoing, Cannot translate again.")
-
-                ## in case of subsequent runs, we need to clear the batch
-                Logger.clear_batch()
+                ## in case of subsequent runs, we need to reset the static variables
+                Kaiseki.reset_static_variables()
 
                 ## if translate button is clicked, we can assume that the translation is ongoing
                 self.is_translation_ongoing = True
@@ -601,8 +596,6 @@ class KudasaiGUI:
                 ## also gonna want to update the api key file with the new api key
                 FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
 
-                self.is_translation_ongoing = False
-
                 return translated_text, je_check_text, log_text
             
 ##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -626,12 +619,8 @@ class KudasaiGUI:
                 
                 """
 
-                ## if already translating, we don't want to allow the user to translate again
-                if(self.is_translation_ongoing == True):
-                    raise gr.Error("Translation already ongoing, Cannot translate again.")
-
-                ## in case of subsequent runs, we need to clear the batch
-                Logger.clear_batch()
+                ## in case of subsequent runs, we need to reset the static variables
+                Kijiku.reset_static_variables()
 
                 ## if translate button is clicked, we can assume that the translation is ongoing
                 self.is_translation_ongoing = True
@@ -679,8 +668,6 @@ class KudasaiGUI:
 
                 ## also gonna want to update the api key file with the new api key
                 FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
-
-                self.is_translation_ongoing = False
 
                 return translated_text, je_check_text, log_text
             

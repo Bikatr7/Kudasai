@@ -357,6 +357,15 @@ async def main() -> None:
 
             Logger.push_batch()
 
+        ## if running cli version but skipping preprocessing
+        elif(len(sys.argv) == 2):
+
+            Kudasai.setup_kairyou_for_cli(sys.argv[1], "")
+
+            await Kudasai.run_kudasai_cli()
+
+            Logger.push_batch()
+
         ## print usage statement
         else:
                 

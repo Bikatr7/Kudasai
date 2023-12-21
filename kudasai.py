@@ -54,6 +54,8 @@ class Kudasai:
         with open(FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
            JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
 
+        JsonHandler.validate_json()
+
 ##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod

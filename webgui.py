@@ -22,9 +22,9 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
-
 ## backlog
 ## further investigate why kijiku settings are seemingly being replaced with none at random
+## https://discord.com/channels/@me/1163373803624210432/1187448732296429588
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

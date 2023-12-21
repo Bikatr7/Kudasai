@@ -28,7 +28,7 @@ class GuiJsonUtil:
 
         """
 
-        return GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name]
+        return GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] if GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] is not None else "None"
     
 ##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

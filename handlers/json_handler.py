@@ -317,6 +317,10 @@ class JsonHandler:
                 return value.lower()
             else:
                 raise ValueError("Invalid model")
+            
+        ## just return the value for system_message
+        if(setting_name == "system_message"):
+            return value
 
         ## Special cases for None or complex types
         if(setting_name in ["stop", "logit_bias"]):

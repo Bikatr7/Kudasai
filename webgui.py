@@ -23,7 +23,6 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## backlog
-## Look into resetting all kijiku input fields to empty when a file is removed
 ## not allow translate button to be pressed while it's already translating 
 ## further investigate why kijiku settings are seemingly being replaced with none at random
 
@@ -985,6 +984,37 @@ class KudasaiGUI:
                 
                 return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
             
+##-------------------start-of-clear_kijiku_settings_input_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+            def clear_kijiku_settings_input_fields() -> typing.Tuple[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]:                                                                     
+
+                """
+
+                Resets the kijiku settings input fields to None.
+
+                """
+
+                model_input_field_value = None
+                system_message_input_field_value = None
+                temperature_input_field_value = None
+                top_p_input_field_value = None
+                n_input_field_value = None
+                stream_input_field_value = None
+                stop_input_field_value = None
+                logit_bias_input_field_value = None
+                max_tokens_input_field_value = None
+                presence_penalty_input_field_value = None
+                frequency_penalty_input_field_value = None
+                message_mode_input_field_value = None
+                num_lines_input_field_value = None
+                sentence_fragmenter_mode_input_field_value = None
+                je_check_mode_input_field_value = None
+                num_malformed_batch_retries_input_field_value = None
+                batch_retry_timeout_input_field_value = None
+                num_concurrent_batches_input_field_value = None
+
+                return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
+
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             def fetch_debug_log_content() -> typing.Tuple[str, str]:
@@ -1180,6 +1210,29 @@ class KudasaiGUI:
             
             self.input_kijiku_rules_file.upload(refresh_kijiku_settings_fields,
                                                 inputs=[self.input_kijiku_rules_file],
+                                                
+                                                outputs=[
+                                                    self.model_input_field, ## model input field
+                                                    self.system_message_input_field, ## system message input field
+                                                    self.temperature_input_field, ## temperature input field
+                                                    self.top_p_input_field, ## top p input field
+                                                    self.n_input_field, ## n input field
+                                                    self.stream_input_field, ## stream input field
+                                                    self.stop_input_field, ## stop input field
+                                                    self.logit_bias_input_field, ## logit bias input field
+                                                    self.max_tokens_input_field, ## max tokens input field
+                                                    self.presence_penalty_input_field, ## presence penalty input field
+                                                    self.frequency_penalty_input_field, ## frequency penalty input field
+                                                    self.message_mode_input_field, ## message mode input field
+                                                    self.num_lines_input_field, ## num lines input field
+                                                    self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
+                                                    self.je_check_mode_input_field, ## je check mode input field
+                                                    self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                    self.batch_retry_timeout_input_field, ## batch retry timeout input field
+                                                    self.num_concurrent_batches_input_field]) ## num concurrent batches input field
+            
+            self.input_kijiku_rules_file.clear(clear_kijiku_settings_input_fields,
+                                                inputs=[],
                                                 
                                                 outputs=[
                                                     self.model_input_field, ## model input field

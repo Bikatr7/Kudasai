@@ -21,12 +21,13 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## known bugs
-## Kijiku values are stacking, similar to kaiseki before we fixed that, so we need to fix that
+## Kaiseki & Kijiku values are stacking, similar to kaiseki before we fixed that, so we need to fix that
 ## logging tab doesn't seem to function at all, we need to fix that
 
 ## backlog
 ## add countermeasures not allowing apply/discard when now kijiku files uploaded
-## investigate why kijiku settings are seemingly being replaced with none at random
+## not allow translate button to be pressed while it's already translating | Pretty sure this is fixed, but need to test
+## further investigate why kijiku settings are seemingly being replaced with none at random
 
 ## features i'd like to add
 ## update check in webgui
@@ -557,6 +558,10 @@ class KudasaiGUI:
 
                 """
 
+                ## if already translating, we don't want to allow the user to translate again
+                if(self.is_translation_ongoing == True):
+                    raise gr.Error("Translation already ongoing, Cannot translate again.")
+
                 ## in case of subsequent runs, we need to clear the batch
                 Logger.clear_batch()
 
@@ -596,6 +601,8 @@ class KudasaiGUI:
                 ## also gonna want to update the api key file with the new api key
                 FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
 
+                self.is_translation_ongoing = False
+
                 return translated_text, je_check_text, log_text
             
 ##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -619,6 +626,10 @@ class KudasaiGUI:
                 
                 """
 
+                ## if already translating, we don't want to allow the user to translate again
+                if(self.is_translation_ongoing == True):
+                    raise gr.Error("Translation already ongoing, Cannot translate again.")
+
                 ## in case of subsequent runs, we need to clear the batch
                 Logger.clear_batch()
 
@@ -628,7 +639,7 @@ class KudasaiGUI:
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
                 JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
-                ## due to the bug with the settings need to validate json
+                ## due to the bug with the settings need to validate json again
                 try:
                     JsonHandler.validate_json()
 
@@ -655,7 +666,6 @@ class KudasaiGUI:
                 ## need to convert to list of strings
                 Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
 
-
                 ## commence translation
                 await Kijiku.webgui_commence_translation()
                 Kijiku.write_kijiku_results()
@@ -669,6 +679,8 @@ class KudasaiGUI:
 
                 ## also gonna want to update the api key file with the new api key
                 FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
+
+                self.is_translation_ongoing = False
 
                 return translated_text, je_check_text, log_text
             

@@ -73,13 +73,13 @@ class Kijiku:
     
     """
     
-    text_to_translate =  []
+    text_to_translate:typing.List[str] = []
 
-    translated_text = []
+    translated_text:typing.List[str] = []
 
-    je_check_text = []
+    je_check_text:typing.List[str] = []
 
-    error_text = []
+    error_text:typing.List[str] = []
 
     ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
     ## model message is the text that will be translated  
@@ -421,6 +421,13 @@ class Kijiku:
         For use with the webgui.
 
         """
+
+        ## for prevention of stacking output values
+        Logger.clear_batch()
+
+        Kijiku.translated_text = []
+        Kijiku.error_text = []
+        Kijiku.je_check_text = []
         
         Logger.log_barrier()
         Logger.log_action("Kijiku Activated, Settings are as follows : ")

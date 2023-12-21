@@ -34,6 +34,7 @@ class FileEnsurer():
 
     sudachi_lib = os.path.join(lib_dir, "sudachi")
     dic_lib = os.path.join(lib_dir, "dicts")
+    gui_lib = os.path.join(lib_dir, "gui")
 
     ##----------------------------------/
 
@@ -62,6 +63,9 @@ class FileEnsurer():
     ## api keys
     deepl_api_key_path = os.path.join(config_dir, "deepl_api_key.txt")
     openai_api_key_path = os.path.join(config_dir,'openai_api_key.txt')
+
+    ## favicon
+    favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
 
     ## default kijiku rules
     default_kijiku_rules = {

@@ -23,9 +23,8 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## backlog
-## further investigate why kijiku settings are seemingly being replaced with none at random
 ## https://discord.com/channels/@me/1163373803624210432/1187448732296429588
-
+## resize kijiku tab to line up with buttons on left side
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -62,7 +61,7 @@ class KudasaiGUI:
 
         """
 
-        with gr.Blocks() as self.gui:
+        with gr.Blocks(title="Kudasai") as self.gui:
 
 ##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1406,7 +1405,7 @@ class KudasaiGUI:
         GuiJsonUtil.current_kijiku_rules = JsonHandler.current_kijiku_rules
 
         self.build_gui()
-        self.gui.queue().launch(inbrowser=True, show_error=True)
+        self.gui.queue().launch(inbrowser=True, show_error=True, show_api=False, favicon_path=FileEnsurer.favicon_path)
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

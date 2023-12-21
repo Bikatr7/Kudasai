@@ -237,7 +237,6 @@ class JsonHandler:
                     print("Invalid JSON file. Please try again.")
                     JsonHandler.current_kijiku_rules = old_kijiku_rules
 
-
                 except FileNotFoundError:
                     print("Missing JSON file. Make sure you have a json in the same directory as kudasai.py and that the json is named \"kijiku_rules.json\". Please try again.")
                     JsonHandler.current_kijiku_rules = old_kijiku_rules
@@ -250,13 +249,13 @@ class JsonHandler:
 
                 new_value = input(f"\nEnter a new value for {action}: ")
 
-                converted_value = JsonHandler.convert_to_correct_type(action, new_value)
+                try:
+                    converted_value = JsonHandler.convert_to_correct_type(action, new_value)
 
-                if(converted_value is not None):
                     JsonHandler.current_kijiku_rules["open ai settings"][action] = converted_value
                     print(f"Updated {action} to {converted_value}.")
-
-                else:
+                
+                except:
                     print("Invalid input. No changes made.")
             else:
                 print("Invalid setting name. Please try again.")
@@ -264,14 +263,8 @@ class JsonHandler:
 
             Toolkit.pause_console("\nPress enter to continue.")
 
-        ## Attempt to save the changes.
-        try:
-            JsonHandler.dump_kijiku_rules()
-            print("Settings saved successfully.")
-
-        except Exception as e:
-            print(f"Failed to save settings: {e}")
-
+        JsonHandler.dump_kijiku_rules()
+        
 ##-------------------start-of-convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -286,7 +279,7 @@ class JsonHandler:
         value (str): The value to convert.
 
         Returns:
-        The value converted to the correct type, or None if the input is invalid.
+        (typing.Any) : The converted value.
 
         """
         
@@ -397,7 +390,6 @@ class JsonHandler:
 
                 return int_value
             
-
             ## type checks for num_malformed_batch_retries
             if(setting_name == "num_malformed_batch_retries"):
                 int_value = int(value)

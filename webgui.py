@@ -23,7 +23,7 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## backlog
-## add countermeasures not allowing apply/discard when now kijiku files uploaded
+## Look into resetting all kijiku input fields to empty when a file is removed
 ## not allow translate button to be pressed while it's already translating 
 ## further investigate why kijiku settings are seemingly being replaced with none at random
 
@@ -834,7 +834,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def apply_new_kijiku_settings(model:str,
+            def apply_new_kijiku_settings(input_kijiku_rules_file:gr.File,
+                                        model:str,
                                         system_message:str,
                                         temperature:str,
                                         top_p:str,
@@ -858,6 +859,7 @@ class KudasaiGUI:
                 Applies the new kijiku settings to the uploaded kijiku rules file.
 
                 Parameters:
+                input_kijiku_rules_file (gr.File) : The input kijiku rules file.
                 model (str) : The model.
                 system_message (str) : The system message.
                 temperature (str) : The temperature.
@@ -879,6 +881,10 @@ class KudasaiGUI:
 
 
                 """
+
+                if(input_kijiku_rules_file is None):
+                    raise gr.Error("No Kijiku Rules File Selected. Cannot apply settings.")
+
                 ## build the new kijiku settings list so we can create a key-value pair list
                 settings_list = [model, 
                                 system_message, 
@@ -913,7 +919,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def refresh_kijiku_settings_fields(input_kijiku_rules_file) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
+            def refresh_kijiku_settings_fields(input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
 
                 """
                 
@@ -943,6 +949,10 @@ class KudasaiGUI:
                 num_concurrent_batches_input_field_value (str) : The new num concurrent batches input field value.
 
                 """
+
+
+                if(input_kijiku_rules_file is None):
+                    raise gr.Error("No Kijiku Rules File Selected. Cannot refresh settings.")
 
                 ## assume that the user has uploaded a valid kijiku rules file, if it's not, that's on them
                 try:
@@ -1118,6 +1128,7 @@ class KudasaiGUI:
             
             self.apply_changes_button.click(apply_new_kijiku_settings,
                                             inputs=[
+                                                self.input_kijiku_rules_file, ## kijiku rules file
                                                 self.model_input_field, ## model input field
                                                 self.system_message_input_field, ## system message input field
                                                 self.temperature_input_field, ## temperature input field

@@ -62,7 +62,8 @@ class JsonHandler:
             if(JsonHandler.current_kijiku_rules["open ai settings"]["model"] not in FileEnsurer.allowed_models):
                 raise ValueError("Invalid model")
             
-            ## do float checks for temp and top_p
+            assert JsonHandler.current_kijiku_rules["open ai settings"]["system_message"] not in ["", "None", None]
+
             if(JsonHandler.current_kijiku_rules["open ai settings"]["temp"] < 0 or JsonHandler.current_kijiku_rules["open ai settings"]["top_p"] > 2):
                 raise ValueError("temp or top_p out of range")
             

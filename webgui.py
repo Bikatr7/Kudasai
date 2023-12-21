@@ -21,7 +21,7 @@ from models.kaiseki import Kaiseki
 from kudasai import Kudasai
 
 ## known bugs
-## logging tab doesn't seem to function at all, we need to fix that
+## need to make error log update properly, likely gonna set it to update when logging tab is selected
 
 ## backlog
 ## add countermeasures not allowing apply/discard when now kijiku files uploaded
@@ -986,8 +986,8 @@ class KudasaiGUI:
                                                 
                                                 outputs=[
                                                     self.output_field_kaiseki, ## translated text
-                                                    self.kaiseki_je_check_text_field]) ## je check text field on kaiseki tab
-            
+                                                    self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
+                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
             ## for the kaiseki debug log
             self.translate_button_kaiseki.click(fn=fetch_log_content,
                                                 inputs=[],
@@ -1008,8 +1008,8 @@ class KudasaiGUI:
                                                 
                                                 outputs=[
                                                     self.kijiku_translated_text_output_field, ## translated text
-                                                    self.kijiku_je_check_text_field]) ## je check text field on kijiku tab
-            
+                                                    self.kijiku_je_check_text_field, ## je check text field on kijiku tab
+                                                    self.debug_log_output_field_log_tab])
             ## for the kijiku debug log
             self.translate_button_kijiku.click(fn=fetch_log_content,
                                                 inputs=[],

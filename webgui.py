@@ -22,9 +22,6 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
-## features i'd like to add
-## utilize Kudasai.connection in webgui for potential translation failure due to no internet connection
-
 ## backlog
 ## add countermeasures not allowing apply/discard when now kijiku files uploaded
 ## not allow translate button to be pressed while it's already translating 
@@ -569,6 +566,9 @@ class KudasaiGUI:
 
                 """
 
+                if(Kudasai.connection == False):
+                    raise gr.Error("No internet connection detected, please connect to the internet to use translation features of Kudasai.")
+
                 ## in case of subsequent runs, we need to reset the static variables
                 Kaiseki.reset_static_variables()
 
@@ -630,6 +630,9 @@ class KudasaiGUI:
                 log_text (str) : The log text for the Log tab.
                 
                 """
+
+                if(Kudasai.connection == False):
+                    raise gr.Error("No internet connection detected, please connect to the internet to use translation features of Kudasai.")
 
                 ## in case of subsequent runs, we need to reset the static variables
                 Kijiku.reset_static_variables()

@@ -34,7 +34,7 @@ class ReplacementType(enum.Flag):
 
     """
 
-    Represents name markers for different types of names.
+    Represents how a name should be replaced when dealing with honorifics and overall replacements.
 
     The ReplacementType class extends the Flag class, allowing for the combination of name markers using bitwise operations.
     
@@ -72,26 +72,22 @@ class Kairyou:
     ## The dictionary containing the rules for preprocessing.
     replacement_json = {}
 
-    ## The text to be preprocessed.
     text_to_preprocess = ""
 
-    ## The log of the preprocessing, showing the replacements made.
     preprocessing_log = ""
 
-    ## The log of the errors that occurred during preprocessing (if any).
     error_log = ""
 
-    ## The total number of replacements made.
     total_replacements = 0
     
     ## How japanese names are separated in the japanese text
     JAPANESE_NAME_SEPARATORS = ["・", ""]
 
-    ## will be set to false if given an invalid json file
     need_to_run = True
 
     ##------------------------/
 
+    ## The spacy NER model used for enhanced replacement checking.
     ner = spacy.load("ja_core_news_lg")
 
 ##-------------------start-of-validate_replace_json()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -105,7 +101,6 @@ class Kairyou:
 
         """
 
-        ## make sure the json has the right keys
         try:
             assert "kutouten" in Kairyou.replacement_json
             assert "unicode" in Kairyou.replacement_json
@@ -123,7 +118,6 @@ class Kairyou:
 
             raise e
 
-
 ##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -135,7 +129,6 @@ class Kairyou:
 
         """
 
-        ## If we don't need to run, don't run.
         if(not Kairyou.need_to_run):
             print("Preprocessing skipped.")
             return
@@ -214,11 +207,12 @@ class Kairyou:
                 except Exception as E: 
                     Kairyou.error_log += "Issue with the following key : " + json_key + "\n"
                     Kairyou.error_log += "Error is as follows : " + str(E) 
-                    continue ## Go to the next iteration of the loop
+                    continue
 
             else: 
                 try:
                     for jap, eng in Kairyou.replacement_json[json_key].items(): 
+
                         num_replacements = Kairyou.replace_single_word(jap, eng, is_potential_name=False)
 
                         if(num_replacements > 0):
@@ -228,7 +222,7 @@ class Kairyou:
                 except Exception as E: 
                     Kairyou.error_log += "Issue with the following key : " + json_key + "\n"
                     Kairyou.error_log += "Error is as follows : " + str(E) 
-                    continue ## Go to the next iteration of the loop
+                    continue
 
 ##-------------------start-of-replace_katakana()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -255,6 +249,7 @@ class Kairyou:
 
                 for eng, jap in Kairyou.replacement_json[json_key].items(): 
 
+                    ## makes jap entries into a list if not already
                     if(isinstance(jap, list) == False):
                         jap = [jap]
 
@@ -288,6 +283,7 @@ class Kairyou:
                     Kairyou.error_log += "Error is as follows : " + str(E) 
                     continue
             else:
+
                 ## Handling non-names
                 jap, eng = entry
 
@@ -386,9 +382,9 @@ class Kairyou:
         num_occurrences = 0
 
         if(is_katakana):
-            if(KatakanaHandler.is_actual_word(word)):
 
-                ## Skip replacement if it's an actual word.
+            ## Skip replacement if it's an actual word.
+            if(KatakanaHandler.is_actual_word(word)):
                 return 0  
             
             else:
@@ -449,8 +445,8 @@ class Kairyou:
                 )
 
             if(is_katakana):
+                ## Skip replacement if it's an actual Katakana word.
                 if(KatakanaHandler.is_actual_word(jap)):
-                    ## Skip replacement if it's an actual Katakana word.
                     continue
                 else:
                     ## Perform enhanced replacement check with NER 

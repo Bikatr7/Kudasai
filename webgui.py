@@ -22,6 +22,9 @@ from models.kaiseki import Kaiseki
 
 from kudasai import Kudasai
 
+## to do
+## refactor and make everything cleaner
+
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:

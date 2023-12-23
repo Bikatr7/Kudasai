@@ -678,7 +678,7 @@ class KudasaiGUI:
                 Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
 
                 ## commence translation
-                await Kijiku.webgui_commence_translation()
+                await Kijiku.commence_translation(is_webgui=True)
                 Kijiku.write_kijiku_results()
 
                 ## je check text and translated text are lists of strings, so we need to convert them to strings

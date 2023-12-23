@@ -29,7 +29,7 @@ class SystemTranslationMessage(typing.TypedDict):
 
     """
 
-    SystemTranslationMessage is a type that is used to interact with the OpenAI API and translates the text by batch, specifically for the system message.
+    SystemTranslationMessage is a typedDict that is used to send the system message to the API.
 
     """
 
@@ -43,7 +43,7 @@ class ModelTranslationMessage(typing.TypedDict):
 
     """
 
-    ModelTranslationMessage is a type that is used to interact with the OpenAI API and translates the text by batch, specifically for the model/user message.
+    ModelTranslationMessage is a typedDict that is used to send the model/user message to the API.
 
     """
 
@@ -61,7 +61,6 @@ class MaxBatchDurationExceeded(Exception):
     """
 
     pass
-
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -188,35 +187,34 @@ class Kijiku:
 
         """
 
-        ## get saved api key if exists
+        ## get saved API key if exists
         try:
             with open(FileEnsurer.openai_api_key_path, 'r', encoding='utf-8') as file: 
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
             Kijiku.client.api_key = api_key
 
-            ## make dummy request to check if api key is valid
+            ## make dummy request to check if API key is valid
             await Kijiku.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role":"user","content":"This is a test."}],
                 max_tokens=1
             )
         
-            Logger.log_action("Used saved api key in " + FileEnsurer.openai_api_key_path, output=True)
+            Logger.log_action("Used saved API key in " + FileEnsurer.openai_api_key_path, output=True)
             Logger.log_barrier()
 
             time.sleep(2)
 
-        ## else try to get api key manually
+        ## else try to get API key manually
         except:
 
             Toolkit.clear_console()
                 
-            api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the openapi key you have : ")
+            api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the OpenAI API key you have : ")
 
-            ## if valid save the api key
+            ## if valid save the API key
             try: 
-
 
                 await Kijiku.setup_api_key(api_key)
 
@@ -227,7 +225,7 @@ class Kijiku:
                     
                 Toolkit.clear_console()
                         
-                Logger.log_action("Authorization error with setting up openai, please double check your api key as it appears to be incorrect.", output=True)
+                Logger.log_action("Authorization error while setting up OpenAI, please double check your API key as it appears to be incorrect.", output=True)
 
                 Toolkit.pause_console()
                         
@@ -238,7 +236,7 @@ class Kijiku:
 
                 Toolkit.clear_console()
                         
-                Logger.log_action("Unknown error with setting up openai, The error is as follows " + str(e)  + "\nThe exception will now be raised.", output=True)
+                Logger.log_action("Unknown error while setting up OpenAI, The error is as follows " + str(e)  + "\nThe exception will now be raised.", output=True)
 
                 Toolkit.pause_console()
 
@@ -251,7 +249,7 @@ class Kijiku:
 
         """
 
-        Sets up the api key.
+        Sets up the API key.
 
         Parameters:
         api_key (string) : the api key to set.
@@ -272,7 +270,7 @@ class Kijiku:
 
             Logger.log_action("API key is valid.", output=True)
             
-        ## if invalid key exit
+        ## if invalid key raise exception
         except AuthenticationError as e:
             raise e
 
@@ -284,6 +282,7 @@ class Kijiku:
         """
 
         Resets the static variables.
+        Done to prevent issues with the webgui.
 
         """
 
@@ -310,10 +309,6 @@ class Kijiku:
 
         print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
-        ## Reset settings to default if the json is botched
-        if("open ai settings" not in JsonHandler.current_kijiku_rules):
-            JsonHandler.reset_kijiku_rules_to_default()
-
         for key, value in JsonHandler.current_kijiku_rules["open ai settings"].items():
             print(key + " : " + str(value))
 
@@ -324,7 +319,7 @@ class Kijiku:
 
         Toolkit.clear_console()
 
-        print("Do you want to change your api key? (1 for yes or 2 for no) : ")
+        print("Do you want to change your API key? (1 for yes or 2 for no) : ")
 
         if(input("\n") == "1"):
             os.remove(FileEnsurer.openai_api_key_path)
@@ -335,7 +330,7 @@ class Kijiku:
 ##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def commence_translation() -> None:
+    async def commence_translation(is_webgui:bool=False) -> None:
 
         """
 
@@ -371,30 +366,13 @@ class Kijiku:
         Kijiku.build_translation_batches()
 
         ## get cost estimate and confirm
-        num_tokens, min_cost, Kijiku.MODEL = Kijiku.estimate_cost(Kijiku.MODEL)
-
-        print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
-
-        Logger.log_barrier()
-        Logger.log_action("Calculating cost")
-        Logger.log_barrier()
-        
-        Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
-        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
-        Logger.log_barrier()
-
-        if(input("\nContinue? (1 for yes or 2 for no) : ") == "1"):
-            Logger.log_action("User confirmed translation.")
-
-        else:
-            Logger.log_action("User cancelled translation.")
-            exit()
+        await Kijiku.handle_cost_estimate_prompt(omit_prompt=is_webgui)
 
         Toolkit.clear_console()
 
         Logger.log_barrier()
         
-        Logger.log_action("Starting Translation...", output=True)
+        Logger.log_action("Starting Translation...", output=not is_webgui)
         Logger.log_barrier()
 
         ## requests to run asynchronously
@@ -408,10 +386,10 @@ class Kijiku:
         results = await asyncio.gather(*async_requests)
 
         Logger.log_barrier()
-        Logger.log_action("Translation Complete!", output=True)
+        Logger.log_action("Translation Complete!", output=not is_webgui)
 
         Logger.log_barrier()
-        Logger.log_action("Starting Redistribution...", output=True)
+        Logger.log_action("Starting Redistribution...", output=not is_webgui)
 
         Logger.log_barrier()
 
@@ -428,96 +406,7 @@ class Kijiku:
 
         Toolkit.clear_console()
 
-        Logger.log_action("Done!", output=True)
-        Logger.log_barrier()
-
-##-------------------start-of-commence_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    async def webgui_commence_translation() -> None:
-
-        """
-
-        Uses all the other functions to translate the text provided by Kudasai.
-        For use with the webgui.
-
-        """
-        
-        Logger.log_barrier()
-        Logger.log_action("Kijiku Activated, Settings are as follows : ")
-        Logger.log_barrier()
-
-        for key,value in JsonHandler.current_kijiku_rules["open ai settings"].items():
-            Logger.log_action(key + " : " + str(value))
-
-        Kijiku.MODEL = JsonHandler.current_kijiku_rules["open ai settings"]["model"]
-        Kijiku.translation_instructions = JsonHandler.current_kijiku_rules["open ai settings"]["system_message"]
-        Kijiku.message_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["message_mode"])
-        Kijiku.prompt_size = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_lines"])
-        Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
-        Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"])
-        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
-        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
-        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
-
-        Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
-
-        Logger.log_barrier()
-        Logger.log_action("Starting Prompt Building")
-        Logger.log_barrier()
-
-        Kijiku.build_translation_batches()
-
-        ## get cost estimate and confirm
-        num_tokens, min_cost, Kijiku.MODEL = Kijiku.estimate_cost(Kijiku.MODEL)
-
-        Logger.log_barrier()
-        Logger.log_action("Calculating cost")
-        Logger.log_barrier()
-        
-        Logger.log_action("Estimated number of tokens : " + str(num_tokens))
-        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD")
-        Logger.log_barrier()
-
-        Logger.log_barrier()
-        
-        Logger.log_action("Starting Translation...")
-        Logger.log_barrier()
-
-        ## requests to run asynchronously
-        async_requests = []
-        length = len(Kijiku.translation_batches)
-
-        for i in range(0, length, 2):
-            async_requests.append(Kijiku.handle_translation(i, length, Kijiku.translation_batches[i], Kijiku.translation_batches[i+1]))
-
-        try:
-            ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
-            results = await asyncio.gather(*async_requests)
-
-        except Exception:
-            raise Exception("Interrupted by user.")
-
-        Logger.log_barrier()
-        Logger.log_action("Translation Complete!")
-
-        Logger.log_barrier()
-        Logger.log_action("Starting Redistribution...")
-
-        Logger.log_barrier()
-
-        ## Sort results based on the index to maintain order
-        sorted_results = sorted(results, key=lambda x: x[0])
-
-        ## Redistribute the sorted results
-        for index, translated_prompt, translated_message in sorted_results:
-            Kijiku.redistribute(translated_prompt, translated_message)
-
-        ## try to pair the text for j-e checking if the mode is 2
-        if(Kijiku.je_check_mode == 2):
-            Kijiku.je_check_text = Kijiku.fix_je()
-
-        Logger.log_action("Done!")
+        Logger.log_action("Done!", output=not is_webgui)
         Logger.log_barrier()
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -527,14 +416,14 @@ class Kijiku:
 
         """
 
-        Generates prompts for the messages meant for the ai.
+        Generates prompts for the messages meant for the API.
 
         Parameters:
-        index (int) an int representing where we currently are in the text file.
+        index (int) : An int representing where we currently are in the text file.
 
         Returns:
-        prompt (list - string) a list of japanese lines that will be assembled into messages.
-        index (int) an updated int representing where we currently are in the text file.
+        prompt (list - string) : A list of Japanese lines that will be assembled into messages.
+        index (int) : An updated int representing where we currently are in the text file.
 
         """
 
@@ -576,7 +465,7 @@ class Kijiku:
 
         """
 
-        Builds translations batches dict for ai prompt.
+        Builds translations batches dict for the API prompts.
         
         """
 
@@ -591,7 +480,7 @@ class Kijiku:
             if(Kijiku.message_mode == 1):
                 system_msg = SystemTranslationMessage(role="system", content=Kijiku.translation_instructions)
 
-            ## while message mode two structures the first message as a model message and the second message as a system message, typically used for non-gpt-4 models if at all
+            ## while message mode two structures the first message as a model message and the second message as a model message too, typically used for non-gpt-4 models if at all
             else:
                 system_msg = ModelTranslationMessage(role="user", content=Kijiku.translation_instructions)
 
@@ -738,20 +627,46 @@ class Kijiku:
         
         raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
     
+##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def handle_cost_estimate_prompt(omit_prompt:bool=False) -> None:
+
+        ## get cost estimate and confirm
+        num_tokens, min_cost, Kijiku.MODEL = Kijiku.estimate_cost(Kijiku.MODEL)
+
+        print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
+
+        Logger.log_barrier()
+        Logger.log_action("Calculating cost")
+        Logger.log_barrier()
+        
+        Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
+        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
+        Logger.log_barrier()
+
+        if(not omit_prompt):
+            if(input("\nContinue? (1 for yes or 2 for no) : ") == "1"):
+                Logger.log_action("User confirmed translation.")
+
+            else:
+                Logger.log_action("User cancelled translation.")
+                exit()
+    
 ##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ## backoff wrapper for retrying on errors
+    ## backoff wrapper for retrying on errors, As of OpenAI > 1.0.0, it comes with a built in backoff system, but I've grown accustomed to this one so I'm keeping it.
     @staticmethod
     @backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
     async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
 
         """
 
-        Translates system and user message.
+        Translates a system and user message.
 
         Parameters:
-        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : the system message also known as the instructions.
-        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
+        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
+        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
 
         Returns:
         output (string) a string that gpt gives to us also known as the translation.
@@ -790,6 +705,7 @@ class Kijiku:
         """
         
         Returns the max batch duration.
+        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called.
 
         Returns:
         max_batch_duration (float) : the max batch duration.
@@ -808,9 +724,10 @@ class Kijiku:
         Handles the translation for a given system and user message.
 
         Parameters:
-        index (int) : the index of the message in the original list.
-        length (int) : the length of the original list.
-        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : the system message also known as the instructions.
+        index (int) : The index of the message in the original list.
+        length (int) : The length of the original list.
+        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
+        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
         
         Returns:\n
         index (int) : the index of the message in the original list.
@@ -819,9 +736,11 @@ class Kijiku:
 
         """
 
+        ## For the webgui
         if(FileEnsurer.do_interrupt == True):
             raise Exception("Interrupted by user.")
 
+        ## Basically limits the number of concurrent batches
         async with Kijiku._semaphore:
             num_tries = 0
 
@@ -888,7 +807,7 @@ class Kijiku:
 ##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def log_retry(details):
+    def log_retry(details) -> None:
 
         """
 
@@ -908,7 +827,7 @@ class Kijiku:
 ##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def log_failure(details):
+    def log_failure(details) -> None:
 
         """
         
@@ -942,9 +861,12 @@ class Kijiku:
 
         """
 
+        ## Separates with hyphens if the mode is 1 
         if(Kijiku.je_check_mode == 1):
             Kijiku.je_check_text.append("\n-------------------------\n"+ str(translation_prompt["content"]) + "\n\n")
             Kijiku.je_check_text.append(translated_message + '\n')
+        
+        ## Mode two tries to pair the text for j-e checking, see fix_je() for more details
         elif(Kijiku.je_check_mode == 2):
             Kijiku.je_check_text.append(str(translation_prompt["content"]))
             Kijiku.je_check_text.append(translated_message)
@@ -1005,7 +927,7 @@ class Kijiku:
         Note that fix_je() is not always accurate, and may use standard j-e formatting instead of the corrected formatting.
 
         Returns:
-        final_list (list - str) : the fixed J->E text.
+        final_list (list - str) : the 'fixed' J->E text.
 
         """
         

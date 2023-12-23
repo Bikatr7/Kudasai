@@ -101,8 +101,17 @@ class Kudasai:
             Kairyou.need_to_run = False
             replacement_json = {}
 
-        with open(input_file, 'r', encoding='utf-8') as file:  ## type: ignore
-            japanese_text = file.read()
+        try:
+            with open(input_file, 'r', encoding='utf-8') as file:  ## type: ignore
+                japanese_text = file.read()
+
+        except:
+
+            Logger.log_action("Invalid txt file.", output=True)
+
+            Toolkit.pause_console()
+
+            raise Exception("Invalid txt file.")
         
         Kairyou.replacement_json = replacement_json 
         Kairyou.text_to_preprocess = japanese_text

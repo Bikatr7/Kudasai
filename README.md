@@ -263,6 +263,8 @@ Kijiku Settings:
 Logging:
 ![Logging](https://i.imgur.com/c9LmkPR.jpg)
 
+API Keys above are dead, so no worries on that end.
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **License**<a name="license"></a>
 

@@ -2,16 +2,16 @@
 from datetime import datetime
 
 import os
+from re import T
 import typing
 import platform
 import subprocess
-
 
 class Toolkit():
 
     """
     
-    The class for a bunch of utility functions used throughout Kudasai.
+    A class containing various functions that are used throughout Kudasai.
 
     """
 
@@ -45,10 +45,9 @@ class Toolkit():
 
         """
 
-
-        print(message)
-
         try:
+
+            print(message)
         
             ## Windows
             if(os.name == 'nt'): 
@@ -201,7 +200,18 @@ class Toolkit():
             return is_connection, update_prompt
 
         ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail.
-        except:
+        except ImportError:
+
+            print("Requests is not installed, please install it using the following command:\npip install requests")
+
+            Toolkit.pause_console()
+                
+            is_connection = False 
+                    
+            return is_connection, update_prompt
+
+
+        except Exception as e:
 
             is_connection = False 
                     

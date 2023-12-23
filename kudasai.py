@@ -107,7 +107,7 @@ class Kudasai:
 
         except:
 
-            Logger.log_action("Invalid txt file.", output=True)
+            Logger.log_action("Invalid txt file.", output=True, omit_timestamp=True)
 
             Toolkit.pause_console()
 

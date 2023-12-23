@@ -689,7 +689,7 @@ class Kijiku:
             stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"],
             presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"]),
             frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"]),
-            max_tokens = int(JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]),            
+            ##max_tokens = int(JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]),            
 
         )
 

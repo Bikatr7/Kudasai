@@ -31,7 +31,6 @@ class FileEnsurer():
 
     ## sub dirs
     lib_dir = os.path.join(script_dir, "lib")
-
     sudachi_lib = os.path.join(lib_dir, "sudachi")
     dic_lib = os.path.join(lib_dir, "dicts")
     gui_lib = os.path.join(lib_dir, "gui")
@@ -162,7 +161,6 @@ class FileEnsurer():
             with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
                 json.dump(FileEnsurer.default_kijiku_rules, file)
         
-        
         if(not os.path.exists(FileEnsurer.katakana_words_path)):
            raise FileNotFoundError(f"Katakana words file not found at {FileEnsurer.katakana_words_path}. Can not continue, preprocess failed.")
 
@@ -252,7 +250,7 @@ class FileEnsurer():
             file.write(content_to_write)
 
         if(omit):
-            content_to_write = "Content was omitted"
+            content_to_write = "(Content was omitted)"
         
         Logger.log_action(file_path + " was overwritten with the following content: " + content_to_write)
 
@@ -288,7 +286,7 @@ class FileEnsurer():
         file_path (str) : path to the file to be read.
 
         Returns:
-        str : the content of the file.
+        content (str) : the content of the file.
 
         """
 

@@ -46,7 +46,7 @@ class KatakanaHandler:
 
     """
     
-    Has some helper functions for dealing with katakana characters while preprocessing.
+    Contains helper functions for katakana handling.
 
     """
 
@@ -59,7 +59,7 @@ class KatakanaHandler:
 
         """
 
-        Loads the katakana library file into memory.
+        Loads the katakana library into memory.
 
         """
 
@@ -109,7 +109,7 @@ class KatakanaHandler:
 
         """
         
-        Checks if the given jap is an actual katakana word.
+        Checks if the given japanese is an actual katakana word.
 
         Parameters:
         jap (str) : the katakana word to check.
@@ -138,7 +138,7 @@ class KatakanaHandler:
         string (str) : the string to check.
 
         Returns:
-        bool : True if the word is all punctuation otherwise false
+        bool : True if the word is all punctuation, False otherwise.
 
         """
 

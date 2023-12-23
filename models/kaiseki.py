@@ -1,3 +1,5 @@
+## Basically Deprecated, use Kijiku instead. Currently only maintained for backwards compatibility.
+##---------------------------------------
 ## built-in libraries
 import string
 import time
@@ -19,49 +21,39 @@ class Kaiseki:
 
     """
 
-    Kaiseki is a secondary class that is used to interact with the deepl API and translate Japanese text sentence by sentence.
+    Kaiseki is a secondary class that is used to interact with the Deepl API and translate Japanese text sentence by sentence.
 
-    Kaiseki is considered Inferior to Kijiku, please consider using Kijiku instead.
+    Kaiseki is considered inferior to Kijiku, please consider using Kijiku instead.
     
     """
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ## the deepl translator object
     translator:deepl.Translator
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ## the text to translate
     text_to_translate = []
 
-    ## the translated text
     translated_text = []
 
-    ## the text for j-e checking
     je_check_text = []
 
-    ## the text for errors that occur during translation (if any)
     error_text = []
 
-    ## the print result for the translation
     translation_print_result = ""
     
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ## parts of the current_sentence
     sentence_parts = []
 
-    ## punctuation of the current_sentence
     sentence_punctuation = []
 
-    ## if the sentence contains special punctuation
-    special_punctuation = [] ## [0] = "" [1] = ~ [2] = '' in Kaiseki.current_sentence but not entire Kaiseki.current_sentence [3] = '' but entire Kaiseki.current_sentence [3] if () in Kaiseki.current_sentence
+    ## [0] = "" [1] = ~ [2] = '' in Kaiseki.current_sentence but not entire Kaiseki.current_sentence [3] = '' but entire Kaiseki.current_sentence [3] if () in Kaiseki.current_sentence
+    special_punctuation = [] 
 
-    ## the current sentence being translated
     current_sentence = ""
 
-    ## the current translated sentence
     translated_sentence = ""
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -69,7 +61,7 @@ class Kaiseki:
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def translate():
+    def translate() -> None:
 
         """
 
@@ -85,7 +77,8 @@ class Kaiseki:
 
             Kaiseki.initialize() 
 
-            time_start = time.time() ## offset time
+            ## offset time, for if the user doesn't get through Kaiseki.initialize() before the translation starts.
+            time_start = time.time()
 
             Kaiseki.commence_translation()
 
@@ -108,7 +101,7 @@ class Kaiseki:
         
         """
 
-        Initializes the Kaiseki class by getting the api key and creating the translator object.
+        Initializes the Kaiseki class by getting the API key and creating the translator object.
 
         """
         
@@ -166,7 +159,7 @@ class Kaiseki:
 ##-------------------start-of-setup_api_key()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def setup_api_key(api_key:str):
+    def setup_api_key(api_key:str) -> None:
 
         """
 
@@ -196,7 +189,7 @@ class Kaiseki:
         """
 
         Resets the static variables of the Kaiseki class.
-        For when running multiple translations in a row.
+        For when running multiple translations in a row through webgui.
 
         """
 
@@ -228,6 +221,7 @@ class Kaiseki:
 
         while(i < len(Kaiseki.text_to_translate)):
 
+            ## for webgui, if the user presses the clear button, raise an exception to stop the translation
             if(FileEnsurer.do_interrupt == True):
                 raise Exception("Interrupted by user.")
 
@@ -235,6 +229,7 @@ class Kaiseki:
             
             Logger.log_action("Initial Sentence : " + Kaiseki.current_sentence)
 
+            ## Kaiseki is an in-place translation, so it'll build the translated text into Kaiseki.translated_text as it goes.
             if(any(char in Kaiseki.current_sentence for char in ["▼", "△", "◇"])):
                 Kaiseki.translated_text.append(Kaiseki.current_sentence + '\n')
                 Logger.log_action("Sentence : " + Kaiseki.current_sentence + ", Sentence is a pov change... leaving intact.")
@@ -467,7 +462,7 @@ class Kaiseki:
                 tilde_active = True
 
             ## a quote is present in the sentence, but not enclosing the sentence, we need to isolate it
-            if(Kaiseki.special_punctuation[2] == True and "'" in Kaiseki.sentence_parts[i] and (Kaiseki.sentence_parts[i][0] != "'" and Kaiseki.sentence_parts[i][-1] != "'")): ## isolates the quote in the sentence
+            if(Kaiseki.special_punctuation[2] == True and "'" in Kaiseki.sentence_parts[i] and (Kaiseki.sentence_parts[i][0] != "'" and Kaiseki.sentence_parts[i][-1] != "'")):
                 
                 sentence = Kaiseki.sentence_parts[i]
                 substring_start = sentence.index("'")
@@ -496,7 +491,7 @@ class Kaiseki:
                     translated_part += "~"
                     tilde_active = False
 
-                ## translates the quote and readds it back to the sentence part
+                ## translates the quote and re-adds it back to the sentence part
                 if(single_quote_active == True): 
                     quote = str(Kaiseki.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
                     

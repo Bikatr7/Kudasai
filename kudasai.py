@@ -21,7 +21,7 @@ class Kudasai:
 
     """
 
-    Kudasai class is the main class for the Kudasai program. It handles all logic for all versions of Kudasai.
+    Kudasai class is the main class for the Kudasai program. It handles all logic for CLI & Console versions of Kudasai.
     
     """
 
@@ -65,25 +65,34 @@ class Kudasai:
             Toolkit.pause_console()
 
             raise Exception("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
-##-------------------start-of-setup_kairyou_for_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+        
+##-------------------start-of-setup_kairyou()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     @staticmethod
-    def setup_kairyou_for_cli(input_file:str, replacement_json_path:str) -> None:
+    def setup_kairyou(input_file:str | None = None, replacement_json_path:str | None = None, is_cli:bool=False) -> None:
 
         """
         
-        If the user is running the CLI version of Kudasai, this function is called to setup the text to be processed and the replacement json file.
+        If the user is running the WebGUI version of Kudasai, this function is called to setup the text to be processed and the replacement json file.
         
         Parameters:
-        input_file (str) : The path to the input file to be processed.
-        replacement_json (str) : The path to the replacement json file.
+        input_file (str | None | default=None) : The path to the input file to be processed.
+        replacement_json (str | None | default=None) : The path to the replacement json file.
+        is_cli (bool | default=False) : Whether the user is running the CLI version of Kudasai.
 
         """
+
+        if(not is_cli):
+            input_file = input("Please enter the path to the input file to be processed:\n").strip('"')
+            Toolkit.clear_console()
+
+            replacement_json_path = input("Please enter the path to the replacement json file:\n").strip('"')
+            Toolkit.clear_console()
 
         ## try to load the replacement json file
         try:
 
-            with open(replacement_json_path, 'r', encoding='utf-8') as file: 
+            with open(replacement_json_path, 'r', encoding='utf-8') as file:  ## type: ignore
                 replacement_json = json.load(file) 
     
         ## if not just skip preprocessing
@@ -92,65 +101,8 @@ class Kudasai:
             Kairyou.need_to_run = False
             replacement_json = {}
 
-        with open(input_file, 'r', encoding='utf-8') as file: 
+        with open(input_file, 'r', encoding='utf-8') as file:  ## type: ignore
             japanese_text = file.read()
-        
-        Kairyou.replacement_json = replacement_json 
-        Kairyou.text_to_preprocess = japanese_text
-
-        ## if given a replacement json file, validate it
-        if(Kairyou.replacement_json != {}):
-
-            try:
-                Kairyou.validate_replacement_json()
-
-            except:
-                Kairyou.need_to_run = False
-                replacement_json = {}
-
-##-------------------start-of-setup_kairyou_for_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def setup_kairyou_for_console() -> None:
-
-        """
-        
-        If the user is running the Console version of Kudasai, this function is called to setup the text to be processed and the replacement json file.
-
-        """
-
-        input_file = input("Please enter the path to the input file to be processed:\n").strip('"')
-
-        Toolkit.clear_console()
-
-        replacement_json_path = input("Please enter the path to the replacement json file:\n").strip('"')
-
-        Toolkit.clear_console()
-
-        ## try to load the replacement json file
-        try:
-
-            with open(replacement_json_path, 'r', encoding='utf-8') as file: 
-                replacement_json = json.load(file) 
-    
-        ## if not just skip preprocessing
-        except:
-            
-            Kairyou.need_to_run = False
-            replacement_json = {}
-
-        try:
-
-            with open(input_file, 'r', encoding='utf-8') as file: 
-                japanese_text = file.read()
-            
-        except:
-                
-            Logger.log_action("The first path you provided is either invalid, not a text file, or the text file has an error.", output=True, is_error=True, omit_timestamp=True)
-
-            Toolkit.pause_console()
-
-            exit()
         
         Kairyou.replacement_json = replacement_json 
         Kairyou.text_to_preprocess = japanese_text
@@ -342,7 +294,7 @@ async def main() -> None:
         ## if running console version
         if(len(sys.argv) <= 1):
             
-            Kudasai.setup_kairyou_for_console()
+            Kudasai.setup_kairyou()
 
             await Kudasai.run_kudasai_console()
 
@@ -351,7 +303,7 @@ async def main() -> None:
         ## if running cli version
         elif(len(sys.argv) == 3):
 
-            Kudasai.setup_kairyou_for_cli(sys.argv[1], sys.argv[2])
+            Kudasai.setup_kairyou(input_file=sys.argv[1], replacement_json_path=sys.argv[2], is_cli=True)
 
             await Kudasai.run_kudasai_cli()
 
@@ -360,7 +312,7 @@ async def main() -> None:
         ## if running cli version but skipping preprocessing
         elif(len(sys.argv) == 2):
 
-            Kudasai.setup_kairyou_for_cli(sys.argv[1], "")
+            Kudasai.setup_kairyou(input_file=sys.argv[1], is_cli=True)
 
             await Kudasai.run_kudasai_cli()
 

@@ -1,11 +1,9 @@
 ## built-in libraries
-from turtle import update
 import typing
 import base64
 
 ## third-party libraries
 import gradio as gr
-from models.kijiku import Kijiku
 
 ## custom modules
 from modules.common.toolkit import Toolkit
@@ -19,11 +17,9 @@ from handlers.json_handler import JsonHandler
 
 from models.kairyou import Kairyou
 from models.kaiseki import Kaiseki
+from models.kijiku import Kijiku
 
 from kudasai import Kudasai
-
-## to do
-## refactor and make everything cleaner
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -53,7 +49,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    def build_gui(self):
+    def build_gui(self) -> None:
 
         """
 
@@ -67,7 +63,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def fetch_log_content():
+            def fetch_log_content() -> str:
 
                 """
                 
@@ -88,7 +84,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-get_saved_kaiseki_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def get_saved_kaiseki_api_key():
+            def get_saved_kaiseki_api_key() -> str:
 
                 """
                 
@@ -108,7 +104,7 @@ class KudasaiGUI:
                 
 ##-------------------start-of-get_saved_kijiku_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def get_saved_kijiku_api_key():
+            def get_saved_kijiku_api_key() -> str:
 
                 """
                 
@@ -181,7 +177,7 @@ class KudasaiGUI:
                 with gr.Tab("Preprocessing | Kairyou") as self.preprocessing_tab:
                     with gr.Row():
 
-                        ## input files
+                        ## input fields, text input for preprocessing, and replacement json file input.
                         with gr.Column():
                             self.input_txt_file_preprocessing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
                             self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='file')
@@ -538,7 +534,7 @@ class KudasaiGUI:
                         preprocessing_log = FileEnsurer.standard_read_file(FileEnsurer.kairyou_log_path)
 
                         ## Kairyou is a "in-place" replacement, so we can just return the text_to_preprocess, as for the double log text return, we do that because we want to display the log text on the log tab, and on the preprocess tab
-                        ## Kairyou doesn't have any advanced logging, so we can just return the log text for both the log tab and the preprocess tab, no need to do what we did for the Kaiseki tab or Kijiku tab
+                        ## Kairyou doesn't have any advanced logging, so we can just return the log text for both the log tab and the preprocess tab, no need to do what we did for the Kaiseki tab and Kijiku tab
                         return Kairyou.text_to_preprocess, preprocessing_log, log_text, log_text
   
                     else:
@@ -574,6 +570,7 @@ class KudasaiGUI:
                 ## in case of subsequent runs, we need to reset the static variables
                 Kaiseki.reset_static_variables()
 
+                ## start of translation, so we can assume that that we don't want to interrupt it
                 FileEnsurer.do_interrupt = False
 
                 ## if translate button is clicked, we can assume that the translation is ongoing
@@ -642,6 +639,7 @@ class KudasaiGUI:
                 ## in case of subsequent runs, we need to reset the static variables
                 Kijiku.reset_static_variables()
 
+                ## start of translation, so we can assume that that we don't want to interrupt it
                 FileEnsurer.do_interrupt = False
 
                 ## if translate button is clicked, we can assume that the translation is ongoing
@@ -650,7 +648,8 @@ class KudasaiGUI:
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
                 JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
-                ## due to the bug with the settings need to validate json again
+                ## due to the bug with the settings need to validate json again.
+                ## bug has been resolved, but we'll keep this here just in case
                 try:
                     JsonHandler.validate_json()
 
@@ -778,6 +777,7 @@ class KudasaiGUI:
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
 
+                ## Same as above, we can assume that the user wants to cancel the translation
                 FileEnsurer.do_interrupt = True
                 
                 input_file_kaiseki = None
@@ -810,12 +810,14 @@ class KudasaiGUI:
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
 
+                ## Same as above, we can assume that the user wants to cancel the translation
                 FileEnsurer.do_interrupt = True
 
                 input_file_kijiku = None
 
                 input_text_kijiku = ""
 
+                ## Also gonna want to reset the json input field to the default json file
                 input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
 
                 kijiku_translated_text_output_field = ""

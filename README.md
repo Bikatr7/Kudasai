@@ -10,6 +10,7 @@
 - [Kaiseki](#kaiseki)
 - [Kijiku](#kijiku)
 - [Kijiku Settings](#kijiku-settings)
+- [Web GUI](#webgui)
 - [License](#license)
 - [Contact](#contact)
 
@@ -236,6 +237,31 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
     num_concurrent_batches: How many translations batches Kijiku will send to OpenAI at a time.
 
     Please note that while logit_bias can be changed, Kijiku does not currently do anything with them, and is merely there in case I decide to do something with it.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+**Web GUI**<a name="webgui"></a>
+
+Kudasai also offers a Web GUI. It has all the main functionality of the program but in an easier and non-linear way.
+
+To run the Web GUI, simply run webgui.py in the same directory as kudasai.py
+
+Below are some images of the Web GUI.
+
+Preprocessing | Kairyou:
+![Preprocessing Screen | Kairyou](https://i.imgur.com/1qcPpeP.jpg)
+
+Translation | Kaiseki:
+![Translation Screen | Kaiseki](https://i.imgur.com/U9GBaLw.jpg)
+
+Translation | Kijiku:
+![Translation Screen | Kijiku](https://i.imgur.com/nySRp9y.jpg)
+
+Kijiku Settings:
+![Kijiku Settings](https://i.imgur.com/42IZYIz.jpg)
+
+Logging:
+![Logging](https://i.imgur.com/c9LmkPR.jpg)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **License**<a name="license"></a>

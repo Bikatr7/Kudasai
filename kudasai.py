@@ -117,60 +117,45 @@ class Kudasai:
                 Kairyou.need_to_run = False
                 replacement_json = {}
 
-##-------------------start-of-run_kudasai_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+##-------------------start-of-run_kudasai()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
     @staticmethod
-    async def run_kudasai_console() -> None:
+    async def run_kudasai(is_cli:bool=False) -> None:
 
         """
-        
-        If the user is running the Console version of Kudasai, this function is called to run the program.
-        
+
+        Runs the Kudasai program.
+
+        Parameters:
+        is_cli (bool | default=False) : Whether the user is running the CLI version of Kudasai.
+
         """
 
-        Kudasai.handle_update_check_from_cli_or_console()
+        Kudasai.handle_update_check()
 
         Kairyou.preprocess()
 
-        print(Kairyou.preprocessing_log) 
+        if(not is_cli):
+            print(Kairyou.preprocessing_log) 
 
         Kairyou.write_kairyou_results() 
 
-        Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
+        if(not is_cli):
+            Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
 
         await Kudasai.determine_autotranslation_module()
 
-        Toolkit.pause_console("\nPress any key to exit...")
+        if(not is_cli):
+            Toolkit.pause_console("\nPress any key to exit...")
 
-##-------------------start-of-run_kudasai_cli()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    async def run_kudasai_cli() -> None:
-
-        """
-        
-        If the user is running the CLI version of Kudasai, this function is called to run the program.
-
-        """
-
-        Kudasai.handle_update_check_from_cli_or_console()
-
-        Kairyou.preprocess()
-
-        Kairyou.write_kairyou_results()
-
-        Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
-
-        await Kudasai.determine_autotranslation_module()
-
-##-------------------start-of-handle_update_check_from_cli_or_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-handle_update_check()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def handle_update_check_from_cli_or_console() -> None:
+    def handle_update_check() -> None:
 
         """
 
-        If the user is running the CLI or Console version of Kudasai, this function is called to check for updates.
+        Checks for updates and prompts the user to update if there is an update available.
 
         """
 
@@ -182,8 +167,7 @@ class Kudasai:
 
             Toolkit.pause_console()
             Toolkit.clear_console()
-        
-
+    
 ##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -296,7 +280,7 @@ async def main() -> None:
             
             Kudasai.setup_kairyou()
 
-            await Kudasai.run_kudasai_console()
+            await Kudasai.run_kudasai()
 
             Logger.push_batch()
 
@@ -305,7 +289,7 @@ async def main() -> None:
 
             Kudasai.setup_kairyou(input_file=sys.argv[1], replacement_json_path=sys.argv[2], is_cli=True)
 
-            await Kudasai.run_kudasai_cli()
+            await Kudasai.run_kudasai(is_cli=True)
 
             Logger.push_batch()
 
@@ -314,7 +298,7 @@ async def main() -> None:
 
             Kudasai.setup_kairyou(input_file=sys.argv[1], is_cli=True)
 
-            await Kudasai.run_kudasai_cli()
+            await Kudasai.run_kudasai(is_cli=True)
 
             Logger.push_batch()
 

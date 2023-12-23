@@ -758,7 +758,7 @@ class Kijiku:
 
         """
 
-        ## max_tokens and logit bias are currently excluded due to a lack of need, and the fact that i am lazy
+        ## logit bias is currently excluded due to a lack of need, and the fact that i am lazy
 
         response = await Kijiku.client.chat.completions.create(
             model=Kijiku.MODEL,
@@ -773,7 +773,8 @@ class Kijiku:
             stream = JsonHandler.current_kijiku_rules["open ai settings"]["stream"],
             stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"],
             presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"]),
-            frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"]),            
+            frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"]),
+            max_tokens = int(JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]),            
 
         )
 

@@ -330,7 +330,7 @@ class KudasaiGUI:
 
                             self.stream_input_field = gr.Textbox(label='Stream',
                                                                 value=(GuiJsonUtil.fetch_kijiku_setting_key_values("stream")),
-                                                                info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI Cookbook for example code. Do not change this.",
+                                                                info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
                                                                 lines=1,
                                                                 max_lines=1,
                                                                 show_label=True,
@@ -348,7 +348,7 @@ class KudasaiGUI:
 
                             self.logit_bias_input_field = gr.Textbox(label='Logit Bias',
                                                                     value=(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias")),
-                                                                    info="Modify the likelihood of specified tokens appearing in the completion. Do not change this.",
+                                                                    info="Modifies the likelihood of specified tokens appearing in the completion. Do not change this.",
                                                                     lines=1,
                                                                     max_lines=1,
                                                                     show_label=True,
@@ -368,7 +368,7 @@ class KudasaiGUI:
                                                                           value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("presence_penalty")),
                                                                           minimum=-2.0,
                                                                           maximum=2.0,
-                                                                          info="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.",
+                                                                          info="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.",
                                                                           show_label=True,
                                                                           interactive=True,
                                                                           elem_id="presence_penalty")
@@ -377,7 +377,7 @@ class KudasaiGUI:
                                                                            value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("frequency_penalty")),
                                                                            minimum=-2.0,
                                                                            maximum=2.0,
-                                                                           info="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.",
+                                                                           info="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.",
                                                                            show_label=True,
                                                                            interactive=True,
                                                                            elem_id="frequency_penalty")
@@ -387,7 +387,7 @@ class KudasaiGUI:
 
                             self.system_message_input_field = gr.Textbox(label='System Message',
                                                                         value=GuiJsonUtil.fetch_kijiku_setting_key_values("system_message"),
-                                                                        info="Instructions to the model. Do not change this unless you know what you're doing.",
+                                                                        info="Instructions to the model. Basically tells the model what to do.",
                                                                         lines=10,
                                                                         max_lines=10,
                                                                         show_label=True,
@@ -414,7 +414,7 @@ class KudasaiGUI:
                             self.sentence_fragmenter_mode_input_field = gr.Dropdown(label='Sentence Fragmenter Mode',
                                                                                     value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode")),
                                                                                     choices=[1,2,3],
-                                                                                    info="1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from ai return)) the api can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.",
+                                                                                    info="1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.",
                                                                                     show_label=True,
                                                                                     interactive=True,
                                                                                     elem_id="sentence_fragmenter_mode")
@@ -422,7 +422,7 @@ class KudasaiGUI:
                             self.je_check_mode_input_field = gr.Dropdown(label='JE Check Mode',
                                                                         value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("je_check_mode")),
                                                                         choices=[1,2],
-                                                                        info="1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will do 1. Use 2 for gpt-4.",
+                                                                        info="1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for gpt-4.",
                                                                         show_label=True,
                                                                         interactive=True,
                                                                         elem_id="je_check_mode")
@@ -430,7 +430,7 @@ class KudasaiGUI:
 
                             self.num_malformed_batch_retries_input_field = gr.Textbox(label='Number of Malformed Batch Retries',
                                                                                       value=GuiJsonUtil.fetch_kijiku_setting_key_values("num_malformed_batch_retries"),
-                                                                                      info="How many times Kudasai will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case.",
+                                                                                      info="How many times Kijiku will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case.",
                                                                                       lines=1,
                                                                                       max_lines=1,
                                                                                       show_label=True,
@@ -439,7 +439,7 @@ class KudasaiGUI:
 
                             self.batch_retry_timeout_input_field = gr.Textbox(label='Batch Retry Timeout',
                                                                               value=GuiJsonUtil.fetch_kijiku_setting_key_values("batch_retry_timeout"),
-                                                                              info="How long Kudasai will try to attempt to requery a translation batch in seconds, if a requests exceeds this duration, Kudasai will leave it untranslated.",
+                                                                              info="How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.",
                                                                               lines=1,
                                                                               max_lines=1,
                                                                               show_label=True,
@@ -448,7 +448,7 @@ class KudasaiGUI:
 
                             self.num_concurrent_batches_input_field = gr.Textbox(label='Number of Concurrent Batches Allowed',
                                                                                 value=GuiJsonUtil.fetch_kijiku_setting_key_values("num_concurrent_batches"),
-                                                                                info="How many translations batches Kudasai will send to OpenAI at a time.",
+                                                                                info="How many translations batches Kijiku will send to OpenAI at a time.",
                                                                                 lines=1,
                                                                                 max_lines=1,
                                                                                 show_label=True,

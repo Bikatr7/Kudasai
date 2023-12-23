@@ -31,6 +31,7 @@ class GuiJsonUtil:
 
         """
 
+        ## Done this way because if the value is None, it'll be shown as a blank string in the settings tab, which is not what we want.
         return GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] if GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] is not None else "None"
     
 ##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

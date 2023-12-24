@@ -580,7 +580,19 @@ class Kaiseki:
             file.writelines(Kaiseki.je_check_text) 
 
         with open(FileEnsurer.translated_text_path, 'w', encoding='utf-8') as file:
-            file.writelines(Kaiseki.translated_text) 
+            file.writelines(Kaiseki.translated_text)
+
+        ## Instructions to create a copy of the output for archival
+        FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
+
+        timestamp = Toolkit.get_timestamp_for_archival()
+
+        list_of_result_tuples = [('kaiseki_translated_text', Kaiseki.translated_text),
+                                 ('kaiseki_je_check_text', Kaiseki.je_check_text),
+                                 ('kaiseki_error_log', Kaiseki.error_text)]
+
+        FileEnsurer.archive_results(list_of_result_tuples, 
+                                    module='kaiseki', timestamp=timestamp)
 
         ## pushes the tl debug log to the file without clearing the file
         Logger.push_batch()

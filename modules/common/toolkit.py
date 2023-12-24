@@ -2,20 +2,18 @@
 from datetime import datetime
 
 import os
-from re import T
 import typing
 import platform
 import subprocess
 
 class Toolkit():
-
     """
     
     A class containing various functions that are used throughout Kudasai.
 
     """
 
-    CURRENT_VERSION = "v3.0.0-beta4" 
+    CURRENT_VERSION = "v3.0.0-beta4"
 
 ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -27,7 +25,7 @@ class Toolkit():
         Clears the console.
 
         """
-        
+
         os.system('cls' if os.name == 'nt' else 'clear')
 
 ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -48,16 +46,16 @@ class Toolkit():
         try:
 
             print(message)
-        
+
             ## Windows
-            if(os.name == 'nt'): 
+            if(os.name == 'nt'):
 
                 import msvcrt
-                
-                msvcrt.getch() 
 
-            ## Linux and Mac
-            elif(os.name == 'posix'):  
+                msvcrt.getch()
+
+                ## Linux and Mac
+            elif(os.name == 'posix'):
 
                 import termios
 
@@ -162,11 +160,10 @@ class Toolkit():
 
         return print_value
 
-
 ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def check_update() -> typing.Tuple[bool,str]:
+    def check_update() -> typing.Tuple[bool, str]:
 
         """
 
@@ -181,21 +178,20 @@ class Toolkit():
 
         update_prompt = ""
         is_connection = True
-        
+
         try:
 
             import requests
-        
+
             response = requests.get("https://api.github.com/repos/Bikatr7/Kudasai/releases/latest")
             latest_version = response.json()["tag_name"]
             release_notes = response.json()["body"]
 
             if(latest_version != Toolkit.CURRENT_VERSION):
                 update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
-            
+
                 if(release_notes):
                     update_prompt += "\nRelease notes:\n\n" + release_notes + '\n'
-
 
             return is_connection, update_prompt
 
@@ -205,19 +201,19 @@ class Toolkit():
             print("Requests is not installed, please install it using the following command:\npip install requests")
 
             Toolkit.pause_console()
-                
-            is_connection = False 
-                    
+
+            is_connection = False
+
             return is_connection, update_prompt
 
 
         except Exception as e:
 
-            is_connection = False 
-                    
+            is_connection = False
+
             return is_connection, update_prompt
 
-##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------        
+##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def get_timestamp() -> str:
@@ -232,5 +228,23 @@ class Toolkit():
         """
 
         time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
+
+        return time_stamp
+    
+##-------------------start-of-get_timestamp_for_archival()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def get_timestamp_for_archival() -> str:
+
+        """
+
+        Generates a timestamp for archival of outputs.
+
+        Returns:
+        time_stamp (string) : The timestamp for the action.
+
+        """
+
+        time_stamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
         return time_stamp

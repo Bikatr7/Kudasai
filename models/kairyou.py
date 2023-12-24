@@ -544,5 +544,17 @@ class Kairyou:
         with open(FileEnsurer.translated_text_path, 'w', encoding='utf-8') as file:
             file.truncate()
 
+        ## Instructions to create a copy of the output for archival
+        FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
+
+        timestamp = Toolkit.get_timestamp_for_archival()
+
+        list_of_result_tuples = [('kairyou_preprocessed_text', Kairyou.text_to_preprocess),
+                                 ('kairyou_preprocessing_log', Kairyou.preprocessing_log),
+                                 ('kairyou_error_log', Kairyou.error_log)]
+
+        FileEnsurer.archive_results(list_of_result_tuples,
+                                    module='kairyou', timestamp=timestamp)
+
         ## need to clear preprocessing results as it could be run consecutively
         Kairyou.preprocessing_log = ""

@@ -2,11 +2,9 @@
 from datetime import datetime
 
 import os
-from re import T
 import typing
 import platform
 import subprocess
-
 
 class Toolkit():
     """
@@ -17,7 +15,7 @@ class Toolkit():
 
     CURRENT_VERSION = "v3.0.0-beta4"
 
-    ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def clear_console() -> None:
@@ -30,10 +28,10 @@ class Toolkit():
 
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def pause_console(message: str = "Press any key to continue...") -> None:
+    def pause_console(message:str="Press any key to continue...") -> None:
 
         """
 
@@ -50,14 +48,14 @@ class Toolkit():
             print(message)
 
             ## Windows
-            if (os.name == 'nt'):
+            if(os.name == 'nt'):
 
                 import msvcrt
 
                 msvcrt.getch()
 
                 ## Linux and Mac
-            elif (os.name == 'posix'):
+            elif(os.name == 'posix'):
 
                 import termios
 
@@ -78,7 +76,7 @@ class Toolkit():
 
             pass
 
-    ##-------------------start-of-maximize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-maximize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def maximize_window():
@@ -93,19 +91,19 @@ class Toolkit():
 
             system_name = platform.system()
 
-            if (system_name == "Windows"):
+            if(system_name == "Windows"):
                 os.system('mode con: cols=140 lines=40')
 
-            elif (system_name == "Linux"):
+            elif(system_name == "Linux"):
                 print("\033[8;40;140t")
 
-            elif (system_name == "Darwin"):
+            elif(system_name == "Darwin"):
                 subprocess.call(["printf", "'\\e[8;40;140t'"])
 
         except:
             pass
 
-    ##-------------------start-of-minimize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-minimize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def minimize_window():
@@ -120,22 +118,22 @@ class Toolkit():
 
             system_name = platform.system()
 
-            if (system_name == "Windows"):
+            if(system_name == "Windows"):
                 os.system('mode con: cols=80 lines=25')
 
-            elif (system_name == "Linux"):
+            elif(system_name == "Linux"):
                 print("\033[8;25;80t")
 
-            elif (system_name == "Darwin"):
+            elif(system_name == "Darwin"):
                 subprocess.call(["printf", "'\\e[8;25;80t'"])
 
         except:
             pass
 
-    ##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_elapsed_time(start: float, end: float) -> str:
+    def get_elapsed_time(start:float, end:float) -> str:
 
         """
 
@@ -153,16 +151,16 @@ class Toolkit():
         elapsed_time = end - start
         print_value = ""
 
-        if (elapsed_time < 60.0):
+        if(elapsed_time < 60.0):
             print_value = str(round(elapsed_time, 2)) + " seconds"
-        elif (elapsed_time < 3600.0):
+        elif(elapsed_time < 3600.0):
             print_value = str(round(elapsed_time / 60, 2)) + " minutes"
         else:
             print_value = str(round(elapsed_time / 3600, 2)) + " hours"
 
         return print_value
 
-    ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def check_update() -> typing.Tuple[bool, str]:
@@ -189,10 +187,10 @@ class Toolkit():
             latest_version = response.json()["tag_name"]
             release_notes = response.json()["body"]
 
-            if (latest_version != Toolkit.CURRENT_VERSION):
+            if(latest_version != Toolkit.CURRENT_VERSION):
                 update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
 
-                if (release_notes):
+                if(release_notes):
                     update_prompt += "\nRelease notes:\n\n" + release_notes + '\n'
 
             return is_connection, update_prompt
@@ -215,7 +213,7 @@ class Toolkit():
 
             return is_connection, update_prompt
 
-    ##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def get_timestamp() -> str:
@@ -232,6 +230,8 @@ class Toolkit():
         time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
 
         return time_stamp
+    
+##-------------------start-of-get_timestamp_for_archival()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def get_timestamp_for_archival() -> str:
@@ -245,6 +245,6 @@ class Toolkit():
 
         """
 
-        time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        time_stamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
         return time_stamp

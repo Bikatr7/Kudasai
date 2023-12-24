@@ -2,6 +2,7 @@
 import os
 import traceback
 import json
+import typing
 
 ## custom modules
 from modules.common.logger import Logger
@@ -19,7 +20,7 @@ class FileEnsurer():
     ## main dirs
     script_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     output_dir = os.path.join(script_dir, "output")
-    archive_dir = os.path.join(output_dir, "Archive")
+    archive_dir = os.path.join(output_dir, "archive")
 
     if(os.name == 'nt'):  ## Windows
         config_dir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
@@ -305,7 +306,7 @@ class FileEnsurer():
 
         Handles a critical exception by logging it and then throwing it.
 
-        Parameters:\n
+        Parameters:
         critical_exception (object - Exception) : the exception to be handled.
 
         """
@@ -322,12 +323,22 @@ class FileEnsurer():
         Logger.push_batch()
 
         raise critical_exception
+    
+##-------------------start-of-archive_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
     @staticmethod
-    def archive_results(list_of_result_tuples: list, module: str, timestamp: str) -> None:
+    def archive_results(list_of_result_tuples:typing.List[typing.Tuple[str,str]], module:str, timestamp:str) -> None:
 
         """
-        Function that creates a copy of the relevant files in the output folder after each run
+
+        Creates a directory in the archive folder and writes the results to files in that directory.
+
+        Parameters:
+        list_of_result_tuples (list - tuple - str, str) : list of tuples containing the filename and content of the results to be archived.
+        module (str) : name of the module that generated the results.
+        timestamp (str) : timestamp of when the results were generated.
+
         """
 
         archival_path = os.path.join(FileEnsurer.archive_dir, f'{module}_run_{timestamp}')

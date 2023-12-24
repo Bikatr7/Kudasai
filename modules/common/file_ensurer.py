@@ -19,6 +19,7 @@ class FileEnsurer():
     ## main dirs
     script_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     output_dir = os.path.join(script_dir, "output")
+    archive_dir = os.path.join(output_dir, "Archive")
 
     if(os.name == 'nt'):  ## Windows
         config_dir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
@@ -321,3 +322,21 @@ class FileEnsurer():
         Logger.push_batch()
 
         raise critical_exception
+
+    @staticmethod
+    def archive_results(list_of_result_tuples: list, module: str, timestamp: str) -> None:
+
+        """
+        Function that creates a copy of the relevant files in the output folder after each run
+        """
+
+        archival_path = os.path.join(FileEnsurer.archive_dir, f'{module}_run_{timestamp}')
+        FileEnsurer.standard_create_directory(archival_path)
+
+        for result in list_of_result_tuples:
+            (filename, content) = result
+            result_file_path = os.path.join(archival_path, f'{filename}_{timestamp}.txt')
+
+            with open(result_file_path, "w", encoding="utf-8") as file:
+                file.writelines(content)
+

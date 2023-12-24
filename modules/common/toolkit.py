@@ -7,17 +7,17 @@ import typing
 import platform
 import subprocess
 
-class Toolkit():
 
+class Toolkit():
     """
     
     A class containing various functions that are used throughout Kudasai.
 
     """
 
-    CURRENT_VERSION = "v3.0.0-beta4" 
+    CURRENT_VERSION = "v3.0.0-beta4"
 
-##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def clear_console() -> None:
@@ -27,13 +27,13 @@ class Toolkit():
         Clears the console.
 
         """
-        
+
         os.system('cls' if os.name == 'nt' else 'clear')
 
-##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def pause_console(message:str="Press any key to continue...") -> None:
+    def pause_console(message: str = "Press any key to continue...") -> None:
 
         """
 
@@ -48,16 +48,16 @@ class Toolkit():
         try:
 
             print(message)
-        
+
             ## Windows
-            if(os.name == 'nt'): 
+            if (os.name == 'nt'):
 
                 import msvcrt
-                
-                msvcrt.getch() 
 
-            ## Linux and Mac
-            elif(os.name == 'posix'):  
+                msvcrt.getch()
+
+                ## Linux and Mac
+            elif (os.name == 'posix'):
 
                 import termios
 
@@ -78,7 +78,7 @@ class Toolkit():
 
             pass
 
-##-------------------start-of-maximize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ##-------------------start-of-maximize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def maximize_window():
@@ -93,19 +93,19 @@ class Toolkit():
 
             system_name = platform.system()
 
-            if(system_name == "Windows"):
+            if (system_name == "Windows"):
                 os.system('mode con: cols=140 lines=40')
 
-            elif(system_name == "Linux"):
+            elif (system_name == "Linux"):
                 print("\033[8;40;140t")
 
-            elif(system_name == "Darwin"):
+            elif (system_name == "Darwin"):
                 subprocess.call(["printf", "'\\e[8;40;140t'"])
 
         except:
             pass
 
-##-------------------start-of-minimize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ##-------------------start-of-minimize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def minimize_window():
@@ -120,22 +120,22 @@ class Toolkit():
 
             system_name = platform.system()
 
-            if(system_name == "Windows"):
+            if (system_name == "Windows"):
                 os.system('mode con: cols=80 lines=25')
 
-            elif(system_name == "Linux"):
+            elif (system_name == "Linux"):
                 print("\033[8;25;80t")
 
-            elif(system_name == "Darwin"):
+            elif (system_name == "Darwin"):
                 subprocess.call(["printf", "'\\e[8;25;80t'"])
 
         except:
             pass
 
-##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ##-------------------start-of-get_elapsed_time()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_elapsed_time(start:float, end:float) -> str:
+    def get_elapsed_time(start: float, end: float) -> str:
 
         """
 
@@ -153,20 +153,19 @@ class Toolkit():
         elapsed_time = end - start
         print_value = ""
 
-        if(elapsed_time < 60.0):
+        if (elapsed_time < 60.0):
             print_value = str(round(elapsed_time, 2)) + " seconds"
-        elif(elapsed_time < 3600.0):
+        elif (elapsed_time < 3600.0):
             print_value = str(round(elapsed_time / 60, 2)) + " minutes"
         else:
             print_value = str(round(elapsed_time / 3600, 2)) + " hours"
 
         return print_value
 
-
-##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def check_update() -> typing.Tuple[bool,str]:
+    def check_update() -> typing.Tuple[bool, str]:
 
         """
 
@@ -181,21 +180,20 @@ class Toolkit():
 
         update_prompt = ""
         is_connection = True
-        
+
         try:
 
             import requests
-        
+
             response = requests.get("https://api.github.com/repos/Bikatr7/Kudasai/releases/latest")
             latest_version = response.json()["tag_name"]
             release_notes = response.json()["body"]
 
-            if(latest_version != Toolkit.CURRENT_VERSION):
+            if (latest_version != Toolkit.CURRENT_VERSION):
                 update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
-            
-                if(release_notes):
-                    update_prompt += "\nRelease notes:\n\n" + release_notes + '\n'
 
+                if (release_notes):
+                    update_prompt += "\nRelease notes:\n\n" + release_notes + '\n'
 
             return is_connection, update_prompt
 
@@ -205,19 +203,19 @@ class Toolkit():
             print("Requests is not installed, please install it using the following command:\npip install requests")
 
             Toolkit.pause_console()
-                
-            is_connection = False 
-                    
+
+            is_connection = False
+
             return is_connection, update_prompt
 
 
         except Exception as e:
 
-            is_connection = False 
-                    
+            is_connection = False
+
             return is_connection, update_prompt
 
-##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------        
+    ##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def get_timestamp() -> str:
@@ -232,5 +230,21 @@ class Toolkit():
         """
 
         time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
+
+        return time_stamp
+
+    @staticmethod
+    def get_timestamp_for_archival() -> str:
+
+        """
+
+        Generates a timestamp for archival of outputs.
+
+        Returns:
+        time_stamp (string) : The timestamp for the action.
+
+        """
+
+        time_stamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         return time_stamp

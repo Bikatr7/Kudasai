@@ -5,7 +5,6 @@ import re
 import time
 import typing
 import asyncio
-import os
 
 ## third party modules
 from openai import AsyncOpenAI
@@ -1009,6 +1008,15 @@ class Kijiku:
 
         with open(FileEnsurer.translated_text_path, 'w', encoding='utf-8') as file:
             file.writelines(Kijiku.translated_text)
+
+        # Instructions to create a copy of the outputs for archival
+        FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
+
+        timestamp = Toolkit.get_timestamp_for_archival()
+
+        list_of_result_tuples = [('kijiku_translated_text', Kijiku.translated_text), ('kijiku_je_check_text', Kijiku.je_check_text), ('kijiku_error_log', Kijiku.error_text)]
+
+        FileEnsurer.archive_results(list_of_result_tuples, module='kijiku', timestamp=timestamp)
 
         ## pushes the tl debug log to the file without clearing the file
         Logger.push_batch()

@@ -127,7 +127,7 @@ class Kaiseki:
 
                 time.sleep(.1)
                     
-                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'))
+                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
 
                 time.sleep(.1)
                 

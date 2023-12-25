@@ -547,7 +547,7 @@ class Kairyou:
         ## Instructions to create a copy of the output for archival
         FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
 
-        timestamp = Toolkit.get_timestamp_for_archival()
+        timestamp = Toolkit.get_timestamp(is_archival=True)
 
         list_of_result_tuples = [('kairyou_preprocessed_text', Kairyou.text_to_preprocess),
                                  ('kairyou_preprocessing_log', Kairyou.preprocessing_log),

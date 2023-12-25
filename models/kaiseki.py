@@ -585,7 +585,7 @@ class Kaiseki:
         ## Instructions to create a copy of the output for archival
         FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
 
-        timestamp = Toolkit.get_timestamp_for_archival()
+        timestamp = Toolkit.get_timestamp(is_archival=True)
 
         list_of_result_tuples = [('kaiseki_translated_text', Kaiseki.translated_text),
                                  ('kaiseki_je_check_text', Kaiseki.je_check_text),

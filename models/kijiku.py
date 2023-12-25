@@ -1013,7 +1013,7 @@ class Kijiku:
         ## Instructions to create a copy of the output for archival
         FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
 
-        timestamp = Toolkit.get_timestamp_for_archival()
+        timestamp = Toolkit.get_timestamp(is_archival=True)
 
         list_of_result_tuples = [('kijiku_translated_text', Kijiku.translated_text), 
                                  ('kijiku_je_check_text', Kijiku.je_check_text), 

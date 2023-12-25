@@ -216,7 +216,7 @@ class Toolkit():
 ##-------------------start-of-get_timestamp()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_timestamp() -> str:
+    def get_timestamp(is_archival:bool=False) -> str:
 
         """
         
@@ -227,24 +227,10 @@ class Toolkit():
         
         """
 
-        time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
+        if(is_archival):
+            time_stamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
-        return time_stamp
-    
-##-------------------start-of-get_timestamp_for_archival()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def get_timestamp_for_archival() -> str:
-
-        """
-
-        Generates a timestamp for archival of outputs.
-
-        Returns:
-        time_stamp (string) : The timestamp for the action.
-
-        """
-
-        time_stamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+        else:
+            time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
 
         return time_stamp

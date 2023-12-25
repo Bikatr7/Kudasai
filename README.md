@@ -136,6 +136,8 @@ If you do not wish to use a replacement json file, you can use the blank replace
 
 Upon Kudasai being run, it will create a folder called "output" which will contain 5 files. It is located in the same directory as kudasai.py.
 
+Old runs are stored in the archive folder in output as well.
+
 These files are:
 
     "debug_log.txt" : A log of crucial information that occurred during Kudasai's run, useful for debugging or reporting issues as well as seeing what was done.

@@ -235,7 +235,7 @@ class FileEnsurer():
 ##--------------------start-of-standard_overwrite_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def standard_overwrite_file(file_path:str, content_to_write:str, omit:bool = False) -> None:
+    def standard_overwrite_file(file_path:str, content_to_write:str, omit:bool = True) -> None:
 
         """
 

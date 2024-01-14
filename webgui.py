@@ -179,8 +179,8 @@ class KudasaiGUI:
 
                         ## input fields, text input for preprocessing, and replacement json file input.
                         with gr.Column():
-                            self.input_txt_file_preprocessing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file')
-                            self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='file')
+                            self.input_txt_file_preprocessing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath')
+                            self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
 
                             ## run and clear buttons
                             with gr.Row():
@@ -216,7 +216,7 @@ class KudasaiGUI:
 
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
-                            self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file', interactive=True)
+                            self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath', interactive=True)
                             self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True)
 
 
@@ -252,9 +252,9 @@ class KudasaiGUI:
 
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
-                            self.input_txt_file_kijiku = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='file', interactive=True)
+                            self.input_txt_file_kijiku = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath', interactive=True)
                             self.input_text_kijiku = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
-                            self.input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
+                            self.input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='filepath')
 
                             with gr.Row():
                                 self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, max_lines=2, show_label=True, interactive=True)
@@ -818,7 +818,7 @@ class KudasaiGUI:
                 input_text_kijiku = ""
 
                 ## Also gonna want to reset the json input field to the default json file
-                input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='file')
+                input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='filepath')
 
                 kijiku_translated_text_output_field = ""
                 je_check_text_field_kijiku = ""
@@ -1283,7 +1283,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "preprocessed_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "preprocessed_text.txt")
             )
             
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1294,7 +1294,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "preprocessing_results.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "preprocessing_results.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_processing_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1305,7 +1305,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "processing_debug_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "processing_debug_log.txt")
             )
 
 ##-------------------start-of-save_to_file_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1316,7 +1316,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
             )
 
 ##-------------------start-of-save_to_file_je_check_text_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1327,7 +1327,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_kaiseki_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1338,7 +1338,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
             )
 
 ##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1349,7 +1349,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
             )
 
 ##-------------------start-of-save_to_file_je_check_text_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1360,7 +1360,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_kijiku_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1371,7 +1371,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1382,7 +1382,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_all.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_all.txt")
             )
 
 ##-------------------start-of-save_to_file_error_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1393,7 +1393,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                _js=(self.save_as_js).replace("downloaded_text.txt", "error_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "error_log.txt")
             )
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

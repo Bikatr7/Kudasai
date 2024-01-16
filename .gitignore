@@ -104,7 +104,3 @@ output.zip
 .vs/ProjectSettings.json
 .vs/VSWorkspaceState.json
 .vs/Kudasai/v17/.wsuo
-
-## lib
-lib/
-

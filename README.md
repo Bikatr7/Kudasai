@@ -55,15 +55,15 @@ https://github.com/Atreyagaurav/onegai
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>
 
-spacy==3.5.4
+spacy>=3.7.0,<3.8.0
 
 spacy[jp]
 
 spacy[en]
 
-ja_core_news_lg
+ja_core_news_lg @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_lg-3.7.0/ja_core_news_lg-3.7.0-py3-none-any.whl
 
-en_core_web_lg
+en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.0/en_core_web_lg-3.7.0-py3-none-any.whl
 
 deepl
 
@@ -75,7 +75,7 @@ requests
 
 tiktoken
 
-gradio==3.50.2
+gradio==4.11.0
 
 or see requirements.txt
 
@@ -99,6 +99,8 @@ If that still does not work, try uninstalling all dependencies and reinstalling 
 Also note that if you are updating since v2.2.0, you will need to update openai to 1.2.0 or higher.
 
 If installing after v2.3.0, you may need to reinstall spacy to 3.5.4. As well as its dependencies. (spacy[jp] and spacy[en], ja_core_news_lg, en_core_web_lg).
+
+If installing after v3, just reinstall all dependencies using pip install -r requirements.txt, once you navigate to the directory where it's contained.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -542,6 +542,10 @@ class Kijiku:
                 print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-1106-preview as it is the most recent version of gpt-4.")
                 return Kijiku.estimate_cost("gpt-4-1106-preview", price_case=4)
             
+            elif(model == "gpt-4-turbo-preview"):
+                print("Warning: gpt-4-turbo-preview may change over time. Returning num tokens assuming gpt-4-0125-preview as it is the most recent version of gpt-4-turbo-preview.")
+                return Kijiku.estimate_cost("gpt-4-0125-preview", price_case=4)
+            
             elif(model == "gpt-3.5-turbo-0613"):
                 print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
                 return Kijiku.estimate_cost(model, price_case=1)
@@ -553,11 +557,17 @@ class Kijiku:
             elif(model == "gpt-3.5-turbo-1106"):
                 return Kijiku.estimate_cost(model, price_case=2)
             
+            elif(model == "gpt-3.5-turbo-0125"):
+                return Kijiku.estimate_cost(model, price_case=7)
+            
             elif(model == "gpt-3.5-turbo-16k-0613"):
                 print("Warning: gpt-3.5-turbo-16k-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
                 return Kijiku.estimate_cost(model, price_case=3)
             
             elif(model == "gpt-4-1106-preview"):
+                return Kijiku.estimate_cost(model, price_case=4)
+            
+            elif(model == "gpt-4-0125-preview"):
                 return Kijiku.estimate_cost(model, price_case=4)
             
             elif(model == "gpt-4-0314"):
@@ -597,6 +607,8 @@ class Kijiku:
                 cost_per_thousand_output_tokens = 0.0040
 
             ## gpt-4-1106-preview
+            ## gpt-4-0125-preview
+            ## gpt-4-turbo-preview 
             elif(price_case == 4):
                 cost_per_thousand_input_tokens = 0.01
                 cost_per_thousand_output_tokens = 0.03
@@ -612,6 +624,11 @@ class Kijiku:
             elif(price_case == 6):
                 cost_per_thousand_input_tokens = 0.06
                 cost_per_thousand_output_tokens = 0.012
+
+            ## gpt-3.5-turbo-0125
+            elif(price_case == 7):
+                cost_per_thousand_input_tokens = 0.0005
+                cost_per_thousand_output_tokens = 0.0015
 
             ## break down the text into a string than into tokens
             text = ''.join(Kijiku.text_to_translate)

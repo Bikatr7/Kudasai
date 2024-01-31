@@ -1,3 +1,4 @@
+
 {
   "honorifics": {
     "ちゃん": "chan",
@@ -73,6 +74,7 @@
     "Keisei": ["啓誠"],
     "Kijima": ["鬼島"],
     "Kisarazu": ["木更津"],
+    "Kinugasa" :["衣笠"],
     "Mii": ["みー"],
     "Mika": ["美香"],
     "Ohba": ["大場"],
@@ -80,6 +82,7 @@
     "Shiro": ["志朗"],
     "Sonezaki": ["曽根崎"],
     "Sōya": ["宗谷"],
+    "Tomose":["トモセ"],
     "Yano": ["矢野"],
     "king": ["Wan-sama"]
     },

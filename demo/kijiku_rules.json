@@ -12,7 +12,7 @@
         "presence_penalty": 0,
         "frequency_penalty": 0,
         "message_mode": 1,
-        "num_lines": 36,
+        "num_lines": 48,
         "sentence_fragmenter_mode": 3,
         "je_check_mode": 2,
         "num_malformed_batch_retries": 1,

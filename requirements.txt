@@ -6,6 +6,5 @@ en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_
 deepl
 openai>1.2.0
 backoff
-requests
 tiktoken
 gradio==4.11.0

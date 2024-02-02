@@ -190,7 +190,10 @@ class Toolkit():
             latest_version = data["tag_name"]
             release_notes = data["body"]
 
-            if(latest_version != Toolkit.CURRENT_VERSION):
+            latest_version_numbers = [int(num) for num in latest_version[1:].split('.')]
+            current_version_numbers = [int(num) for num in Toolkit.CURRENT_VERSION[1:].split('.')]
+
+            if(latest_version_numbers > current_version_numbers):
                 update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
 
                 if(release_notes):

@@ -4,10 +4,13 @@ import sys
 import json
 import asyncio
 
+
+## third-party libraries
+from kairyou import Kairyou
+
 ## custom modules
 from models.kaiseki import Kaiseki 
 from models.kijiku import Kijiku
-from models.kairyou import Kairyou
 
 from handlers.json_handler import JsonHandler
 
@@ -69,7 +72,7 @@ class Kudasai:
 ##-------------------start-of-setup_kairyou()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def setup_kairyou(input_file:str | None = None, replacement_json_path:str | None = None, is_cli:bool=False) -> None:
+    def setup_kairyou(input_file:str | None = None, replacement_json_path:str | None = None, is_cli:bool=False) -> typing.Tuple[dict, str]:
 
         """
         
@@ -98,7 +101,7 @@ class Kudasai:
         ## if not just skip preprocessing
         except:
             
-            Kairyou.need_to_run = False
+            FileEnsurer.need_to_run_kairyou = False
             replacement_json = {}
 
         try:
@@ -113,19 +116,8 @@ class Kudasai:
 
             raise Exception("Invalid txt file.")
         
-        Kairyou.replacement_json = replacement_json 
-        Kairyou.text_to_preprocess = japanese_text
-
-        ## if given a replacement json file, validate it
-        if(Kairyou.replacement_json != {}):
-
-            try:
-                Kairyou.validate_replacement_json()
-
-            except:
-                Kairyou.need_to_run = False
-                replacement_json = {}
-
+        Kairyou.setup(japanese_text, replacement_json)
+        
 ##-------------------start-of-run_kudasai()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
     @staticmethod

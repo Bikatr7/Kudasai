@@ -10,6 +10,7 @@ import os
 ## third party modules
 from openai import AsyncOpenAI
 from openai import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
+from Kairyou.katakana_handler import KatakanaHandler
 
 import backoff
 import tiktoken
@@ -17,7 +18,6 @@ import spacy
 
 ## custom modules
 from handlers.json_handler import JsonHandler
-from handlers.katakana_handler import KatakanaHandler
 
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger

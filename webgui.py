@@ -486,7 +486,7 @@ class KudasaiGUI:
 
                 Kudasai.connection, update_prompt = Toolkit.check_update()
 
-                if(update_prompt):
+                if(update_prompt != ""):
                     gr.Info("Update available, see https://github.com/Bikatr7/Kudasai/releases/latest/ for more information.")
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

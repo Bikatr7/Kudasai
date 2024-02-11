@@ -119,7 +119,7 @@ class Kudasai:
 
         Kudasai.connection, update_prompt = Toolkit.check_update()
 
-        if(update_prompt):
+        if(update_prompt != ""):
             
             print(update_prompt)
 

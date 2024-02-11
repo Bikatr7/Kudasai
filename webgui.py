@@ -1,9 +1,11 @@
 ## built-in libraries
 import typing
 import base64
+from click import File
 
 ## third-party libraries
 import gradio as gr
+from kairyou import Kairyou
 
 ## custom modules
 from modules.common.toolkit import Toolkit
@@ -15,7 +17,6 @@ from modules.gui.gui_json_util import GuiJsonUtil
 
 from handlers.json_handler import JsonHandler
 
-from models.kairyou import Kairyou
 from models.kaiseki import Kaiseki
 from models.kijiku import Kijiku
 
@@ -515,27 +516,17 @@ class KudasaiGUI:
                         text_to_preprocess = gui_get_text_from_file(input_txt_file)
                         replacements = gui_get_json_from_file(input_json_file)
 
-                        Kairyou.text_to_preprocess = text_to_preprocess
-                        Kairyou.replacement_json = replacements
+                        preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
 
-                        ## validate the json file
-                        try:
-                            Kairyou.validate_replacement_json()
-                        
-                        except:
-                            raise gr.Error("Invalid replacement json file. Missing keys. Please check the jsons folder for an example replacement json file.")
+                        timestamp = Toolkit.get_timestamp(is_archival=True)
 
-                        Kairyou.preprocess()
-
-                        Kairyou.write_kairyou_results()
+                        FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
 
                         ## Log text and Preprocessing is cleared from the client, so we need to get it from the log file
                         log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
-                        preprocessing_log = FileEnsurer.standard_read_file(FileEnsurer.kairyou_log_path)
 
-                        ## Kairyou is a "in-place" replacement, so we can just return the text_to_preprocess, as for the double log text return, we do that because we want to display the log text on the log tab, and on the preprocess tab
                         ## Kairyou doesn't have any advanced logging, so we can just return the log text for both the log tab and the preprocess tab, no need to do what we did for the Kaiseki tab and Kijiku tab
-                        return Kairyou.text_to_preprocess, preprocessing_log, log_text, log_text
+                        return preprocessed_text, preprocessing_log, log_text, log_text
   
                     else:
                         raise gr.Error("No JSON file selected")
@@ -728,6 +719,8 @@ class KudasaiGUI:
                 num_tokens, estimated_cost, model = Kijiku.estimate_cost(model)
 
                 cost_estimation = "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
+                
+                gr.Info(cost_estimation)
 
                 return cost_estimation
 

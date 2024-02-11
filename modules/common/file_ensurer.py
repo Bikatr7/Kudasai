@@ -5,6 +5,7 @@ import json
 import typing
 
 ## custom modules
+from modules.common.decorators import permission_error_decorator
 from modules.common.logger import Logger
 
 class FileEnsurer():
@@ -34,6 +35,7 @@ class FileEnsurer():
     ## sub dirs
     lib_dir = os.path.join(script_dir, "lib")
     gui_lib = os.path.join(lib_dir, "gui")
+    jsons_dir = os.path.join(script_dir, "jsons")
 
     ##----------------------------------/
 
@@ -124,12 +126,16 @@ class FileEnsurer():
     }
     }
 
+    ## rules
+    blank_rules_path = os.path.join(jsons_dir, "blank_replacements.json")
+
     do_interrupt = False
     need_to_run_kairyou = True
 
 ##-------------------start-of-setup_needed_files()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def setup_needed_files() -> None:
 
         """
@@ -160,6 +166,7 @@ class FileEnsurer():
 ##--------------------start-of-standard_create_directory()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def standard_create_directory(directory_path:str) -> None:
 
         """
@@ -178,6 +185,7 @@ class FileEnsurer():
 ##--------------------start-of-standard_create_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def standard_create_file(file_path:str) -> None:
 
         """
@@ -197,6 +205,7 @@ class FileEnsurer():
 ##--------------------start-of-modified_create_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def modified_create_file(file_path:str, content_to_write:str) -> bool:
 
         """
@@ -226,6 +235,7 @@ class FileEnsurer():
 ##--------------------start-of-standard_overwrite_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def standard_overwrite_file(file_path:str, content_to_write:str, omit:bool = True) -> None:
 
         """
@@ -250,6 +260,7 @@ class FileEnsurer():
 ##--------------------start-of-clear_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def clear_file(file_path:str) -> None:
 
         """
@@ -269,6 +280,7 @@ class FileEnsurer():
 ##--------------------start-of-standard_read_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def standard_read_file(file_path:str) -> str:
 
         """
@@ -319,6 +331,7 @@ class FileEnsurer():
 
 
     @staticmethod
+    @permission_error_decorator()
     def archive_results(list_of_result_tuples:typing.List[typing.Tuple[str,str]], module:str, timestamp:str) -> None:
 
         """
@@ -341,4 +354,73 @@ class FileEnsurer():
 
             with open(result_file_path, "w", encoding="utf-8") as file:
                 file.writelines(content)
+
+##-------------------start-of-standard_read_json()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    @permission_error_decorator()
+    def standard_read_json(file_path:str) -> dict:
+
+        """
+
+        Reads a json file and returns the json object.
+
+        Parameters:
+        file_path (str) : path to the json file to be read.
+
+        Returns:
+        json_object (dict) : the json object.
+
+        """
+
+        with open(file_path, "r", encoding="utf-8") as file:
+            json_object = json.load(file)
+
+        return json_object
+
+##-------------------start-of-write_kairyou_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    @permission_error_decorator()
+    def write_kairyou_results(text_to_preprocess:str, preprocessing_log:str, error_log:str, timestamp:str) -> None:
+
+        """
+        
+        This function is called to write the results to the output directory.
+
+        Parameters:
+        text_to_preprocess (str) : the text that was preprocessed.
+        preprocessing_log (str) : the log of the preprocessing results.
+        error_log (str) : the log of any errors that occurred during preprocessing.
+        timestamp (str) : the timestamp of when the results were generated (Can be obtained from Toolkit.get_timestamp(is_archival=True))
+
+        """
+
+        ## ensures the output directory exists, cause it could get moved or fucked with.
+        FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
+
+        with(open(FileEnsurer.preprocessed_text_path, 'w', encoding='utf-8')) as file:
+            file.write(text_to_preprocess) 
+
+        with open(FileEnsurer.kairyou_log_path, 'w', encoding='utf-8') as file:
+            file.write(preprocessing_log)
+
+        with open(FileEnsurer.error_log_path, 'w', encoding='utf-8') as file:
+            file.write(error_log)
+
+        with open(FileEnsurer.je_check_path, 'w', encoding='utf-8') as file:
+            file.truncate()
+
+        with open(FileEnsurer.translated_text_path, 'w', encoding='utf-8') as file:
+            file.truncate()
+
+        ## Instructions to create a copy of the output for archival
+        FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
+
+        list_of_result_tuples = [('kairyou_preprocessed_text', text_to_preprocess),
+                                 ('kairyou_preprocessing_log', preprocessing_log),
+                                 ('kairyou_error_log', error_log)]
+
+        FileEnsurer.archive_results(list_of_result_tuples,
+                                    module='kairyou', timestamp=timestamp)
 

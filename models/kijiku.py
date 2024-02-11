@@ -10,7 +10,7 @@ import os
 ## third party modules
 from openai import AsyncOpenAI
 from openai import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
-from Kairyou.katakana_handler import KatakanaHandler
+from kairyou import KatakanaUtil
 
 import backoff
 import tiktoken
@@ -442,7 +442,7 @@ class Kijiku:
                     prompt.append(sentence + '\n') 
                     Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.")
 
-                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not KatakanaHandler.is_punctuation(sentence)):
+                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not KatakanaUtil.is_punctuation(sentence)):
                     Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
             
                 elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):

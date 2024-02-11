@@ -1,5 +1,6 @@
 ## custom modules
 from modules.common.toolkit import Toolkit
+from modules.common.decorators import permission_error_decorator
 
 class Logger:
 
@@ -60,20 +61,6 @@ class Logger:
     
         Logger.log_action("-------------------------")
 
-##--------------------start-of-push_batch()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def push_batch() -> None:
-
-        """
-        
-        Pushes all stored actions to the log file.
-
-        """
-
-        with open(Logger.log_file_path, 'a+', encoding="utf-8") as file:
-            file.write(Logger.current_batch)
-
 ##--------------------start-of-clear_batch()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -86,10 +73,26 @@ class Logger:
         """
 
         Logger.current_batch = ""
+
+##--------------------start-of-push_batch()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    @permission_error_decorator()
+    def push_batch() -> None:
+
+        """
         
+        Pushes all stored actions to the log file.
+
+        """
+
+        with open(Logger.log_file_path, 'a+', encoding="utf-8") as file:
+            file.write(Logger.current_batch)
+
 ##--------------------start-of-clear_log_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def clear_log_file() -> None:
 
         """

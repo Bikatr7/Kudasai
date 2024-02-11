@@ -228,6 +228,9 @@ class Toolkit():
         
         Generates a timestamp for an action taken by Kudasai.
 
+        Parameters:
+        is_archival (bool | optional) : Whether or not the timestamp is for archival purposes.
+        
         Returns:
         time_stamp (string) : The timestamp for the action.        
         

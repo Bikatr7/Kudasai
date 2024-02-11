@@ -1,7 +1,5 @@
 spacy>=3.7.0,<3.8.0
-spacy[jp]
 spacy[en]
-ja_core_news_lg @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_lg-3.7.0/ja_core_news_lg-3.7.0-py3-none-any.whl
 en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.0/en_core_web_lg-3.7.0-py3-none-any.whl
 deepl
 openai>1.2.0

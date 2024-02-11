@@ -159,7 +159,7 @@ class Toolkit():
             print_value = str(round(elapsed_time / 3600, 2)) + " hours"
 
         return print_value
-
+    
 ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -168,7 +168,6 @@ class Toolkit():
         """
 
         Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.
-        If requests is not installed, it will return is_connection as False.
 
         Returns:
         is_connection (bool) : Whether or not the user has an internet connection.
@@ -183,17 +182,16 @@ class Toolkit():
 
             from urllib.request import urlopen
             import json
+            from distutils.version import LooseVersion
 
-            response = urlopen("https://api.github.com/repos/Bikatr7/Seisen/releases/latest")
+            response = urlopen("https://api.github.com/repos/Bikatr7/Kudasai/releases/latest")
             data = json.loads(response.read().decode())
 
-            latest_version = data["tag_name"]
+            latest_version = str(data["tag_name"])
             release_notes = data["body"]
 
-            latest_version_numbers = [int(num) for num in latest_version[1:].split('.')]
-            current_version_numbers = [int(num) for num in Toolkit.CURRENT_VERSION[1:].split('.')]
+            if(LooseVersion(latest_version) > LooseVersion(Toolkit.CURRENT_VERSION)):
 
-            if(latest_version_numbers > current_version_numbers):
                 update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
 
                 if(release_notes):
@@ -201,19 +199,12 @@ class Toolkit():
 
             return is_connection, update_prompt
 
-        ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail.
-        except ImportError:
+        ## used to determine if user lacks an internet connection.
+        except:
 
-            print("Requests is not installed, please install it using the following command:\npip install requests")
+            print("You seem to lack an internet connection, this will prevent you from checking from update notification and machine translation.\n")
 
             Toolkit.pause_console()
-
-            is_connection = False
-
-            return is_connection, update_prompt
-
-
-        except Exception as e:
 
             is_connection = False
 

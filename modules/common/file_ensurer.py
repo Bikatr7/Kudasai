@@ -23,10 +23,13 @@ class FileEnsurer():
     output_dir = os.path.join(script_dir, "output")
     archive_dir = os.path.join(output_dir, "archive")
 
+    ## main dirs (config is just under userprofile on windows, and under home on linux); secrets are under appdata on windows, and under .config on linux
     if(os.name == 'nt'):  ## Windows
         config_dir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
+        secrets_dir = os.path.join(os.environ['APPDATA'],"KudasaiSecrets")
     else:  ## Linux
         config_dir = os.path.join(os.path.expanduser("~"), "KudasaiConfig")
+        secrets_dir = os.path.join(os.path.expanduser("~"), ".config", "KudasaiSecrets")
 
     Logger.log_file_path = os.path.join(output_dir, "debug_log.txt")
 
@@ -54,8 +57,8 @@ class FileEnsurer():
     config_kijiku_rules_path = os.path.join(config_dir,'kijiku_rules.json')
 
     ## api keys
-    deepl_api_key_path = os.path.join(config_dir, "deepl_api_key.txt")
-    openai_api_key_path = os.path.join(config_dir,'openai_api_key.txt')
+    deepl_api_key_path = os.path.join(secrets_dir, "deepl_api_key.txt")
+    openai_api_key_path = os.path.join(secrets_dir,'openai_api_key.txt')
 
     ## favicon
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
@@ -419,7 +422,8 @@ class FileEnsurer():
 
         list_of_result_tuples = [('kairyou_preprocessed_text', text_to_preprocess),
                                  ('kairyou_preprocessing_log', preprocessing_log),
-                                 ('kairyou_error_log', error_log)]
+                                 ('kairyou_error_log', error_log),
+                                 ('debug_log', Logger.log_file_path)]
 
         FileEnsurer.archive_results(list_of_result_tuples,
                                     module='kairyou', timestamp=timestamp)

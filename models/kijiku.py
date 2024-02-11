@@ -1034,7 +1034,8 @@ class Kijiku:
 
         list_of_result_tuples = [('kijiku_translated_text', Kijiku.translated_text), 
                                  ('kijiku_je_check_text', Kijiku.je_check_text), 
-                                 ('kijiku_error_log', Kijiku.error_text)]
+                                 ('kijiku_error_log', Kijiku.error_text),
+                                 ('debug_log', Logger.log_file_path)]
 
         FileEnsurer.archive_results(list_of_result_tuples, 
                                     module='kijiku', timestamp=timestamp)

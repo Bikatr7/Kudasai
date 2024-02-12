@@ -150,6 +150,7 @@ class FileEnsurer():
         ## creates the output directory and config directory if they don't exist
         FileEnsurer.standard_create_directory(FileEnsurer.config_dir)
         FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
+        FileEnsurer.standard_create_directory(FileEnsurer.secrets_dir)
 
         ## creates and clears the log file
         Logger.clear_log_file()

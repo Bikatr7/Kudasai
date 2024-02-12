@@ -442,7 +442,7 @@ class Kijiku:
                     prompt.append(sentence + '\n') 
                     Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.")
 
-                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not KatakanaUtil.is_punctuation(sentence)):
+                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) or KatakanaUtil.is_punctuation(sentence)):
                     Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
             
                 elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
@@ -780,15 +780,18 @@ class Kijiku:
                 if("gpt-4" not in Kijiku.MODEL):
                     break
 
-                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt) or num_tries >= Kijiku.num_of_malform_retries):
+                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
+                    Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
+                    break
+
+                if(num_tries >= Kijiku.num_of_malform_retries):
+                    Logger.log_action(f"Batch {message_number} of {length//2} was malformed, but exceeded the maximum number of retries, Translation successful!", output=True)
                     break
 
                 else:
                     num_tries += 1
                     Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
                     Kijiku.num_occurred_malformed_batches += 1
-
-            Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
 
             return index, translation_prompt, translated_message
     

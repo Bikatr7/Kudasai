@@ -90,6 +90,9 @@ class Kudasai:
         
             preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json)
 
+            ## Need to set this so auto-translation can use the preprocessed text
+            Kudasai.text_to_preprocess = preprocessed_text
+
             print(Kairyou.preprocessing_log) 
 
             timestamp = Toolkit.get_timestamp(is_archival=True)
@@ -176,7 +179,7 @@ class Kudasai:
         Logger.log_action("Kaiseki started")
         Logger.log_action("--------------------")
 
-        Kaiseki.text_to_translate = [line for line in Kairyou.text_to_preprocess.splitlines()]
+        Kaiseki.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
 
         Kaiseki.translate()
 
@@ -203,7 +206,7 @@ class Kudasai:
 
         Toolkit.clear_console()
 
-        Kijiku.text_to_translate = [line for line in Kairyou.text_to_preprocess.splitlines()]
+        Kijiku.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
 
         await Kijiku.translate()
 

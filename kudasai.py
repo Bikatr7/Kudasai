@@ -227,72 +227,77 @@ async def main() -> None:
     """
 
     Kudasai.boot()
+    Toolkit.clear_console()
 
     try:
 
-        ## determines if we will run the Kudasai CLI or the Kudasai Console
-
-        Toolkit.clear_console()
-
-        ## if running console version
         if(len(sys.argv) <= 1):
-
-            path_to_text_to_preprocess = input("Please enter the path to the input file to be processed:\n").strip('"')
-            Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(path_to_text_to_preprocess)
-            Toolkit.clear_console()
-
-            path_to_replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
-
-            if(path_to_replacement_json != ""):
-                Kudasai.replacement_json = FileEnsurer.standard_read_json(path_to_replacement_json)
-
-            else:
-                Kudasai.replacement_json = FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)
-
-            Toolkit.clear_console()
+            await run_console_version()
         
-            await Kudasai.run_kudasai()
+        elif(len(sys.argv) in [2, 3]):
+            await run_cli_version()
 
-            Logger.push_batch()
-
-        ## if running cli version
-        elif(len(sys.argv) == 3):
-
-            Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
-            Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"'))
-
-            await Kudasai.run_kudasai()
-
-            Logger.push_batch()
-
-        ## if running cli version but skipping preprocessing
-        elif(len(sys.argv) == 2):
-
-            Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
-            Kudasai.replacement_json = FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)
-
-            Kudasai.need_to_run_kairyou = False
-            
-            await Kudasai.run_kudasai()
-
-            Logger.push_batch()
-
-        ## print usage statement
         else:
-                
-            print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
-            print("or run Kudasai.py without any arguments to run the console version.\n\n")
-
-            Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
-
-            Toolkit.pause_console()
-
-            exit()
+            print_usage_statement()
 
     except Exception as e:
-
         FileEnsurer.handle_critical_exception(e)
 
-##---------------------------------/
+##-------------------start-of-run_console_version()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+async def run_console_version():
+
+    """
+    
+    Runs the console version of Kudasai.
+
+    """
+
+    path_to_text_to_preprocess = input("Please enter the path to the input file to be processed:\n").strip('"')
+    Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(path_to_text_to_preprocess)
+    Toolkit.clear_console()
+
+    path_to_replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
+    Kudasai.replacement_json = FileEnsurer.standard_read_json(path_to_replacement_json if path_to_replacement_json else FileEnsurer.blank_rules_path)
+    Toolkit.clear_console()
+
+    await Kudasai.run_kudasai()
+    Logger.push_batch()
+
+##-------------------start-of-run_cli_version()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+async def run_cli_version():
+
+    """
+
+    Runs the CLI version of Kudasai.
+
+    """
+
+    Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
+    Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"') if(len(sys.argv) == 3) else FileEnsurer.blank_rules_path)
+
+    if(len(sys.argv) == 2):
+        Kudasai.need_to_run_kairyou = False
+
+    await Kudasai.run_kudasai()
+    Logger.push_batch()
+
+##-------------------start-of-print_usage_statement()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def print_usage_statement():
+
+    """
+
+    Prints the usage statement for the CLI version of Kudasai.
+
+    """
+
+    print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
+    print("or run Kudasai.py without any arguments to run the console version.\n\n")
+    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
+    Toolkit.pause_console()
+    exit()
+
 if(__name__ == '__main__'):
     asyncio.run(main())

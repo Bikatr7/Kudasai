@@ -1,7 +1,6 @@
 ## built-in libraries
 import typing
 import base64
-from click import File
 
 ## third-party libraries
 import gradio as gr
@@ -411,7 +410,7 @@ class KudasaiGUI:
                             self.sentence_fragmenter_mode_input_field = gr.Dropdown(label='Sentence Fragmenter Mode',
                                                                                     value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode")),
                                                                                     choices=[1,2,3],
-                                                                                    info="1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.",
+                                                                                    info="1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy (depreciated, will default to None if you select 2), 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.",
                                                                                     show_label=True,
                                                                                     interactive=True,
                                                                                     elem_id="sentence_fragmenter_mode")

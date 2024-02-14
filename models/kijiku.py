@@ -14,7 +14,6 @@ from kairyou import KatakanaUtil
 
 import backoff
 import tiktoken
-import spacy
 
 ## custom modules
 from handlers.json_handler import JsonHandler
@@ -919,19 +918,9 @@ class Kijiku:
                     index = patched_sentences.index(Kijiku.translated_text[i])
                     Kijiku.translated_text[i] = patched_sentences[index]
 
-        ## mode 2 uses spacy to split sentences
-        elif(Kijiku.sentence_fragmenter_mode == 2): 
-
-            nlp = spacy.load("en_core_web_lg")
-
-            doc = nlp(translated_message)
-            sentences = [sent.text for sent in doc.sents]
-
-            for sentence in sentences:
-                Kijiku.translated_text.append(sentence + '\n')
-
+        ## mode 2 uses spacy to split sentences (deprecated, will do 3 instead)
         ## mode 3 just assumes gpt formatted it properly
-        elif(Kijiku.sentence_fragmenter_mode == 3): 
+        elif(Kijiku.sentence_fragmenter_mode == 2 or Kijiku.sentence_fragmenter_mode == 3): 
             
             Kijiku.translated_text.append(translated_message + '\n\n')
         

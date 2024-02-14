@@ -428,31 +428,38 @@ class Kijiku:
 
         prompt = []
 
+        non_word_pattern = re.compile(r'^[\W_\s\n-]+$')
+        alphanumeric_pattern = re.compile(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$')
+
         while(index < len(Kijiku.text_to_translate)):
+
             sentence = Kijiku.text_to_translate[index]
+            is_part_in_sentence = "part" in sentence.lower()
 
             if(len(prompt) < Kijiku.prompt_size):
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(sentence + '\n')
                     Logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.")
+                    index += 1
 
-                elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
+                elif(is_part_in_sentence or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
                     prompt.append(sentence + '\n') 
                     Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.")
+                    index += 1
 
-                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) or KatakanaUtil.is_punctuation(sentence)):
+                elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(sentence)):
                     Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
-            
-                elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
+                    index += 1
+                    
+                elif(alphanumeric_pattern.match(sentence) and not is_part_in_sentence):
                     Logger.log_action("Sentence is empty... skipping translation.")
-
+                    index += 1
                 else:
                     prompt.append(sentence + "\n")
-    
             else:
                 return prompt, index
-            
+
             index += 1
 
         return prompt, index

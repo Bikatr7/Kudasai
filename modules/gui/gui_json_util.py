@@ -32,7 +32,7 @@ class GuiJsonUtil:
         """
 
         ## Done this way because if the value is None, it'll be shown as a blank string in the settings tab, which is not what we want.
-        return GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] if GuiJsonUtil.current_kijiku_rules["open ai settings"][key_name] is not None else "None"
+        return GuiJsonUtil.current_kijiku_rules["open ai settings"].get(key_name, "None")
     
 ##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -50,26 +50,28 @@ class GuiJsonUtil:
 
         ## save old json in case of need to revert
         old_rules = GuiJsonUtil.current_kijiku_rules
+        new_rules = old_rules.copy()
 
         try:
 
             for key, value in new_values:
-                GuiJsonUtil.current_kijiku_rules["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, value)
+                new_rules["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, value)
 
-            with open(FileEnsurer.config_kijiku_rules_path, "w") as file:
-                json.dump(GuiJsonUtil.current_kijiku_rules, file)
-
-            ## so, because of how gradio deals with temp file, we need to both dump into the settings file from FileEnsurer AND the gradio_kijiku_rule file which is stored in the temp folder under AppData
-            ## name is the path to the file btw
-            with open(gradio_kijiku_rule.name, "w") as file: ## type: ignore
-                json.dump(GuiJsonUtil.current_kijiku_rules, file)
-
-            JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
-
+            JsonHandler.current_kijiku_rules = new_rules
             JsonHandler.validate_json()
 
             ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
             assert JsonHandler.current_kijiku_rules != FileEnsurer.invalid_kijiku_rules_placeholder
+
+            ## so, because of how gradio deals with temp file, we need to both dump into the settings file from FileEnsurer AND the gradio_kijiku_rule file which is stored in the temp folder under AppData
+            ## name is the path to the file btw
+            with open(FileEnsurer.config_kijiku_rules_path, "w") as file:
+                json.dump(new_rules, file)
+
+            with open(gradio_kijiku_rule.name, "w") as file: ## type: ignore
+                json.dump(new_rules, file)
+
+            GuiJsonUtil.current_kijiku_rules = new_rules
 
         except Exception as e:
 

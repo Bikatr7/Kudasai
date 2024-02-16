@@ -8,7 +8,8 @@ import base64
 import time
 
 ## third party modules
-import deepl
+from deepl.translator import Translator
+from deepl.exceptions import AuthorizationException, QuotaExceededException
 
 ## custom modules
 from modules.common.toolkit import Toolkit
@@ -29,7 +30,7 @@ class Kaiseki:
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    translator:deepl.Translator
+    translator:Translator
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -132,7 +133,7 @@ class Kaiseki:
                 time.sleep(.1)
                 
             ## if invalid key exit
-            except deepl.exceptions.AuthorizationException: 
+            except AuthorizationException: 
                     
                 Toolkit.clear_console()
                     
@@ -170,7 +171,7 @@ class Kaiseki:
 
         """
 
-        Kaiseki.translator = deepl.Translator(api_key)
+        Kaiseki.translator = Translator(api_key)
 
         ## perform a test translation to see if the api key is valid
         try:
@@ -178,7 +179,7 @@ class Kaiseki:
 
             Logger.log_action("API key is valid.", output=True)
         
-        except deepl.exceptions.AuthorizationException as e:
+        except AuthorizationException as e:
             raise e
         
 ##-------------------start-of-reset_static_variables()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -513,7 +514,7 @@ class Kaiseki:
                 if(i != len(Kaiseki.sentence_punctuation)-1):
                     Kaiseki.translated_sentence += " "
                         
-            except deepl.exceptions.QuotaExceededException as e:
+            except QuotaExceededException as e:
 
                 Logger.log_action("DeepL API quota exceeded.", output=True)
 

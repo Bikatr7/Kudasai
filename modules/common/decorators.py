@@ -23,3 +23,19 @@ def permission_error_decorator() -> typing.Callable:
                 
         return wrapper
     return decorator
+
+##--------------------start-of-do_nothing_decorator------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def do_nothing_decorator() -> typing.Callable:
+
+    """
+    
+    Returns a decorator that will do nothing.
+
+    """
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

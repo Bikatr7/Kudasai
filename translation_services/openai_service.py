@@ -2,13 +2,11 @@
 import typing
 
 ## third-party libraries
-import backoff
-
 from openai import AsyncOpenAI
 
 ## custom modules
-from modules.common.exceptions import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError, InvalidAPIKeyException, MaxBatchDurationExceededException
-from modules.common.logger import Logger
+from modules.common.exceptions import InvalidAPIKeyException
+from modules.common.decorators import do_nothing_decorator
 
 from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
 
@@ -28,6 +26,8 @@ class OpenAIService:
     frequency_penalty:float
     max_tokens:int
 
+    decorator_to_use:typing.Callable = do_nothing_decorator
+
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -44,11 +44,27 @@ class OpenAIService:
 
         OpenAIService.client.api_key = api_key
 
+##-------------------start-of-set_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def set_decorator(decorator:typing.Callable) -> None:
+
+        """
+
+        Sets the decorator to use for the OpenAI service. Should be a callable that returns a decorator.
+
+        Parameters:
+        decorator (callable) : The decorator to use.
+
+        """
+
+        OpenAIService.decorator_to_use = decorator
+
 ##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ## backoff wrapper for retrying on errors, As of OpenAI > 1.0.0, it comes with a built in backoff system, but I've grown accustomed to this one so I'm keeping it.
     @staticmethod
-    @backoff.on_exception(backoff.expo, max_time=lambda: OpenAIService.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: OpenAIService.log_retry(details), on_giveup=lambda details: OpenAIService.log_failure(details), raise_on_giveup=False)
+    @decorator_to_use()
     async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
 
         """
@@ -124,61 +140,19 @@ class OpenAIService:
         except Exception as e:
 
             return validity, e
-    
-##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     @staticmethod
-    def get_max_batch_duration() -> float:
+    def get_decorator() -> typing.Callable:
 
         """
-        
-        Returns the max batch duration.
-        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called.
+
+        Returns the decorator to use for the OpenAI service.
 
         Returns:
-        max_batch_duration (float) : the max batch duration.
+        decorator (callable) : The decorator to use.
 
         """
 
-        return OpenAIService.max_batch_duration
-    
-##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def log_retry(details) -> None:
-
-        """
-
-        Logs the retry message.
-
-        Parameters:
-        details (dict) : the details of the retry.
-
-        """
-
-        retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
-
-        Logger.log_barrier()
-        Logger.log_action(retry_msg)
-        Logger.log_barrier()
-
-##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def log_failure(details) -> None:
-
-        """
-        
-        Logs the translation batch failure message.
-
-        Parameters:
-        details (dict) : the details of the failure.
-
-        """
-
-        error_msg = f"Exceeded duration, returning untranslated text after {details['tries']} tries {details['target']}."
-
-        Logger.log_barrier()
-        Logger.log_error(error_msg)
-        Logger.log_barrier()
-
-        raise MaxBatchDurationExceededException(error_msg)
+        return OpenAIService.decorator_to_use

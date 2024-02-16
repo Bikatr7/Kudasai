@@ -11,6 +11,7 @@ import os
 from kairyou import KatakanaUtil
 
 import tiktoken
+import backoff
 
 ## custom modules
 from handlers.json_handler import JsonHandler
@@ -18,7 +19,7 @@ from handlers.json_handler import JsonHandler
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
 from modules.common.toolkit import Toolkit
-from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException
+from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
 from modules.common.decorators import permission_error_decorator
 
 from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
@@ -67,6 +68,66 @@ class Kijiku:
     num_of_malform_retries = 0
     max_batch_duration = 0
     num_concurrent_batches = 0
+
+    decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+
+##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    @staticmethod
+    def get_max_batch_duration() -> float:
+
+        """
+        
+        Returns the max batch duration.
+        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called.
+
+        Returns:
+        max_batch_duration (float) : the max batch duration.
+
+        """
+
+        return Kijiku.max_batch_duration
+    
+##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def log_retry(details) -> None:
+
+        """
+
+        Logs the retry message.
+
+        Parameters:
+        details (dict) : the details of the retry.
+
+        """
+
+        retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
+
+        Logger.log_barrier()
+        Logger.log_action(retry_msg)
+        Logger.log_barrier()
+
+##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def log_failure(details) -> None:
+
+        """
+        
+        Logs the translation batch failure message.
+
+        Parameters:
+        details (dict) : the details of the failure.
+
+        """
+
+        error_msg = f"Exceeded duration, returning untranslated text after {details['tries']} tries {details['target']}."
+
+        Logger.log_barrier()
+        Logger.log_error(error_msg)
+        Logger.log_barrier()
+
+        raise MaxBatchDurationExceededException(error_msg)
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -298,6 +359,8 @@ class Kijiku:
         OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"])
         OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"])
         OpenAIService.max_tokens = int(JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"])
+
+        OpenAIService.set_decorator(Kijiku.decorator_to_use)
 
         Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 
@@ -623,22 +686,6 @@ class Kijiku:
             else:
                 Logger.log_action("User cancelled translation.")
                 exit()
-    
-##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def get_max_batch_duration() -> float:
-
-        """
-        
-        Returns the max batch duration.
-        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called.
-
-        Returns:
-        max_batch_duration (float) : the max batch duration.
-
-        """
-
-        return Kijiku.max_batch_duration
     
 ##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

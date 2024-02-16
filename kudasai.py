@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import asyncio
+import traceback
 
 ## third-party libraries
 from kairyou import Kairyou
@@ -253,13 +254,24 @@ async def run_console_version():
 
     """
 
-    path_to_text_to_preprocess = input("Please enter the path to the input file to be processed:\n").strip('"')
-    Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(path_to_text_to_preprocess)
-    Toolkit.clear_console()
+    try:
 
-    path_to_replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
-    Kudasai.replacement_json = FileEnsurer.standard_read_json(path_to_replacement_json if path_to_replacement_json else FileEnsurer.blank_rules_path)
-    Toolkit.clear_console()
+        path_to_text_to_preprocess = input("Please enter the path to the input file to be processed:\n").strip('"')
+        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(path_to_text_to_preprocess)
+        Toolkit.clear_console()
+
+        path_to_replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
+        Kudasai.replacement_json = FileEnsurer.standard_read_json(path_to_replacement_json if path_to_replacement_json else FileEnsurer.blank_rules_path)
+        Toolkit.clear_console()
+
+    except Exception as e:
+        print_usage_statement()
+
+        print(traceback.format_exc())
+
+        Toolkit.pause_console()
+
+        raise e
 
     await Kudasai.run_kudasai()
     Logger.push_batch()
@@ -274,8 +286,19 @@ async def run_cli_version():
 
     """
 
-    Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
-    Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"') if(len(sys.argv) == 3) else FileEnsurer.blank_rules_path)
+    try:
+
+        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
+        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"') if(len(sys.argv) == 3) else FileEnsurer.blank_rules_path)
+
+    except Exception as e:
+        print_usage_statement()
+
+        print(traceback.format_exc())
+
+        Toolkit.pause_console()
+
+        raise e
 
     if(len(sys.argv) == 2):
         Kudasai.need_to_run_kairyou = False

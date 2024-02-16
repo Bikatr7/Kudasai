@@ -1,13 +1,15 @@
 ## third-party libraries
+
+## for importing, other scripts will use from common.exceptions instead of from the third-party libraries themselves
 from openai import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
 
-##-------------------start-of-MaxBatchDurationExceeded--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-MaxBatchDurationExceededException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class MaxBatchDurationExceeded(Exception):
+class MaxBatchDurationExceededException(Exception):
 
     """
 
-    MaxBatchDurationExceeded is an exception that is raised when the max batch duration is exceeded.
+    MaxBatchDurationExceededException is an exception that is raised when the max batch duration is exceeded.
 
     """
 

@@ -5,7 +5,6 @@
 - [Notes](#notes)
 - [Naming Conventions](#naming-conventions)
 - [Dependencies](#dependencies)
-- [Known Issues During Installation](#known-issues-during-installation)
 - [Kairyou](#kairyou)
 - [Kaiseki](#kaiseki)
 - [Kijiku](#kijiku)
@@ -19,6 +18,8 @@
 
 Simply run Kudasai.py which will take a few seconds to load, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input whatever and Kudasai will skip preprocessing and go straight to translation.
 
+Can also run webgui.py for a web gui which is simpler and non-linear.
+
 After preprocessing is completed (if triggered), you will be prompted to run the translation modules.
 
 I recommend using Kijiku as it is vastly superior.
@@ -27,86 +28,54 @@ See the [Kijiku Settings](#kijiku-settings) section for more information on Kiji
 
 Follow the prompts from there and you should be good to go, results will be stored in the output folder in the same directory as kudasai.py.
 
+If you have any questions, comments, or concerns, please feel free to open an issue.
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Notes**<a name="notes"></a>
 
-Built for Windows, should work on Linux/MacOS but is untested. I welcome any feedback on this.
+Built for Windows, should work on Linux/MacOS but is untested, attempts were made to make platform agnostic functions, but since I do not have access to a Linux/MacOS machine, I cannot guarantee it will work. If you'd like to test it on Linux/MacOS, please let me know how it goes. I'd be happy to help with any issues that arise. 
 
 Python version: 3.8+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
-Preprocessor originally derived from https://github.com/Atreyagaurav/mtl-related-scripts and heavily modified since.
+Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github/Bikatr7/Kairyou).
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Naming Conventions**<a name="naming-conventions"></a> 
 
 kudasai.py - Main script - ください　- Please
 
-kairyou.py - Preprocessing module - 改良 - Reform
+Kairyou - Preprocessing Package - 改良 - Reform
 
 kaiseki.py - DeepL translation module - 解析 - Parsing
 
 kijiku.py - OpenAI translation module - 基軸 - Foundation
 
-Kudasai get's it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that script here:
-https://github.com/Atreyagaurav/onegai
+Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that [here](https://github.com/Atreyagaurav/onegai)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>
 
-spacy>=3.7.0,<3.8.0
-
-spacy[jp]
-
-spacy[en]
-
-ja_core_news_lg @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_lg-3.7.0/ja_core_news_lg-3.7.0-py3-none-any.whl
-
-en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.0/en_core_web_lg-3.7.0-py3-none-any.whl
-
-deepl
+deepl==1.16.1
 
 openai>1.2.0
 
-backoff
+backoff==2.2.1
 
-requests
-
-tiktoken
+tiktoken==0.6.0
 
 gradio==4.11.0
 
+kairyou==1.0.1
+
 or see requirements.txt
-
----------------------------------------------------------------------------------------------------------------------------------------------------
-**Known Issues During Installation**<a name="known-issues-during-installation"></a>
-
-Please note that issues can occur when trying to install these dependencies:
-
-pip install en_core_web_lg
-
-pip install ja_core_news_lg
-
-if these do not work, either reinstall spacy or try:
-
-python -m spacy download ja_core_news_lg
-
-python -m spacy download en_core_web_lg
-
-If that still does not work, try uninstalling all dependencies and reinstalling them exactly as they are in requirements.txt.
-
-Also note that if you are updating since v2.2.0, you will need to update openai to 1.2.0 or higher.
-
-If installing after v2.3.0, you may need to reinstall spacy to 3.5.4. As well as its dependencies. (spacy[jp] and spacy[en], ja_core_news_lg, en_core_web_lg).
-
-If installing after v3, just reinstall all dependencies using pip install -r requirements.txt, once you navigate to the directory where it's contained.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 **Kairyou**<a name="kairyou"></a>
 
-Kairyou is the preprocessing module, it is used to preprocess Japanese text to make it easier to translate. It is the first step in the process.
+Kairyou is the preprocessing package, it is used to preprocess Japanese text to make it easier to translate. It is the first step taken when running Kudasai.
 
 To run Kairyou and by extension Kudasai, you may use the CLI or the Console.
 
@@ -124,7 +93,7 @@ i.e.
 
     Path to the replacement json file
 
-As of v3.0.0, you can omit the replacement json file path if you wish to not use one.
+You can omit the replacement json file if you do not wish to use one. This will skip preprocessing and go straight to translation.
 
 See an example of a command line entry below
 
@@ -133,8 +102,6 @@ See an example of a command line entry below
 Many replacement json files are included in the jsons folder, you can also make your own if you wish provided it follows the same format. See an example below
 
 ![Example JSON](https://i.imgur.com/u3FnUia.jpg)
-
-If you do not wish to use a replacement json file, you can use the blank replacement json file provided in the jsons folder or simply input whatever and Kudasai will skip preprocessing and go straight to translation.
 
 Upon Kudasai being run, it will create a folder called "output" which will contain 5 files. It is located in the same directory as kudasai.py.
 
@@ -160,9 +127,9 @@ After preprocessing is completed, you will be prompted to run a translation modu
 
 **Kaiseki**<a name="kaiseki"></a>
 
-Kaiseki is the DeepL translation module, it is used to translate Japanese to English. It is flawed and not very accurate compared to Kijiku although plans are in place to develop a better version *eventually*. See kansei.py for more information on this.
+Kaiseki is the DeepL translation module, it is used to translate Japanese to English. It is *flawed* and not very accurate compared to Kijiku although it is still useful for some things.
 
-Kaiseki is effectively deprecated and is only maintained. Do not expect any updates to it other than bug fixes.
+Kaiseki is effectively deprecated and is only maintained. Do not expect any updates to it anytime soon other than bug fixes or compatibility updates.
 
 Please note an API key is required for Kaiseki to work, you can get one here: https://www.deepl.com/pro#developer.
 
@@ -172,7 +139,7 @@ If you accept the prompt and choose '1' to run Kaiseki, you will be prompted to 
 
 Your translated text will be stored in the output folder in the same directory as kudasai.py.
 
-Kaiseki will store your obfuscated api key locally under KudasaiConfig under your user directory. 
+Kaiseki will store your obfuscated api key locally under KudasaiSecrets under %APPDATA% or ~/.config/ depending on your OS. 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -186,21 +153,25 @@ Currently, you can get a free API trial credit that lasts for a month and is wor
 
 Kijiku is vastly more complicated and has a lot of steps, so let's go over them.
 
-Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to enter your API key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them. Kijiku will store your obfuscated api key locally under KudasaiConfig under your user directory. 
+Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to enter your API key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them. Kijiku will store your obfuscated api key locally under KudasaiSecrets under %APPDATA% or ~/.config/ depending on your OS.
 
-You will be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu, including changing your api key. If you want to change anything about the settings, you do it here.
+You will be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu, so follow the prompts. If you want to change anything about the settings, you do it here.
 
 You can also choose to upload your own settings file in the settings change menu, this is useful if you want to use someone else's settings file. You would do so by placing the json file in the same directory as kudasai.py and then selecting 'c' in the settings change menu. This will load the file in and use it as your settings instead.
 
-After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text. Kijiku will then prompt for confirmation, run, and translate the preprocessed text and no other input is required.
+You can change your api key right after this step if you wish.
+
+After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text as determined by tiktoken. Kijiku will then prompt for confirmation, run, and translate the preprocessed text and no other input is required.
 
 Your translated text will be stored in the output folder in the same directory as kudasai.py.
 
-Also note that Kijiku's settings are very complex, please see the section below for more information on them.
+Also note that Kijiku's settings are somewhat complex, please see the section below for more information on them if you wish to change them.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 **Kijiku Settings**<a name="kijiku-settings"></a>
+
+(Fairly technical, can be abstracted away by using default settings or someone else's settings file.)
 
 See https://platform.openai.com/docs/api-reference/chat/create for further details
 
@@ -230,7 +201,7 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 
     num_lines: The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 36.
 
-    sentence_fragmenter_mode: 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy, 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.
+    sentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy (depreciated, will default to 3 if you select 2), 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.
 
     je_check_mode: 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for gpt-4.
 
@@ -240,7 +211,7 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 
     num_concurrent_batches: How many translations batches Kijiku will send to OpenAI at a time.
 
-    Please note that while logit_bias can be changed, Kijiku does not currently do anything with them, and is merely there in case I decide to do something with it.
+    Please note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them, and is merely there in case I decide to do something with it or someone else requests it.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

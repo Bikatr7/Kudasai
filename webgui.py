@@ -19,6 +19,8 @@ from handlers.json_handler import JsonHandler
 from models.kaiseki import Kaiseki
 from models.kijiku import Kijiku
 
+from translation_services.openai_service import OpenAIService
+
 from kudasai import Kudasai
 
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -648,7 +650,12 @@ class KudasaiGUI:
 
                 ## next api key
                 try:
-                    await Kijiku.setup_api_key(str(api_key_input))
+                    OpenAIService.set_api_key(str(api_key_input))
+
+                    is_valid, e = await OpenAIService.test_api_key_validity()
+
+                    if(is_valid == False and e is not None):
+                        raise e
 
                 except:
                     raise gr.Error("Invalid API key")

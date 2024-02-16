@@ -424,7 +424,7 @@ class FileEnsurer():
         list_of_result_tuples = [('kairyou_preprocessed_text', text_to_preprocess),
                                  ('kairyou_preprocessing_log', preprocessing_log),
                                  ('kairyou_error_log', error_log),
-                                 ('debug_log', Logger.log_file_path)]
+                                 ('debug_log', FileEnsurer.standard_read_file(Logger.log_file_path))]
 
         FileEnsurer.archive_results(list_of_result_tuples,
                                     module='kairyou', timestamp=timestamp)

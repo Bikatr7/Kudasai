@@ -15,6 +15,7 @@ from deepl.exceptions import AuthorizationException, QuotaExceededException
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
+from modules.common.decorators import permission_error_decorator
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -563,6 +564,7 @@ class Kaiseki:
 ##-------------------start-of-write_kaiseki_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def write_kaiseki_results() -> None:
 
         """
@@ -591,7 +593,7 @@ class Kaiseki:
         list_of_result_tuples = [('kaiseki_translated_text', Kaiseki.translated_text),
                                  ('kaiseki_je_check_text', Kaiseki.je_check_text),
                                  ('kaiseki_error_log', Kaiseki.error_text),
-                                 ('debug_log', Logger.log_file_path)]
+                                 ('debug_log', FileEnsurer.standard_read_file(Logger.log_file_path))]
 
         FileEnsurer.archive_results(list_of_result_tuples, 
                                     module='kaiseki', timestamp=timestamp)

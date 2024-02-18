@@ -402,7 +402,7 @@ class KudasaiGUI:
 
                             self.num_lines_input_field = gr.Textbox(label='Number of Lines Per Batch',
                                                                     value=(GuiJsonUtil.fetch_kijiku_setting_key_values("num_lines")),
-                                                                    info="The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 36.",
+                                                                    info="The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.",
                                                                     lines=1,
                                                                     max_lines=1,
                                                                     show_label=True,

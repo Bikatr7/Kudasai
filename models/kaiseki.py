@@ -7,15 +7,13 @@ import re
 import base64
 import time
 
-## third party modules
-from deepl.translator import Translator
-from deepl.exceptions import AuthorizationException, QuotaExceededException
-
 ## custom modules
+from translation_services.deepl_service import DeepLService
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
 from modules.common.decorators import permission_error_decorator
+from modules.common.exceptions import AuthorizationException, QuotaExceededException
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28,10 +26,6 @@ class Kaiseki:
     Kaiseki is considered inferior to Kijiku, please consider using Kijiku instead.
     
     """
-
-    ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    translator:Translator
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,7 +107,8 @@ class Kaiseki:
             with open(FileEnsurer.deepl_api_key_path, 'r', encoding='utf-8') as file:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            Kaiseki.setup_api_key(api_key)
+            DeepLService.set_api_key(api_key)
+            DeepLService.test_api_key_validity()
 
             Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path, output=True)
 
@@ -125,7 +120,8 @@ class Kaiseki:
             ## if valid save the api key
             try: 
 
-                Kaiseki.setup_api_key(api_key)
+                DeepLService.set_api_key(api_key)
+                DeepLService.test_api_key_validity()
 
                 time.sleep(.1)
                     
@@ -158,31 +154,6 @@ class Kaiseki:
         Toolkit.clear_console()
         Logger.log_barrier()
 
-##-------------------start-of-setup_api_key()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def setup_api_key(api_key:str) -> None:
-
-        """
-
-        Sets up the api key for the Kaiseki class.
-
-        Parameters:
-        api_key (str) : the api key to use.
-
-        """
-
-        Kaiseki.translator = Translator(api_key)
-
-        ## perform a test translation to see if the api key is valid
-        try:
-            Kaiseki.translator.translate_text("test", target_lang="JA")
-
-            Logger.log_action("API key is valid.", output=True)
-        
-        except AuthorizationException as e:
-            raise e
-        
 ##-------------------start-of-reset_static_variables()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -483,7 +454,7 @@ class Kaiseki:
                 single_quote_active = True
                 
             try:
-                results = str(Kaiseki.translator.translate_text(Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")) 
+                results = DeepLService.translate(Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")
 
                 translated_part = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                 translated_part = translated_part.rstrip() 
@@ -495,7 +466,7 @@ class Kaiseki:
 
                 ## translates the quote and re-adds it back to the sentence part
                 if(single_quote_active == True): 
-                    quote = str(Kaiseki.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
+                    quote = DeepLService.translate(quote, source_lang= "JA", target_lang="EN-US")
                     
                     quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                     quote = quote.rstrip() 

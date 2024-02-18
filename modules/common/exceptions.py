@@ -2,6 +2,7 @@
 
 ## for importing, other scripts will use from common.exceptions instead of from the third-party libraries themselves
 from openai import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
+from deepl.exceptions import AuthorizationException, QuotaExceededException
 
 ##-------------------start-of-MaxBatchDurationExceededException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

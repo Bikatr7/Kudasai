@@ -3,10 +3,13 @@ import os
 import sys
 import json
 import asyncio
+import re
+import typing
 import traceback
 
 ## third-party libraries
 from kairyou import Kairyou
+from kairyou import Indexer
 
 ## custom modules
 from models.kaiseki import Kaiseki 
@@ -74,6 +77,56 @@ class Kudasai:
 
             raise Exception("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
         
+##-------------------start-of-run_kairyou_indexer()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def run_kairyou_indexer(text_to_index:str, replacement_json:typing.Union[dict,str]) -> str:
+
+        """
+
+        Runs the Kairyou Indexer.
+
+        Parameters:
+        text_to_index (str): The text to index.
+        replacement_json (dict): The replacement json.
+
+        Returns:
+
+        
+        """
+
+        Toolkit.clear_console()
+
+        knowledge_base = input("Please enter the path to the knowledge base you would like to use for the indexer (can be text, a path to a txt file, or a path to a directory of txt files):\n").strip('"')
+
+        ## unique names is a list of named tuples, with the fields name and occurrence
+        unique_names = Indexer.index(text_to_index, knowledge_base, replacement_json)
+
+        ## for each name in unique_names, we need to replace that name in the text_to_process with (MANUAL NAME REVIEW {name}).
+        ## but since it returns the occurrence of the name, we only need to replace that occurrence of the name in the text_to_process
+        ## So if a name has 42 occurrences, but only the 3rd and 4th occurrence were flagged, we only need to replace the 3rd and 4th occurrence of the name in the text_to_process
+
+        text = text_to_index
+
+        for name_tuple in unique_names:
+            name = name_tuple.name
+            pattern = re.compile(re.escape(name)) ## Prepare regex pattern, escaping the name to handle special characters
+
+            current_pos = 0
+            new_text = ""
+            last_end = 0
+
+            for match in pattern.finditer(text):
+                current_pos += 1
+                if(current_pos == name_tuple.occurrence):  # Assuming occurrence is a list of positions
+                    new_text += text[last_end:match.start()] + f"(MANUAL NAME REVIEW {match.group(0)})"
+                    last_end = match.end()
+
+            new_text += text[last_end:]  # Append the rest of the text
+            text = new_text
+
+        return text
+
 ##-------------------start-of-run_kudasai()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
     @staticmethod
@@ -88,7 +141,10 @@ class Kudasai:
         Kudasai.handle_update_check()
 
         if(Kudasai.need_to_run_kairyou):
-        
+
+            if(input("Would you like to use Kairyou's Indexer to index the preprocessed text? (1 for yes, 2 for no)\n") == "1"):
+                Kudasai.text_to_preprocess = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json)
+
             preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json)
 
             ## Need to set this so auto-translation can use the preprocessed text
@@ -98,8 +154,10 @@ class Kudasai:
 
             timestamp = Toolkit.get_timestamp(is_archival=True)
 
-            FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
+            Toolkit.pause_console()
 
+            FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
+            
             Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
             Toolkit.clear_console()
 

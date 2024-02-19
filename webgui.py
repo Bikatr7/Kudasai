@@ -18,6 +18,7 @@ from handlers.json_handler import JsonHandler
 
 from models.kaiseki import Kaiseki
 from models.kijiku import Kijiku
+from translation_services.deepl_service import DeepLService
 
 from translation_services.openai_service import OpenAIService
 
@@ -581,7 +582,12 @@ class KudasaiGUI:
                     text_to_translate = input_text
 
                 try:
-                    Kaiseki.setup_api_key(str(api_key_input))
+                    DeepLService.set_api_key(str(api_key_input))
+
+                    is_valid, e = DeepLService.test_api_key_validity()
+
+                    if(is_valid == False and e is not None):
+                        raise e
 
                 except:
                     raise gr.Error("Invalid API key")

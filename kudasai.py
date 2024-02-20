@@ -163,9 +163,9 @@ class Kudasai:
 
         if(Kudasai.need_to_run_kairyou):
 
-            indexing_log = "" 
+            indexing_log = ""
 
-            if(input("Would you like to use Kairyou's Indexer to index the preprocessed text? (1 for yes, 2 for no)\n") == "1"):
+            if(Kudasai.replacement_json not in ["", FileEnsurer.blank_rules_path, FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)] and input("Would you like to use Kairyou's Indexer to index the preprocessed text? (1 for yes, 2 for no)\n") == "1"):
                 Kudasai.text_to_preprocess, indexing_log = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json)
 
             preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json)
@@ -177,7 +177,7 @@ class Kudasai:
             if(indexing_log != ""):
                 preprocessing_log = indexing_log + "\n\n" + preprocessing_log
 
-            print(Kairyou.preprocessing_log) 
+            print(preprocessing_log) 
 
             timestamp = Toolkit.get_timestamp(is_archival=True)
 

@@ -58,7 +58,7 @@ class JsonHandler:
 
     num_concurrent_batches : How many translations batches Kijiku will send to OpenAI at a time.
     ----------------------------------------------------------------------------------
-    Please note that while logit_bias can be changed, Kijiku does not currently do anything with them.
+    Please note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them.
     """
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -288,6 +288,9 @@ class SettingsChanger:
         """
 
         Generates the settings change menu.
+
+        Returns:
+        menu (str) : The settings change menu.
 
         """
 

@@ -7,7 +7,7 @@ class SystemTranslationMessage(typing.TypedDict):
 
     """
 
-    SystemTranslationMessage is a typedDict that is used to send the system message to the API.
+    SystemTranslationMessage is a typedDict that is used to send the system message to the OpenAI API.
 
     """
 
@@ -21,7 +21,7 @@ class ModelTranslationMessage(typing.TypedDict):
 
     """
 
-    ModelTranslationMessage is a typedDict that is used to send the model/user message to the API.
+    ModelTranslationMessage is a typedDict that is used to send the model/user message to the OpenAI API.
 
     """
 

@@ -3,16 +3,23 @@
   "honorifics": {
     "ちゃん": "chan",
     "殿": "dono",
+    "どの": "dono",
     "くん": "kun",
     "君": "kun",
     "後輩": "kōhai",
+    "こうはい": "kōhai",
     "様": "sama",
+    "さま": "sama",
     "さん": "san",
-    "せんぱい": "senpai",
     "先輩": "senpai",
+    "せんぱい": "senpai",
     "先生": "sensei",
+    "せんせい": "sensei",
     "氏": "shi",
-    "上": "ue"
+    "し": "shi",
+    "上": "ue",
+    "うえ": "ue"
+
   },
 
   "single_words": {
@@ -78,10 +85,12 @@
     "Mii": ["みー"],
     "Mika": ["美香"],
     "Ohba": ["大場"],
+    "Satonaka": ["里中"],
     "Sawada": ["沢田"],
     "Shiro": ["志朗"],
     "Sonezaki": ["曽根崎"],
     "Sōya": ["宗谷"],
+    "Sugio": ["杉尾"],
     "Tomose":["トモセ"],
     "Yano": ["矢野"],
     "king": ["Wan-sama"]
@@ -144,6 +153,7 @@
     "Nagumo Miyabi": ["南雲","雅"],
     "Nanase Tsubasa": ["七瀬","翼"],
     "Naoe Jinnosuke": ["直江","仁之助"],
+    "Nishimura Ryūko": ["西村","龍子"],
     "Nishino Takeko" : ["西野","武子"],
     "Okitani Kyōsuke": ["沖谷","京介"],
     "Onodera Kayano": ["小野寺","かや乃"],
@@ -177,6 +187,7 @@
     "Yamamura Miki": ["山村","美紀"],
     "Yamanaka Ikuko": ["山中","郁子"],
     "Yamashita Saki" : ["鈴代","紗弓"],
+    "Yamashita Naohisa" :[ "山下","直久"],
     "Yamauchi Haruki": ["山内","春樹"],
     "Yukimura Teruhiko": ["幸村","輝彦"]
   },

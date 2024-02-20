@@ -102,7 +102,7 @@ class Kudasai:
         ## unique names is a list of named tuples, with the fields name and occurrence
         unique_names = Indexer.index(text_to_index, knowledge_base, replacement_json)
 
-        ## for each name in unique_names, we need to replace that name in the text_to_process with (MANUAL NAME REVIEW {name}).
+        ## for each name in unique_names, we need to replace that name in the text_to_process with >>>name<<<
         ## but since it returns the occurrence of the name, we only need to replace that occurrence of the name in the text_to_process
         ## So if a name has 42 occurrences, but only the 3rd and 4th occurrence were flagged, we only need to replace the 3rd and 4th occurrence of the name in the text_to_process
 
@@ -118,8 +118,8 @@ class Kudasai:
 
             for match in pattern.finditer(text):
                 current_pos += 1
-                if(current_pos == name_tuple.occurrence):  # Assuming occurrence is a list of positions
-                    new_text += text[last_end:match.start()] + f"(MANUAL NAME REVIEW {match.group(0)})"
+                if(current_pos == name_tuple.occurrence):  
+                    new_text += text[last_end:match.start()] + f">>>{name}<<<"
                     last_end = match.end()
 
             new_text += text[last_end:]  # Append the rest of the text

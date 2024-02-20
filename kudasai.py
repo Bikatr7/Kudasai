@@ -81,7 +81,7 @@ class Kudasai:
 ##-------------------start-of-run_kairyou_indexer()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def run_kairyou_indexer(text_to_index:str, replacement_json:typing.Union[dict,str]) -> str:
+    def run_kairyou_indexer(text_to_index:str, replacement_json:typing.Union[dict,str]) -> typing.Tuple[str, str]:
 
         """
 
@@ -101,7 +101,7 @@ class Kudasai:
         knowledge_base = input("Please enter the path to the knowledge base you would like to use for the indexer (can be text, a path to a txt file, or a path to a directory of txt files):\n").strip('"')
 
         ## unique names is a list of named tuples, with the fields name and occurrence
-        unique_names = Indexer.index(text_to_index, knowledge_base, replacement_json)
+        unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base, replacement_json)
 
         ## for each name in unique_names, we need to replace that name in the text_to_process with >>>name<<<
         ## but since it returns the occurrence of the name, we only need to replace that occurrence of the name in the text_to_process
@@ -109,7 +109,7 @@ class Kudasai:
 
         text_to_index = Kudasai.mark_indexed_names(text_to_index, unique_names)
 
-        return text_to_index
+        return text_to_index, indexing_log
     
 ##-------------------start-of-mark_indexed_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -163,8 +163,10 @@ class Kudasai:
 
         if(Kudasai.need_to_run_kairyou):
 
+            indexing_log = "" 
+
             if(input("Would you like to use Kairyou's Indexer to index the preprocessed text? (1 for yes, 2 for no)\n") == "1"):
-                Kudasai.text_to_preprocess = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json)
+                Kudasai.text_to_preprocess, indexing_log = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json)
 
             preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json)
 
@@ -176,6 +178,10 @@ class Kudasai:
             timestamp = Toolkit.get_timestamp(is_archival=True)
 
             Toolkit.pause_console()
+
+            ## add index log to preprocessing log
+            if(indexing_log != ""):
+                preprocessing_log = indexing_log + "\n\n" + preprocessing_log
 
             FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
             

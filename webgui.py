@@ -226,6 +226,7 @@ class KudasaiGUI:
                         with gr.Column():
                             self.input_txt_file_preprocessing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath')
                             self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
+                            self.input_text_kairyou = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True)
 
                             ## run and clear buttons
                             with gr.Row():
@@ -238,19 +239,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=26, max_lines=26, show_label=True, interactive=False, show_copy_button=True)
+                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=41, max_lines=41, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessed_text = gr.Button('Save As')
                             
                         with gr.Column():
-                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=26, max_lines=26, interactive=False, show_copy_button=True)
+                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=41, max_lines=41, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessing_results = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=26, max_lines=26, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=41, max_lines=41, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
@@ -584,12 +585,16 @@ class KudasaiGUI:
                             for file in knowledge_base_paths:
                                 knowledge_base_string += gui_get_text_from_file(file)
 
-                            unique_names = Indexer.index(text_to_index, knowledge_base_string, replacements)
+                            gr.Info("Indexing takes a while, please be patient.")
+
+                            unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base_string, replacements)
+
+                            ## Indexer does not directly log anything, in case of anything else touching it, we will grab the log from the log file
+                            log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
                             indexed_text = Kudasai.mark_indexed_names(text_to_index, unique_names)
 
-                            ## as of kairyou 1.2.1, indexer does not log jack shit, so...
-                            return indexed_text, "", "", ""
+                            return indexed_text, indexing_log, log_text, log_text
 
                         else:
                             raise gr.Error("No knowledge base file or directory selected")
@@ -602,7 +607,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File) -> typing.Tuple[str, str, str, str]:
+            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File, input_text:str) -> typing.Tuple[str, str, str, str]:
 
                 """
 
@@ -621,10 +626,16 @@ class KudasaiGUI:
 
                 """
 
-                if(input_txt_file is not None):
+                if(input_txt_file and input_text == ""):
 
                     if(input_json_file is not None):
-                        text_to_preprocess = gui_get_text_from_file(input_txt_file)
+
+                        if(input_txt_file is not None):
+                            text_to_preprocess = gui_get_text_from_file(input_txt_file)
+
+                        else:
+                            text_to_preprocess = input_text
+
                         replacements = gui_get_json_from_file(input_json_file)
 
                         preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
@@ -877,7 +888,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
-            def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str]:
+            def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str, str]:
 
                 """
 
@@ -895,11 +906,12 @@ class KudasaiGUI:
                 input_txt_file = None
                 input_json_file = None
 
+                input_text = ""
                 preprocess_output_field = ""
                 preprocessing_results_output_field = ""
                 debug_log_output_field_preprocess_tab = ""
 
-                return input_txt_file, input_json_file, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
+                return input_txt_file, input_json_file, input_text, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
             
 ##-------------------start-of-kaiseki_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1219,8 +1231,9 @@ class KudasaiGUI:
             self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
                                                 inputs=[
                                                     self.input_txt_file_preprocessing, ## input txt file to preprocess
-                                                    self.input_json_file], ## replacements json file
-                                                                                           
+                                                    self.input_json_file, ## replacements json file
+                                                    self.input_text_kairyou], ## input text to preprocess                                                                        
+
                                                 outputs=[
                                                     self.preprocess_output_field,  ## preprocessed text
                                                     self.preprocessing_results_output_field,  ## kairyou results
@@ -1289,6 +1302,7 @@ class KudasaiGUI:
                                                 self.input_txt_file_indexing, ## input txt file
                                                 self.input_json_file_indexing, ## input json file
                                                 self.knowledge_base_file, ## knowledge base file
+                                                self.knowledge_base_directory, ## knowledge base directory
                                                 self.indexing_output_field, ## indexing output field
                                                 self.indexing_results_output_field, ## indexing results output field
                                                 self.debug_log_output_field_indexing_tab]) ## debug log on indexing tab
@@ -1301,6 +1315,7 @@ class KudasaiGUI:
                                                   outputs=[
                                                       self.input_txt_file_preprocessing, ## input txt file
                                                       self.input_json_file, ## input json file
+                                                      self.input_text_kairyou, ## input text
                                                       self.preprocess_output_field, ## preprocessed text output field
                                                       self.preprocessing_results_output_field, ## preprocessing results output field
                                                       self.debug_log_output_field_preprocess_tab])## debug log on preprocess tab
@@ -1604,7 +1619,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.send_to_kairyou.click(fn=lambda text:text, inputs=[self.indexing_output_field], outputs=[self.input_txt_file_preprocessing])
+            self.send_to_kairyou.click(fn=lambda text:text, inputs=[self.indexing_output_field], outputs=[self.input_text_kairyou])
             self.send_to_kaiseki.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kaiseki])
             self.send_to_kijiku.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kijiku])
 

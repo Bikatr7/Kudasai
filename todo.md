@@ -3,5 +3,5 @@ Work on making docx_handler work, need to be able to use docx files as input - L
 
 The thing is, I don't really see a way to do this. We'd extract the text, but since we're translating it, we'd have to put it back in the same place, and I don't see how that's possible cause of structure changes. 
 
-~~Need to build indexer functionality into webgui~~~
-Need to add better logging to kairyou indexer
+~~Need to build indexer functionality into webgui~~
+~~Need to add better logging to kairyou indexer~~

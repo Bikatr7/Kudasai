@@ -173,15 +173,13 @@ class Kudasai:
             ## Need to set this so auto-translation can use the preprocessed text
             Kudasai.text_to_preprocess = preprocessed_text
 
-            print(Kairyou.preprocessing_log) 
-
-            timestamp = Toolkit.get_timestamp(is_archival=True)
-
-            Toolkit.pause_console()
-
             ## add index log to preprocessing log
             if(indexing_log != ""):
                 preprocessing_log = indexing_log + "\n\n" + preprocessing_log
+
+            print(Kairyou.preprocessing_log) 
+
+            timestamp = Toolkit.get_timestamp(is_archival=True)
 
             FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
             

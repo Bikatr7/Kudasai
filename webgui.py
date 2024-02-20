@@ -176,7 +176,47 @@ class KudasaiGUI:
             ## tab 1 | Main
             with gr.Tab("Kudasai") as self.kudasai_tab:
 
-                ## tab 2 | preprocessing
+
+                ## tab 3 | indexing
+                with gr.Tab("Indexing | Kairyou") as self.indexing_tab:
+                    with gr.Row():
+
+                        ## input fields, text input for indexing, and replacement json file input.
+                        with gr.Column():
+                            self.input_txt_file_indexing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath')
+                            self.input_json_file_indexing = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
+                            self.knowledge_base_file = gr.File(label='Knowledge Base Single File', file_count='single', file_types=['.txt'], type='filepath')
+                            self.knowledge_base_directory = gr.File(label='Knowledge Base Directory', file_count='directory', type='filepath')
+
+                            ## run and clear buttons
+                            with gr.Row():
+                                self.indexing_run_button = gr.Button('Run', variant='primary')
+                                self.indexing_clear_button = gr.Button('Clear', variant='stop')
+
+                            with gr.Row():
+                                self.send_to_kairyou = gr.Button('Send to Kairyou (Preprocessing)')
+
+                        ## output fields
+                        with gr.Column():
+                            self.indexing_output_field  = gr.Textbox(label='Indexed text', lines=51, max_lines=51, show_label=True, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_indexed_text = gr.Button('Save As')
+                            
+                        with gr.Column():
+                            self.indexing_results_output_field = gr.Textbox(label='Indexing Results', lines=51, max_lines=51, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_indexing_results = gr.Button('Save As')
+
+                        with gr.Column():
+                            self.debug_log_output_field_indexing_tab = gr.Textbox(label='Debug Log', lines=51, max_lines=51, interactive=False, show_copy_button=True)
+
+                            with gr.Row():
+                                self.save_to_file_debug_log_indexing_tab = gr.Button('Save As')
+
+
+                ## tab 3 | preprocessing
                 with gr.Tab("Preprocessing | Kairyou") as self.preprocessing_tab:
                     with gr.Row():
 
@@ -213,7 +253,7 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
 
-                ## tab 3 | Translation Model 1 | Kaiseki
+                ## tab 4 | Translation Model 1 | Kaiseki
                 with gr.Tab("Translation With DeepL | Kaiseki") as self.kaiseki_tab:
                     with gr.Row():
 
@@ -249,7 +289,7 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
 
-                ## tab 4 | Translation Model 2 | Kijiku
+                ## tab 5 | Translation Model 2 | Kijiku
                 with gr.Tab("Translation With OpenAI | Kijiku") as self.kijiku_tab:
                     with gr.Row():
 
@@ -288,7 +328,7 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
 
-                ## tab 5 | Kijiku Settings
+                ## tab 6 | Kijiku Settings
                 with gr.Tab("Kijiku Settings") as self.kijiku_settings_tab:
                     with gr.Row():
 
@@ -458,7 +498,7 @@ class KudasaiGUI:
                         self.apply_changes_button = gr.Button('Apply Changes')
                         self.discard_changes_button = gr.Button('Discard Changes', variant='stop')
 
-                ## tab 6 | Logging
+                ## tab 7 | Logging
                 with gr.Tab("Logging") as self.logging_tab:
 
                     with gr.Row():

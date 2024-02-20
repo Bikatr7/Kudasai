@@ -4,6 +4,8 @@ import base64
 
 ## third-party libraries
 import gradio as gr
+
+from kairyou import Indexer
 from kairyou import Kairyou
 
 ## custom modules
@@ -531,6 +533,73 @@ class KudasaiGUI:
                 if(update_prompt != ""):
                     gr.Info("Update available, see https://github.com/Bikatr7/Kudasai/releases/latest/ for more information.")
 
+##-------------------start-of-indexing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    
+            def indexing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File, knowledge_base_file:str, knowledge_base_directory:typing.List[str]) -> typing.Tuple[str, str, str, str]:
+                    
+                """
+                
+                Runs the indexing and displays the results in the indexing output field. If no txt file is selected, an error is raised. If no json file is selected, an error is raised. If no knowledge base file is selected, an error is raised.
+                Knowledge base file or directory must be selected, but not both.
+                Also displays the indexing results, and the debug log.
+
+                Parameters:
+                input_txt_file (gr.File) : The input txt file.
+                input_json_file (gr.File) : The input json file.
+                knowledge_base_file (gr.File) : The knowledge base file.
+                knowledge_base_directory (gr.File) : The knowledge base directory.
+
+                Returns:
+                indexed_text (str) : The indexed text.
+                indexing_log (str) : The indexing log.
+                log_text (str) : The log text for the Indexing tab.
+                log_text (str) : The log text for the log tab.
+
+                """
+
+                if(input_txt_file is not None):
+
+                    if(input_json_file is not None):
+
+                        ## must be one, but not both
+                        if(knowledge_base_file is not None or knowledge_base_directory is not None) and not (knowledge_base_file is not None and knowledge_base_directory is not None):
+
+
+                            ## looks like file will just be the file path
+                            ## but directory will be a list of file paths, I can't think of a workaround right now, so will have to update kairyou to accept a list of file paths. 
+                            ## wait nvm im a genius, let's just read all the files and concatenate them into one string lmfao
+
+                            knowledge_base_paths = []
+                            knowledge_base_string = ""
+
+                            text_to_index = gui_get_text_from_file(input_txt_file)
+                            replacements = gui_get_json_from_file(input_json_file)
+
+                            if(knowledge_base_file is not None):
+                                knowledge_base_paths.append(knowledge_base_file)
+
+                            else:
+                                knowledge_base_paths = [file for file in knowledge_base_directory]
+
+                            for file in knowledge_base_paths:
+                                knowledge_base_string += gui_get_text_from_file(file)
+
+                            unique_names = Indexer.index(text_to_index, knowledge_base_string, replacements)
+
+                            indexed_text = Kudasai.mark_indexed_names(text_to_index, unique_names)
+
+                            ## as of kairyou 1.2.1, indexer does not log jack shit, so...
+                            return indexed_text, "", "", ""
+
+                        else:
+                            raise gr.Error("No knowledge base file or directory selected")
+                    
+                    else:
+                        raise gr.Error("No JSON file selected")
+                    
+                else:
+                    raise gr.Error("No TXT file selected")
+
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File) -> typing.Tuple[str, str, str, str]:
@@ -775,6 +844,36 @@ class KudasaiGUI:
                 gr.Info(cost_estimation)
 
                 return cost_estimation
+            
+##-------------------start-of-indexing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            def indexing_clear_button_click() -> typing.Tuple[None, None, None, None, str, str, str]:
+
+
+                """
+
+                Clears all fields on the indexing tab. As well as the input fields.
+
+                Returns:
+                input_txt_file_indexing (gr.File) : An empty file.
+                input_json_file_indexing (gr.File) : An empty file.
+                knowledge_base_file (gr.File) : An empty file.
+                indexing_output_field (str) : An empty string.
+                indexing_results_output_field (str) : An empty string.
+                debug_log_output_field_indexing_tab (str) : An empty string.
+
+                """
+
+                input_txt_file_indexing = None
+                input_json_file_indexing = None
+                knowledge_base_file = None
+                knowledge_base_directory = None
+
+                indexing_output_field = ""
+                indexing_results_output_field = ""
+                debug_log_output_field_indexing_tab = ""
+
+                return input_txt_file_indexing, input_json_file_indexing, knowledge_base_file, knowledge_base_directory, indexing_output_field, indexing_results_output_field, debug_log_output_field_indexing_tab
 
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
@@ -1099,6 +1198,22 @@ class KudasaiGUI:
 
             self.gui.load(webgui_update_check)
 
+##-------------------start-of-indexing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.indexing_run_button.click(indexing_run_button_click,
+                                            inputs=[
+                                                self.input_txt_file_indexing, ## input txt file to index
+                                                self.input_json_file_indexing, ## input json file
+                                                self.knowledge_base_file, ## knowledge base file
+                                                self.knowledge_base_directory], ## knowledge base directory
+
+                                            outputs=[
+                                                self.indexing_output_field, ## indexed text
+                                                self.indexing_results_output_field, ## indexing results
+                                                self.debug_log_output_field_indexing_tab, ## debug log on indexing tab
+                                                self.debug_log_output_field_log_tab]) ## debug log on log tab
+
+
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
@@ -1164,6 +1279,19 @@ class KudasaiGUI:
                                                             self.input_text_kijiku], ## input text to calculate costs
                 
                                                         outputs=[self.kijiku_translated_text_output_field]) ## functions as an output field for the cost output field
+            
+##-------------------start-of-indexing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.indexing_clear_button.click(indexing_clear_button_click,
+                                            inputs=[],
+                                            
+                                            outputs=[
+                                                self.input_txt_file_indexing, ## input txt file
+                                                self.input_json_file_indexing, ## input json file
+                                                self.knowledge_base_file, ## knowledge base file
+                                                self.indexing_output_field, ## indexing output field
+                                                self.indexing_results_output_field, ## indexing results output field
+                                                self.debug_log_output_field_indexing_tab]) ## debug log on indexing tab
             
 ##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1320,6 +1448,39 @@ class KudasaiGUI:
                                     
                                     outputs=[self.debug_log_output_field_log_tab, self.error_log])
             
+##-------------------start-of-save_to_file_indexed_text_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.save_to_file_indexed_text.click(lambda text: text, ## save text as is
+                inputs=[self.indexing_output_field], ## input text to save
+
+                outputs=[], ## no outputs
+
+                ## javascript code that allows us to save textbox contents to a file
+                js=(self.save_as_js).replace("downloaded_text.txt", "indexed_text.txt")
+            )
+
+##-------------------start-of-save_to_file_indexing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.save_to_file_indexing_results.click(lambda text: text, ## save text as is
+                inputs=[self.indexing_results_output_field], ## input text to save
+
+                outputs=[], ## no outputs
+
+                ## javascript code that allows us to save textbox contents to a file
+                js=(self.save_as_js).replace("downloaded_text.txt", "indexing_results.txt")
+            )
+
+##-------------------start-of-save_to_file_indexing_debug_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.save_to_file_debug_log_indexing_tab.click(lambda text: text, ## save text as is
+                inputs=[self.debug_log_output_field_indexing_tab], ## input text to save
+
+                outputs=[], ## no outputs
+
+                ## javascript code that allows us to save textbox contents to a file
+                js=(self.save_as_js).replace("downloaded_text.txt", "indexing_debug_log.txt")
+            )
+            
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.save_to_file_preprocessed_text.click(lambda text: text, ## save text as is
@@ -1443,6 +1604,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+            self.send_to_kairyou.click(fn=lambda text:text, inputs=[self.indexing_output_field], outputs=[self.input_txt_file_preprocessing])
             self.send_to_kaiseki.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kaiseki])
             self.send_to_kijiku.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kijiku])
 

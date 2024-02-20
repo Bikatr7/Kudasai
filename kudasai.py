@@ -10,6 +10,7 @@ import traceback
 ## third-party libraries
 from kairyou import Kairyou
 from kairyou import Indexer
+from kairyou.types import NameAndOccurrence
 
 ## custom modules
 from models.kaiseki import Kaiseki 
@@ -106,7 +107,27 @@ class Kudasai:
         ## but since it returns the occurrence of the name, we only need to replace that occurrence of the name in the text_to_process
         ## So if a name has 42 occurrences, but only the 3rd and 4th occurrence were flagged, we only need to replace the 3rd and 4th occurrence of the name in the text_to_process
 
-        text = text_to_index
+        text_to_index = Kudasai.mark_indexed_names(text_to_index, unique_names)
+
+        return text_to_index
+    
+##-------------------start-of-mark_indexed_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def mark_indexed_names(text:str, unique_names:typing.List[NameAndOccurrence]) -> str:
+
+        """
+
+        Marks indexed names in the text.
+
+        Parameters:
+        text (str): The text to mark.
+        unique_names (list - NameAndOccurrence): The list of unique names.
+
+        Returns:
+        str: The marked text.
+
+        """
 
         for name_tuple in unique_names:
             name = name_tuple.name

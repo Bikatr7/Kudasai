@@ -267,7 +267,7 @@ class KudasaiGUI:
 
 
                             with gr.Row():
-                                self.kaiseki_api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True)
+                                self.kaiseki_api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
                                 self.translate_button_kaiseki = gr.Button('Translate', variant="primary")
@@ -303,7 +303,7 @@ class KudasaiGUI:
                             self.input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='filepath')
 
                             with gr.Row():
-                                self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, max_lines=2, show_label=True, interactive=True)
+                                self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_kijiku_api_key, lines=1, max_lines=2, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
                                 self.translate_button_kijiku = gr.Button('Translate', variant="primary")

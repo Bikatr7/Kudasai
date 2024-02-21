@@ -67,7 +67,7 @@ backoff==2.2.1
 
 tiktoken==0.6.0
 
-gradio==4.11.0
+gradio==4.19.0
 
 kairyou==1.3.0
 

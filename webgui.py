@@ -626,35 +626,31 @@ class KudasaiGUI:
 
                 """
 
-                if(input_txt_file and input_text == ""):
+                if(input_txt_file == None and input_text == ""):
+                    raise gr.Error("No TXT file selected and no text input")
 
-                    if(input_json_file is not None):
+                if(input_json_file is not None):
 
-                        if(input_txt_file is not None):
-                            text_to_preprocess = gui_get_text_from_file(input_txt_file)
+                    if(input_txt_file is not None):
+                        text_to_preprocess = gui_get_text_from_file(input_txt_file)
 
-                        else:
-                            text_to_preprocess = input_text
-
-                        replacements = gui_get_json_from_file(input_json_file)
-
-                        preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
-
-                        timestamp = Toolkit.get_timestamp(is_archival=True)
-
-                        FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
-
-                        ## Log text and Preprocessing is cleared from the client, so we need to get it from the log file
-                        log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
-
-                        ## Kairyou doesn't have any advanced logging, so we can just return the log text for both the log tab and the preprocess tab, no need to do what we did for the Kaiseki tab and Kijiku tab
-                        return preprocessed_text, preprocessing_log, log_text, log_text
-  
                     else:
-                        raise gr.Error("No JSON file selected")
-                
+                        text_to_preprocess = input_text
+
+                    replacements = gui_get_json_from_file(input_json_file)
+
+                    preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
+
+                    timestamp = Toolkit.get_timestamp(is_archival=True)
+
+                    FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
+
+                    log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+
+                    return preprocessed_text, preprocessing_log, log_text, log_text
+            
                 else:
-                    raise gr.Error("No TXT file selected")
+                    raise gr.Error("No JSON file selected")
                 
 ##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

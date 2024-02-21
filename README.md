@@ -18,6 +18,8 @@
 
 Simply run Kudasai.py which will take a few seconds to load, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input whatever and Kudasai will skip preprocessing and go straight to translation.
 
+Kudasai will offer to index the text, which is useful for finding new names to add to the replacement json file. This is optional and can be skipped.
+
 Can also run webgui.py for a web gui which is simpler and non-linear.
 
 After preprocessing is completed (if triggered), you will be prompted to run the translation modules.
@@ -67,7 +69,7 @@ tiktoken==0.6.0
 
 gradio==4.11.0
 
-kairyou==1.0.1
+kairyou==1.3.0
 
 or see requirements.txt
 
@@ -120,6 +122,8 @@ These files are:
     "preprocessing_results.txt" : A log of the results of the preprocessing, shows what was replaced and how many times.
 
     "translated_text.txt" : The translated text, the text output by Kaiseki or Kijiku.
+
+Kairyou will ask if you'd like to index the text, this is useful for finding new names to add to the replacement json file. If you select 1 for yes, you need to provide a knowledge base, this can either be txt, a path to a txt file, or a path to a folder containing txt files. Kairyou will then index the all three sources and flag all new names with >>><<< in the preprocessed text. 
 
 After preprocessing is completed, you will be prompted to run a translation module. If you choose to do so, you will be prompted to choose between Kaiseki and Kijiku. See the sections below for more information on each translation module.
 
@@ -222,6 +226,9 @@ Kudasai also offers a Web GUI. It has all the main functionality of the program 
 To run the Web GUI, simply run webgui.py in the same directory as kudasai.py
 
 Below are some images of the Web GUI.
+
+Indexing | Kairyou:
+![Indexing Screen | Kairyou](https://i.imgur.com/7HCdLt6.png)
 
 Preprocessing | Kairyou:
 ![Preprocessing Screen | Kairyou](https://i.imgur.com/1qcPpeP.jpg)

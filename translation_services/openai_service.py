@@ -60,12 +60,18 @@ class OpenAIService:
 
         OpenAIService.decorator_to_use = decorator
 
-##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
+        decorated_function = OpenAIService.decorator_to_use(OpenAIService._translate_message)
+        return await decorated_function(translation_instructions, translation_prompt)
+
+##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ## backoff wrapper for retrying on errors, As of OpenAI > 1.0.0, it comes with a built in backoff system, but I've grown accustomed to this one so I'm keeping it.
     @staticmethod
-    @decorator_to_use()
-    async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
+    async def _translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
 
         """
 

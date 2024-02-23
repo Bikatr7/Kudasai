@@ -43,6 +43,8 @@ Used to make (Japanese - English) translation easier by preprocessing the Japane
 
 Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github/Bikatr7/Kairyou).
 
+Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on and what I plan to work on.
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Naming Conventions**<a name="naming-conventions"></a> 
 

@@ -559,6 +559,10 @@ class Kaiseki:
 
         timestamp = Toolkit.get_timestamp(is_archival=True)
 
+        ## pushes the tl debug log to the file without clearing the file
+        Logger.push_batch()
+        Logger.clear_batch()
+
         list_of_result_tuples = [('kaiseki_translated_text', Kaiseki.translated_text),
                                  ('kaiseki_je_check_text', Kaiseki.je_check_text),
                                  ('kaiseki_error_log', Kaiseki.error_text),
@@ -566,6 +570,3 @@ class Kaiseki:
 
         FileEnsurer.archive_results(list_of_result_tuples, 
                                     module='kaiseki', timestamp=timestamp)
-
-        ## pushes the tl debug log to the file without clearing the file
-        Logger.push_batch()

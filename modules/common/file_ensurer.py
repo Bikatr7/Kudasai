@@ -421,6 +421,9 @@ class FileEnsurer():
         ## Instructions to create a copy of the output for archival
         FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
 
+        Logger.push_batch()
+        Logger.clear_batch()
+
         list_of_result_tuples = [('kairyou_preprocessed_text', text_to_preprocess),
                                  ('kairyou_preprocessing_log', preprocessing_log),
                                  ('kairyou_error_log', error_log),

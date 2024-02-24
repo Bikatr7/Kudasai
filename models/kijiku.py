@@ -940,6 +940,10 @@ class Kijiku:
 
         timestamp = Toolkit.get_timestamp(is_archival=True)
 
+        ## pushes the tl debug log to the file without clearing the file
+        Logger.push_batch()
+        Logger.clear_batch()
+
         list_of_result_tuples = [('kijiku_translated_text', Kijiku.translated_text), 
                                  ('kijiku_je_check_text', Kijiku.je_check_text), 
                                  ('kijiku_error_log', Kijiku.error_text),
@@ -947,6 +951,3 @@ class Kijiku:
 
         FileEnsurer.archive_results(list_of_result_tuples, 
                                     module='kijiku', timestamp=timestamp)
-
-        ## pushes the tl debug log to the file without clearing the file
-        Logger.push_batch()

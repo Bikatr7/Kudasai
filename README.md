@@ -217,7 +217,7 @@ See https://platform.openai.com/docs/api-reference/chat/create for further detai
 
     num_concurrent_batches : How many translations batches Kijiku will send to OpenAI at a time.
     ----------------------------------------------------------------------------------
-    logit_bias, stop and n are included for legacy purposes, later versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
+    stream, logit_bias, stop and n are included for legacy purposes, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -336,7 +336,7 @@ class KudasaiGUI:
                     with gr.Row():
 
                         with gr. Column():
-                            gr.Markdown("OpenAI API settings (logit_bias, stop and n are included for legacy purposes, later versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.)")
+                            gr.Markdown("OpenAI API Settings")
                             self.model_input_field = gr.Dropdown(label='Model',
                                                                 value=GuiJsonUtil.fetch_kijiku_setting_key_values("model"),
                                                                 choices=FileEnsurer.allowed_models, ## type: ignore
@@ -371,7 +371,7 @@ class KudasaiGUI:
                                                             elem_id="n")
 
                             self.stream_input_field = gr.Textbox(label='Stream',
-                                                                value=(GuiJsonUtil.fetch_kijiku_setting_key_values("stream")),
+                                                                value=str((GuiJsonUtil.fetch_kijiku_setting_key_values("stream"))),
                                                                 info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
                                                                 lines=1,
                                                                 max_lines=1,
@@ -380,7 +380,7 @@ class KudasaiGUI:
                                                                 elem_id="stream")
 
                             self.stop_input_field = gr.Textbox(label='Stop',
-                                                               value=(GuiJsonUtil.fetch_kijiku_setting_key_values("stop")),
+                                                               value=str((GuiJsonUtil.fetch_kijiku_setting_key_values("stop"))),
                                                                info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
                                                                lines=1,
                                                                max_lines=1,
@@ -389,7 +389,7 @@ class KudasaiGUI:
                                                                elem_id="stop")
 
                             self.logit_bias_input_field = gr.Textbox(label='Logit Bias',
-                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias")),
+                                                                    value=str((GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias"))),
                                                                     info="Modifies the likelihood of specified tokens appearing in the completion. Do not change this.",
                                                                     lines=1,
                                                                     max_lines=1,
@@ -398,7 +398,7 @@ class KudasaiGUI:
                                                                     elem_id="logit_bias")
 
                             self.max_tokens_input_field = gr.Textbox(label='Max Tokens',
-                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens")),
+                                                                    value=str((GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens"))),
                                                                     info="max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
                                                                     lines=1,
                                                                     max_lines=1,
@@ -496,6 +496,9 @@ class KudasaiGUI:
                                                                                 show_label=True,
                                                                                 interactive=True,
                                                                                 elem_id="num_concurrent_batches")
+
+                    with gr.Row():
+                        gr.Markdown("(stream, logit_bias, stop and n are included for legacy purposes, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.)")
 
                     with gr.Row():
                         self.apply_changes_button = gr.Button('Apply Changes')
@@ -1223,6 +1226,54 @@ class KudasaiGUI:
                 else:
                     gr.Info("Indexed text copied to Kairyou")
                     return input_text
+                
+##-------------------start-of-send_to_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
+            def send_to_kaiseki(input_text:str) -> str:
+
+                """"
+                
+                Sends the preprocessed text to Kaiseki.
+
+                Parameters:
+                input_text (str) : The input text.
+
+                Returns:
+                input_text (str) : The input text.
+
+                """
+
+                if(input_text == ""):
+                    gr.Warning("No preprocessed text to send to Kaiseki")
+                    return ""
+                
+                else:
+                    gr.Info("Preprocessed text copied to Kaiseki")
+                    return input_text
+                
+##-------------------start-of-send_to_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
+            def send_to_kijiku(input_text:str) -> str:
+
+                """
+                
+                Sends the preprocessed text to Kijiku.
+
+                Parameters:
+                input_text (str) : The input text.
+
+                Returns:
+                input_text (str) : The input text.
+
+                """
+
+                if(input_text == ""):
+                    gr.Warning("No preprocessed text to send to Kijiku")
+                    return ""
+                
+                else:
+                    gr.Info("Preprocessed text copied to Kijiku")
+                    return input_text
 
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1641,10 +1692,15 @@ class KudasaiGUI:
 
             self.send_to_kairyou.click(fn=send_to_kairyou, 
                                         inputs=[self.indexing_output_field],
-                                        outputs=[self.preprocess_output_field])
+                                        outputs=[self.input_text_kairyou])
                                         
-            self.send_to_kaiseki.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kaiseki])
-            self.send_to_kijiku.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kijiku])
+            self.send_to_kaiseki.click(fn=send_to_kaiseki,
+                                        inputs=[self.preprocess_output_field],
+                                        outputs=[self.input_text_kaiseki])
+            
+            self.send_to_kijiku.click(fn=send_to_kijiku,
+                                        inputs=[self.preprocess_output_field],
+                                        outputs=[self.input_text_kijiku])
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

@@ -234,3 +234,22 @@ class Toolkit():
             time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
 
         return time_stamp
+    
+##-------------------start-of-string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def string_to_bool(string:str) -> bool:
+
+        """
+
+        Converts a string to a boolean.
+
+        Parameters:
+        string (str) : The string to be converted.
+
+        Returns:
+        (bool) : The converted boolean.
+
+        """
+
+        return string.lower() in ['true', '1', 'yes', 'y', 't']

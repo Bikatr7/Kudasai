@@ -58,7 +58,7 @@ batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, 
 
 num_concurrent_batches : How many translations batches Kijiku will send to OpenAI at a time.
 ----------------------------------------------------------------------------------
-logit_bias, stop and n are included for legacy purposes, later versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
+stream, logit_bias, stop and n are included for legacy purposes, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
     """
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -98,7 +98,6 @@ logit_bias, stop and n are included for legacy purposes, later versions of Kudas
             "system_message": lambda x: x not in ["", "None", None],
             "temp": lambda x: 0 <= x <= 2,
             "top_p": lambda x: 0 <= x <= 2,
-            "stream": lambda x: x is False,
             "max_tokens": lambda x: x is None or isinstance(x, int),
             "presence_penalty": lambda x: -2 <= x <= 2,
             "message_mode": lambda x: 1 <= x <= 2,
@@ -125,6 +124,7 @@ logit_bias, stop and n are included for legacy purposes, later versions of Kudas
             ## force stop/logit_bias into None
             settings["stop"] = None
             settings["logit_bias"] = None
+            settings["stream"] = False
 
             ## force n to 1
             settings["n"] = 1
@@ -225,7 +225,7 @@ logit_bias, stop and n are included for legacy purposes, later versions of Kudas
 ##-------------------start-of-convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def convert_to_correct_type(setting_name:str, value:str) -> typing.Any:
+    def convert_to_correct_type(setting_name:str, initial_value:str) -> typing.Any:
 
         """
 
@@ -239,6 +239,8 @@ logit_bias, stop and n are included for legacy purposes, later versions of Kudas
         (typing.Any) : The converted value.
 
         """
+
+        value = initial_value
         
         type_expectations = {
             "model": {"type": str, "constraints": lambda x: x.lower() in FileEnsurer.allowed_models},
@@ -249,7 +251,7 @@ logit_bias, stop and n are included for legacy purposes, later versions of Kudas
             "stream": {"type": bool, "constraints": lambda x: x is False},
             "stop": {"type": None},
             "logit_bias": {"type": None},
-            "max_tokens": {"type": int | None, "constraints": lambda x: x is None or x > 0},
+            "max_tokens": {"type": typing.Optional[int], "constraints": lambda x: x is None or x > 0},
             "presence_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
             "frequency_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
             "message_mode": {"type": int, "constraints": lambda x: 1 <= x <= 2},
@@ -266,8 +268,19 @@ logit_bias, stop and n are included for legacy purposes, later versions of Kudas
 
         setting_info = type_expectations[setting_name]
 
-        if(value.lower() in ["none","null"]):
+        if(setting_name == "stream"):
+            value = Toolkit.string_to_bool(initial_value)
+
+        elif(initial_value.lower() in ["none","null"]):
+            value = None
+
+        if(setting_info["type"] is None):
             converted_value = None
+        elif(setting_info["type"] == typing.Optional[int]):
+            if value is None:
+                converted_value = None
+            else:
+                converted_value = int(value)
         else:
             converted_value = setting_info["type"](value)
 

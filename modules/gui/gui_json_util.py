@@ -55,7 +55,7 @@ class GuiJsonUtil:
         try:
 
             for key, value in new_values:
-                new_rules["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, value)
+                new_rules["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, str(value))
 
             JsonHandler.current_kijiku_rules = new_rules
             JsonHandler.validate_json()

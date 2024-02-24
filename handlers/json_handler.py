@@ -38,7 +38,7 @@ stop : Up to 4 sequences where the API will stop generating further tokens. Do n
 
 logit_bias : Modifies the likelihood of specified tokens appearing in the completion. Do not change this.
 
-max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this.
+max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
 
 presence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.
 
@@ -58,7 +58,7 @@ batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, 
 
 num_concurrent_batches : How many translations batches Kijiku will send to OpenAI at a time.
 ----------------------------------------------------------------------------------
-Please note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them.
+logit_bias, stop and n are included for legacy purposes, later versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
     """
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -98,9 +98,8 @@ Please note that while logit_bias and max_tokens can be changed, Kijiku does not
             "system_message": lambda x: x not in ["", "None", None],
             "temp": lambda x: 0 <= x <= 2,
             "top_p": lambda x: 0 <= x <= 2,
-            "n": lambda x: x == 1,
             "stream": lambda x: x is False,
-            "max_tokens": lambda x: 0 <= x <= 9223372036854775807,
+            "max_tokens": lambda x: x is None or isinstance(x, int),
             "presence_penalty": lambda x: -2 <= x <= 2,
             "message_mode": lambda x: 1 <= x <= 2,
             "sentence_fragmenter_mode": lambda x: 1 <= x <= 3,
@@ -126,6 +125,9 @@ Please note that while logit_bias and max_tokens can be changed, Kijiku does not
             ## force stop/logit_bias into None
             settings["stop"] = None
             settings["logit_bias"] = None
+
+            ## force n to 1
+            settings["n"] = 1
 
         except Exception:
             Logger.log_action("Kijiku Rules.json is not valid, setting to invalid_placeholder, current:")
@@ -247,7 +249,7 @@ Please note that while logit_bias and max_tokens can be changed, Kijiku does not
             "stream": {"type": bool, "constraints": lambda x: x is False},
             "stop": {"type": None},
             "logit_bias": {"type": None},
-            "max_tokens": {"type": int, "constraints": lambda x: 0 <= x <= 9223372036854775807},
+            "max_tokens": {"type": int | None, "constraints": lambda x: x is None or x > 0},
             "presence_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
             "frequency_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
             "message_mode": {"type": int, "constraints": lambda x: 1 <= x <= 2},
@@ -263,7 +265,11 @@ Please note that while logit_bias and max_tokens can be changed, Kijiku does not
             raise ValueError("Invalid setting name")
 
         setting_info = type_expectations[setting_name]
-        converted_value = setting_info["type"](value)
+
+        if(value.lower() in ["none","null"]):
+            converted_value = None
+        else:
+            converted_value = setting_info["type"](value)
 
         if("constraints" in setting_info and not setting_info["constraints"](converted_value)):
             raise ValueError(f"{setting_name} out of range")
@@ -374,5 +380,5 @@ Enter the name of the setting you want to change, type d to reset to default, ty
             JsonHandler.current_kijiku_rules["open ai settings"][setting_name] = converted_value
             print(f"Updated {setting_name} to {converted_value}.")
         
-        except:
-            print("Invalid input. No changes made.")
+        except Exception as e:
+            print(f"Invalid input. No changes made. {e}")

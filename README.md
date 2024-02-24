@@ -180,44 +180,44 @@ Also note that Kijiku's settings are somewhat complex, please see the section be
 (Fairly technical, can be abstracted away by using default settings or someone else's settings file.)
 
 See https://platform.openai.com/docs/api-reference/chat/create for further details
+    ----------------------------------------------------------------------------------
+    model : ID of the model to use. As of right now, Kijiku only works with 'chat' models.
 
-    model: ID of the model to use. As of right now, Kijiku only works with 'chat' models.
+    system_message : Instructions to the model. Basically tells the model what to do.
 
-    system_message: Instructions to the model. Basically tells the model what to do.
+    temp : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
 
-    temp: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
+    top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
 
-    top_p: An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
+    n : How many chat completion choices to generate for each input message. Do not change this.
 
-    n: How many chat completion choices to generate for each input message. Do not change this.
+    stream : If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.
 
-    stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.
+    stop : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
 
-    stop: Up to 4 sequences where the API will stop generating further tokens. Do not change this.
+    logit_bias : Modifies the likelihood of specified tokens appearing in the completion. Do not change this.
 
-    logit_bias: Modifies the likelihood of specified tokens appearing in the completion. Do not change this.
+    max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
 
-    max_tokens: The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this.
+    presence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.
 
-    presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.
+    frequency_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.
 
-    frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.
+    message_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works.
 
-    message_mode: 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works.
-
-    num_lines: The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 36.
+    num_lines : The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.
 
     sentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy (depreciated, will default to 3 if you select 2), 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.
 
-    je_check_mode: 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for gpt-4.
+    je_check_mode : 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for gpt-4.
 
-    num_malformed_batch_retries: How many times Kijiku will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case.
+    num_malformed_batch_retries : How many times Kijiku will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case.
 
-    batch_retry_timeout: How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.
+    batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.
 
-    num_concurrent_batches: How many translations batches Kijiku will send to OpenAI at a time.
-
-    Please note that while logit_bias and max_tokens can be changed, Kijiku does not currently do anything with them, and is merely there in case I decide to do something with it or someone else requests it.
+    num_concurrent_batches : How many translations batches Kijiku will send to OpenAI at a time.
+    ----------------------------------------------------------------------------------
+    logit_bias, stop and n are included for legacy purposes, later versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

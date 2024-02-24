@@ -225,7 +225,7 @@ class KudasaiGUI:
                         ## input fields, text input for preprocessing, and replacement json file input.
                         with gr.Column():
                             self.input_txt_file_preprocessing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath')
-                            self.input_json_file = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
+                            self.input_json_file_preprocessing = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
                             self.input_text_kairyou = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True)
 
                             ## run and clear buttons
@@ -336,7 +336,7 @@ class KudasaiGUI:
                     with gr.Row():
 
                         with gr. Column():
-                            gr.Markdown("OpenAI API settings")
+                            gr.Markdown("OpenAI API settings (logit_bias, stop and n are included for legacy purposes, later versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.)")
                             self.model_input_field = gr.Dropdown(label='Model',
                                                                 value=GuiJsonUtil.fetch_kijiku_setting_key_values("model"),
                                                                 choices=FileEnsurer.allowed_models, ## type: ignore
@@ -399,7 +399,7 @@ class KudasaiGUI:
 
                             self.max_tokens_input_field = gr.Textbox(label='Max Tokens',
                                                                     value=(GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens")),
-                                                                    info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this.",
+                                                                    info="max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
                                                                     lines=1,
                                                                     max_lines=1,
                                                                     show_label=True,
@@ -536,7 +536,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-indexing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     
-            def indexing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File, knowledge_base_file:str, knowledge_base_directory:typing.List[str]) -> typing.Tuple[str, str, str, str]:
+            def indexing_run_button_click(input_txt_file:gr.File, input_json_file_preprocessing:gr.File, knowledge_base_file:str, knowledge_base_directory:typing.List[str]) -> typing.Tuple[str, str, str, str]:
                     
                 """
                 
@@ -546,7 +546,7 @@ class KudasaiGUI:
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
-                input_json_file (gr.File) : The input json file.
+                input_json_file_preprocessing (gr.File) : The input json file.
                 knowledge_base_file (gr.File) : The knowledge base file.
                 knowledge_base_directory (gr.File) : The knowledge base directory.
 
@@ -560,7 +560,7 @@ class KudasaiGUI:
 
                 if(input_txt_file is not None):
 
-                    if(input_json_file is not None):
+                    if(input_json_file_preprocessing is not None):
 
                         ## must be one, but not both
                         if(knowledge_base_file is not None or knowledge_base_directory is not None) and not (knowledge_base_file is not None and knowledge_base_directory is not None):
@@ -574,7 +574,7 @@ class KudasaiGUI:
                             knowledge_base_string = ""
 
                             text_to_index = gui_get_text_from_file(input_txt_file)
-                            replacements = gui_get_json_from_file(input_json_file)
+                            replacements = gui_get_json_from_file(input_json_file_preprocessing)
 
                             if(knowledge_base_file is not None):
                                 knowledge_base_paths.append(knowledge_base_file)
@@ -607,7 +607,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file:gr.File, input_text:str) -> typing.Tuple[str, str, str, str]:
+            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file_preprocessing:gr.File, input_text:str) -> typing.Tuple[str, str, str, str]:
 
                 """
 
@@ -616,7 +616,7 @@ class KudasaiGUI:
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
-                input_json_file (gr.File) : The input json file.
+                input_json_file_preprocessing (gr.File) : The input json file.
 
                 Returns:
                 text_to_preprocess (str) : The preprocessed text.
@@ -629,7 +629,7 @@ class KudasaiGUI:
                 if(input_txt_file == None and input_text == ""):
                     raise gr.Error("No TXT file selected and no text input")
 
-                if(input_json_file is not None):
+                if(input_json_file_preprocessing is not None):
 
                     if(input_txt_file is not None):
                         text_to_preprocess = gui_get_text_from_file(input_txt_file)
@@ -637,7 +637,7 @@ class KudasaiGUI:
                     else:
                         text_to_preprocess = input_text
 
-                    replacements = gui_get_json_from_file(input_json_file)
+                    replacements = gui_get_json_from_file(input_json_file_preprocessing)
 
                     preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
 
@@ -892,7 +892,7 @@ class KudasaiGUI:
 
                 Returns:
                 input_txt_file (gr.File) : An empty file.
-                input_json_file (gr.File) : An empty file.
+                input_json_file_preprocessing (gr.File) : An empty file.
                 preprocess_output_field (str) : An empty string.
                 preprocessing_results_output_field (str) : An empty string.
                 debug_log_output_field_preprocess_tab (str) : An empty string.
@@ -900,14 +900,14 @@ class KudasaiGUI:
                 """
 
                 input_txt_file = None
-                input_json_file = None
+                input_json_file_preprocessing = None
 
                 input_text = ""
                 preprocess_output_field = ""
                 preprocessing_results_output_field = ""
                 debug_log_output_field_preprocess_tab = ""
 
-                return input_txt_file, input_json_file, input_text, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
+                return input_txt_file, input_json_file_preprocessing, input_text, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
             
 ##-------------------start-of-kaiseki_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1199,6 +1199,30 @@ class KudasaiGUI:
                 error_log = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
 
                 return log_text, error_log
+            
+##-------------------start-of-send_to_kairyou()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            def send_to_kairyou(input_text:str) -> str:
+
+                """
+                
+                Sends the indexed text to Kairyou.
+
+                Parameters:
+                input_text (str) : The input text.
+
+                Returns:
+                input_text (str) : The input text.
+
+                """
+
+                if(input_text == ""):
+                    gr.Warning("No indexed text to send to Kairyou")
+                    return ""
+                
+                else:
+                    gr.Info("Indexed text copied to Kairyou")
+                    return input_text
 
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1227,7 +1251,7 @@ class KudasaiGUI:
             self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
                                                 inputs=[
                                                     self.input_txt_file_preprocessing, ## input txt file to preprocess
-                                                    self.input_json_file, ## replacements json file
+                                                    self.input_json_file_preprocessing, ## replacements json file
                                                     self.input_text_kairyou], ## input text to preprocess                                                                        
 
                                                 outputs=[
@@ -1310,7 +1334,7 @@ class KudasaiGUI:
 
                                                   outputs=[
                                                       self.input_txt_file_preprocessing, ## input txt file
-                                                      self.input_json_file, ## input json file
+                                                      self.input_json_file_preprocessing, ## input json file
                                                       self.input_text_kairyou, ## input text
                                                       self.preprocess_output_field, ## preprocessed text output field
                                                       self.preprocessing_results_output_field, ## preprocessing results output field
@@ -1615,7 +1639,10 @@ class KudasaiGUI:
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.send_to_kairyou.click(fn=lambda text:text, inputs=[self.indexing_output_field], outputs=[self.input_text_kairyou])
+            self.send_to_kairyou.click(fn=send_to_kairyou, 
+                                        inputs=[self.indexing_output_field],
+                                        outputs=[self.preprocess_output_field])
+                                        
             self.send_to_kaiseki.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kaiseki])
             self.send_to_kijiku.click(fn=lambda text:text, inputs=[self.preprocess_output_field], outputs=[self.input_text_kijiku])
 

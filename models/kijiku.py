@@ -69,8 +69,6 @@ class Kijiku:
     max_batch_duration = 0
     num_concurrent_batches = 0
 
-    decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
-
 ##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -349,7 +347,6 @@ class Kijiku:
         Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
         Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
 
-        OpenAIService.max_batch_duration = Kijiku.max_batch_duration
         OpenAIService.model = Kijiku.model
         OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["open ai settings"]["temp"])
         OpenAIService.top_p = float(JsonHandler.current_kijiku_rules["open ai settings"]["top_p"])
@@ -359,9 +356,11 @@ class Kijiku:
         OpenAIService.stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"]
         OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"])
         OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"])
-        OpenAIService.max_tokens = int(JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"])
+        OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]
 
-        OpenAIService.set_decorator(Kijiku.decorator_to_use)
+        decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+
+        OpenAIService.set_decorator(decorator_to_use)
 
         Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 

@@ -15,7 +15,6 @@ class OpenAIService:
     ## async client session
     client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
 
-    max_batch_duration:float
     model:str
     temperature:float
     top_p:float
@@ -24,7 +23,7 @@ class OpenAIService:
     stop:typing.List[str] | None
     presence_penalty:float
     frequency_penalty:float
-    max_tokens:int
+    max_tokens:int | None
 
     decorator_to_use:typing.Callable = do_nothing_decorator
 
@@ -105,7 +104,7 @@ class OpenAIService:
             stop = OpenAIService.stop,
             presence_penalty = OpenAIService.presence_penalty,
             frequency_penalty = OpenAIService.frequency_penalty,
-            ##max_tokens = OpenAIService.max_tokens       
+            max_tokens = OpenAIService.max_tokens       
 
         )
 

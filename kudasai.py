@@ -353,8 +353,6 @@ async def run_console_version():
     except Exception as e:
         print_usage_statement()
 
-        Toolkit.pause_console()
-
         raise e
 
     await Kudasai.run_kudasai()
@@ -378,8 +376,6 @@ async def run_cli_version():
     except Exception as e:
         print_usage_statement()
 
-        Toolkit.pause_console()
-
         raise e
 
     if(len(sys.argv) == 2):
@@ -401,7 +397,7 @@ def print_usage_statement():
     Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>", output=True, omit_timestamp=True)
     Logger.log_action("or run Kudasai.py without any arguments to run the console version.", output=True, omit_timestamp=True)
 
-    Logger.log_action(str(traceback.print_exc()),output=True, omit_timestamp=True)
+    print("\n")
 
 ##-------------------start-of-submain()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

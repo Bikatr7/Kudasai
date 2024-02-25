@@ -1,5 +1,9 @@
+## build-in libraries
 import typing
 import time
+
+## custom modules
+from modules.common.exceptions import TooManyFileAccessAttemptsException
 
 ##--------------------start-of-permission_error_decorator------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12,15 +16,20 @@ def permission_error_decorator() -> typing.Callable:
     """
 
     def decorator(func):
-        def wrapper(*args, **kwargs):
 
-            while True:
+        max_retries = 20
+
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while(retries < max_retries):
                 try:
                     return func(*args, **kwargs)
-
                 except PermissionError:
-                    time.sleep(0.1)
-                
+                    retries += 1
+                    time.sleep(0.1)  
+
+            raise TooManyFileAccessAttemptsException(f"Failed to execute {func.__name__} after {max_retries} retries.")
+        
         return wrapper
     return decorator
 

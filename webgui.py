@@ -200,19 +200,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.indexing_output_field  = gr.Textbox(label='Indexed text', lines=51, max_lines=51, show_label=True, interactive=False, show_copy_button=True)
+                            self.indexing_output_field  = gr.Textbox(label='Indexed text', lines=56, max_lines=56, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_indexed_text = gr.Button('Save As')
                             
                         with gr.Column():
-                            self.indexing_results_output_field = gr.Textbox(label='Indexing Results', lines=51, max_lines=51, interactive=False, show_copy_button=True)
+                            self.indexing_results_output_field = gr.Textbox(label='Indexing Results', lines=56, max_lines=56, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_indexing_results = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_indexing_tab = gr.Textbox(label='Debug Log', lines=51, max_lines=51, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_indexing_tab = gr.Textbox(label='Debug Log', lines=56, max_lines=56, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_indexing_tab = gr.Button('Save As')
@@ -239,19 +239,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=41, max_lines=41, show_label=True, interactive=False, show_copy_button=True)
+                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=44, max_lines=44, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessed_text = gr.Button('Save As')
                             
                         with gr.Column():
-                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=41, max_lines=41, interactive=False, show_copy_button=True)
+                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=44, max_lines=44, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessing_results = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=41, max_lines=41, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=44, max_lines=44, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
@@ -265,7 +265,6 @@ class KudasaiGUI:
                             self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath', interactive=True)
                             self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True)
 
-
                             with gr.Row():
                                 self.kaiseki_api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True, type='password')
 
@@ -275,19 +274,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_kaiseki = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kaiseki_je_check_text_field = gr.Textbox(label='JE Check Text', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.kaiseki_je_check_text_field = gr.Textbox(label='JE Check Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_je_check_text_kaiseki = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=29,max_lines=29, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=31,max_lines=31, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
@@ -314,19 +313,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=36,max_lines=36, interactive=False, show_copy_button=True)
+                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=38,max_lines=38, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_kijiku = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=36,max_lines=36, interactive=False, show_copy_button=True)
+                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=38,max_lines=38, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_je_check_text_kijiku = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=36, max_lines=36, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=38, max_lines=38, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
@@ -498,11 +497,14 @@ class KudasaiGUI:
                                                                                 elem_id="num_concurrent_batches")
 
                     with gr.Row():
-                        gr.Markdown("(stream, logit_bias, stop and n are included for legacy purposes, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.)")
+                        gr.Markdown("(stream, logit_bias, stop and n are included for legacy purposes, current versions of Kudasai will hardcode their values when validating the Kijiku_Rules json file to their default values.)")
 
                     with gr.Row():
-                        self.apply_changes_button = gr.Button('Apply Changes')
+                        self.reset_to_default_kijiku_settings_button = gr.Button('Reset to Default', variant='secondary')
                         self.discard_changes_button = gr.Button('Discard Changes', variant='stop')
+
+                    with gr.Row():
+                        self.apply_changes_button = gr.Button('Apply Changes', variant='primary')
 
                 ## tab 7 | Logging
                 with gr.Tab("Logging") as self.logging_tab:
@@ -520,7 +522,7 @@ class KudasaiGUI:
                         self.save_to_file_error_log = gr.Button('Save As')
 
                     with gr.Row():
-                        self.clear_log_button = gr.Button('Clear Log', variant='stop')
+                        self.clear_log_button = gr.Button('Clear Logs', variant='stop')
 
 ##-------------------start-of-Listener-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -750,6 +752,10 @@ class KudasaiGUI:
                 
                 """
 
+                ## check if we have stuff to translate
+                if(input_txt_file is None and input_text == ""):
+                    raise gr.Error("No TXT file or text selected")
+
                 if(Kudasai.connection == False):
                     raise gr.Error("No internet connection detected, please connect to the internet to use translation features of Kudasai.")
 
@@ -765,14 +771,6 @@ class KudasaiGUI:
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
                 JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
-                ## due to the bug with the settings need to validate json again.
-                ## bug has been resolved, but we'll keep this here just in case
-                try:
-                    JsonHandler.validate_json()
-
-                except:
-                    raise gr.Error("Issue with Kijiku settings detected, please look at the settings tab and ensure all values are valid. This is a known bug, and will be hopefully fixed in the future.")
-
                 ## next api key
                 try:
                     OpenAIService.set_api_key(str(api_key_input))
@@ -784,10 +782,6 @@ class KudasaiGUI:
 
                 except:
                     raise gr.Error("Invalid API key")
-                
-                ## setup text to translate
-                if(input_txt_file is None and input_text == ""):
-                    raise gr.Error("No TXT file or text selected")
                 
                 if(input_txt_file is not None):
                     text_to_translate = gui_get_text_from_file(input_txt_file)
@@ -1084,10 +1078,68 @@ class KudasaiGUI:
                     raise gr.Error("Invalid Kijiku Settings")
 
                 gr.Info("Kijiku Settings Applied")
+
+##-------------------start-of-reset_to_default_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            def reset_to_default_kijiku_settings(input_kijiku_rules_file:str) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
+
+                """
+
+                Resets the kijiku settings to the default values.
+
+                Returns:
+                model_input_field_value (str) : The new model input field value.
+                system_message_input_field_value (str) : The new system message input field value.
+                temperature_input_field_value (float) : The new temperature input field value.
+                top_p_input_field_value (float) : The new top p input field value.
+                n_input_field_value (str) : The new n input field value.
+                stream_input_field_value (str) : The new stream input field value.
+                stop_input_field_value (str) : The new stop input field value.
+                logit_bias_input_field_value (str) : The new logit bias input field value.
+                max_tokens_input_field_value (str) : The new max tokens input field value.
+                presence_penalty_input_field_value (float) : The new presence penalty input field value.
+                frequency_penalty_input_field_value (float) : The new frequency penalty input field value.
+                message_mode_input_field_value (int) : The new message mode input field value.
+                num_lines_input_field_value (str) : The new num lines input field value.
+                sentence_fragmenter_mode_input_field_value (int) : The new sentence fragmenter mode input field value.
+                je_check_mode_input_field_value (int) : The new je check mode input field value.
+                num_malformed_batch_retries_input_field_value (str) : The new num malformed batch retries input field value.
+                batch_retry_timeout_input_field_value (str) : The new batch retry timeout input field value.
+                num_concurrent_batches_input_field_value (str) : The new num concurrent batches input field value.
+
+                """
+
+                if(input_kijiku_rules_file is None):
+                    raise gr.Error("No Kijiku Rules File Selected. Cannot reset settings.")
+
+                GuiJsonUtil.current_kijiku_rules = FileEnsurer.default_kijiku_rules
+
+                model_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("model"))
+                system_message_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("system_message"))
+                temperature_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("temp"))
+                top_p_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("top_p"))
+                n_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("n"))
+                stream_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stream"))
+                stop_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stop"))
+                logit_bias_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias"))
+                max_tokens_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens"))
+                presence_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("presence_penalty"))
+                frequency_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("frequency_penalty"))
+                message_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("message_mode"))
+                num_lines_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_lines"))
+                sentence_fragmenter_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode"))
+                je_check_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("je_check_mode"))
+                num_malformed_batch_retries_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_malformed_batch_retries"))
+                batch_retry_timeout_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("batch_retry_timeout"))
+                num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_concurrent_batches"))
+
+                gr.Info("Kijiku Settings Reset to Default")
+
+                return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
             
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def refresh_kijiku_settings_fields(input_kijiku_rules_file:gr.File) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
+            def refresh_kijiku_settings_fields(input_kijiku_rules_file:str) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
 
                 """
                 
@@ -1452,6 +1504,30 @@ class KudasaiGUI:
                                                 self.num_concurrent_batches_input_field], ## num concurrent batches input field
                                             
                                             outputs=[])
+            
+##-------------------start-of-reset_to_default_kijiku_settings_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            self.reset_to_default_kijiku_settings_button.click(reset_to_default_kijiku_settings,
+                                                inputs=[self.input_kijiku_rules_file],
+                                                
+                                                outputs=[self.model_input_field, ## model input field
+                                                        self.system_message_input_field, ## system message input field
+                                                        self.temperature_input_field, ## temperature input field
+                                                        self.top_p_input_field, ## top p input field
+                                                        self.n_input_field, ## n input field
+                                                        self.stream_input_field, ## stream input field
+                                                        self.stop_input_field, ## stop input field
+                                                        self.logit_bias_input_field, ## logit bias input field
+                                                        self.max_tokens_input_field, ## max tokens input field
+                                                        self.presence_penalty_input_field, ## presence penalty input field
+                                                        self.frequency_penalty_input_field, ## frequency penalty input field
+                                                        self.message_mode_input_field, ## message mode input field
+                                                        self.num_lines_input_field, ## num lines input field
+                                                        self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
+                                                        self.je_check_mode_input_field, ## je check mode input field
+                                                        self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                        self.batch_retry_timeout_input_field, ## batch retry timeout input field
+                                                        self.num_concurrent_batches_input_field]) ## num concurrent batches input field
 
 ##-------------------start-of-discard_changes_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             

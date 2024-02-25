@@ -1,7 +1,7 @@
 ## third-party libraries
 
 ## for importing, other scripts will use from common.exceptions instead of from the third-party libraries themselves
-from openai import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
+from openai import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
 from deepl.exceptions import AuthorizationException, QuotaExceededException
 
 ##-------------------start-of-MaxBatchDurationExceededException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -36,3 +36,24 @@ class InvalidAPIKeyException(Exception):
         """
 
         self.message = f"The API key is invalid for the model {model_name}."
+
+##-------------------start-of-TooManyFileAccessAttemptsException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class TooManyFileAccessAttemptsException(Exception):
+
+    """
+
+    TooManyFileAccessAttemptsException is an exception that is raised when too many attempts are made to access a file.
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display.
+
+        """
+
+        self.message = message

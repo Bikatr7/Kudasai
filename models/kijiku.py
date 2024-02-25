@@ -19,7 +19,7 @@ from handlers.json_handler import JsonHandler
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
 from modules.common.toolkit import Toolkit
-from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
+from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
 from modules.common.decorators import permission_error_decorator
 
 from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
@@ -358,7 +358,7 @@ class Kijiku:
         OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"])
         OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]
 
-        decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+        decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
 
         OpenAIService.set_decorator(decorator_to_use)
 

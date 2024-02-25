@@ -7,6 +7,7 @@ import typing
 ## custom modules
 from modules.common.decorators import permission_error_decorator
 from modules.common.logger import Logger
+from modules.common.toolkit import Toolkit
 
 class FileEnsurer():
 
@@ -311,23 +312,24 @@ class FileEnsurer():
 
         """
 
-        Handles a critical exception by logging it and then throwing it.
+        Handles a critical exception by logging it, pausing the console so the user can see the error, and then re-raising it.
 
         Parameters:
         critical_exception (object - Exception) : the exception to be handled.
 
         """
 
-        ## if crash, catch and log, then throw
-        Logger.log_action("--------------------------------------------------------------")
-        Logger.log_action("Please send the following to the developer on github at https://github.com/Bikatr7/Kudasai/issues :")  
-        Logger.log_action("Kudasai has crashed")
+        Logger.log_barrier()
+        Logger.log_action("Kudasai has crashed", output=True)
+        Logger.log_action("Please send the following to the developer on github at https://github.com/Bikatr7/Kudasai/issues :", output=True, omit_timestamp=True)
 
-        traceback_str = traceback.format_exc()
-        
-        Logger.log_action(traceback_str)
+        traceback_msg = traceback.format_exc()
+
+        Logger.log_action(traceback_msg ,output=True, omit_timestamp=True)
 
         Logger.push_batch()
+
+        Toolkit.pause_console()
 
         raise critical_exception
     

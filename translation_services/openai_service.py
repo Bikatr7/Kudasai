@@ -63,6 +63,20 @@ class OpenAIService:
 
     @staticmethod
     async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
+
+        """
+        
+        Translates a system and user message.
+
+        Parameters:
+        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
+        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
+
+        Returns:
+        output (string) a string that gpt gives to us also known as the translation.
+
+        """
+
         decorated_function = OpenAIService.decorator_to_use(OpenAIService._translate_message)
         return await decorated_function(translation_instructions, translation_prompt)
 

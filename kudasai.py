@@ -353,8 +353,6 @@ async def run_console_version():
     except Exception as e:
         print_usage_statement()
 
-        print(traceback.format_exc())
-
         Toolkit.pause_console()
 
         raise e
@@ -380,8 +378,6 @@ async def run_cli_version():
     except Exception as e:
         print_usage_statement()
 
-        print(traceback.format_exc())
-
         Toolkit.pause_console()
 
         raise e
@@ -402,11 +398,13 @@ def print_usage_statement():
 
     """
 
-    print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
-    print("or run Kudasai.py without any arguments to run the console version.\n\n")
-    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
-    Toolkit.pause_console()
-    exit()
+    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>", output=True, omit_timestamp=True)
+    Logger.log_action("or run Kudasai.py without any arguments to run the console version.", output=True, omit_timestamp=True)
+
+    Logger.log_action(str(traceback.print_exc()),output=True, omit_timestamp=True)
+
+##-------------------start-of-submain()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 if(__name__ == '__main__'):
     asyncio.run(main())

@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------------------------------------------------------------------------
+[---------------------------------------------------------------------------------------------------------------------------------------------------
 **Table of Contents**
 
 - [Quick Start](#quick-start)
@@ -41,7 +41,7 @@ Python version: 3.8+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 
-Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github/Bikatr7/Kairyou).
+Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
 
 Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on and what I plan to work on.
 
@@ -69,9 +69,9 @@ backoff==2.2.1
 
 tiktoken==0.6.0
 
-gradio==4.19.0
+gradio==4.19.2
 
-kairyou==1.3.0
+kairyou==1.3.1
 
 or see requirements.txt
 
@@ -104,6 +104,7 @@ See an example of a command line entry below
 ![Example CMD](https://i.imgur.com/eQmVaYY.png)
 
 Many replacement json files are included in the jsons folder, you can also make your own if you wish provided it follows the same format. See an example below
+Kudasai/Kairyou works with both Kudasai and Fukuin Json's, the below is a Kudasai type json.
 
 ![Example JSON](https://i.imgur.com/u3FnUia.jpg)
 
@@ -180,6 +181,7 @@ Also note that Kijiku's settings are somewhat complex, please see the section be
 (Fairly technical, can be abstracted away by using default settings or someone else's settings file.)
 
 See https://platform.openai.com/docs/api-reference/chat/create for further details
+
     ----------------------------------------------------------------------------------
     model : ID of the model to use. As of right now, Kijiku only works with 'chat' models.
 

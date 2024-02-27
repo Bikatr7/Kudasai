@@ -25,6 +25,7 @@ from modules.common.decorators import permission_error_decorator
 from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
 
 from translation_services.openai_service import OpenAIService
+from translation_services.gemini_service import GeminiService
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32,7 +33,8 @@ class Kijiku:
 
     """
     
-    Kijiku is a secondary class that is used to interact with the OpenAI API and translates the text by batch.
+    Kijiku is a secondary class that is used to interact with LLMs and translate text.
+    Currently supports OpenAI and Gemini.
     
     """
     
@@ -176,11 +178,11 @@ class Kijiku:
 
         """
 
-        Sets the open api key.
+        Sets the API Key for the respective service and loads the kijiku rules.
     
         """
 
-        await Kijiku.init_api_key()
+        await Kijiku.init_openai_api_key()
 
         ## try to load the kijiku rules
         try: 
@@ -196,10 +198,10 @@ class Kijiku:
             
         Toolkit.clear_console()
 
-##-------------------start-of-setup_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-init_openai_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def init_api_key() -> None:
+    async def init_openai_api_key() -> None:
 
         """
         
@@ -315,7 +317,7 @@ class Kijiku:
 
         if(input("\n") == "1"):
             os.remove(FileEnsurer.openai_api_key_path)
-            await Kijiku.init_api_key()
+            await Kijiku.init_openai_api_key()
 
         Toolkit.clear_console()
 

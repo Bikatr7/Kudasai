@@ -303,8 +303,7 @@ class Kijiku:
 
         print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
-        for key, value in JsonHandler.current_kijiku_rules["open ai settings"].items():
-            print(key + " : " + str(value))
+        JsonHandler.print_kijiku_rules(output=True)
 
         if(input("\n") == "1"):
             pass
@@ -336,8 +335,7 @@ class Kijiku:
         Logger.log_action("Kijiku Activated, Settings are as follows : ")
         Logger.log_barrier()
 
-        for key,value in JsonHandler.current_kijiku_rules["open ai settings"].items():
-            Logger.log_action(key + " : " + str(value))
+        JsonHandler.print_kijiku_rules()
 
         Kijiku.model = JsonHandler.current_kijiku_rules["open ai settings"]["model"]
         Kijiku.translation_instructions = JsonHandler.current_kijiku_rules["open ai settings"]["system_message"]
@@ -348,6 +346,8 @@ class Kijiku:
         Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
         Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
         Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
+
+        Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 
         OpenAIService.model = Kijiku.model
         OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["open ai settings"]["temp"])
@@ -363,8 +363,6 @@ class Kijiku:
         decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
 
         OpenAIService.set_decorator(decorator_to_use)
-
-        Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 
         Toolkit.clear_console()
 

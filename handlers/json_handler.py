@@ -182,6 +182,43 @@ stream, logit_bias, stop and n are included for legacy purposes, current version
         with open(FileEnsurer.config_kijiku_rules_path, 'r', encoding='utf-8') as file:
             JsonHandler.current_kijiku_rules = json.load(file)
 
+##-------------------start-of-print_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def print_kijiku_rules(output:bool=False) -> None:
+
+        """
+
+        Prints the Kijiku Rules.json file to the log.
+        Logs by default, but can be set to print to console as well.
+
+        Parameters:
+        output (bool | optional | default=False) : Whether to print to console as well.
+
+        """
+
+        print("-------------------")
+        print("Base Kijiku Settings:")
+        print("-------------------")
+
+        for key,value in JsonHandler.current_kijiku_rules["base kijiku settings"].items():
+            Logger.log_action(key + " : " + str(value), output=output, omit_timestamp=output)
+
+        print("-------------------")
+        print("Open AI Settings:")
+        print("-------------------")
+
+        for key,value in JsonHandler.current_kijiku_rules["openai settings"].items():
+            Logger.log_action(key + " : " + str(value), output=output, omit_timestamp=output)
+
+        print("-------------------")
+        print("Gemini Settings:")
+        print("-------------------")
+
+        for key,value in JsonHandler.current_kijiku_rules["gemini settings"].items():
+            Logger.log_action(key + " : " + str(value), output=output, omit_timestamp=output)
+
+
 ##-------------------start-of-change_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

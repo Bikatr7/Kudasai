@@ -60,36 +60,52 @@ class FileEnsurer():
     ## api keys
     deepl_api_key_path = os.path.join(secrets_dir, "deepl_api_key.txt")
     openai_api_key_path = os.path.join(secrets_dir,'openai_api_key.txt')
+    gemini_api_key_path = os.path.join(secrets_dir,'gemini_api_key.txt')
 
     ## favicon
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
 
     ## default kijiku rules
     default_kijiku_rules = {
-    "open ai settings": 
-    {
-        "model":"gpt-3.5-turbo",
-        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well.",
-        "temp":0.3,
-        "top_p":1,
-        "n":1,
-        "stream":False,
-        "stop":None,
-        "logit_bias":None,
-        "max_tokens":None,
-        "presence_penalty":0,
-        "frequency_penalty":0,
-        "message_mode":1,
-        "num_lines":13,
-        "sentence_fragmenter_mode":3,
-        "je_check_mode":2,
-        "num_malformed_batch_retries":1,
-        "batch_retry_timeout":300,
-        "num_concurrent_batches":30
-    }
-    }
+    "base kijiku settings": {
+        "prompt_assembly_mode": 1,
+        "number_of_lines_per_batch": 26,
+        "sentence_fragmenter_mode": 3,
+        "je_check_mode": 2,
+        "number_of_malformed_batch_retries": 1,
+        "batch_retry_timeout": 300,
+        "number_concurrent_batches": 5
+    },
 
-    allowed_models = [
+    "openai settings": {
+        "openai_model": "gpt-4",
+        "openai_system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "openai_temperature": 0.3,
+        "openai_top_p": 1,
+        "openai_n": 1,
+        "openai_stream": False,
+        "openai_stop": None,
+        "openai_logit_bias": None,
+        "openai_max_tokens": None,
+        "openai_presence_penalty": 0,
+        "openai_frequency_penalty": 0
+    },
+
+    "gemini settings": {
+        "gemini_model": "gemini-pro",
+        "gemini_prompt": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "gemini_temperature": 0.3,
+        "gemini_top_p": None,
+        "gemini_top_k": None,
+        "gemini_candidate_count": 1,
+        "gemini_stream": False,
+        "gemini_stop_sequences": None,
+        "gemini_max_output_tokens": None
+    }
+}
+
+
+    ALLOWED_OPENAI_MODELS  = [
         "gpt-3.5-turbo",
         "gpt-4",
         "gpt-4-turbo-preview",
@@ -106,27 +122,15 @@ class FileEnsurer():
         "gpt-4-0125-preview"
     ]
 
-    invalid_kijiku_rules_placeholder = {
-    "open ai settings": 
+    ALLOWED_GEMINI_MODELS = [
+        "gemini-pro",
+        "gemini-nano"
+    ]
+
+    INVALID_KIJIKU_RULES_PLACEHOLDER = {
+    "INVALID JSON": 
     {
-        "model":"INVALID JSON",
-        "system_message":"You are a Japanese To English translator. Please remember that you need to translate the narration into English simple past. Try to keep the original formatting and punctuation as well.",
-        "temp":0.3,
-        "top_p":1,
-        "n":1,
-        "stream":False,
-        "stop":None,
-        "logit_bias":None,
-        "max_tokens":None,
-        "presence_penalty":0,
-        "frequency_penalty":0,
-        "message_mode":1,
-        "num_lines":13,
-        "sentence_fragmenter_mode":3,
-        "je_check_mode":2,
-        "num_malformed_batch_retries":1,
-        "batch_retry_timeout":300,
-        "num_concurrent_batches":30
+        "INVALID JSON":"INVALID JSON"
     }
     }
 

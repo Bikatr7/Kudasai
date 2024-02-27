@@ -280,6 +280,76 @@ class Kijiku:
                 Toolkit.pause_console()
 
                 raise e
+            
+##-------------------start-of-init_gemini_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+    @staticmethod
+    async def init_gemini_api_key() -> None:
+
+        """
+        
+        Sets up the api key.
+
+        """
+
+        ## get saved API key if exists
+        try:
+            with open(FileEnsurer.gemini_api_key_path, 'r', encoding='utf-8') as file: 
+                api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
+
+            GeminiService.set_api_key(api_key)
+
+            is_valid, e = await GeminiService.test_api_key_validity()
+
+            ## if not valid, raise the exception that caused the test to fail
+            if(not is_valid and e is not None):
+                raise e
+        
+            Logger.log_action("Used saved API key in " + FileEnsurer.gemini_api_key_path, output=True)
+            Logger.log_barrier()
+
+            time.sleep(2)
+
+        ## else try to get API key manually
+        except:
+
+            Toolkit.clear_console()
+                
+            api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the Gemini API key you have : ")
+
+            ## if valid save the API key
+            try: 
+
+                GeminiService.set_api_key(api_key)
+
+                is_valid, e = await GeminiService.test_api_key_validity()
+
+                if(not is_valid and e is not None):
+                    raise e
+
+                FileEnsurer.standard_overwrite_file(FileEnsurer.gemini_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
+                
+            ## if invalid key exit
+            except AuthenticationError: 
+                    
+                Toolkit.clear_console()
+                        
+                Logger.log_action("Authorization error while setting up Gemini, please double check your API key as it appears to be incorrect.", output=True)
+
+                Toolkit.pause_console()
+                        
+                exit()
+
+            ## other error, alert user and raise it
+            except Exception as e: 
+
+                Toolkit.clear_console()
+                        
+                Logger.log_action("Unknown error while setting up Gemini, The error is as follows " + str(e)  + "\nThe exception will now be raised.", output=True)
+
+                Toolkit.pause_console()
+
+                raise e
 
 ##-------------------start-of-reset_static_variables()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

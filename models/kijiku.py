@@ -53,23 +53,23 @@ class Kijiku:
     num_occurred_malformed_batches = 0
 
     ## semaphore to limit the number of concurrent batches
-    _semaphore = asyncio.Semaphore(30)
+    _semaphore = asyncio.Semaphore(10)
 
     ##--------------------------------------------------------------------------------------------------------------------------
+
+    LLM_TYPE:typing.Literal["openai", "gemini"] = "openai"
 
     translation_print_result = ""
 
     ##--------------------------------------------------------------------------------------------------------------------------
 
-    model = ""
-    translation_instructions = ""
-    message_mode = 0 
-    prompt_size = 0
-    sentence_fragmenter_mode = 0
-    je_check_mode = 0
-    num_of_malform_retries = 0
-    max_batch_duration = 0
-    num_concurrent_batches = 0
+    prompt_assembly_mode:int
+    number_of_lines_per_batch:int
+    sentence_fragmenter_mode:int
+    je_check_mode:int
+    number_of_malformed_batch_retries:int
+    batch_retry_timeout:float
+    num_concurrent_batches:int
 
 ##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -182,7 +182,12 @@ class Kijiku:
     
         """
 
-        await Kijiku.init_openai_api_key()
+        if(Kijiku.LLM_TYPE == "openai"):
+            await Kijiku.init_openai_api_key()
+
+        else:
+            ## gemini todo
+            pass
 
         ## try to load the kijiku rules
         try: 
@@ -289,6 +294,7 @@ class Kijiku:
         Kijiku.translation_batches = []
         Kijiku.num_occurred_malformed_batches = 0
         Kijiku.translation_print_result = ""
+        Kijiku.LLM_TYPE = "openai"
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -315,8 +321,17 @@ class Kijiku:
         print("Do you want to change your API key? (1 for yes or 2 for no) : ")
 
         if(input("\n") == "1"):
-            os.remove(FileEnsurer.openai_api_key_path)
-            await Kijiku.init_openai_api_key()
+
+            if(Kijiku.LLM_TYPE == "openai"):
+
+                if(os.path.exists(FileEnsurer.openai_api_key_path)):
+
+                    os.remove(FileEnsurer.openai_api_key_path)
+                    await Kijiku.init_openai_api_key()
+
+            else:
+                ## gemini todo
+                pass
 
         Toolkit.clear_console()
 
@@ -337,32 +352,48 @@ class Kijiku:
 
         JsonHandler.print_kijiku_rules()
 
-        Kijiku.model = JsonHandler.current_kijiku_rules["open ai settings"]["model"]
-        Kijiku.translation_instructions = JsonHandler.current_kijiku_rules["open ai settings"]["system_message"]
-        Kijiku.message_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["message_mode"])
-        Kijiku.prompt_size = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_lines"])
-        Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
-        Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"])
-        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
-        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
-        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
+        Kijiku.prompt_assembly_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["prompt_assembly_mode"])
+        Kijiku.number_of_lines_per_batch = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["number_of_lines_per_batch"])
+        Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["sentence_fragmenter_mode"])
+        Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["je_check_mode"])
+        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["num_of_malform_retries"])
+        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["base kijiku settings"]["max_batch_duration"])
+        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["num_concurrent_batches"])
 
         Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 
-        OpenAIService.model = Kijiku.model
-        OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["open ai settings"]["temp"])
-        OpenAIService.top_p = float(JsonHandler.current_kijiku_rules["open ai settings"]["top_p"])
-        OpenAIService.n = int(JsonHandler.current_kijiku_rules["open ai settings"]["n"])
-        OpenAIService.stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"]
-        OpenAIService.stream = bool(JsonHandler.current_kijiku_rules["open ai settings"]["stream"])
-        OpenAIService.stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"]
-        OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"])
-        OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"])
-        OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]
+        OpenAIService.model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"]
+        OpenAIService.system_message = JsonHandler.current_kijiku_rules["openai settings"]["openai_system_message"]
+        OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_temperature"])
+        OpenAIService.top_p = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_top_p"])
+        OpenAIService.n = int(JsonHandler.current_kijiku_rules["openai settings"]["openai_n"])
+        OpenAIService.stream = bool(JsonHandler.current_kijiku_rules["openai settings"]["openai_stream"])
+        OpenAIService.stop = JsonHandler.current_kijiku_rules["openai settings"]["openai_stop"]
+        OpenAIService.logit_bias = JsonHandler.current_kijiku_rules["openai settings"]["openai_logit_bias"]
+        OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["openai settings"]["openai_max_tokens"]
+        OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_presence_penalty"])
+        OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_frequency_penalty"])
 
-        decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+        GeminiService.model = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
+        GeminiService.prompt = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_prompt"]
+        GeminiService.temperature = float(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_temperature"])
+        GeminiService.top_p = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_p"]
+        GeminiService.top_k = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_k"]
+        GeminiService.candidate_count = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_candidate_count"]
+        GeminiService.stream = bool(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stream"])
+        GeminiService.stop_sequences = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stop_sequences"]
+        GeminiService.max_output_tokens = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_max_output_tokens"]
 
-        OpenAIService.set_decorator(decorator_to_use)
+        if(Kijiku.LLM_TYPE == "openai"):
+
+            ## set the decorator to use
+            decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+
+            OpenAIService.set_decorator(decorator_to_use)
+
+        else:
+            ## gemini todo
+            pass
 
         Toolkit.clear_console()
 
@@ -370,7 +401,12 @@ class Kijiku:
         Logger.log_action("Starting Prompt Building")
         Logger.log_barrier()
 
-        Kijiku.build_translation_batches()
+        if(Kijiku.LLM_TYPE == "openai"):
+            Kijiku.build_openai_translation_batches()
+
+        else:
+            ## gemini todo
+            pass
 
         ## get cost estimate and confirm
         await Kijiku.handle_cost_estimate_prompt(omit_prompt=is_webgui)
@@ -447,7 +483,7 @@ class Kijiku:
             sentence = Kijiku.text_to_translate[index]
             is_part_in_sentence = "part" in sentence.lower()
 
-            if(len(prompt) < Kijiku.prompt_size):
+            if(len(prompt) < Kijiku.number_of_lines_per_batch):
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(sentence + '\n')
@@ -475,14 +511,14 @@ class Kijiku:
 
         return prompt, index
     
-##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-build_openai_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def build_translation_batches() -> None:
+    def build_openai_translation_batches() -> None:
 
         """
 
-        Builds translations batches dict for the API prompts.
+        Builds translations batches dict for the OpenAI service.
         
         """
 
@@ -494,12 +530,12 @@ class Kijiku:
             prompt = ''.join(prompt)
 
             ## message mode one structures the first message as a system message and the second message as a model message
-            if(Kijiku.message_mode == 1):
-                system_msg = SystemTranslationMessage(role="system", content=Kijiku.translation_instructions)
+            if(Kijiku.prompt_assembly_mode == 1):
+                system_msg = SystemTranslationMessage(role="system", content=str(OpenAIService.system_message))
 
             ## while message mode two structures the first message as a model message and the second message as a model message too, typically used for non-gpt-4 models if at all
             else:
-                system_msg = ModelTranslationMessage(role="user", content=Kijiku.translation_instructions)
+                system_msg = ModelTranslationMessage(role="user", content=str(OpenAIService.system_message))
 
             Kijiku.translation_batches.append(system_msg)
 

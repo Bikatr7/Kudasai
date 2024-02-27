@@ -6,7 +6,7 @@
         "je_check_mode": 2,
         "number_of_malformed_batch_retries": 1,
         "batch_retry_timeout": 300,
-        "number_concurrent_batches": 30
+        "number_concurrent_batches": 10
     },
 
     "openai settings": {

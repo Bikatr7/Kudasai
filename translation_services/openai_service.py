@@ -16,14 +16,16 @@ class OpenAIService:
     client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
 
     model:str
+    system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = None
     temperature:float
     top_p:float
     n:int
     stream:bool
     stop:typing.List[str] | None
+    logit_bias:typing.Dict[str, float] | None
+    max_tokens:int | None
     presence_penalty:float
     frequency_penalty:float
-    max_tokens:int | None
 
     decorator_to_use:typing.Callable = do_nothing_decorator
 

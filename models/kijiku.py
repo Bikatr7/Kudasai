@@ -48,12 +48,15 @@ class Kijiku:
 
     ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
     ## model message is the text that will be translated  
-    translation_batches = []
+    openai_translation_batches:typing.List[Message] = []
+
+    ## meanwhile for gemini, we just need to send the prompt and the text to be translated concatenated together
+    gemini_translation_batches:typing.List[str] = []
 
     num_occurred_malformed_batches = 0
 
     ## semaphore to limit the number of concurrent batches
-    _semaphore = asyncio.Semaphore(10)
+    _semaphore = asyncio.Semaphore(5)
 
     ##--------------------------------------------------------------------------------------------------------------------------
 
@@ -194,8 +197,7 @@ class Kijiku:
             await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, OpenAIService.set_api_key, OpenAIService.test_api_key_validity)
 
         else:
-            ## gemini todo
-            pass
+            await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, GeminiService.set_api_key, GeminiService.test_api_key_validity)
 
         ## try to load the kijiku rules
         try: 
@@ -225,7 +227,6 @@ class Kijiku:
         api_key_path (string) : the path to the api key.
         api_key_setter (callable) : the function that sets the api key.
         api_key_tester (callable) : the function that tests the api key.
-
 
         """
 
@@ -306,7 +307,8 @@ class Kijiku:
         Kijiku.translated_text = []
         Kijiku.je_check_text = []
         Kijiku.error_text = []
-        Kijiku.translation_batches = []
+        Kijiku.openai_translation_batches = []
+        Kijiku.gemini_translation_batches = []
         Kijiku.num_occurred_malformed_batches = 0
         Kijiku.translation_print_result = ""
         Kijiku.LLM_TYPE = "openai"
@@ -345,8 +347,11 @@ class Kijiku:
                     await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, OpenAIService.set_api_key, OpenAIService.test_api_key_validity)
 
             else:
-                ## gemini todo
-                pass
+    
+                if(os.path.exists(FileEnsurer.gemini_api_key_path)):
+
+                    os.remove(FileEnsurer.gemini_api_key_path)
+                    await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, GeminiService.set_api_key, GeminiService.test_api_key_validity)
 
         Toolkit.clear_console()
 
@@ -421,8 +426,8 @@ class Kijiku:
             model = OpenAIService.model
 
         else:
-            ## gemini todo
-            pass
+            Kijiku.build_gemini_translation_batches()
+            model = GeminiService.model
 
         ## get cost estimate and confirm
         await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
@@ -482,12 +487,13 @@ class Kijiku:
         """
 
         async_requests = []
-        length = len(Kijiku.translation_batches)
 
         if(Kijiku.LLM_TYPE == "openai"):
 
+            length = len(Kijiku.openai_translation_batches)
+
             for i in range(0, length, 2):
-                async_requests.append(Kijiku.handle_openai_translation(model, i, length, Kijiku.translation_batches[i], Kijiku.translation_batches[i+1]))
+                async_requests.append(Kijiku.handle_openai_translation(model, i, length, Kijiku.openai_translation_batches[i], Kijiku.openai_translation_batches[i+1]))
 
         else:
             ## gemini todo
@@ -495,10 +501,10 @@ class Kijiku:
 
         return async_requests
 
-##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-generate_text_to_translate_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def generate_prompt(index:int) -> tuple[typing.List[str],int]:
+    def generate_text_to_translate_batches(index:int) -> tuple[typing.List[str],int]:
 
         """
 
@@ -565,9 +571,9 @@ class Kijiku:
         i = 0
 
         while i < len(Kijiku.text_to_translate):
-            prompt, i = Kijiku.generate_prompt(i)
+            batch, i = Kijiku.generate_text_to_translate_batches(i)
 
-            prompt = ''.join(prompt)
+            batch = ''.join(batch)
 
             ## message mode one structures the first message as a system message and the second message as a model message
             if(Kijiku.prompt_assembly_mode == 1):
@@ -577,11 +583,11 @@ class Kijiku:
             else:
                 system_msg = ModelTranslationMessage(role="user", content=str(OpenAIService.system_message))
 
-            Kijiku.translation_batches.append(system_msg)
+            Kijiku.openai_translation_batches.append(system_msg)
 
-            model_msg = ModelTranslationMessage(role="user", content=prompt)
+            model_msg = ModelTranslationMessage(role="user", content=batch)
 
-            Kijiku.translation_batches.append(model_msg)
+            Kijiku.openai_translation_batches.append(model_msg)
 
         Logger.log_barrier()
         Logger.log_action("Built Messages : ")
@@ -589,7 +595,7 @@ class Kijiku:
 
         i = 0
 
-        for message in Kijiku.translation_batches:
+        for message in Kijiku.openai_translation_batches:
 
             i+=1
 
@@ -601,6 +607,27 @@ class Kijiku:
 
                 Logger.log_action(str(message))
                 Logger.log_barrier()
+
+##-------------------start-of-build_gemini_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def build_gemini_translation_batches() -> None:
+
+        """
+
+        Builds translations batches dict for the Gemini service.
+        
+        """
+
+        i = 0
+
+        while i < len(Kijiku.text_to_translate):
+            batch, i = Kijiku.generate_text_to_translate_batches(i)
+
+            batch = ''.join(batch)
+
+            ## Gemini does not use system messages or model messages, and instead just takes a string input, so we just need to place the prompt before the text to be translated
+
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -774,6 +801,7 @@ class Kijiku:
 
             else:
                 Logger.log_action("User cancelled translation.")
+                Logger.push_batch()
                 exit()
 
         return model
@@ -788,6 +816,16 @@ class Kijiku:
         Handles the translation for a given system and user message.
 
         Parameters:
+        model (string) : the model used to translate the text.
+        index (int) : the index of the message in the text file.
+        length (int) : the length of the text file.
+        translation_instructions (Message) : the translation instructions.
+        translation_prompt (Message) : the translation prompt.
+
+        Returns:
+        index (int) : the index of the message in the text file.
+        translation_prompt (Message) : the translation prompt.
+        translated_message (string) : the translated message.
     
 
         """

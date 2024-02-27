@@ -182,6 +182,14 @@ class Kijiku:
     
         """
 
+        print("What LLM do you want to use? (1 for OpenAI or 2 for Gemini) : ")
+
+        if(input("\n") == "1"):
+            Kijiku.LLM_TYPE = "openai"
+        
+        else:
+            Kijiku.LLM_TYPE = "gemini"
+
         if(Kijiku.LLM_TYPE == "openai"):
             await Kijiku.init_openai_api_key()
 

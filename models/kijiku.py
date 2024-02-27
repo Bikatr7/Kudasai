@@ -819,7 +819,7 @@ class Kijiku:
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def redistribute(translation_prompt:dict, translated_message:str) -> None:
+    def redistribute(translation_prompt:typing.Union[dict,str], translated_message:str) -> None:
 
         """
 
@@ -831,14 +831,21 @@ class Kijiku:
 
         """
 
+        if(isinstance(translation_prompt, dict)):
+            prompt = str(translation_prompt["content"])
+
+        else:
+            prompt = translation_prompt
+
         ## Separates with hyphens if the mode is 1 
         if(Kijiku.je_check_mode == 1):
-            Kijiku.je_check_text.append("\n-------------------------\n"+ str(translation_prompt["content"]) + "\n\n")
+
+            Kijiku.je_check_text.append("\n-------------------------\n"+ prompt + "\n\n")
             Kijiku.je_check_text.append(translated_message + '\n')
         
         ## Mode two tries to pair the text for j-e checking, see fix_je() for more details
         elif(Kijiku.je_check_mode == 2):
-            Kijiku.je_check_text.append(str(translation_prompt["content"]))
+            Kijiku.je_check_text.append(prompt)
             Kijiku.je_check_text.append(translated_message)
 
         ## mode 1 is the default mode, uses regex and other nonsense to split sentences
@@ -850,6 +857,9 @@ class Kijiku:
             build_string = None
 
             for sentence in sentences:
+
+                sentence:str = sentence
+
                 if(sentence.startswith("\"") and not sentence.endswith("\"") and build_string is None):
                     build_string = sentence
                     continue

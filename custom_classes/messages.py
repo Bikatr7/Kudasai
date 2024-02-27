@@ -11,8 +11,8 @@ class Message(typing.TypedDict):
 
     """
 
-    role: typing.Literal['system', 'user']
-    content: str
+    role:typing.Literal['system', 'user']
+    content:str
 
 ##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

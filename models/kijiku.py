@@ -22,7 +22,7 @@ from modules.common.toolkit import Toolkit
 from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
 from modules.common.decorators import permission_error_decorator
 
-from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
+from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage, Message
 
 from translation_services.openai_service import OpenAIService
 from translation_services.gemini_service import GeminiService
@@ -403,13 +403,14 @@ class Kijiku:
 
         if(Kijiku.LLM_TYPE == "openai"):
             Kijiku.build_openai_translation_batches()
+            model = OpenAIService.model
 
         else:
             ## gemini todo
             pass
 
         ## get cost estimate and confirm
-        await Kijiku.handle_cost_estimate_prompt(omit_prompt=is_webgui)
+        await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
 
         Toolkit.clear_console()
 
@@ -419,11 +420,7 @@ class Kijiku:
         Logger.log_barrier()
 
         ## requests to run asynchronously
-        async_requests = []
-        length = len(Kijiku.translation_batches)
-
-        for i in range(0, length, 2):
-            async_requests.append(Kijiku.handle_translation(i, length, Kijiku.translation_batches[i], Kijiku.translation_batches[i+1]))
+        async_requests = Kijiku.build_async_requests(model)
 
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
@@ -454,6 +451,34 @@ class Kijiku:
 
         ## assemble error text based of the error list
         Kijiku.error_text = Logger.errors
+
+##-------------------start-of-build_async_requests()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def build_async_requests(model:str) -> list[typing.Coroutine]:
+
+        """
+
+        Builds the asynchronous requests.
+
+        Returns:
+        async_requests (list - coroutine) : A list of coroutines that represent the asynchronous requests.
+
+        """
+
+        async_requests = []
+        length = len(Kijiku.translation_batches)
+
+        if(Kijiku.LLM_TYPE == "openai"):
+
+            for i in range(0, length, 2):
+                async_requests.append(Kijiku.handle_openai_translation(model, i, length, Kijiku.translation_batches[i], Kijiku.translation_batches[i+1]))
+
+        else:
+            ## gemini todo
+            pass
+
+        return async_requests
 
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -700,10 +725,23 @@ class Kijiku:
 ##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def handle_cost_estimate_prompt(omit_prompt:bool=False) -> None:
+    async def handle_cost_estimate_prompt(model:str, omit_prompt:bool=False) -> str:
+
+        """
+
+        Handles the cost estimate prompt.
+
+        Parameters:
+        omit_prompt (bool) : whether or not to omit the prompt.
+        model (string) : the model used to translate the text.
+
+        Returns:
+        model (string) : the model used to translate the text.
+        
+        """ 
 
         ## get cost estimate and confirm
-        num_tokens, min_cost, Kijiku.model = Kijiku.estimate_cost(Kijiku.model)
+        num_tokens, min_cost, model = Kijiku.estimate_cost(model)
 
         print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
@@ -722,26 +760,20 @@ class Kijiku:
             else:
                 Logger.log_action("User cancelled translation.")
                 exit()
+
+        return model
     
-##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-handle_openai_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def handle_translation(index:int, length:int, translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> tuple[int, ModelTranslationMessage, str]:
+    async def handle_openai_translation(model:str, index:int, length:int, translation_instructions:Message, translation_prompt:Message) -> tuple[int, Message, str]:
 
         """
 
         Handles the translation for a given system and user message.
 
         Parameters:
-        index (int) : The index of the message in the original list.
-        length (int) : The length of the original list.
-        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
-        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
-        
-        Returns:\n
-        index (int) : the index of the message in the original list.
-        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
-        translated_message (str) : the translated message.
+    
 
         """
 
@@ -769,7 +801,7 @@ class Kijiku:
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
-                if("gpt-4" not in Kijiku.model):
+                if("gpt-4" not in model):
                     break
 
                 if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
@@ -790,22 +822,26 @@ class Kijiku:
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def check_if_translation_is_good(translated_message:str, translation_prompt:ModelTranslationMessage) -> bool:
+    async def check_if_translation_is_good(translated_message:str, translation_prompt:typing.Union[Message, str]) -> bool:
 
         """
         
         Checks if the translation is good, i.e. the number of lines in the prompt and the number of lines in the translated message are the same.
 
         Parameters:
-        translated_message (string) : the translated message.
-        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
+        todo
 
         Returns:
         is_valid (bool) : whether or not the translation is valid.
 
         """
 
-        prompt = translation_prompt["content"]
+        if(not isinstance(translation_prompt, str)):
+            prompt = str(translation_prompt["content"])
+
+        else:
+            prompt = translation_prompt
+            
         is_valid = False
 
         jap = [line for line in prompt.split('\n') if line.strip()]  ## Remove blank lines
@@ -819,19 +855,19 @@ class Kijiku:
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def redistribute(translation_prompt:typing.Union[dict,str], translated_message:str) -> None:
+    def redistribute(translation_prompt:typing.Union[Message, str], translated_message:str) -> None:
 
         """
 
         Puts translated text back into the text file.
 
         Parameters:
-        translation_prompt (dict) : the user message also known as the prompt.
-        translated_message (string) : the translated message.
+        todo
+
 
         """
 
-        if(isinstance(translation_prompt, dict)):
+        if(not isinstance(translation_prompt, str)):
             prompt = str(translation_prompt["content"])
 
         else:

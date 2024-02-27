@@ -8,7 +8,7 @@ from openai import AsyncOpenAI
 from modules.common.exceptions import InvalidAPIKeyException
 from modules.common.decorators import do_nothing_decorator
 
-from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
+from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage, Message
 
 class OpenAIService:
 
@@ -64,7 +64,7 @@ class OpenAIService:
 ##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
+    async def translate_message(translation_instructions:Message, translation_prompt:Message) -> str:
 
         """
         
@@ -86,7 +86,7 @@ class OpenAIService:
 
     ## backoff wrapper for retrying on errors, As of OpenAI > 1.0.0, it comes with a built in backoff system, but I've grown accustomed to this one so I'm keeping it.
     @staticmethod
-    async def _translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
+    async def _translate_message(translation_instructions:Message, translation_prompt:Message) -> str:
 
         """
 

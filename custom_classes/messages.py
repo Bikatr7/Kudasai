@@ -1,9 +1,22 @@
 ## built-in libraries
 import typing
 
+##-------------------start-of-Message--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class Message(typing.TypedDict):
+
+    """
+
+    Message is a typedDict that is used to send the message to the OpenAI API.
+
+    """
+
+    role: typing.Literal['system', 'user']
+    content: str
+
 ##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class SystemTranslationMessage(typing.TypedDict):
+class SystemTranslationMessage(Message):
 
     """
 
@@ -17,7 +30,7 @@ class SystemTranslationMessage(typing.TypedDict):
 ##-------------------start-of-ModelTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-class ModelTranslationMessage(typing.TypedDict):
+class ModelTranslationMessage(Message):
 
     """
 

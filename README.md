@@ -1,10 +1,10 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Table of Contents**
 
-- [Quick Start](#quick-start)
 - [Notes](#notes)
-- [Naming Conventions](#naming-conventions)
 - [Dependencies](#dependencies)
+- [Quick Start](#quick-start)
+- [Naming Conventions](#naming-conventions)
 - [Kairyou](#kairyou)
 - [Kaiseki](#kaiseki)
 - [Kijiku](#kijiku)
@@ -12,25 +12,6 @@
 - [Web GUI](#webgui)
 - [License](#license)
 - [Contact](#contact)
-
----------------------------------------------------------------------------------------------------------------------------------------------------
-**Quick Start**<a name="quick-start"></a>
-
-Simply run Kudasai.py which will take a few seconds to load, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input whatever and Kudasai will skip preprocessing and go straight to translation.
-
-Kudasai will offer to index the text, which is useful for finding new names to add to the replacement json file. This is optional and can be skipped.
-
-Can also run webgui.py for a web gui which is simpler and non-linear.
-
-After preprocessing is completed (if triggered), you will be prompted to run the translation modules.
-
-I recommend using Kijiku as it is vastly superior.
-
-See the [Kijiku Settings](#kijiku-settings) section for more information on Kijiku's settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them. There is also a demo txt file in the demo folder that you can use to test Kudasai.
-
-Follow the prompts from there and you should be good to go, results will be stored in the output folder in the same directory as kudasai.py.
-
-If you have any questions, comments, or concerns, please feel free to open an issue.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Notes**<a name="notes"></a>
@@ -44,19 +25,6 @@ Used to make (Japanese - English) translation easier by preprocessing the Japane
 Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
 
 Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on and what I plan to work on.
-
----------------------------------------------------------------------------------------------------------------------------------------------------
-**Naming Conventions**<a name="naming-conventions"></a> 
-
-kudasai.py - Main script - ください　- Please
-
-Kairyou - Preprocessing Package - 改良 - Reform
-
-kaiseki.py - DeepL translation module - 解析 - Parsing
-
-kijiku.py - OpenAI translation module - 基軸 - Foundation
-
-Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that [here](https://github.com/Atreyagaurav/onegai)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>
@@ -76,6 +44,50 @@ kairyou==1.3.1
 google-generativeai
 
 or see requirements.txt
+
+Also requires spacy's ja_core_news_lg model, which can be installed via the following command:
+
+```bash
+python -m spacy download ja_core_news_lg
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+**Quick Start**<a name="quick-start"></a>
+
+Due to TOML's limitations, you need to install spacy's JP Model, which can not be included automatically due to it being a direct dependency link. Make sure you do this after installing the requirements.txt file.
+
+```bash
+python -m spacy download ja_core_news_lg
+```
+
+Simply run Kudasai.py which will take a few seconds to load, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input whatever and Kudasai will skip preprocessing and go straight to translation.
+
+Kudasai will offer to index the text, which is useful for finding new names to add to the replacement json file. This is optional and can be skipped.
+
+Can also run webgui.py for a web gui which is simpler and non-linear.
+
+After preprocessing is completed (if triggered), you will be prompted to run the translation modules.
+
+I recommend using Kijiku as it is vastly superior.
+
+See the [Kijiku Settings](#kijiku-settings) section for more information on Kijiku's settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them. There is also a demo txt file in the demo folder that you can use to test Kudasai.
+
+Follow the prompts from there and you should be good to go, results will be stored in the output folder in the same directory as kudasai.py.
+
+If you have any questions, comments, or concerns, please feel free to open an issue.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+**Naming Conventions**<a name="naming-conventions"></a> 
+
+kudasai.py - Main script - ください　- Please
+
+Kairyou - Preprocessing Package - 改良 - Reform
+
+kaiseki.py - DeepL translation module - 解析 - Parsing
+
+kijiku.py - OpenAI translation module - 基軸 - Foundation
+
+Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that [here](https://github.com/Atreyagaurav/onegai)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

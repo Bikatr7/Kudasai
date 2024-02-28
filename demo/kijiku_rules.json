@@ -1,22 +1,22 @@
 {
     "open ai settings": {
         "model": "gpt-4",
-        "system_message": "You are a Japanese to English translator. Please remember that you need to translate the narration into English simple past. Please keep the original formatting and punctuation. Please preserve the paragraph formatting. Some terms are pre-translated, so keep those intact. Most names are replaced, if they are not, try to anticipate. Some terms are replaced as well, preserve those too. Try to keep the output on the same number of lines as the input. Also note that 〇 typically indicates a chapter change.",
+        "system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
         "temp": 0.3,
         "top_p": 1,
         "n": 1,
         "stream": false,
         "stop": null,
         "logit_bias": null,
-        "max_tokens": 9223372036854775807,
+        "max_tokens": null,
         "presence_penalty": 0,
         "frequency_penalty": 0,
         "message_mode": 1,
-        "num_lines": 36,
+        "num_lines": 48,
         "sentence_fragmenter_mode": 3,
         "je_check_mode": 2,
         "num_malformed_batch_retries": 1,
-        "batch_retry_timeout": 300,
-        "num_concurrent_batches": 30
+        "batch_retry_timeout": 1500,
+        "num_concurrent_batches": 5
     }
 }

@@ -3,11 +3,18 @@ import os
 import sys
 import json
 import asyncio
+import re
+import typing
+import traceback
+
+## third-party libraries
+from kairyou import Kairyou
+from kairyou import Indexer
+from kairyou.types import NameAndOccurrence
 
 ## custom modules
 from models.kaiseki import Kaiseki 
 from models.kijiku import Kijiku
-from models.kairyou import Kairyou
 
 from handlers.json_handler import JsonHandler
 
@@ -27,6 +34,11 @@ class Kudasai:
 
     connection:bool
     
+    text_to_preprocess:str
+    replacement_json:dict
+
+    need_to_run_kairyou:bool = True
+
 ##-------------------start-of-boot()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -44,12 +56,15 @@ class Kudasai:
 
         FileEnsurer.setup_needed_files()
 
+        Logger.clear_log_file()
+
         Logger.log_barrier()
         Logger.log_action("Kudasai started")
         Logger.log_action("Current version: " + Toolkit.CURRENT_VERSION)
         Logger.log_barrier()
 
         Logger.push_batch()
+        Logger.clear_batch()
 
         try:
 
@@ -66,96 +81,120 @@ class Kudasai:
 
             raise Exception("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
         
-##-------------------start-of-setup_kairyou()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-run_kairyou_indexer()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def setup_kairyou(input_file:str | None = None, replacement_json_path:str | None = None, is_cli:bool=False) -> None:
+    def run_kairyou_indexer(text_to_index:str, replacement_json:typing.Union[dict,str]) -> typing.Tuple[str, str]:
 
         """
-        
-        If the user is running the WebGUI version of Kudasai, this function is called to setup the text to be processed and the replacement json file.
-        
+
+        Runs the Kairyou Indexer.
+
         Parameters:
-        input_file (str | None | default=None) : The path to the input file to be processed.
-        replacement_json (str | None | default=None) : The path to the replacement json file.
-        is_cli (bool | default=False) : Whether the user is running the CLI version of Kudasai.
+        text_to_index (str): The text to index.
+        replacement_json (dict): The replacement json.
+
+        Returns:
+
+        
+        """
+
+        Toolkit.clear_console()
+
+        knowledge_base = input("Please enter the path to the knowledge base you would like to use for the indexer (can be text, a path to a txt file, or a path to a directory of txt files):\n").strip('"')
+
+        ## unique names is a list of named tuples, with the fields name and occurrence
+        unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base, replacement_json)
+
+        ## for each name in unique_names, we need to replace that name in the text_to_process with >>>name<<<
+        ## but since it returns the occurrence of the name, we only need to replace that occurrence of the name in the text_to_process
+        ## So if a name has 42 occurrences, but only the 3rd and 4th occurrence were flagged, we only need to replace the 3rd and 4th occurrence of the name in the text_to_process
+
+        text_to_index = Kudasai.mark_indexed_names(text_to_index, unique_names)
+
+        return text_to_index, indexing_log
+    
+##-------------------start-of-mark_indexed_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def mark_indexed_names(text:str, unique_names:typing.List[NameAndOccurrence]) -> str:
 
         """
 
-        if(not is_cli):
-            input_file = input("Please enter the path to the input file to be processed:\n").strip('"')
-            Toolkit.clear_console()
+        Marks indexed names in the text.
 
-            replacement_json_path = input("Please enter the path to the replacement json file:\n").strip('"')
-            Toolkit.clear_console()
+        Parameters:
+        text (str): The text to mark.
+        unique_names (list - NameAndOccurrence): The list of unique names.
 
-        ## try to load the replacement json file
-        try:
+        Returns:
+        str: The marked text.
 
-            with open(replacement_json_path, 'r', encoding='utf-8') as file:  ## type: ignore
-                replacement_json = json.load(file) 
-    
-        ## if not just skip preprocessing
-        except:
-            
-            Kairyou.need_to_run = False
-            replacement_json = {}
+        """
 
-        try:
-            with open(input_file, 'r', encoding='utf-8') as file:  ## type: ignore
-                japanese_text = file.read()
+        for name_tuple in unique_names:
+            name = name_tuple.name
+            pattern = re.compile(re.escape(name)) ## Prepare regex pattern, escaping the name to handle special characters
 
-        except:
+            current_pos = 0
+            new_text = ""
+            last_end = 0
 
-            Logger.log_action("Invalid txt file.", output=True, omit_timestamp=True)
+            for match in pattern.finditer(text):
+                current_pos += 1
+                if(current_pos == name_tuple.occurrence):  
+                    new_text += text[last_end:match.start()] + f">>>{name}<<<"
+                    last_end = match.end()
 
-            Toolkit.pause_console()
+            new_text += text[last_end:]  # Append the rest of the text
+            text = new_text
 
-            raise Exception("Invalid txt file.")
-        
-        Kairyou.replacement_json = replacement_json 
-        Kairyou.text_to_preprocess = japanese_text
-
-        ## if given a replacement json file, validate it
-        if(Kairyou.replacement_json != {}):
-
-            try:
-                Kairyou.validate_replacement_json()
-
-            except:
-                Kairyou.need_to_run = False
-                replacement_json = {}
+        return text
 
 ##-------------------start-of-run_kudasai()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
     @staticmethod
-    async def run_kudasai(is_cli:bool=False) -> None:
+    async def run_kudasai() -> None:
 
         """
 
-        Runs the Kudasai program.
-
-        Parameters:
-        is_cli (bool | default=False) : Whether the user is running the CLI version of Kudasai.
+        Runs the Kudasai program. Used for CLI and Console versions of Kudasai. Not used for the WebGUI version of Kudasai.
 
         """
 
         Kudasai.handle_update_check()
 
-        Kairyou.preprocess()
+        if(Kudasai.need_to_run_kairyou):
 
-        if(not is_cli):
-            print(Kairyou.preprocessing_log) 
+            indexing_log = ""
 
-        Kairyou.write_kairyou_results() 
+            if(Kudasai.replacement_json not in ["", FileEnsurer.blank_rules_path, FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)] and input("Would you like to use Kairyou's Indexer to index the preprocessed text? (1 for yes, 2 for no)\n") == "1"):
+                Kudasai.text_to_preprocess, indexing_log = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json)
 
-        if(not is_cli):
+            preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json)
+
+            ## Need to set this so auto-translation can use the preprocessed text
+            Kudasai.text_to_preprocess = preprocessed_text
+
+            ## add index log to preprocessing log
+            if(indexing_log != ""):
+                preprocessing_log = indexing_log + "\n\n" + preprocessing_log
+
+            print(preprocessing_log) 
+
+            timestamp = Toolkit.get_timestamp(is_archival=True)
+
+            FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
+            
             Toolkit.pause_console("\nPress any key to continue to Auto-Translation...")
+            Toolkit.clear_console()
+
+        else:
+            print("(Preprocessing skipped)")
 
         await Kudasai.determine_autotranslation_module()
 
-        if(not is_cli):
-            Toolkit.pause_console("\nPress any key to exit...")
+        Toolkit.pause_console("\nPress any key to exit...")
 
 ##-------------------start-of-handle_update_check()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +209,7 @@ class Kudasai:
 
         Kudasai.connection, update_prompt = Toolkit.check_update()
 
-        if(update_prompt):
+        if(update_prompt != ""):
             
             print(update_prompt)
 
@@ -195,8 +234,6 @@ class Kudasai:
             Toolkit.pause_console()
 
             exit()
-
-        Toolkit.clear_console()
 
         pathing = ""
 
@@ -229,7 +266,7 @@ class Kudasai:
         Logger.log_action("Kaiseki started")
         Logger.log_action("--------------------")
 
-        Kaiseki.text_to_translate = [line for line in Kairyou.text_to_preprocess.splitlines()]
+        Kaiseki.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
 
         Kaiseki.translate()
 
@@ -256,7 +293,7 @@ class Kudasai:
 
         Toolkit.clear_console()
 
-        Kijiku.text_to_translate = [line for line in Kairyou.text_to_preprocess.splitlines()]
+        Kijiku.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
 
         await Kijiku.translate()
 
@@ -277,56 +314,93 @@ async def main() -> None:
     """
 
     Kudasai.boot()
+    Toolkit.clear_console()
 
     try:
 
-        ## determines if we will run the Kudasai CLI or the Kudasai Console
-
-        Toolkit.clear_console()
-
-        ## if running console version
         if(len(sys.argv) <= 1):
-            
-            Kudasai.setup_kairyou()
+            await run_console_version()
+        
+        elif(len(sys.argv) in [2, 3]):
+            await run_cli_version()
 
-            await Kudasai.run_kudasai()
-
-            Logger.push_batch()
-
-        ## if running cli version
-        elif(len(sys.argv) == 3):
-
-            Kudasai.setup_kairyou(input_file=sys.argv[1], replacement_json_path=sys.argv[2], is_cli=True)
-
-            await Kudasai.run_kudasai(is_cli=True)
-
-            Logger.push_batch()
-
-        ## if running cli version but skipping preprocessing
-        elif(len(sys.argv) == 2):
-
-            Kudasai.setup_kairyou(input_file=sys.argv[1], is_cli=True)
-
-            await Kudasai.run_kudasai(is_cli=True)
-
-            Logger.push_batch()
-
-        ## print usage statement
         else:
-                
-            print("Usage: python Kudasai.py <input_file> <replacement_json>\n\n")
-            print("or run Kudasai.py without any arguments to run the console version.\n\n")
-
-            Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>")
-
-            Toolkit.pause_console()
-
-            exit()
+            print_usage_statement()
 
     except Exception as e:
-
         FileEnsurer.handle_critical_exception(e)
 
-##---------------------------------/
+##-------------------start-of-run_console_version()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+async def run_console_version():
+
+    """
+    
+    Runs the console version of Kudasai.
+
+    """
+
+    try:
+
+        path_to_text_to_preprocess = input("Please enter the path to the input file to be processed:\n").strip('"')
+        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(path_to_text_to_preprocess)
+        Toolkit.clear_console()
+
+        path_to_replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
+        Kudasai.replacement_json = FileEnsurer.standard_read_json(path_to_replacement_json if path_to_replacement_json else FileEnsurer.blank_rules_path)
+        Toolkit.clear_console()
+
+    except Exception as e:
+        print_usage_statement()
+
+        raise e
+
+    await Kudasai.run_kudasai()
+    Logger.push_batch()
+
+##-------------------start-of-run_cli_version()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+async def run_cli_version():
+
+    """
+
+    Runs the CLI version of Kudasai.
+
+    """
+
+    try:
+
+        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
+        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"') if(len(sys.argv) == 3) else FileEnsurer.blank_rules_path)
+
+    except Exception as e:
+        print_usage_statement()
+
+        raise e
+
+    if(len(sys.argv) == 2):
+        Kudasai.need_to_run_kairyou = False
+
+    await Kudasai.run_kudasai()
+    Logger.push_batch()
+
+##-------------------start-of-print_usage_statement()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def print_usage_statement():
+
+    """
+
+    Prints the usage statement for the CLI version of Kudasai.
+
+    """
+
+    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>", output=True, omit_timestamp=True)
+    Logger.log_action("or run Kudasai.py without any arguments to run the console version.", output=True, omit_timestamp=True)
+
+    print("\n")
+
+##-------------------start-of-submain()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 if(__name__ == '__main__'):
     asyncio.run(main())

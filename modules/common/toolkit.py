@@ -13,7 +13,7 @@ class Toolkit():
 
     """
 
-    CURRENT_VERSION = "v3.1.2"
+    CURRENT_VERSION = "v3.3.3"
 
 ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -159,7 +159,7 @@ class Toolkit():
             print_value = str(round(elapsed_time / 3600, 2)) + " hours"
 
         return print_value
-
+    
 ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -168,7 +168,6 @@ class Toolkit():
         """
 
         Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.
-        If requests is not installed, it will return is_connection as False.
 
         Returns:
         is_connection (bool) : Whether or not the user has an internet connection.
@@ -181,13 +180,18 @@ class Toolkit():
 
         try:
 
-            import requests
+            from urllib.request import urlopen
+            import json
+            from distutils.version import LooseVersion
 
-            response = requests.get("https://api.github.com/repos/Bikatr7/Kudasai/releases/latest")
-            latest_version = response.json()["tag_name"]
-            release_notes = response.json()["body"]
+            response = urlopen("https://api.github.com/repos/Bikatr7/Kudasai/releases/latest")
+            data = json.loads(response.read().decode())
 
-            if(latest_version != Toolkit.CURRENT_VERSION):
+            latest_version = str(data["tag_name"])
+            release_notes = data["body"]
+
+            if(LooseVersion(latest_version) > LooseVersion(Toolkit.CURRENT_VERSION)):
+
                 update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
 
                 if(release_notes):
@@ -195,19 +199,12 @@ class Toolkit():
 
             return is_connection, update_prompt
 
-        ## used to determine if user lacks an internet connection or possesses another issue that would cause the automated mtl to fail.
-        except ImportError:
+        ## used to determine if user lacks an internet connection.
+        except:
 
-            print("Requests is not installed, please install it using the following command:\npip install requests")
+            print("You seem to lack an internet connection, this will prevent you from checking from update notification and machine translation.\n")
 
             Toolkit.pause_console()
-
-            is_connection = False
-
-            return is_connection, update_prompt
-
-
-        except Exception as e:
 
             is_connection = False
 
@@ -222,6 +219,9 @@ class Toolkit():
         
         Generates a timestamp for an action taken by Kudasai.
 
+        Parameters:
+        is_archival (bool | optional) : Whether or not the timestamp is for archival purposes.
+        
         Returns:
         time_stamp (string) : The timestamp for the action.        
         
@@ -234,3 +234,22 @@ class Toolkit():
             time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "
 
         return time_stamp
+    
+##-------------------start-of-string_to_bool()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def string_to_bool(string:str) -> bool:
+
+        """
+
+        Converts a string to a boolean.
+
+        Parameters:
+        string (str) : The string to be converted.
+
+        Returns:
+        (bool) : The converted boolean.
+
+        """
+
+        return string.lower() in ['true', '1', 'yes', 'y', 't']

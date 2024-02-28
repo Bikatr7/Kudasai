@@ -8,59 +8,23 @@ import asyncio
 import os
 
 ## third party modules
-from openai import AsyncOpenAI
-from openai import AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError
+from kairyou import KatakanaUtil
 
-import backoff
 import tiktoken
-import spacy
+import backoff
 
 ## custom modules
 from handlers.json_handler import JsonHandler
-from handlers.katakana_handler import KatakanaHandler
 
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
 from modules.common.toolkit import Toolkit
+from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
+from modules.common.decorators import permission_error_decorator
 
-##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
 
-class SystemTranslationMessage(typing.TypedDict):
-
-    """
-
-    SystemTranslationMessage is a typedDict that is used to send the system message to the API.
-
-    """
-
-    role: typing.Literal['system']
-    content: str
-
-##-------------------start-of-ModelTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-class ModelTranslationMessage(typing.TypedDict):
-
-    """
-
-    ModelTranslationMessage is a typedDict that is used to send the model/user message to the API.
-
-    """
-
-    role: typing.Literal['user']
-    content: str
-
-##-------------------start-of-MaxBatchDurationExceeded--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-class MaxBatchDurationExceeded(Exception):
-
-    """
-
-    MaxBatchDurationExceeded is an exception that is raised when the max batch duration is exceeded.
-
-    """
-
-    pass
+from translation_services.openai_service import OpenAIService
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,9 +50,6 @@ class Kijiku:
 
     num_occurred_malformed_batches = 0
 
-    ## async client session
-    client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
-
     ## semaphore to limit the number of concurrent batches
     _semaphore = asyncio.Semaphore(30)
 
@@ -98,7 +59,7 @@ class Kijiku:
 
     ##--------------------------------------------------------------------------------------------------------------------------
 
-    MODEL = ""
+    model = ""
     translation_instructions = ""
     message_mode = 0 
     prompt_size = 0
@@ -107,6 +68,65 @@ class Kijiku:
     num_of_malform_retries = 0
     max_batch_duration = 0
     num_concurrent_batches = 0
+
+##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def get_max_batch_duration() -> float:
+
+        """
+        
+        Returns the max batch duration.
+        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called.
+
+        Returns:
+        max_batch_duration (float) : the max batch duration.
+
+        """
+
+        return Kijiku.max_batch_duration
+    
+##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def log_retry(details) -> None:
+
+        """
+
+        Logs the retry message.
+
+        Parameters:
+        details (dict) : the details of the retry.
+
+        """
+
+        retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
+
+        Logger.log_barrier()
+        Logger.log_action(retry_msg)
+        Logger.log_barrier()
+
+##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def log_failure(details) -> None:
+
+        """
+        
+        Logs the translation batch failure message.
+
+        Parameters:
+        details (dict) : the details of the failure.
+
+        """
+
+        error_msg = f"Exceeded duration, returning untranslated text after {details['tries']} tries {details['target']}."
+
+        Logger.log_barrier()
+        Logger.log_error(error_msg)
+        Logger.log_barrier()
+
+        raise MaxBatchDurationExceededException(error_msg)
 
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -192,14 +212,13 @@ class Kijiku:
             with open(FileEnsurer.openai_api_key_path, 'r', encoding='utf-8') as file: 
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            Kijiku.client.api_key = api_key
+            OpenAIService.set_api_key(api_key)
 
-            ## make dummy request to check if API key is valid
-            await Kijiku.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role":"user","content":"This is a test."}],
-                max_tokens=1
-            )
+            is_valid, e = await OpenAIService.test_api_key_validity()
+
+            ## if not valid, raise the exception that caused the test to fail
+            if(not is_valid and e is not None):
+                raise e
         
             Logger.log_action("Used saved API key in " + FileEnsurer.openai_api_key_path, output=True)
             Logger.log_barrier()
@@ -216,7 +235,12 @@ class Kijiku:
             ## if valid save the API key
             try: 
 
-                await Kijiku.setup_api_key(api_key)
+                OpenAIService.set_api_key(api_key)
+
+                is_valid, e = await OpenAIService.test_api_key_validity()
+
+                if(not is_valid and e is not None):
+                    raise e
 
                 FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
                 
@@ -241,38 +265,6 @@ class Kijiku:
                 Toolkit.pause_console()
 
                 raise e
-
-##-------------------start-of-setup_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    async def setup_api_key(api_key) -> None:
-
-        """
-
-        Sets up the API key.
-
-        Parameters:
-        api_key (string) : the api key to set.
-
-        """
-
-        ## if valid save the api key
-        try: 
-
-            Kijiku.client.api_key = api_key
-
-            ## make dummy request to check if api key is valid
-            await Kijiku.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role":"user","content":"This is a test."}],
-                max_tokens=1
-            )
-
-            Logger.log_action("API key is valid.", output=True)
-            
-        ## if invalid key raise exception
-        except AuthenticationError as e:
-            raise e
 
 ##-------------------start-of-reset_static_variables()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -345,7 +337,7 @@ class Kijiku:
         for key,value in JsonHandler.current_kijiku_rules["open ai settings"].items():
             Logger.log_action(key + " : " + str(value))
 
-        Kijiku.MODEL = JsonHandler.current_kijiku_rules["open ai settings"]["model"]
+        Kijiku.model = JsonHandler.current_kijiku_rules["open ai settings"]["model"]
         Kijiku.translation_instructions = JsonHandler.current_kijiku_rules["open ai settings"]["system_message"]
         Kijiku.message_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["message_mode"])
         Kijiku.prompt_size = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_lines"])
@@ -354,6 +346,21 @@ class Kijiku:
         Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
         Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
         Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
+
+        OpenAIService.model = Kijiku.model
+        OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["open ai settings"]["temp"])
+        OpenAIService.top_p = float(JsonHandler.current_kijiku_rules["open ai settings"]["top_p"])
+        OpenAIService.n = int(JsonHandler.current_kijiku_rules["open ai settings"]["n"])
+        OpenAIService.stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"]
+        OpenAIService.stream = bool(JsonHandler.current_kijiku_rules["open ai settings"]["stream"])
+        OpenAIService.stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"]
+        OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"])
+        OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"])
+        OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]
+
+        decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+
+        OpenAIService.set_decorator(decorator_to_use)
 
         Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 
@@ -409,6 +416,9 @@ class Kijiku:
         Logger.log_action("Done!", output=not is_webgui)
         Logger.log_barrier()
 
+        ## assemble error text based of the error list
+        Kijiku.error_text = Logger.errors
+
 ##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -429,32 +439,39 @@ class Kijiku:
 
         prompt = []
 
+        non_word_pattern = re.compile(r'^[\W_\s\n-]+$')
+
         while(index < len(Kijiku.text_to_translate)):
+
             sentence = Kijiku.text_to_translate[index]
+            is_part_in_sentence = "part" in sentence.lower()
 
             if(len(prompt) < Kijiku.prompt_size):
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(sentence + '\n')
                     Logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.")
+                    index += 1
 
-                elif("part" in sentence.lower() or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
+                elif(is_part_in_sentence or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
                     prompt.append(sentence + '\n') 
                     Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.")
+                    index += 1
 
-                elif(bool(re.match(r'^[\W_\s\n-]+$', sentence)) and not KatakanaHandler.is_punctuation(sentence)):
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
-            
-                elif(bool(re.match(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$', sentence) and "part" not in sentence.lower())):
+                elif(sentence.strip() == '' or KatakanaUtil.is_punctuation(sentence.strip())):
                     Logger.log_action("Sentence is empty... skipping translation.")
+                    index += 1
 
+                elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(sentence)):
+                    Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
+                    index += 1
+                    
                 else:
                     prompt.append(sentence + "\n")
-    
+                    Logger.log_action("Sentence : " + sentence + ", Sentence is a valid sentence... adding to prompt.")
+                    index += 1
             else:
                 return prompt, index
-            
-            index += 1
 
         return prompt, index
     
@@ -650,7 +667,7 @@ class Kijiku:
     async def handle_cost_estimate_prompt(omit_prompt:bool=False) -> None:
 
         ## get cost estimate and confirm
-        num_tokens, min_cost, Kijiku.MODEL = Kijiku.estimate_cost(Kijiku.MODEL)
+        num_tokens, min_cost, Kijiku.model = Kijiku.estimate_cost(Kijiku.model)
 
         print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
@@ -669,67 +686,6 @@ class Kijiku:
             else:
                 Logger.log_action("User cancelled translation.")
                 exit()
-    
-##-------------------start-of-translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ## backoff wrapper for retrying on errors, As of OpenAI > 1.0.0, it comes with a built in backoff system, but I've grown accustomed to this one so I'm keeping it.
-    @staticmethod
-    @backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APIError, APIConnectionError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
-    async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
-
-        """
-
-        Translates a system and user message.
-
-        Parameters:
-        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
-        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
-
-        Returns:
-        output (string) a string that gpt gives to us also known as the translation.
-
-        """
-
-        ## logit bias is currently excluded due to a lack of need, and the fact that i am lazy
-
-        response = await Kijiku.client.chat.completions.create(
-            model=Kijiku.MODEL,
-            messages=[
-                translation_instructions,
-                translation_prompt,
-            ], # type: ignore | Seems to work for now.
-
-            temperature = float(JsonHandler.current_kijiku_rules["open ai settings"]["temp"]),
-            top_p = float(JsonHandler.current_kijiku_rules["open ai settings"]["top_p"]),
-            n = int(JsonHandler.current_kijiku_rules["open ai settings"]["n"]),
-            stream = JsonHandler.current_kijiku_rules["open ai settings"]["stream"],
-            stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"],
-            presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"]),
-            frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"]),
-            ##max_tokens = int(JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]),            
-
-        )
-
-        ## if anyone knows how to type hint this please let me know
-        output = response.choices[0].message.content
-        
-        return output
-    
-##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    @staticmethod
-    def get_max_batch_duration() -> float:
-
-        """
-        
-        Returns the max batch duration.
-        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called.
-
-        Returns:
-        max_batch_duration (float) : the max batch duration.
-
-        """
-
-        return Kijiku.max_batch_duration
     
 ##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -768,27 +724,30 @@ class Kijiku:
 
 
                 try:
-                    translated_message = await Kijiku.translate_message(translation_instructions, translation_prompt)
+                    translated_message = await OpenAIService.translate_message(translation_instructions, translation_prompt)
 
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
-                except MaxBatchDurationExceeded:
+                except MaxBatchDurationExceededException:
                     translated_message = translation_prompt["content"]
-                    Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True, is_error=True)
+                    Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
-                if("gpt-4" not in Kijiku.MODEL):
+                if("gpt-4" not in Kijiku.model):
                     break
 
-                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt) or num_tries >= Kijiku.num_of_malform_retries):
+                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
+                    Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
+                    break
+
+                if(num_tries >= Kijiku.num_of_malform_retries):
+                    Logger.log_action(f"Batch {message_number} of {length//2} was malformed, but exceeded the maximum number of retries, Translation successful!", output=True)
                     break
 
                 else:
                     num_tries += 1
-                    Kijiku.error_text += Logger.log_action(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True, is_error=True)
+                    Logger.log_error(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
                     Kijiku.num_occurred_malformed_batches += 1
-
-            Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
 
             return index, translation_prompt, translated_message
     
@@ -821,48 +780,6 @@ class Kijiku:
     
         return is_valid
     
-##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def log_retry(details) -> None:
-
-        """
-
-        Logs the retry message.
-
-        Parameters:
-        details (dict) : the details of the retry.
-
-        """
-
-        retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
-
-        Logger.log_barrier()
-        Kijiku.error_text += Logger.log_action(retry_msg, is_error=True)
-        Logger.log_barrier()
-
-##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def log_failure(details) -> None:
-
-        """
-        
-        Logs the translation batch failure message.
-
-        Parameters:
-        details (dict) : the details of the failure.
-
-        """
-
-        error_msg = f"Exceeded duration, returning untranslated text after {details['tries']} tries {details['target']}."
-
-        Logger.log_barrier()
-        Kijiku.error_text += Logger.log_action(error_msg, is_error=True)
-        Logger.log_barrier()
-
-        raise MaxBatchDurationExceeded(error_msg)
-
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -916,19 +833,9 @@ class Kijiku:
                     index = patched_sentences.index(Kijiku.translated_text[i])
                     Kijiku.translated_text[i] = patched_sentences[index]
 
-        ## mode 2 uses spacy to split sentences
-        elif(Kijiku.sentence_fragmenter_mode == 2): 
-
-            nlp = spacy.load("en_core_web_lg")
-
-            doc = nlp(translated_message)
-            sentences = [sent.text for sent in doc.sents]
-
-            for sentence in sentences:
-                Kijiku.translated_text.append(sentence + '\n')
-
+        ## mode 2 uses spacy to split sentences (deprecated, will do 3 instead)
         ## mode 3 just assumes gpt formatted it properly
-        elif(Kijiku.sentence_fragmenter_mode == 3): 
+        elif(Kijiku.sentence_fragmenter_mode == 2 or Kijiku.sentence_fragmenter_mode == 3): 
             
             Kijiku.translated_text.append(translated_message + '\n\n')
         
@@ -1007,6 +914,7 @@ class Kijiku:
 ##-------------------start-of-write_kijiku_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def write_kijiku_results() -> None:
 
         """
@@ -1032,12 +940,14 @@ class Kijiku:
 
         timestamp = Toolkit.get_timestamp(is_archival=True)
 
+        ## pushes the tl debug log to the file without clearing the file
+        Logger.push_batch()
+        Logger.clear_batch()
+
         list_of_result_tuples = [('kijiku_translated_text', Kijiku.translated_text), 
                                  ('kijiku_je_check_text', Kijiku.je_check_text), 
-                                 ('kijiku_error_log', Kijiku.error_text)]
+                                 ('kijiku_error_log', Kijiku.error_text),
+                                 ('debug_log', FileEnsurer.standard_read_file(Logger.log_file_path))]
 
         FileEnsurer.archive_results(list_of_result_tuples, 
                                     module='kijiku', timestamp=timestamp)
-
-        ## pushes the tl debug log to the file without clearing the file
-        Logger.push_batch()

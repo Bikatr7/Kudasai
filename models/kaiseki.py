@@ -7,13 +7,13 @@ import re
 import base64
 import time
 
-## third party modules
-import deepl
-
 ## custom modules
+from translation_services.deepl_service import DeepLService
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
+from modules.common.decorators import permission_error_decorator
+from modules.common.exceptions import AuthorizationException, QuotaExceededException
 
 ##-------------------start-of-Kaiseki--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26,10 +26,6 @@ class Kaiseki:
     Kaiseki is considered inferior to Kijiku, please consider using Kijiku instead.
     
     """
-
-    ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    translator:deepl.Translator
 
     ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,9 +51,7 @@ class Kaiseki:
     current_sentence = ""
 
     translated_sentence = ""
-
-    ##---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            
+        
 ##-------------------start-of-translate()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -111,7 +105,8 @@ class Kaiseki:
             with open(FileEnsurer.deepl_api_key_path, 'r', encoding='utf-8') as file:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            Kaiseki.setup_api_key(api_key)
+            DeepLService.set_api_key(api_key)
+            DeepLService.test_api_key_validity()
 
             Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path, output=True)
 
@@ -123,7 +118,8 @@ class Kaiseki:
             ## if valid save the api key
             try: 
 
-                Kaiseki.setup_api_key(api_key)
+                DeepLService.set_api_key(api_key)
+                DeepLService.test_api_key_validity()
 
                 time.sleep(.1)
                     
@@ -132,7 +128,7 @@ class Kaiseki:
                 time.sleep(.1)
                 
             ## if invalid key exit
-            except deepl.exceptions.AuthorizationException: 
+            except AuthorizationException: 
                     
                 Toolkit.clear_console()
                     
@@ -156,31 +152,6 @@ class Kaiseki:
         Toolkit.clear_console()
         Logger.log_barrier()
 
-##-------------------start-of-setup_api_key()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def setup_api_key(api_key:str) -> None:
-
-        """
-
-        Sets up the api key for the Kaiseki class.
-
-        Parameters:
-        api_key (str) : the api key to use.
-
-        """
-
-        Kaiseki.translator = deepl.Translator(api_key)
-
-        ## perform a test translation to see if the api key is valid
-        try:
-            Kaiseki.translator.translate_text("test", target_lang="JA")
-
-            Logger.log_action("API key is valid.", output=True)
-        
-        except deepl.exceptions.AuthorizationException as e:
-            raise e
-        
 ##-------------------start-of-reset_static_variables()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -481,7 +452,7 @@ class Kaiseki:
                 single_quote_active = True
                 
             try:
-                results = str(Kaiseki.translator.translate_text(Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")) 
+                results = DeepLService.translate(Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")
 
                 translated_part = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                 translated_part = translated_part.rstrip() 
@@ -493,7 +464,7 @@ class Kaiseki:
 
                 ## translates the quote and re-adds it back to the sentence part
                 if(single_quote_active == True): 
-                    quote = str(Kaiseki.translator.translate_text(quote, source_lang= "JA", target_lang="EN-US")) ## translates part to english-us
+                    quote = DeepLService.translate(quote, source_lang= "JA", target_lang="EN-US")
                     
                     quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                     quote = quote.rstrip() 
@@ -513,7 +484,7 @@ class Kaiseki:
                 if(i != len(Kaiseki.sentence_punctuation)-1):
                     Kaiseki.translated_sentence += " "
                         
-            except deepl.exceptions.QuotaExceededException as e:
+            except QuotaExceededException as e:
 
                 Logger.log_action("DeepL API quota exceeded.", output=True)
 
@@ -562,6 +533,7 @@ class Kaiseki:
 ##-------------------start-of-write_kaiseki_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
+    @permission_error_decorator()
     def write_kaiseki_results() -> None:
 
         """
@@ -587,12 +559,14 @@ class Kaiseki:
 
         timestamp = Toolkit.get_timestamp(is_archival=True)
 
+        ## pushes the tl debug log to the file without clearing the file
+        Logger.push_batch()
+        Logger.clear_batch()
+
         list_of_result_tuples = [('kaiseki_translated_text', Kaiseki.translated_text),
                                  ('kaiseki_je_check_text', Kaiseki.je_check_text),
-                                 ('kaiseki_error_log', Kaiseki.error_text)]
+                                 ('kaiseki_error_log', Kaiseki.error_text),
+                                 ('debug_log', FileEnsurer.standard_read_file(Logger.log_file_path))]
 
         FileEnsurer.archive_results(list_of_result_tuples, 
                                     module='kaiseki', timestamp=timestamp)
-
-        ## pushes the tl debug log to the file without clearing the file
-        Logger.push_batch()

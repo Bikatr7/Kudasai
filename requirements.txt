@@ -1,11 +1,6 @@
-spacy>=3.7.0,<3.8.0
-spacy[jp]
-spacy[en]
-ja_core_news_lg @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_lg-3.7.0/ja_core_news_lg-3.7.0-py3-none-any.whl
-en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.0/en_core_web_lg-3.7.0-py3-none-any.whl
-deepl
+deepl==1.16.1
 openai>1.2.0
-backoff
-requests
-tiktoken
-gradio==4.11.0
+backoff==2.2.1
+tiktoken==0.6.0
+gradio==4.19.2
+kairyou==1.4.0

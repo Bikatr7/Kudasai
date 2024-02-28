@@ -98,14 +98,17 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
         Validates the Kijiku Rules.json file.
         """
 
-        keys_list = [
+        base_kijiku_keys = [
             "prompt_assembly_mode",
             "number_of_lines_per_batch",
             "sentence_fragmenter_mode",
             "je_check_mode",
             "number_of_malformed_batch_retries",
             "batch_retry_timeout",
-            "num_concurrent_batches",
+            "number_of_concurrent_batches"
+        ]
+
+        openai_keys = [
             "openai_model",
             "openai_system_message",
             "openai_temperature",
@@ -116,7 +119,10 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "openai_logit_bias",
             "openai_max_tokens",
             "openai_presence_penalty",
-            "openai_frequency_penalty",
+            "openai_frequency_penalty"
+        ]
+
+        gemini_keys = [
             "gemini_model",
             "gemini_prompt",
             "gemini_temperature",
@@ -158,13 +164,14 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
             ## assign to variables to reduce repetitive access
             base_kijiku_settings = JsonHandler.current_kijiku_rules["base kijiku settings"]
-            openai_settings = JsonHandler.current_kijiku_rules["open ai settings"]
+            openai_settings = JsonHandler.current_kijiku_rules["openai settings"]
             gemini_settings = JsonHandler.current_kijiku_rules["gemini settings"]
 
             ## ensure all keys are present
-            assert all(key in base_kijiku_settings for key in keys_list[:7])
-            assert all(key in openai_settings for key in keys_list[:11])
-            assert all(key in gemini_settings for key in keys_list[11:20])
+            ## ensure all keys are present
+            assert all(key in base_kijiku_settings for key in base_kijiku_keys)
+            assert all(key in openai_settings for key in openai_keys)
+            assert all(key in gemini_settings for key in gemini_keys)
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():
@@ -186,7 +193,10 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
             gemini_settings["gemini_candidate_count"] = 1
 
-        except Exception:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            Toolkit.pause_console("\nPress enter to continue.")
             Logger.log_action("Kijiku Rules.json is not valid, setting to invalid_placeholder, current:")
             Logger.log_action(str(JsonHandler.current_kijiku_rules))
             JsonHandler.current_kijiku_rules = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
@@ -253,7 +263,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
         output (bool | optional | default=False) : Whether to print to console as well.
 
         """
-
+        
         print("-------------------")
         print("Base Kijiku Settings:")
         print("-------------------")

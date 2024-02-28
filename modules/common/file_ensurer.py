@@ -68,12 +68,12 @@ class FileEnsurer():
     DEFAULT_KIJIKU_RULES = {
     "base kijiku settings": {
         "prompt_assembly_mode": 1,
-        "number_of_lines_per_batch": 26,
-        "sentence_fragmenter_mode": 3,
+        "number_of_lines_per_batch": 36,
+        "sentence_fragmenter_mode": 2,
         "je_check_mode": 2,
         "number_of_malformed_batch_retries": 1,
         "batch_retry_timeout": 300,
-        "number_concurrent_batches": 5
+        "number_of_concurrent_batches": 5
     },
 
     "openai settings": {

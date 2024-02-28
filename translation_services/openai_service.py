@@ -109,9 +109,9 @@ class OpenAIService:
         response = await OpenAIService.client.chat.completions.create(
             model=OpenAIService.model,
             messages=[
-                translation_instructions,
-                translation_prompt,
-            ], # type: ignore | Seems to work for now.
+                translation_instructions.to_dict(),
+                translation_prompt.to_dict()
+            ],  # type: ignore
 
             temperature = OpenAIService.temperature,
             top_p = OpenAIService.top_p,

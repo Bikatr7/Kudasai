@@ -16,6 +16,12 @@ class Message:
     @property
     def content(self):
         return self._content
+    
+    def to_dict(self):
+        return {
+            'role': self.role,
+            'content': self.content
+        }
 
 ##-------------------start-of-SystemTranslationMessage--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

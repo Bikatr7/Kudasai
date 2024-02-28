@@ -73,6 +73,8 @@ class Kudasai:
 
             JsonHandler.validate_json()
 
+            assert JsonHandler.current_kijiku_rules != FileEnsurer.invalid_kijiku_rules_placeholder
+
         except:
 
             print("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
@@ -80,7 +82,7 @@ class Kudasai:
             Toolkit.pause_console()
 
             raise Exception("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
-        
+            
 ##-------------------start-of-run_kairyou_indexer()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

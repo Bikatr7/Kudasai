@@ -1,10 +1,10 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Table of Contents**
 
-- [Quick Start](#quick-start)
 - [Notes](#notes)
-- [Naming Conventions](#naming-conventions)
 - [Dependencies](#dependencies)
+- [Quick Start](#quick-start)
+- [Naming Conventions](#naming-conventions)
 - [Kairyou](#kairyou)
 - [Kaiseki](#kaiseki)
 - [Kijiku](#kijiku)
@@ -14,7 +14,51 @@
 - [Contact](#contact)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+**Notes**<a name="notes"></a>
+
+Built for Windows, should work on Linux/MacOS but is untested, attempts were made to make platform agnostic functions, but since I do not have access to a Linux/MacOS machine, I cannot guarantee it will work. If you'd like to test it on Linux/MacOS, please let me know how it goes. I'd be happy to help with any issues that arise. 
+
+Python version: 3.8+
+
+Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
+
+Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
+
+Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on and what I plan to work on.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+**Dependencies**<a name="dependencies"></a>
+
+deepl==1.16.1
+
+openai>1.2.0
+
+backoff==2.2.1
+
+tiktoken==0.6.0
+
+gradio==4.19.2
+
+kairyou==1.3.1
+
+google-generativeai
+
+or see requirements.txt
+
+Also requires spacy's ja_core_news_lg model, which can be installed via the following command:
+
+```bash
+python -m spacy download ja_core_news_lg
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
+
+Due to TOML's limitations, you need to install spacy's JP Model, which can not be included automatically due to it being a direct dependency link. Make sure you do this after installing the requirements.txt file.
+
+```bash
+python -m spacy download ja_core_news_lg
+```
 
 Simply run Kudasai.py which will take a few seconds to load, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input whatever and Kudasai will skip preprocessing and go straight to translation.
 
@@ -33,19 +77,6 @@ Follow the prompts from there and you should be good to go, results will be stor
 If you have any questions, comments, or concerns, please feel free to open an issue.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-**Notes**<a name="notes"></a>
-
-Built for Windows, should work on Linux/MacOS but is untested, attempts were made to make platform agnostic functions, but since I do not have access to a Linux/MacOS machine, I cannot guarantee it will work. If you'd like to test it on Linux/MacOS, please let me know how it goes. I'd be happy to help with any issues that arise. 
-
-Python version: 3.8+
-
-Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
-
-Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
-
-Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on and what I plan to work on.
-
----------------------------------------------------------------------------------------------------------------------------------------------------
 **Naming Conventions**<a name="naming-conventions"></a> 
 
 kudasai.py - Main script - ください　- Please
@@ -57,23 +88,6 @@ kaiseki.py - DeepL translation module - 解析 - Parsing
 kijiku.py - OpenAI translation module - 基軸 - Foundation
 
 Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that [here](https://github.com/Atreyagaurav/onegai)
-
----------------------------------------------------------------------------------------------------------------------------------------------------
-**Dependencies**<a name="dependencies"></a>
-
-deepl==1.16.1
-
-openai>1.2.0
-
-backoff==2.2.1
-
-tiktoken==0.6.0
-
-gradio==4.19.2
-
-kairyou==1.3.1
-
-or see requirements.txt
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

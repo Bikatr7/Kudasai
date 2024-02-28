@@ -577,15 +577,15 @@ class Kijiku:
 
             ## message mode one structures the first message as a system message and the second message as a model message
             if(Kijiku.prompt_assembly_mode == 1):
-                system_msg = SystemTranslationMessage(role="system", content=str(OpenAIService.system_message))
+                system_msg = SystemTranslationMessage(content=str(OpenAIService.system_message))
 
             ## while message mode two structures the first message as a model message and the second message as a model message too, typically used for non-gpt-4 models if at all
             else:
-                system_msg = ModelTranslationMessage(role="user", content=str(OpenAIService.system_message))
+                system_msg = ModelTranslationMessage(content=str(OpenAIService.system_message))
 
             Kijiku.openai_translation_batches.append(system_msg)
 
-            model_msg = ModelTranslationMessage(role="user", content=batch)
+            model_msg = ModelTranslationMessage(content=batch)
 
             Kijiku.openai_translation_batches.append(model_msg)
 
@@ -627,6 +627,15 @@ class Kijiku:
             batch = ''.join(batch)
 
             ## Gemini does not use system messages or model messages, and instead just takes a string input, so we just need to place the prompt before the text to be translated
+            Kijiku.gemini_translation_batches.append(GeminiService.prompt + batch)
+
+        Logger.log_barrier()
+        Logger.log_action("Built Messages : ")
+        Logger.log_barrier()
+
+        for message in Kijiku.gemini_translation_batches:
+            Logger.log_action(str(message))
+            Logger.log_barrier()
 
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -849,7 +858,7 @@ class Kijiku:
 
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
-                    translated_message = translation_prompt["content"]
+                    translated_message = translation_prompt.content
                     Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
                     break
 
@@ -890,7 +899,7 @@ class Kijiku:
         """
 
         if(not isinstance(translation_prompt, str)):
-            prompt = str(translation_prompt["content"])
+            prompt = translation_prompt.content
 
         else:
             prompt = translation_prompt
@@ -921,7 +930,7 @@ class Kijiku:
         """
 
         if(not isinstance(translation_prompt, str)):
-            prompt = str(translation_prompt["content"])
+            prompt = translation_prompt.content
 
         else:
             prompt = translation_prompt

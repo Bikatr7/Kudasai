@@ -65,8 +65,7 @@ class FileEnsurer():
     ## favicon
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
 
-    ## default kijiku rules
-    default_kijiku_rules = {
+    DEFAULT_KIJIKU_RULES = {
     "base kijiku settings": {
         "prompt_assembly_mode": 1,
         "number_of_lines_per_batch": 26,
@@ -123,6 +122,11 @@ class FileEnsurer():
     ]
 
     ALLOWED_GEMINI_MODELS = [
+        "gemini-1.0-pro-latest",
+        "gemini-1.5-pro-latest",
+        "gemini-1.0-pro",
+        "gemini-1.5-pro",
+        "gemini-pro-vision",
         "gemini-pro",
         "gemini-nano"
     ]
@@ -170,7 +174,7 @@ class FileEnsurer():
         ## creates the kijiku rules file if it doesn't exist
         if(os.path.exists(FileEnsurer.config_kijiku_rules_path) == False):
             with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
-                json.dump(FileEnsurer.default_kijiku_rules, file)
+                json.dump(FileEnsurer.DEFAULT_KIJIKU_RULES, file)
 
 ##--------------------start-of-standard_create_directory()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -20,45 +20,75 @@ class JsonHandler:
     current_kijiku_rules = dict()
 
     kijiku_settings_message = """
-See https://platform.openai.com/docs/api-reference/chat/create for further details
+
 ----------------------------------------------------------------------------------
-model : ID of the model to use. As of right now, Kijiku only works with 'chat' models.
+Kijiku Settings:
 
-system_message : Instructions to the model. Basically tells the model what to do.
+prompt_assembly_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works. For Gemini, this setting is ignored.
 
-temp : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
+number_of_lines_per_batch : The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.
 
-top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
-
-n : How many chat completion choices to generate for each input message. Do not change this.
-
-stream : If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.
-
-stop : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
-
-logit_bias : Modifies the likelihood of specified tokens appearing in the completion. Do not change this.
-
-max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
-
-presence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.
-
-frequency_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.
-
-message_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works.
-
-num_lines : The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.
-
-sentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy (depreciated, will default to 3 if you select 2), 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.
+sentence_fragmenter_mode : 1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 2 for gpt-4.
 
 je_check_mode : 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for gpt-4.
 
-num_malformed_batch_retries : How many times Kijiku will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case.
+number_of_malformed_batch_retries : (Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.
 
 batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.
 
-num_concurrent_batches : How many translations batches Kijiku will send to OpenAI at a time.
+num_concurrent_batches : How many translations batches Kijiku will send to the translation API at a time.
 ----------------------------------------------------------------------------------
-stream, logit_bias, stop and n are included for legacy purposes, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
+Open AI Settings:
+See https://platform.openai.com/docs/api-reference/chat/create for further details
+----------------------------------------------------------------------------------
+openai_model : ID of the model to use. As of right now, Kijiku only works with 'chat' models.
+
+openai_system_message : Instructions to the model. Basically tells the model how to translate.
+
+openai_temperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
+
+openai_top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
+
+openai_n : How many chat completion choices to generate for each input message. Do not change this.
+
+openai_stream : If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.
+
+openai_stop : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
+
+openai_logit_bias : Modifies the likelihood of specified tokens appearing in the completion. Do not change this.
+
+openai_max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
+
+openai_presence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.
+
+openai_frequency_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.
+----------------------------------------------------------------------------------
+openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
+----------------------------------------------------------------------------------
+Gemini Settings:
+https://ai.google.dev/docs/concepts#model-parameters for further details
+----------------------------------------------------------------------------------
+gemini_model : The model to use. Currently supports these models: https://ai.google.dev/models/gemini
+
+gemini_prompt : Instructions to the model. Basically tells the model how to translate.
+
+gemini_temperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
+
+gemini_top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
+
+gemini_top_k : Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.
+
+gemini_candidate_count : The number of candidates to generate for each input message. Do not change this.
+
+gemini_stream : If set, partial message deltas will be sent, like in Gemini Chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. Do not change this.
+
+gemini_stop_sequences : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
+
+gemini_max_output_tokens : The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
+----------------------------------------------------------------------------------
+gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
+----------------------------------------------------------------------------------
+
     """
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -67,72 +97,101 @@ stream, logit_bias, stop and n are included for legacy purposes, current version
     def validate_json() -> None:
 
         """
-
         Validates the Kijiku Rules.json file.
-
         """
 
         keys_list = [
-            "model",
-            "system_message",
-            "temp",
-            "top_p",
-            "n",
-            "stream",
-            "stop",
-            "logit_bias",
-            "max_tokens",
-            "presence_penalty",
-            "frequency_penalty",
-            "message_mode",
-            "num_lines",
+            "prompt_assembly_mode",
+            "number_of_lines_per_batch",
             "sentence_fragmenter_mode",
             "je_check_mode",
-            "num_malformed_batch_retries",
+            "number_of_malformed_batch_retries",
             "batch_retry_timeout",
-            "num_concurrent_batches"
+            "num_concurrent_batches",
+            "openai_model",
+            "openai_system_message",
+            "openai_temperature",
+            "openai_top_p",
+            "openai_n",
+            "openai_stream",
+            "openai_stop",
+            "openai_logit_bias",
+            "openai_max_tokens",
+            "openai_presence_penalty",
+            "openai_frequency_penalty",
+            "gemini_model",
+            "gemini_prompt",
+            "gemini_temperature",
+            "gemini_top_p",
+            "gemini_top_k",
+            "gemini_candidate_count",
+            "gemini_stream",
+            "gemini_stop_sequences",
+            "gemini_max_output_tokens"
         ]
 
         validation_rules = {
-            "model": lambda x: x in FileEnsurer.allowed_models,
-            "system_message": lambda x: x not in ["", "None", None],
-            "temp": lambda x: 0 <= x <= 2,
-            "top_p": lambda x: 0 <= x <= 2,
-            "max_tokens": lambda x: x is None or isinstance(x, int),
-            "presence_penalty": lambda x: -2 <= x <= 2,
-            "message_mode": lambda x: 1 <= x <= 2,
-            "sentence_fragmenter_mode": lambda x: 1 <= x <= 3,
+            "prompt_assembly_mode": lambda x: 1 <= x <= 2,
+            "number_of_lines_per_batch": lambda x: x is isinstance(x, int) and x > 0,
+            "sentence_fragmenter_mode": lambda x: 1 <= x <= 2,
             "je_check_mode": lambda x: 1 <= x <= 2,
+            "number_of_malformed_batch_retries": lambda x: x is isinstance(x, int) and x >= 0,
+            "batch_retry_timeout": lambda x: x is isinstance(x, int) and x >= 0,
+            "num_concurrent_batches": lambda x: x is isinstance(x, int) and x >= 0,
+            "openai_model": lambda x: x in FileEnsurer.ALLOWED_OPENAI_MODELS,
+            "openai_system_message": lambda x: x not in ["", "None", None],
+            "openai_temperature": lambda x: 0 <= x <= 2,
+            "openai_top_p": lambda x: 0 <= x <= 2,
+            "openai_max_tokens": lambda x: x is None or isinstance(x, int),
+            "openai_presence_penalty": lambda x: -2 <= x <= 2,
+            "gemini_model": lambda x: x in FileEnsurer.ALLOWED_GEMINI_MODELS,
+            "gemini_prompt": lambda x: x not in ["", "None", None],
+            "gemini_temperature": lambda x: 0 <= x <= 2,
+            "gemini_top_p": lambda x: x is None or 0 <= x <= 2,
+            "gemini_top_k": lambda x: x is None or isinstance(x, int) and x >= 0,
+            "gemini_max_output_tokens": lambda x: x is None or isinstance(x, int),
         }
 
         try:
+            ## ensure categories are present
+            assert "base kijiku settings" in JsonHandler.current_kijiku_rules
+            assert "openai settings" in JsonHandler.current_kijiku_rules
+            assert "gemini settings" in JsonHandler.current_kijiku_rules
 
-            ## ensure category is present
-            assert "open ai settings" in JsonHandler.current_kijiku_rules
-
-            ## assign to a variable to reduce repetitive access
-            settings = JsonHandler.current_kijiku_rules["open ai settings"]
+            ## assign to variables to reduce repetitive access
+            base_kijiku_settings = JsonHandler.current_kijiku_rules["base kijiku settings"]
+            openai_settings = JsonHandler.current_kijiku_rules["open ai settings"]
+            gemini_settings = JsonHandler.current_kijiku_rules["gemini settings"]
 
             ## ensure all keys are present
-            assert all(key in settings for key in keys_list)
+            assert all(key in base_kijiku_settings for key in keys_list[:7])
+            assert all(key in openai_settings for key in keys_list[:11])
+            assert all(key in gemini_settings for key in keys_list[11:20])
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():
-                if(not validate(settings[key])):
+                if(key in openai_settings and not validate(openai_settings[key])):
+                    raise ValueError(f"Invalid value for {key}")
+                elif(key in gemini_settings and not validate(gemini_settings[key])):
                     raise ValueError(f"Invalid value for {key}")
 
             ## force stop/logit_bias into None
-            settings["stop"] = None
-            settings["logit_bias"] = None
-            settings["stream"] = False
+            openai_settings["openai_stop"] = None
+            openai_settings["openai_logit_bias"] = None
+            openai_settings["openai_stream"] = False
 
-            ## force n to 1
-            settings["n"] = 1
+            gemini_settings["gemini_stop_sequences"] = None
+            gemini_settings["gemini_stream"] = False
+
+            ## force n and candidate_count to 1
+            openai_settings["openai_n"] = 1
+
+            gemini_settings["gemini_candidate_count"] = 1
 
         except Exception:
             Logger.log_action("Kijiku Rules.json is not valid, setting to invalid_placeholder, current:")
             Logger.log_action(str(JsonHandler.current_kijiku_rules))
-            JsonHandler.current_kijiku_rules = FileEnsurer.invalid_kijiku_rules_placeholder
+            JsonHandler.current_kijiku_rules = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
 
         Logger.log_action("Kijiku Rules.json is valid, current:")
         Logger.log_action(str(JsonHandler.current_kijiku_rules))
@@ -148,7 +207,7 @@ stream, logit_bias, stop and n are included for legacy purposes, current version
 
         """
 
-        JsonHandler.current_kijiku_rules = FileEnsurer.default_kijiku_rules
+        JsonHandler.current_kijiku_rules = FileEnsurer.DEFAULT_KIJIKU_RULES
         
         JsonHandler.dump_kijiku_rules()
 
@@ -249,8 +308,14 @@ stream, logit_bias, stop and n are included for legacy purposes, current version
                 print("Resetting to default settings.")
                 JsonHandler.reset_kijiku_rules_to_default()
 
-            elif(action in JsonHandler.current_kijiku_rules["open ai settings"]):
-                SettingsChanger.change_setting(action)
+            elif(action in JsonHandler.current_kijiku_rules["base kijiku settings"]):
+                SettingsChanger.change_setting("base kijiku settings", action)
+
+            elif(action in JsonHandler.current_kijiku_rules["openai settings"]):
+                SettingsChanger.change_setting("openai settings", action)
+
+            elif(action in JsonHandler.current_kijiku_rules["gemini settings"]):
+                SettingsChanger.change_setting("gemini settings", action)
 
             else:
                 print("Invalid setting name. Please try again.")
@@ -280,24 +345,33 @@ stream, logit_bias, stop and n are included for legacy purposes, current version
         value = initial_value
         
         type_expectations = {
-            "model": {"type": str, "constraints": lambda x: x.lower() in FileEnsurer.allowed_models},
-            "system_message": {"type": str},
-            "temp": {"type": float, "constraints": lambda x: 0 <= x <= 2},
-            "top_p": {"type": float, "constraints": lambda x: 0 <= x <= 2},
-            "n": {"type": int, "constraints": lambda x: x == 1},
-            "stream": {"type": bool, "constraints": lambda x: x is False},
-            "stop": {"type": None},
-            "logit_bias": {"type": None},
-            "max_tokens": {"type": typing.Optional[int], "constraints": lambda x: x is None or x > 0},
-            "presence_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
-            "frequency_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
-            "message_mode": {"type": int, "constraints": lambda x: 1 <= x <= 2},
-            "num_lines": {"type": int},
-            "sentence_fragmenter_mode": {"type": int, "constraints": lambda x: 1 <= x <= 3},
+            "prompt_assembly_mode": {"type": int, "constraints": lambda x: 1 <= x <= 2},
+            "number_of_lines_per_batch": {"type": int, "constraints": lambda x: x > 0},
+            "sentence_fragmenter_mode": {"type": int, "constraints": lambda x: 1 <= x <= 2},
             "je_check_mode": {"type": int, "constraints": lambda x: 1 <= x <= 2},
-            "num_malformed_batch_retries": {"type": int},
-            "batch_retry_timeout": {"type": int},
-            "num_concurrent_batches": {"type": int}
+            "number_of_malformed_batch_retries": {"type": int, "constraints": lambda x: x >= 0},
+            "batch_retry_timeout": {"type": int, "constraints": lambda x: x >= 0},
+            "num_concurrent_batches": {"type": int, "constraints": lambda x: x >= 0},
+            "openai_model": {"type": str, "constraints": lambda x: x in FileEnsurer.ALLOWED_OPENAI_MODELS},
+            "openai_system_message": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
+            "openai_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
+            "openai_top_p": {"type": float, "constraints": lambda x: 0 <= x <= 2},
+            "openai_n": {"type": int, "constraints": lambda x: x == 1},
+            "openai_stream": {"type": bool, "constraints": lambda x: x is False},
+            "openai_stop": {"type": None, "constraints": lambda x: x is None},
+            "openai_logit_bias": {"type": None, "constraints": lambda x: x is None},
+            "openai_max_tokens": {"type": typing.Optional[int], "constraints": lambda x: x is None or isinstance(x, int)},
+            "openai_presence_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
+            "openai_frequency_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
+            "gemini_model": {"type": str, "constraints": lambda x: x in FileEnsurer.ALLOWED_GEMINI_MODELS},
+            "gemini_prompt": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
+            "gemini_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
+            "gemini_top_p": {"type": typing.Optional[float], "constraints": lambda x: x is None or 0 <= x <= 2},
+            "gemini_top_k": {"type": typing.Optional[int], "constraints": lambda x: x is None or x >= 0},
+            "gemini_candidate_count": {"type": int, "constraints": lambda x: x == 1},
+            "gemini_stream": {"type": bool, "constraints": lambda x: x is False},
+            "gemini_stop_sequences": {"type": None, "constraints": lambda x: x is None},
+            "gemini_max_output_tokens": {"type": typing.Optional[int], "constraints": lambda x: x is None or isinstance(x, int)},
         }
 
         if(setting_name not in type_expectations):
@@ -305,7 +379,7 @@ stream, logit_bias, stop and n are included for legacy purposes, current version
 
         setting_info = type_expectations[setting_name]
 
-        if(setting_name == "stream"):
+        if("stream" in setting_name):
             value = Toolkit.string_to_bool(initial_value)
 
         elif(initial_value.lower() in ["none","null"]):
@@ -358,8 +432,14 @@ Current settings:
 
 """
 
-        for key, value in JsonHandler.current_kijiku_rules["open ai settings"].items():
-            menu += f"{key} : {json.dumps(value)}\n"
+        for key,value in JsonHandler.current_kijiku_rules["base kijiku settings"].items():
+            menu += key + " : " + str(value) + "\n"
+
+        for key,value in JsonHandler.current_kijiku_rules["openai settings"].items():
+            menu += key + " : " + str(value) + "\n"
+
+        for key,value in JsonHandler.current_kijiku_rules["gemini settings"].items():
+            menu += key + " : " + str(value) + "\n"
 
         menu += """
 It is recommended that you maximize the console window for this. You will have to to see the settings above.
@@ -394,7 +474,7 @@ Enter the name of the setting you want to change, type d to reset to default, ty
             JsonHandler.validate_json()
 
             ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
-            assert JsonHandler.current_kijiku_rules != FileEnsurer.invalid_kijiku_rules_placeholder
+            assert JsonHandler.current_kijiku_rules != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
             
             JsonHandler.dump_kijiku_rules()
 
@@ -411,13 +491,14 @@ Enter the name of the setting you want to change, type d to reset to default, ty
 ##-------------------start-of-change_setting()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
     @staticmethod
-    def change_setting(setting_name:str) -> None:
+    def change_setting(setting_area:str, setting_name:str) -> None:
 
         """
 
         Changes the setting of the Kijiku Rules.json file.
 
         Parameters:
+        setting_area (str) : The area of the setting to change.
         setting_name (str) : The name of the setting to change.
 
         """
@@ -427,7 +508,7 @@ Enter the name of the setting you want to change, type d to reset to default, ty
         try:
             converted_value = JsonHandler.convert_to_correct_type(setting_name, new_value)
 
-            JsonHandler.current_kijiku_rules["open ai settings"][setting_name] = converted_value
+            JsonHandler.current_kijiku_rules[setting_area][setting_name] = converted_value
             print(f"Updated {setting_name} to {converted_value}.")
         
         except Exception as e:

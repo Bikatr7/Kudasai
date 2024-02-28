@@ -20,7 +20,6 @@ class JsonHandler:
     current_kijiku_rules = dict()
 
     kijiku_settings_message = """
-
 ----------------------------------------------------------------------------------
 Kijiku Settings:
 
@@ -88,7 +87,6 @@ gemini_max_output_tokens : The maximum number of tokens to generate in the chat 
 ----------------------------------------------------------------------------------
 gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
 ----------------------------------------------------------------------------------
-
     """
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -425,8 +423,6 @@ class SettingsChanger:
         """
 
         menu = """
-        
-
 Current settings:
 ----------------------------------------------------------------
 
@@ -435,8 +431,12 @@ Current settings:
         for key,value in JsonHandler.current_kijiku_rules["base kijiku settings"].items():
             menu += key + " : " + str(value) + "\n"
 
+        print("\n")
+
         for key,value in JsonHandler.current_kijiku_rules["openai settings"].items():
             menu += key + " : " + str(value) + "\n"
+
+        print("\n")
 
         for key,value in JsonHandler.current_kijiku_rules["gemini settings"].items():
             menu += key + " : " + str(value) + "\n"

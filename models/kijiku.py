@@ -193,6 +193,8 @@ class Kijiku:
         else:
             Kijiku.LLM_TYPE = "gemini"
 
+        Toolkit.clear_console()
+
         if(Kijiku.LLM_TYPE == "openai"):
             await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, OpenAIService.set_api_key, OpenAIService.test_api_key_validity)
 
@@ -326,7 +328,23 @@ class Kijiku:
 
         print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
-        JsonHandler.print_kijiku_rules(output=True)
+        try:
+
+            JsonHandler.print_kijiku_rules(output=True)
+
+        except:
+            Toolkit.clear_console()
+
+            if(input("It's likely that you're using an outdated version of the kijiku rules file, press 1 to reset these to default or 2 to exit and resolve manually : ") == "1"):
+                Toolkit.clear_console()
+                JsonHandler.reset_kijiku_rules_to_default()
+                JsonHandler.load_kijiku_rules()
+
+                print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
+                JsonHandler.print_kijiku_rules(output=True)
+
+            else:
+                FileEnsurer.exit_kudasai()
 
         if(input("\n") == "1"):
             pass

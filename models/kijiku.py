@@ -22,9 +22,10 @@ from modules.common.toolkit import Toolkit
 from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
 from modules.common.decorators import permission_error_decorator
 
-from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
+from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage, Message
 
 from translation_services.openai_service import OpenAIService
+from translation_services.gemini_service import GeminiService
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32,7 +33,8 @@ class Kijiku:
 
     """
     
-    Kijiku is a secondary class that is used to interact with the OpenAI API and translates the text by batch.
+    Kijiku is a secondary class that is used to interact with LLMs and translate text.
+    Currently supports OpenAI and Gemini.
     
     """
     
@@ -46,28 +48,31 @@ class Kijiku:
 
     ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
     ## model message is the text that will be translated  
-    translation_batches = []
+    openai_translation_batches:typing.List[Message] = []
+
+    ## meanwhile for gemini, we just need to send the prompt and the text to be translated concatenated together
+    gemini_translation_batches:typing.List[str] = []
 
     num_occurred_malformed_batches = 0
 
     ## semaphore to limit the number of concurrent batches
-    _semaphore = asyncio.Semaphore(30)
+    _semaphore = asyncio.Semaphore(5)
 
     ##--------------------------------------------------------------------------------------------------------------------------
+
+    LLM_TYPE:typing.Literal["openai", "gemini"] = "openai"
 
     translation_print_result = ""
 
     ##--------------------------------------------------------------------------------------------------------------------------
 
-    model = ""
-    translation_instructions = ""
-    message_mode = 0 
-    prompt_size = 0
-    sentence_fragmenter_mode = 0
-    je_check_mode = 0
-    num_of_malform_retries = 0
-    max_batch_duration = 0
-    num_concurrent_batches = 0
+    prompt_assembly_mode:int
+    number_of_lines_per_batch:int
+    sentence_fragmenter_mode:int
+    je_check_mode:int
+    number_of_malformed_batch_retries:int
+    batch_retry_timeout:float
+    num_concurrent_batches:int
 
 ##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -176,11 +181,25 @@ class Kijiku:
 
         """
 
-        Sets the open api key.
+        Sets the API Key for the respective service and loads the kijiku rules.
     
         """
 
-        await Kijiku.init_api_key()
+        print("What LLM do you want to use? (1 for OpenAI or 2 for Gemini) : ")
+
+        if(input("\n") == "1"):
+            Kijiku.LLM_TYPE = "openai"
+        
+        else:
+            Kijiku.LLM_TYPE = "gemini"
+
+        Toolkit.clear_console()
+
+        if(Kijiku.LLM_TYPE == "openai"):
+            await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, OpenAIService.set_api_key, OpenAIService.test_api_key_validity)
+
+        else:
+            await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, GeminiService.set_api_key, GeminiService.test_api_key_validity)
 
         ## try to load the kijiku rules
         try: 
@@ -196,31 +215,37 @@ class Kijiku:
             
         Toolkit.clear_console()
 
-##-------------------start-of-setup_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-init_openai_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def init_api_key() -> None:
+    async def init_api_key(service:str, api_key_path:str, api_key_setter:typing.Callable, api_key_tester:typing.Callable) -> None:
 
         """
-        
-        Sets up the api key.
+
+        Sets up the api key for the respective service.
+
+        Parameters:
+        service (string) : the name of the service.
+        api_key_path (string) : the path to the api key.
+        api_key_setter (callable) : the function that sets the api key.
+        api_key_tester (callable) : the function that tests the api key.
 
         """
 
         ## get saved API key if exists
         try:
-            with open(FileEnsurer.openai_api_key_path, 'r', encoding='utf-8') as file: 
+            with open(api_key_path, 'r', encoding='utf-8') as file: 
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            OpenAIService.set_api_key(api_key)
+            api_key_setter(api_key)
 
-            is_valid, e = await OpenAIService.test_api_key_validity()
+            is_valid, e = await api_key_tester()
 
             ## if not valid, raise the exception that caused the test to fail
             if(not is_valid and e is not None):
                 raise e
         
-            Logger.log_action("Used saved API key in " + FileEnsurer.openai_api_key_path, output=True)
+            Logger.log_action("Used saved API key in " + api_key_path, output=True)
             Logger.log_barrier()
 
             time.sleep(2)
@@ -230,26 +255,26 @@ class Kijiku:
 
             Toolkit.clear_console()
                 
-            api_key = input("DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the OpenAI API key you have : ")
+            api_key = input(f"DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the {service} API key you have : ")
 
             ## if valid save the API key
             try: 
 
-                OpenAIService.set_api_key(api_key)
+                api_key_setter(api_key)
 
-                is_valid, e = await OpenAIService.test_api_key_validity()
+                is_valid, e = await api_key_tester()
 
                 if(not is_valid and e is not None):
                     raise e
 
-                FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
+                FileEnsurer.standard_overwrite_file(api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
                 
             ## if invalid key exit
             except AuthenticationError: 
                     
                 Toolkit.clear_console()
                         
-                Logger.log_action("Authorization error while setting up OpenAI, please double check your API key as it appears to be incorrect.", output=True)
+                Logger.log_action(f"Authorization error while setting up {service}, please double check your API key as it appears to be incorrect.", output=True)
 
                 Toolkit.pause_console()
                         
@@ -260,7 +285,7 @@ class Kijiku:
 
                 Toolkit.clear_console()
                         
-                Logger.log_action("Unknown error while setting up OpenAI, The error is as follows " + str(e)  + "\nThe exception will now be raised.", output=True)
+                Logger.log_action(f"Unknown error while setting up {service}, The error is as follows " + str(e)  + "\nThe exception will now be raised.", output=True)
 
                 Toolkit.pause_console()
 
@@ -284,9 +309,11 @@ class Kijiku:
         Kijiku.translated_text = []
         Kijiku.je_check_text = []
         Kijiku.error_text = []
-        Kijiku.translation_batches = []
+        Kijiku.openai_translation_batches = []
+        Kijiku.gemini_translation_batches = []
         Kijiku.num_occurred_malformed_batches = 0
         Kijiku.translation_print_result = ""
+        Kijiku.LLM_TYPE = "openai"
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -301,8 +328,23 @@ class Kijiku:
 
         print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
-        for key, value in JsonHandler.current_kijiku_rules["open ai settings"].items():
-            print(key + " : " + str(value))
+        try:
+
+            JsonHandler.print_kijiku_rules(output=True)
+
+        except:
+            Toolkit.clear_console()
+
+            if(input("It's likely that you're using an outdated version of the kijiku rules file, press 1 to reset these to default or 2 to exit and resolve manually : ") == "1"):
+                Toolkit.clear_console()
+                JsonHandler.reset_kijiku_rules_to_default()
+                JsonHandler.load_kijiku_rules()
+
+                print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
+                JsonHandler.print_kijiku_rules(output=True)
+
+            else:
+                FileEnsurer.exit_kudasai()
 
         if(input("\n") == "1"):
             pass
@@ -314,8 +356,20 @@ class Kijiku:
         print("Do you want to change your API key? (1 for yes or 2 for no) : ")
 
         if(input("\n") == "1"):
-            os.remove(FileEnsurer.openai_api_key_path)
-            await Kijiku.init_api_key()
+
+            if(Kijiku.LLM_TYPE == "openai"):
+
+                if(os.path.exists(FileEnsurer.openai_api_key_path)):
+
+                    os.remove(FileEnsurer.openai_api_key_path)
+                    await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, OpenAIService.set_api_key, OpenAIService.test_api_key_validity)
+
+            else:
+    
+                if(os.path.exists(FileEnsurer.gemini_api_key_path)):
+
+                    os.remove(FileEnsurer.gemini_api_key_path)
+                    await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, GeminiService.set_api_key, GeminiService.test_api_key_validity)
 
         Toolkit.clear_console()
 
@@ -334,35 +388,50 @@ class Kijiku:
         Logger.log_action("Kijiku Activated, Settings are as follows : ")
         Logger.log_barrier()
 
-        for key,value in JsonHandler.current_kijiku_rules["open ai settings"].items():
-            Logger.log_action(key + " : " + str(value))
+        JsonHandler.print_kijiku_rules()
 
-        Kijiku.model = JsonHandler.current_kijiku_rules["open ai settings"]["model"]
-        Kijiku.translation_instructions = JsonHandler.current_kijiku_rules["open ai settings"]["system_message"]
-        Kijiku.message_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["message_mode"])
-        Kijiku.prompt_size = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_lines"])
-        Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["sentence_fragmenter_mode"])
-        Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["open ai settings"]["je_check_mode"])
-        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_malformed_batch_retries"])
-        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["open ai settings"]["batch_retry_timeout"])
-        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["open ai settings"]["num_concurrent_batches"])
-
-        OpenAIService.model = Kijiku.model
-        OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["open ai settings"]["temp"])
-        OpenAIService.top_p = float(JsonHandler.current_kijiku_rules["open ai settings"]["top_p"])
-        OpenAIService.n = int(JsonHandler.current_kijiku_rules["open ai settings"]["n"])
-        OpenAIService.stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"]
-        OpenAIService.stream = bool(JsonHandler.current_kijiku_rules["open ai settings"]["stream"])
-        OpenAIService.stop = JsonHandler.current_kijiku_rules["open ai settings"]["stop"]
-        OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["presence_penalty"])
-        OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["open ai settings"]["frequency_penalty"])
-        OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["open ai settings"]["max_tokens"]
-
-        decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
-
-        OpenAIService.set_decorator(decorator_to_use)
+        Kijiku.prompt_assembly_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["prompt_assembly_mode"])
+        Kijiku.number_of_lines_per_batch = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["number_of_lines_per_batch"])
+        Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["sentence_fragmenter_mode"])
+        Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["je_check_mode"])
+        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["number_of_malformed_batch_retries"])
+        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["base kijiku settings"]["batch_retry_timeout"])
+        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["number_of_concurrent_batches"])
 
         Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
+
+        OpenAIService.model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"]
+        OpenAIService.system_message = JsonHandler.current_kijiku_rules["openai settings"]["openai_system_message"]
+        OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_temperature"])
+        OpenAIService.top_p = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_top_p"])
+        OpenAIService.n = int(JsonHandler.current_kijiku_rules["openai settings"]["openai_n"])
+        OpenAIService.stream = bool(JsonHandler.current_kijiku_rules["openai settings"]["openai_stream"])
+        OpenAIService.stop = JsonHandler.current_kijiku_rules["openai settings"]["openai_stop"]
+        OpenAIService.logit_bias = JsonHandler.current_kijiku_rules["openai settings"]["openai_logit_bias"]
+        OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["openai settings"]["openai_max_tokens"]
+        OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_presence_penalty"])
+        OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_frequency_penalty"])
+
+        GeminiService.model = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
+        GeminiService.prompt = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_prompt"]
+        GeminiService.temperature = float(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_temperature"])
+        GeminiService.top_p = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_p"]
+        GeminiService.top_k = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_k"]
+        GeminiService.candidate_count = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_candidate_count"]
+        GeminiService.stream = bool(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stream"])
+        GeminiService.stop_sequences = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stop_sequences"]
+        GeminiService.max_output_tokens = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_max_output_tokens"]
+
+        if(Kijiku.LLM_TYPE == "openai"):
+
+            ## set the decorator to use
+            decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+
+            OpenAIService.set_decorator(decorator_to_use)
+
+        else:
+            ## gemini todo
+            pass
 
         Toolkit.clear_console()
 
@@ -370,10 +439,16 @@ class Kijiku:
         Logger.log_action("Starting Prompt Building")
         Logger.log_barrier()
 
-        Kijiku.build_translation_batches()
+        if(Kijiku.LLM_TYPE == "openai"):
+            Kijiku.build_openai_translation_batches()
+            model = OpenAIService.model
+
+        else:
+            Kijiku.build_gemini_translation_batches()
+            model = GeminiService.model
 
         ## get cost estimate and confirm
-        await Kijiku.handle_cost_estimate_prompt(omit_prompt=is_webgui)
+        await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
 
         Toolkit.clear_console()
 
@@ -383,11 +458,7 @@ class Kijiku:
         Logger.log_barrier()
 
         ## requests to run asynchronously
-        async_requests = []
-        length = len(Kijiku.translation_batches)
-
-        for i in range(0, length, 2):
-            async_requests.append(Kijiku.handle_translation(i, length, Kijiku.translation_batches[i], Kijiku.translation_batches[i+1]))
+        async_requests = Kijiku.build_async_requests(model)
 
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
@@ -419,10 +490,39 @@ class Kijiku:
         ## assemble error text based of the error list
         Kijiku.error_text = Logger.errors
 
-##-------------------start-of-generate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-build_async_requests()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def build_async_requests(model:str) -> list[typing.Coroutine]:
+
+        """
+
+        Builds the asynchronous requests.
+
+        Returns:
+        async_requests (list - coroutine) : A list of coroutines that represent the asynchronous requests.
+
+        """
+
+        async_requests = []
+
+        if(Kijiku.LLM_TYPE == "openai"):
+
+            length = len(Kijiku.openai_translation_batches)
+
+            for i in range(0, length, 2):
+                async_requests.append(Kijiku.handle_openai_translation(model, i, length, Kijiku.openai_translation_batches[i], Kijiku.openai_translation_batches[i+1]))
+
+        else:
+            ## gemini todo
+            pass
+
+        return async_requests
+
+##-------------------start-of-generate_text_to_translate_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def generate_prompt(index:int) -> tuple[typing.List[str],int]:
+    def generate_text_to_translate_batches(index:int) -> tuple[typing.List[str],int]:
 
         """
 
@@ -447,7 +547,7 @@ class Kijiku:
             sentence = Kijiku.text_to_translate[index]
             is_part_in_sentence = "part" in sentence.lower()
 
-            if(len(prompt) < Kijiku.prompt_size):
+            if(len(prompt) < Kijiku.number_of_lines_per_batch):
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(sentence + '\n')
@@ -475,37 +575,37 @@ class Kijiku:
 
         return prompt, index
     
-##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-build_openai_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def build_translation_batches() -> None:
+    def build_openai_translation_batches() -> None:
 
         """
 
-        Builds translations batches dict for the API prompts.
+        Builds translations batches dict for the OpenAI service.
         
         """
 
         i = 0
 
         while i < len(Kijiku.text_to_translate):
-            prompt, i = Kijiku.generate_prompt(i)
+            batch, i = Kijiku.generate_text_to_translate_batches(i)
 
-            prompt = ''.join(prompt)
+            batch = ''.join(batch)
 
             ## message mode one structures the first message as a system message and the second message as a model message
-            if(Kijiku.message_mode == 1):
-                system_msg = SystemTranslationMessage(role="system", content=Kijiku.translation_instructions)
+            if(Kijiku.prompt_assembly_mode == 1):
+                system_msg = SystemTranslationMessage(content=str(OpenAIService.system_message))
 
             ## while message mode two structures the first message as a model message and the second message as a model message too, typically used for non-gpt-4 models if at all
             else:
-                system_msg = ModelTranslationMessage(role="user", content=Kijiku.translation_instructions)
+                system_msg = ModelTranslationMessage(content=str(OpenAIService.system_message))
 
-            Kijiku.translation_batches.append(system_msg)
+            Kijiku.openai_translation_batches.append(system_msg)
 
-            model_msg = ModelTranslationMessage(role="user", content=prompt)
+            model_msg = ModelTranslationMessage(content=batch)
 
-            Kijiku.translation_batches.append(model_msg)
+            Kijiku.openai_translation_batches.append(model_msg)
 
         Logger.log_barrier()
         Logger.log_action("Built Messages : ")
@@ -513,7 +613,7 @@ class Kijiku:
 
         i = 0
 
-        for message in Kijiku.translation_batches:
+        for message in Kijiku.openai_translation_batches:
 
             i+=1
 
@@ -525,6 +625,36 @@ class Kijiku:
 
                 Logger.log_action(str(message))
                 Logger.log_barrier()
+
+##-------------------start-of-build_gemini_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def build_gemini_translation_batches() -> None:
+
+        """
+
+        Builds translations batches dict for the Gemini service.
+        
+        """
+
+        i = 0
+
+        while i < len(Kijiku.text_to_translate):
+            batch, i = Kijiku.generate_text_to_translate_batches(i)
+
+            batch = ''.join(batch)
+
+            ## Gemini does not use system messages or model messages, and instead just takes a string input, so we just need to place the prompt before the text to be translated
+            Kijiku.gemini_translation_batches.append(GeminiService.prompt + batch)
+
+        Logger.log_barrier()
+        Logger.log_action("Built Messages : ")
+        Logger.log_barrier()
+
+        for message in Kijiku.gemini_translation_batches:
+            Logger.log_action(str(message))
+            Logger.log_barrier()
+
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -546,7 +676,7 @@ class Kijiku:
 
         """
     
-        assert model in FileEnsurer.allowed_models, f"""Kudasai does not support : {model}. See https://github.com/OpenAI/OpenAI-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+        assert model in FileEnsurer.ALLOWED_OPENAI_MODELS, f"""Kudasai does not support : {model}. See https://github.com/OpenAI/OpenAI-python/blob/main/chatml.md for information on how messages are converted to tokens."""
 
         ## default models are first, then the rest are sorted by price case
         if(price_case is None):
@@ -664,10 +794,23 @@ class Kijiku:
 ##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def handle_cost_estimate_prompt(omit_prompt:bool=False) -> None:
+    async def handle_cost_estimate_prompt(model:str, omit_prompt:bool=False) -> str:
+
+        """
+
+        Handles the cost estimate prompt.
+
+        Parameters:
+        omit_prompt (bool) : whether or not to omit the prompt.
+        model (string) : the model used to translate the text.
+
+        Returns:
+        model (string) : the model used to translate the text.
+        
+        """ 
 
         ## get cost estimate and confirm
-        num_tokens, min_cost, Kijiku.model = Kijiku.estimate_cost(Kijiku.model)
+        num_tokens, min_cost, model = Kijiku.estimate_cost(model)
 
         print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
@@ -685,27 +828,32 @@ class Kijiku:
 
             else:
                 Logger.log_action("User cancelled translation.")
+                Logger.push_batch()
                 exit()
+
+        return model
     
-##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-handle_openai_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def handle_translation(index:int, length:int, translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> tuple[int, ModelTranslationMessage, str]:
+    async def handle_openai_translation(model:str, index:int, length:int, translation_instructions:Message, translation_prompt:Message) -> tuple[int, Message, str]:
 
         """
 
         Handles the translation for a given system and user message.
 
         Parameters:
-        index (int) : The index of the message in the original list.
-        length (int) : The length of the original list.
-        translation_instructions (object - SystemTranslationMessage | ModelTranslationMessage) : The system message also known as the instructions.
-        translation_prompt (object - ModelTranslationMessage) : The user message also known as the prompt.
-        
-        Returns:\n
-        index (int) : the index of the message in the original list.
-        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
-        translated_message (str) : the translated message.
+        model (string) : the model used to translate the text.
+        index (int) : the index of the message in the text file.
+        length (int) : the length of the text file.
+        translation_instructions (Message) : the translation instructions.
+        translation_prompt (Message) : the translation prompt.
+
+        Returns:
+        index (int) : the index of the message in the text file.
+        translation_prompt (Message) : the translation prompt.
+        translated_message (string) : the translated message.
+    
 
         """
 
@@ -728,12 +876,12 @@ class Kijiku:
 
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
-                    translated_message = translation_prompt["content"]
+                    translated_message = translation_prompt.content
                     Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
-                if("gpt-4" not in Kijiku.model):
+                if("gpt-4" not in model):
                     break
 
                 if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
@@ -754,22 +902,26 @@ class Kijiku:
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def check_if_translation_is_good(translated_message:str, translation_prompt:ModelTranslationMessage) -> bool:
+    async def check_if_translation_is_good(translated_message:str, translation_prompt:typing.Union[Message, str]) -> bool:
 
         """
         
         Checks if the translation is good, i.e. the number of lines in the prompt and the number of lines in the translated message are the same.
 
         Parameters:
-        translated_message (string) : the translated message.
-        translation_prompt (object - ModelTranslationMessage) : the user message also known as the prompt.
+        todo
 
         Returns:
         is_valid (bool) : whether or not the translation is valid.
 
         """
 
-        prompt = translation_prompt["content"]
+        if(not isinstance(translation_prompt, str)):
+            prompt = translation_prompt.content
+
+        else:
+            prompt = translation_prompt
+            
         is_valid = False
 
         jap = [line for line in prompt.split('\n') if line.strip()]  ## Remove blank lines
@@ -783,26 +935,33 @@ class Kijiku:
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def redistribute(translation_prompt:dict, translated_message:str) -> None:
+    def redistribute(translation_prompt:typing.Union[Message, str], translated_message:str) -> None:
 
         """
 
         Puts translated text back into the text file.
 
         Parameters:
-        translation_prompt (dict) : the user message also known as the prompt.
-        translated_message (string) : the translated message.
+        todo
+
 
         """
 
+        if(not isinstance(translation_prompt, str)):
+            prompt = translation_prompt.content
+
+        else:
+            prompt = translation_prompt
+
         ## Separates with hyphens if the mode is 1 
         if(Kijiku.je_check_mode == 1):
-            Kijiku.je_check_text.append("\n-------------------------\n"+ str(translation_prompt["content"]) + "\n\n")
+
+            Kijiku.je_check_text.append("\n-------------------------\n"+ prompt + "\n\n")
             Kijiku.je_check_text.append(translated_message + '\n')
         
         ## Mode two tries to pair the text for j-e checking, see fix_je() for more details
         elif(Kijiku.je_check_mode == 2):
-            Kijiku.je_check_text.append(str(translation_prompt["content"]))
+            Kijiku.je_check_text.append(prompt)
             Kijiku.je_check_text.append(translated_message)
 
         ## mode 1 is the default mode, uses regex and other nonsense to split sentences
@@ -814,6 +973,9 @@ class Kijiku:
             build_string = None
 
             for sentence in sentences:
+
+                sentence:str = sentence
+
                 if(sentence.startswith("\"") and not sentence.endswith("\"") and build_string is None):
                     build_string = sentence
                     continue

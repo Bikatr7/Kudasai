@@ -13,15 +13,14 @@ from modules.common.decorators import do_nothing_decorator
 class GeminiService:
 
     model:str = "gemini-pro"
+    prompt:str
     temperature:float
     top_p:float
     top_k:int
-    n:int
+    candidate_count:int
     stream:bool
-    stop:typing.List[str] | None
-    presence_penalty:float
-    frequency_penalty:float
-    max_tokens:int | None = None
+    stop_sequences:typing.List[str] | None
+    max_output_tokens:int | None = None
 
     client:genai.GenerativeModel
     generation_config:GenerationConfig
@@ -72,9 +71,9 @@ class GeminiService:
         """
 
         GeminiService.client = genai.GenerativeModel(GeminiService.model)
-        GeminiService.generation_config = GenerationConfig(candidate_count=GeminiService.n, 
-                                                           max_output_tokens=GeminiService.max_tokens,
-                                                           stop_sequences=GeminiService.stop,
+        GeminiService.generation_config = GenerationConfig(candidate_count=GeminiService.candidate_count,
+                                                           max_output_tokens=GeminiService.max_output_tokens,
+                                                           stop_sequences=GeminiService.stop_sequences,
                                                             temperature=GeminiService.temperature,
                                                             top_p=GeminiService.top_p,
                                                             top_k=GeminiService.top_k)

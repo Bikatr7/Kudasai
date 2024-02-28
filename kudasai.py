@@ -5,7 +5,6 @@ import json
 import asyncio
 import re
 import typing
-import traceback
 
 ## third-party libraries
 from kairyou import Kairyou
@@ -72,6 +71,8 @@ class Kudasai:
                 JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
 
             JsonHandler.validate_json()
+
+            assert JsonHandler.current_kijiku_rules != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
 
         except:
 
@@ -237,7 +238,7 @@ class Kudasai:
 
         pathing = ""
 
-        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki (deepL)\n2.Kijiku (GPT)\n3.Exit\n\n"
+        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki (deepL)\n2.Kijiku (OpenAI/Gemini)\n3.Exit\n\n"
 
         pathing = input(pathing_msg)
 

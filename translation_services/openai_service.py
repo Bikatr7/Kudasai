@@ -8,7 +8,7 @@ from openai import AsyncOpenAI
 from modules.common.exceptions import InvalidAPIKeyException
 from modules.common.decorators import do_nothing_decorator
 
-from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage
+from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage, Message
 
 class OpenAIService:
 
@@ -16,14 +16,16 @@ class OpenAIService:
     client = AsyncOpenAI(max_retries=0, api_key="DummyKey")
 
     model:str
+    system_message:typing.Optional[typing.Union[SystemTranslationMessage, str]] = None
     temperature:float
     top_p:float
     n:int
     stream:bool
     stop:typing.List[str] | None
+    logit_bias:typing.Dict[str, float] | None
+    max_tokens:int | None
     presence_penalty:float
     frequency_penalty:float
-    max_tokens:int | None
 
     decorator_to_use:typing.Callable = do_nothing_decorator
 
@@ -62,7 +64,7 @@ class OpenAIService:
 ##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
+    async def translate_message(translation_instructions:Message, translation_prompt:Message) -> str:
 
         """
         
@@ -84,7 +86,7 @@ class OpenAIService:
 
     ## backoff wrapper for retrying on errors, As of OpenAI > 1.0.0, it comes with a built in backoff system, but I've grown accustomed to this one so I'm keeping it.
     @staticmethod
-    async def _translate_message(translation_instructions:SystemTranslationMessage | ModelTranslationMessage, translation_prompt:ModelTranslationMessage) -> str:
+    async def _translate_message(translation_instructions:Message, translation_prompt:Message) -> str:
 
         """
 
@@ -107,9 +109,9 @@ class OpenAIService:
         response = await OpenAIService.client.chat.completions.create(
             model=OpenAIService.model,
             messages=[
-                translation_instructions,
-                translation_prompt,
-            ], # type: ignore | Seems to work for now.
+                translation_instructions.to_dict(),
+                translation_prompt.to_dict()
+            ],  # type: ignore
 
             temperature = OpenAIService.temperature,
             top_p = OpenAIService.top_p,

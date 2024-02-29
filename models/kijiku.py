@@ -232,6 +232,9 @@ class Kijiku:
 
         """
 
+        if(service != "OpenAI"):
+            GeminiService.redefine_client()
+
         ## get saved API key if exists
         try:
             with open(api_key_path, 'r', encoding='utf-8') as file: 
@@ -430,8 +433,12 @@ class Kijiku:
             OpenAIService.set_decorator(decorator_to_use)
 
         else:
-            ## gemini todo
-            pass
+        
+            ## set a generic decorator to use for now
+            decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+
+            GeminiService.redefine_client()
+            GeminiService.set_decorator(decorator_to_use)
 
         Toolkit.clear_console()
 

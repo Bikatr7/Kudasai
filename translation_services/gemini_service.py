@@ -13,13 +13,13 @@ from modules.common.decorators import do_nothing_decorator
 class GeminiService:
 
     model:str = "gemini-pro"
-    prompt:str
-    temperature:float
-    top_p:float
-    top_k:int
-    candidate_count:int
-    stream:bool
-    stop_sequences:typing.List[str] | None
+    prompt:str = ""
+    temperature:float = 0.5
+    top_p:float = 0.9
+    top_k:int = 40
+    candidate_count:int = 1
+    stream:bool = False
+    stop_sequences:typing.List[str] | None = None
     max_output_tokens:int | None = None
 
     client:genai.GenerativeModel
@@ -62,11 +62,11 @@ class GeminiService:
 ##-------------------start-of-setup_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def setup_client() -> None:
+    def redefine_client() -> None:
 
         """
 
-        Sets up the Gemini client.
+        Redefines the Gemini client and generation config. This should be called before making any requests to the Gemini service, or after changing any of the service's settings.
 
         """
 

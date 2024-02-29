@@ -435,10 +435,10 @@ class Kijiku:
         else:
         
             ## set a generic decorator to use for now
-            decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+            ##decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
 
             GeminiService.redefine_client()
-            GeminiService.set_decorator(decorator_to_use)
+            ##GeminiService.set_decorator(decorator_to_use)
 
         Toolkit.clear_console()
 
@@ -455,7 +455,7 @@ class Kijiku:
             model = GeminiService.model
 
         ## get cost estimate and confirm
-        await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
+       ## await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
 
         Toolkit.clear_console()
 
@@ -953,7 +953,7 @@ class Kijiku:
 
             while True:
             
-                message_number = index
+                message_number = index // 2 + 1
                 Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
 
 

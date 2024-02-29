@@ -1,6 +1,7 @@
 ## build-in libraries
 import typing
 import time
+import asyncio
 
 ## custom modules
 from modules.common.exceptions import TooManyFileAccessAttemptsException
@@ -35,16 +36,20 @@ def permission_error_decorator() -> typing.Callable:
 
 ##--------------------start-of-do_nothing_decorator------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def do_nothing_decorator() -> typing.Callable:
+def do_nothing_decorator(func) -> typing.Callable:
 
     """
     
-    Returns a decorator that will do nothing.
+    Returns a decorator wrapper that will do nothing.
 
     """
 
-    def decorator(func):
+    if(asyncio.iscoroutinefunction(func)):
+        async def wrapper_async(*args, **kwargs):
+            return await func(*args, **kwargs)
+        return wrapper_async
+    
+    else:
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         return wrapper
-    return decorator

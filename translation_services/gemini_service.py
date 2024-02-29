@@ -25,7 +25,7 @@ class GeminiService:
     client:genai.GenerativeModel
     generation_config:GenerationConfig
 
-    decorator_to_use:typing.Callable = do_nothing_decorator
+    decorator_to_use:typing.Union[typing.Callable, None] = None
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -95,8 +95,11 @@ class GeminiService:
 
         """
 
-        decorated_function = GeminiService.decorator_to_use(GeminiService._translate_message)
-        return await decorated_function(translation_instructions, translation_prompt)
+        if(GeminiService.decorator_to_use is None):
+            return await GeminiService._translate_message(translation_instructions, translation_prompt)
+
+        decorated_function = GeminiService.decorator_to_use(GeminiService._translate_message(translation_instructions, translation_prompt))
+        return await decorated_function()
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,9 +120,8 @@ class GeminiService:
 
         response = await GeminiService.client.generate_content_async(
             contents=translation_instructions + "\n" + translation_prompt,
-            stream = GeminiService.stream,
-            GenerationConfig = GeminiService.generation_config
-
+            generation_config=GeminiService.generation_config,  
+            stream=GeminiService.stream
         )
 
         output = response.text
@@ -163,7 +165,7 @@ class GeminiService:
 ##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_decorator() -> typing.Callable:
+    def get_decorator() -> typing.Union[typing.Callable, None]:
 
         """
 

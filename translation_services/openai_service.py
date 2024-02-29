@@ -27,7 +27,7 @@ class OpenAIService:
     presence_penalty:float
     frequency_penalty:float
 
-    decorator_to_use:typing.Callable = do_nothing_decorator
+    decorator_to_use:typing.Union[typing.Callable, None] = None
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -79,8 +79,11 @@ class OpenAIService:
 
         """
 
-        decorated_function = OpenAIService.decorator_to_use(OpenAIService._translate_message)
-        return await decorated_function(translation_instructions, translation_prompt)
+        if(OpenAIService.decorator_to_use == None):
+            return await OpenAIService._translate_message(translation_instructions, translation_prompt)
+
+        decorated_function = OpenAIService.decorator_to_use(OpenAIService._translate_message(translation_instructions, translation_prompt))
+        return await decorated_function()
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -165,7 +168,7 @@ class OpenAIService:
 ##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_decorator() -> typing.Callable:
+    def get_decorator() -> typing.Union[typing.Callable, None]:
 
         """
 

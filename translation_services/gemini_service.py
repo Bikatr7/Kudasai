@@ -81,7 +81,7 @@ class GeminiService:
 ##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def translate_message(translation_prompt:str) -> str:
+    async def translate_message(translation_instructions:str, translation_prompt:str) -> str:
 
         """
 
@@ -96,12 +96,12 @@ class GeminiService:
         """
 
         decorated_function = GeminiService.decorator_to_use(GeminiService._translate_message)
-        return await decorated_function(translation_prompt)
+        return await decorated_function(translation_instructions, translation_prompt)
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def _translate_message(translation_prompt:str) -> str:
+    async def _translate_message(translation_instructions:str, translation_prompt:str) -> str:
 
         """
 
@@ -116,7 +116,7 @@ class GeminiService:
         """
 
         response = await GeminiService.client.generate_content_async(
-            contents=translation_prompt,
+            contents=translation_instructions + "\n" + translation_prompt,
             stream = GeminiService.stream,
             GenerationConfig = GeminiService.generation_config
 

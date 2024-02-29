@@ -514,8 +514,11 @@ class Kijiku:
                 async_requests.append(Kijiku.handle_openai_translation(model, i, length, Kijiku.openai_translation_batches[i], Kijiku.openai_translation_batches[i+1]))
 
         else:
-            ## gemini todo
-            pass
+
+            length = len(Kijiku.gemini_translation_batches)
+
+            for i in range(0, length, 2):
+                async_requests.append(Kijiku.handle_gemini_translation(model, i, length, Kijiku.gemini_translation_batches[i], Kijiku.gemini_translation_batches[i+1]))
 
         return async_requests
 
@@ -540,7 +543,6 @@ class Kijiku:
         prompt = []
 
         non_word_pattern = re.compile(r'^[\W_\s\n-]+$')
-        alphanumeric_pattern = re.compile(r'^[A-Za-z0-9\s\.,\'\?!]+\n*$')
 
         while(index < len(Kijiku.text_to_translate)):
 
@@ -559,19 +561,20 @@ class Kijiku:
                     Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.")
                     index += 1
 
+                elif(sentence.strip() == '' or KatakanaUtil.is_punctuation(sentence.strip())):
+                    Logger.log_action("Sentence is empty... skipping translation.")
+                    index += 1
+
                 elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(sentence)):
                     Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
                     index += 1
                     
-                elif(alphanumeric_pattern.match(sentence) and not is_part_in_sentence):
-                    Logger.log_action("Sentence is empty... skipping translation.")
-                    index += 1
                 else:
                     prompt.append(sentence + "\n")
+                    Logger.log_action("Sentence : " + sentence + ", Sentence is a valid sentence... adding to prompt.")
+                    index += 1
             else:
                 return prompt, index
-
-            index += 1
 
         return prompt, index
     
@@ -645,15 +648,27 @@ class Kijiku:
             batch = ''.join(batch)
 
             ## Gemini does not use system messages or model messages, and instead just takes a string input, so we just need to place the prompt before the text to be translated
-            Kijiku.gemini_translation_batches.append(GeminiService.prompt + batch)
+            Kijiku.gemini_translation_batches.append(GeminiService.prompt)
+            Kijiku.gemini_translation_batches.append(batch)
 
         Logger.log_barrier()
         Logger.log_action("Built Messages : ")
         Logger.log_barrier()
 
+        i = 0
+
         for message in Kijiku.gemini_translation_batches:
-            Logger.log_action(str(message))
-            Logger.log_barrier()
+
+            i+=1
+
+            if(i % 2 == 0):
+
+                Logger.log_action(str(message))
+        
+            else:
+
+                Logger.log_action(str(message))
+                Logger.log_barrier()
 
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -898,6 +913,65 @@ class Kijiku:
                     Kijiku.num_occurred_malformed_batches += 1
 
             return index, translation_prompt, translated_message
+        
+##-------------------start-of-handle_gemini_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    async def handle_gemini_translation(model:str, index:int, length:int, translation_instructions:str, translation_prompt:str) -> tuple[int, str, str]:
+
+        """
+
+        Handles the translation for a given system and user message.
+
+        Parameters:
+        model (string) : the model used to translate the text.
+        index (int) : the index of the message in the text file.
+        length (int) : the length of the text file.
+        translation_prompt (string) : the translation prompt.
+
+        Returns:
+        index (int) : the index of the message in the text file.
+        translated_message (string) : the translated message.
+    
+
+        """
+
+        ## For the webgui
+        if(FileEnsurer.do_interrupt == True):
+            raise Exception("Interrupted by user.")
+
+        ## Basically limits the number of concurrent batches
+        async with Kijiku._semaphore:
+            num_tries = 0
+
+            while True:
+            
+                message_number = index
+                Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
+
+
+                try:
+                    translated_message = await GeminiService.translate_message(translation_instructions, translation_prompt)
+
+                ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
+                except MaxBatchDurationExceededException:
+                    Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
+                    break
+
+                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
+                    Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
+                    break
+
+                if(num_tries >= Kijiku.num_of_malform_retries):
+                    Logger.log_action(f"Batch {message_number} of {length//2} was malformed, but exceeded the maximum number of retries, Translation successful!", output=True)
+                    break
+
+                else:
+                    Logger.log_error(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
+                    num_tries += 1
+                    Kijiku.num_occurred_malformed_batches += 1
+
+        return index, translation_prompt, translated_message
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -995,9 +1069,8 @@ class Kijiku:
                     index = patched_sentences.index(Kijiku.translated_text[i])
                     Kijiku.translated_text[i] = patched_sentences[index]
 
-        ## mode 2 uses spacy to split sentences (deprecated, will do 3 instead)
-        ## mode 3 just assumes gpt formatted it properly
-        elif(Kijiku.sentence_fragmenter_mode == 2 or Kijiku.sentence_fragmenter_mode == 3): 
+        ## mode 2 just assumes the LLM formatted it properly
+        elif(Kijiku.sentence_fragmenter_mode == 2):
             
             Kijiku.translated_text.append(translated_message + '\n\n')
         

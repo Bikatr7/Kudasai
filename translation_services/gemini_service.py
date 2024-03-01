@@ -5,8 +5,6 @@ import typing
 from google.generativeai import GenerationConfig
 import google.generativeai as genai
 
-## custom modules
-
 class GeminiService:
 
     model:str = "gemini-pro"
@@ -23,6 +21,29 @@ class GeminiService:
     generation_config:GenerationConfig
 
     decorator_to_use:typing.Union[typing.Callable, None] = None
+
+    safety_settings = [
+        {
+            "category": "HARM_CATEGORY_DANGEROUS",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE",
+        },
+    ]
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,23 +138,12 @@ class GeminiService:
 
         response = await GeminiService.client.generate_content_async(
             contents=translation_instructions + "\n" + translation_prompt,
-            generation_config=GeminiService.generation_config,  
+            generation_config=GeminiService.generation_config,
+            safety_settings=GeminiService.safety_settings,
             stream=GeminiService.stream
         )
 
-        print(response.prompt_feedback)
-
-        if hasattr(response, 'candidates') and len(response.candidates) > 0:
-            if hasattr(response, 'parts') and len(response.parts) == 1:
-                output = response.text
-            else:
-                # Handle non-simple text responses
-                output = ''.join(part.text for part in response.parts)
-        else:
-            # Handle case where no candidates were returned
-            output = "No candidates were returned. The prompt may have been blocked."
-
-        return output
+        return response.text
     
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     

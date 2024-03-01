@@ -513,19 +513,10 @@ class Kijiku:
 
         async_requests = []
 
-        if(Kijiku.LLM_TYPE == "openai"):
+        translation_batches = Kijiku.openai_translation_batches if Kijiku.LLM_TYPE == "openai" else Kijiku.gemini_translation_batches
 
-            length = len(Kijiku.openai_translation_batches)
-
-            for i in range(0, length, 2):
-                async_requests.append(Kijiku.handle_openai_translation(model, i, length, Kijiku.openai_translation_batches[i], Kijiku.openai_translation_batches[i+1]))
-
-        else:
-
-            length = len(Kijiku.gemini_translation_batches)
-
-            for i in range(0, length, 2):
-                async_requests.append(Kijiku.handle_gemini_translation(model, i, length, Kijiku.gemini_translation_batches[i], Kijiku.gemini_translation_batches[i+1]))
+        for i in range(0, len(translation_batches), 2):
+            async_requests.append(Kijiku.handle_translation(model, i, len(translation_batches), translation_batches[i], translation_batches[i+1]))
 
         return async_requests
 
@@ -548,40 +539,41 @@ class Kijiku:
         """
 
         prompt = []
-
         non_word_pattern = re.compile(r'^[\W_\s\n-]+$')
 
         while(index < len(Kijiku.text_to_translate)):
 
             sentence = Kijiku.text_to_translate[index]
-            is_part_in_sentence = "part" in sentence.lower()
+            stripped_sentence = sentence.strip()
+            lower_sentence = sentence.lower()
+
+            has_quotes = any(char in sentence for char in ["「", "」", "『", "』", "【", "】", "\"", "'"])
+            is_part_in_sentence = "part" in lower_sentence
 
             if(len(prompt) < Kijiku.number_of_lines_per_batch):
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
-                    prompt.append(sentence + '\n')
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is a pov change... leaving intact.")
-                    index += 1
+                    prompt.append(f'{sentence}\n')
+                    Logger.log_action(f"Sentence : {sentence}, Sentence is a pov change... adding to prompt.")
 
-                elif(is_part_in_sentence or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence) and not all(char in [" "] for char in sentence)):
-                    prompt.append(sentence + '\n') 
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is part marker... leaving intact.")
-                    index += 1
+                elif(stripped_sentence == ''):
+                    Logger.log_action(f"Sentence : {sentence} is empty... skipping.")
 
-                elif(sentence.strip() == '' or KatakanaUtil.is_punctuation(sentence.strip())):
-                    Logger.log_action("Sentence is empty... skipping translation.")
-                    index += 1
+                elif(is_part_in_sentence or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence)):
+                    prompt.append(f'{sentence}\n') 
+                    Logger.log_action(f"Sentence : {sentence}, Sentence is part marker... adding to prompt.")
 
-                elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(sentence)):
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is punctuation... skipping.")
-                    index += 1
+                elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(stripped_sentence) and not has_quotes):
+                    Logger.log_action(f"Sentence : {sentence}, Sentence is punctuation... skipping.")
                     
                 else:
-                    prompt.append(sentence + "\n")
-                    Logger.log_action("Sentence : " + sentence + ", Sentence is a valid sentence... adding to prompt.")
-                    index += 1
+                    prompt.append(f'{sentence}\n')
+                    Logger.log_action(f"Sentence : {sentence}, Sentence is a valid sentence... adding to prompt.")
+
             else:
                 return prompt, index
+
+            index += 1
 
         return prompt, index
     
@@ -855,50 +847,54 @@ class Kijiku:
 
         return model
     
-##-------------------start-of-handle_openai_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     @staticmethod
-    async def handle_openai_translation(model:str, index:int, length:int, translation_instructions:Message, translation_prompt:Message) -> tuple[int, Message, str]:
+    async def handle_translation(model:str, index:int, length:int, translation_instructions:typing.Union[str, Message], translation_prompt:typing.Union[str, Message]) -> tuple[int, typing.Union[str, Message], str]:
 
         """
-
         Handles the translation for a given system and user message.
 
         Parameters:
         model (string) : the model used to translate the text.
         index (int) : the index of the message in the text file.
         length (int) : the length of the text file.
-        translation_instructions (Message) : the translation instructions.
-        translation_prompt (Message) : the translation prompt.
+        translation_instructions : the translation instructions.
+        translation_prompt : the translation prompt.
 
         Returns:
         index (int) : the index of the message in the text file.
-        translation_prompt (Message) : the translation prompt.
+        translation_prompt : the translation prompt.
         translated_message (string) : the translated message.
-    
+
 
         """
-
-        ## For the webgui
-        if(FileEnsurer.do_interrupt == True):
-            raise Exception("Interrupted by user.")
 
         ## Basically limits the number of concurrent batches
         async with Kijiku._semaphore:
             num_tries = 0
 
             while True:
-            
+
+                ## For the webgui
+                if(FileEnsurer.do_interrupt == True):
+                    raise Exception("Interrupted by user.")
+
                 message_number = (index // 2) + 1
                 Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
 
 
                 try:
-                    translated_message = await OpenAIService.translate_message(translation_instructions, translation_prompt)
+
+                    if(Kijiku.LLM_TYPE == "openai"):
+                        translated_message = await OpenAIService.translate_message(translation_instructions, translation_prompt) # type: ignore
+
+                    else:
+                        translated_message = await GeminiService.translate_message(translation_instructions, translation_prompt) # type: ignore
 
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
-                    translated_message = translation_prompt.content
+                    translated_message = translation_prompt.content if isinstance(translation_prompt, Message) else translation_prompt
                     Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
                     break
 
@@ -920,65 +916,6 @@ class Kijiku:
                     Kijiku.num_occurred_malformed_batches += 1
 
             return index, translation_prompt, translated_message
-        
-##-------------------start-of-handle_gemini_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    async def handle_gemini_translation(model:str, index:int, length:int, translation_instructions:str, translation_prompt:str) -> tuple[int, str, str]:
-
-        """
-
-        Handles the translation for a given system and user message.
-
-        Parameters:
-        model (string) : the model used to translate the text.
-        index (int) : the index of the message in the text file.
-        length (int) : the length of the text file.
-        translation_prompt (string) : the translation prompt.
-
-        Returns:
-        index (int) : the index of the message in the text file.
-        translated_message (string) : the translated message.
-    
-
-        """
-
-        ## For the webgui
-        if(FileEnsurer.do_interrupt == True):
-            raise Exception("Interrupted by user.")
-
-        ## Basically limits the number of concurrent batches
-        async with Kijiku._semaphore:
-            num_tries = 0
-
-            while True:
-            
-                message_number = index // 2 + 1
-                Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
-
-
-                try:
-                    translated_message = await GeminiService.translate_message(translation_instructions, translation_prompt)
-
-                ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
-                except MaxBatchDurationExceededException:
-                    Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
-                    break
-
-                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
-                    Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
-                    break
-
-                if(num_tries >= Kijiku.num_of_malform_retries):
-                    Logger.log_action(f"Batch {message_number} of {length//2} was malformed, but exceeded the maximum number of retries, Translation successful!", output=True)
-                    break
-
-                else:
-                    Logger.log_error(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
-                    num_tries += 1
-                    Kijiku.num_occurred_malformed_batches += 1
-
-        return index, translation_prompt, translated_message
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

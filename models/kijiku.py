@@ -689,8 +689,26 @@ class Kijiku:
         model (string) : the model used to translate the text.
 
         """
-    
-        assert model in FileEnsurer.ALLOWED_OPENAI_MODELS, f"""Kudasai does not support : {model}. See https://github.com/OpenAI/OpenAI-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+
+        MODEL_COSTS = {
+            "gpt-3.5-turbo": {"price_case": 2, "input_cost": 0.0010, "output_cost": 0.0020},
+            "gpt-4": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
+            "gpt-4-turbo-preview": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
+            "gpt-3.5-turbo-0613": {"price_case": 1, "input_cost": 0.0015, "output_cost": 0.0020},
+            "gpt-3.5-turbo-0301": {"price_case": 1, "input_cost": 0.0015, "output_cost": 0.0020},
+            "gpt-3.5-turbo-1106": {"price_case": 2, "input_cost": 0.0010, "output_cost": 0.0020},
+            "gpt-3.5-turbo-0125": {"price_case": 7, "input_cost": 0.0005, "output_cost": 0.0015},
+            "gpt-3.5-turbo-16k-0613": {"price_case": 3, "input_cost": 0.0030, "output_cost": 0.0040},
+            "gpt-4-1106-preview": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
+            "gpt-4-0125-preview": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
+            "gpt-4-0314": {"price_case": 5, "input_cost": 0.03, "output_cost": 0.06},
+            "gpt-4-0613": {"price_case": 5, "input_cost": 0.03, "output_cost": 0.06},
+            "gpt-4-32k-0314": {"price_case": 6, "input_cost": 0.06, "output_cost": 0.012},
+            "gpt-4-32k-0613": {"price_case": 6, "input_cost": 0.06, "output_cost": 0.012},
+
+        }
+
+        assert model in FileEnsurer.ALLOWED_OPENAI_MODELS, f"""Kudasai does not support : {model}"""
 
         ## default models are first, then the rest are sorted by price case
         if(price_case is None):
@@ -748,61 +766,26 @@ class Kijiku:
         else:
             encoding = tiktoken.encoding_for_model(model)
 
-            cost_per_thousand_input_tokens = 0
-            cost_per_thousand_output_tokens = 0
+            cost_details = MODEL_COSTS.get(model)
 
-            ## gpt-3.5-turbo-0301
-            ## gpt-3.5-turbo-0613
-            if(price_case == 1):
-                cost_per_thousand_input_tokens = 0.0015
-                cost_per_thousand_output_tokens = 0.0020
-
-            ## gpt-3.5-turbo-1106
-            elif(price_case == 2):
-                cost_per_thousand_input_tokens = 0.0010
-                cost_per_thousand_output_tokens = 0.0020
-
-            ## gpt-3.5-turbo-16k-0613
-            elif(price_case == 3):
-                cost_per_thousand_input_tokens = 0.0030
-                cost_per_thousand_output_tokens = 0.0040
-
-            ## gpt-4-1106-preview
-            ## gpt-4-0125-preview
-            ## gpt-4-turbo-preview 
-            elif(price_case == 4):
-                cost_per_thousand_input_tokens = 0.01
-                cost_per_thousand_output_tokens = 0.03
-
-            ## gpt-4-0314
-            ## gpt-4-0613
-            elif(price_case == 5):
-                cost_per_thousand_input_tokens = 0.03
-                cost_per_thousand_output_tokens = 0.06
-
-            ## gpt-4-32k-0314
-            ## gpt-4-32k-0613
-            elif(price_case == 6):
-                cost_per_thousand_input_tokens = 0.06
-                cost_per_thousand_output_tokens = 0.012
-
-            ## gpt-3.5-turbo-0125
-            elif(price_case == 7):
-                cost_per_thousand_input_tokens = 0.0005
-                cost_per_thousand_output_tokens = 0.0015
+            if(not cost_details):
+                raise ValueError(f"Cost details not found for model: {model}.")
 
             ## break down the text into a string than into tokens
             text = ''.join(Kijiku.text_to_translate)
 
             num_tokens = len(encoding.encode(text))
 
-            min_cost_for_input = round((float(num_tokens) / 1000.00) * cost_per_thousand_input_tokens, 5)
-            min_cost_for_output = round((float(num_tokens) / 1000.00) * cost_per_thousand_output_tokens, 5)
+            input_cost = cost_details["input_cost"]
+            output_cost = cost_details["output_cost"]
 
-            min_cost = round(min_cost_for_input + min_cost_for_output, 5)
+            min_cost_for_input = (num_tokens / 1000) * input_cost
+            min_cost_for_output = (num_tokens / 1000) * output_cost
+            min_cost = min_cost_for_input + min_cost_for_output
 
             return num_tokens, min_cost, model
         
+        ## type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point
         raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
     
 ##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1082,13 +1065,16 @@ class Kijiku:
 
         """
 
-        Kijiku.translation_print_result += "Time Elapsed : " + Toolkit.get_elapsed_time(time_start, time_end)
-        Kijiku.translation_print_result += "\nNumber of malformed batches : " + str(Kijiku.num_occurred_malformed_batches)
-
-        Kijiku.translation_print_result += "\n\nDebug text have been written to : " + FileEnsurer.debug_log_path
-        Kijiku.translation_print_result += "\nJ->E text have been written to : " + FileEnsurer.je_check_path
-        Kijiku.translation_print_result += "\nTranslated text has been written to : " + FileEnsurer.translated_text_path
-        Kijiku.translation_print_result += "\nErrors have been written to : " + FileEnsurer.error_log_path + "\n"
+        result = (
+            f"Time Elapsed : {Toolkit.get_elapsed_time(time_start, time_end)}\n"
+            f"Number of malformed batches : {Kijiku.num_occurred_malformed_batches}\n\n"
+            f"Debug text have been written to : {FileEnsurer.debug_log_path}\n"
+            f"J->E text have been written to : {FileEnsurer.je_check_path}\n"
+            f"Translated text has been written to : {FileEnsurer.translated_text_path}\n"
+            f"Errors have been written to : {FileEnsurer.error_log_path}\n"
+        )
+        
+        Kijiku.translation_print_result = result
 
 ##-------------------start-of-write_kijiku_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

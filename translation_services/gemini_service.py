@@ -2,13 +2,10 @@
 import typing
 
 ## third party libraries
-## pip install -q -U google-generativeai
 from google.generativeai import GenerationConfig
 import google.generativeai as genai
 
 ## custom modules
-from modules.common.exceptions import InvalidAPIKeyException
-from modules.common.decorators import do_nothing_decorator
 
 class GeminiService:
 
@@ -124,8 +121,18 @@ class GeminiService:
             stream=GeminiService.stream
         )
 
-        output = response.text
-        
+        print(response.prompt_feedback)
+
+        if hasattr(response, 'candidates') and len(response.candidates) > 0:
+            if hasattr(response, 'parts') and len(response.parts) == 1:
+                output = response.text
+            else:
+                # Handle non-simple text responses
+                output = ''.join(part.text for part in response.parts)
+        else:
+            # Handle case where no candidates were returned
+            output = "No candidates were returned. The prompt may have been blocked."
+
         return output
     
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -177,17 +184,3 @@ class GeminiService:
         """
 
         return GeminiService.decorator_to_use
-    
-old="""
-
-    model = genai.GenerativeModel('gemini-nano')
-
-    generation_config = GenerationConfig(candidate_count=1, max_output_tokens=5)
-
-    api_key = input("Enter your API key: ")
-    genai.configure(api_key=api_key)
-
-    response = await model.generate_content_async("Respond to this prompt with 1.", generation_config=generation_config)
-
-    print(response.text)
-"""

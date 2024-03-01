@@ -6,9 +6,7 @@ from openai import AsyncOpenAI
 
 ## custom modules
 from modules.common.exceptions import InvalidAPIKeyException
-from modules.common.decorators import do_nothing_decorator
-
-from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage, Message
+from custom_classes.messages import SystemTranslationMessage, Message
 
 class OpenAIService:
 

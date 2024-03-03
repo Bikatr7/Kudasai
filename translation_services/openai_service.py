@@ -80,8 +80,8 @@ class OpenAIService:
         if(OpenAIService.decorator_to_use == None):
             return await OpenAIService._translate_message(translation_instructions, translation_prompt)
 
-        decorated_function = OpenAIService.decorator_to_use(OpenAIService._translate_message(translation_instructions, translation_prompt))
-        return await decorated_function()
+        decorated_function = OpenAIService.decorator_to_use(OpenAIService._translate_message)
+        return await decorated_function(translation_instructions, translation_prompt)
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

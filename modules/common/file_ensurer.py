@@ -122,13 +122,12 @@ class FileEnsurer():
     ]
 
     ALLOWED_GEMINI_MODELS = [
-        "gemini-1.0-pro-latest",
-        "gemini-1.5-pro-latest",
+        "gemini-1.0-pro-001",
+        "gemini-1.0-pro-vision-001",
         "gemini-1.0-pro",
-        "gemini-1.5-pro",
-        "gemini-pro-vision",
+        "gemini-1.0-pro-vision",
         "gemini-pro",
-        "gemini-nano"
+        "gemini-pro-vision"
     ]
 
     INVALID_KIJIKU_RULES_PLACEHOLDER = {

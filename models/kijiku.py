@@ -434,11 +434,10 @@ class Kijiku:
 
         else:
         
-            ## set a generic decorator to use for now
-            ##decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+            decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
 
             GeminiService.redefine_client()
-            ##GeminiService.set_decorator(decorator_to_use)
+            GeminiService.set_decorator(decorator_to_use)
 
         Toolkit.clear_console()
 
@@ -454,8 +453,7 @@ class Kijiku:
             Kijiku.build_gemini_translation_batches()
             model = GeminiService.model
 
-        ## get cost estimate and confirm
-       ## await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
+        await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
 
         Toolkit.clear_console()
 
@@ -669,7 +667,6 @@ class Kijiku:
                 Logger.log_action(str(message))
                 Logger.log_barrier()
 
-
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -705,10 +702,15 @@ class Kijiku:
             "gpt-4-0613": {"price_case": 5, "input_cost": 0.03, "output_cost": 0.06},
             "gpt-4-32k-0314": {"price_case": 6, "input_cost": 0.06, "output_cost": 0.012},
             "gpt-4-32k-0613": {"price_case": 6, "input_cost": 0.06, "output_cost": 0.012},
-
+            "gemini-1.0-pro-001": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-1.0-pro-vision-001": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-1.0-pro": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-1.0-pro-vision": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-pro": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-pro-vision": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0}
         }
 
-        assert model in FileEnsurer.ALLOWED_OPENAI_MODELS, f"""Kudasai does not support : {model}"""
+        assert model in FileEnsurer.ALLOWED_OPENAI_MODELS or model in FileEnsurer.ALLOWED_GEMINI_MODELS, f"""Kudasai does not support : {model}"""
 
         ## default models are first, then the rest are sorted by price case
         if(price_case is None):
@@ -763,8 +765,29 @@ class Kijiku:
             elif(model == "gpt-4-32k-0613"):
                 return Kijiku.estimate_cost(model, price_case=6)
             
+            elif(model == "gemini-pro"):
+                print(f"Warning: gemini-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+                return Kijiku.estimate_cost("gemini-1.0-pro-001", price_case=8)
+            
+            elif(model == "gemini-pro-vision"):
+                print("Warning: gemini-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+                return Kijiku.estimate_cost("gemini-1.0-pro-vision-001", price_case=8)
+            
+            elif(model == "gemini-1.0-pro"):
+                print(f"Warning: gemini-1.0-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+                return Kijiku.estimate_cost(model, price_case=8)
+            
+            elif(model == "gemini-1.0-pro-vision"):
+                print("Warning: gemini-1.0-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+                return Kijiku.estimate_cost(model, price_case=8)
+            
+            elif(model == "gemini-1.0-pro-001"):
+                return Kijiku.estimate_cost(model, price_case=8)
+            
+            elif(model == "gemini-1.0-pro-vision-001"):
+                return Kijiku.estimate_cost(model, price_case=8)
+            
         else:
-            encoding = tiktoken.encoding_for_model(model)
 
             cost_details = MODEL_COSTS.get(model)
 
@@ -774,7 +797,12 @@ class Kijiku:
             ## break down the text into a string than into tokens
             text = ''.join(Kijiku.text_to_translate)
 
-            num_tokens = len(encoding.encode(text))
+            if(Kijiku.LLM_TYPE == "openai"):
+                encoding = tiktoken.encoding_for_model(model)
+                num_tokens = len(encoding.encode(text))
+
+            else:
+                num_tokens = GeminiService.count_tokens(text)
 
             input_cost = cost_details["input_cost"]
             output_cost = cost_details["output_cost"]
@@ -814,6 +842,9 @@ class Kijiku:
         Logger.log_barrier()
         Logger.log_action("Calculating cost")
         Logger.log_barrier()
+
+        if(Kijiku.LLM_TYPE == "gemini"):
+            print("As of Kudasai v3.4.0, Gemini Pro is Free to use")
         
         Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
         Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
@@ -850,7 +881,6 @@ class Kijiku:
         translation_prompt : the translation prompt.
         translated_message (string) : the translated message.
 
-
         """
 
         ## Basically limits the number of concurrent batches
@@ -865,7 +895,6 @@ class Kijiku:
 
                 message_number = (index // 2) + 1
                 Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
-
 
                 try:
 
@@ -1057,7 +1086,7 @@ class Kijiku:
 
         """
 
-        Outputs results to a string.
+        Generates the Kijiku translation print result, does not directly output/return, but rather sets Kijiku.translation_print_result to the output.
 
         Parameters:
         time_start (float) : When the translation started.

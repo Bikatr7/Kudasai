@@ -95,6 +95,25 @@ class GeminiService:
                                                             temperature=GeminiService.temperature,
                                                             top_p=GeminiService.top_p,
                                                             top_k=GeminiService.top_k)
+        
+##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def count_tokens(prompt:str) -> int:
+
+        """
+
+        Counts the number of tokens in a prompt.
+
+        Parameters:
+        prompt (string) : The prompt to count the tokens of.
+
+        Returns:
+        count (int) : The number of tokens in the prompt.
+
+        """
+
+        return genai.GenerativeModel(GeminiService.model).count_tokens(prompt).total_tokens
 
 ##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -116,8 +135,8 @@ class GeminiService:
         if(GeminiService.decorator_to_use is None):
             return await GeminiService._translate_message(translation_instructions, translation_prompt)
 
-        decorated_function = GeminiService.decorator_to_use(GeminiService._translate_message(translation_instructions, translation_prompt))
-        return await decorated_function()
+        decorated_function = GeminiService.decorator_to_use(GeminiService._translate_message)
+        return await decorated_function(translation_instructions, translation_prompt)
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

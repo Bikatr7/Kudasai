@@ -2,30 +2,48 @@
 import typing
 
 ## third party libraries
-## pip install -q -U google-generativeai
 from google.generativeai import GenerationConfig
 import google.generativeai as genai
-
-## custom modules
-from modules.common.exceptions import InvalidAPIKeyException
-from modules.common.decorators import do_nothing_decorator
 
 class GeminiService:
 
     model:str = "gemini-pro"
-    prompt:str
-    temperature:float
-    top_p:float
-    top_k:int
-    candidate_count:int
-    stream:bool
-    stop_sequences:typing.List[str] | None
+    prompt:str = ""
+    temperature:float = 0.5
+    top_p:float = 0.9
+    top_k:int = 40
+    candidate_count:int = 1
+    stream:bool = False
+    stop_sequences:typing.List[str] | None = None
     max_output_tokens:int | None = None
 
     client:genai.GenerativeModel
     generation_config:GenerationConfig
 
-    decorator_to_use:typing.Callable = do_nothing_decorator
+    decorator_to_use:typing.Union[typing.Callable, None] = None
+
+    safety_settings = [
+        {
+            "category": "HARM_CATEGORY_DANGEROUS",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE",
+        },
+    ]
 
 ##-------------------start-of-set_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -62,11 +80,11 @@ class GeminiService:
 ##-------------------start-of-setup_client()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def setup_client() -> None:
+    def redefine_client() -> None:
 
         """
 
-        Sets up the Gemini client.
+        Redefines the Gemini client and generation config. This should be called before making any requests to the Gemini service, or after changing any of the service's settings.
 
         """
 
@@ -77,11 +95,30 @@ class GeminiService:
                                                             temperature=GeminiService.temperature,
                                                             top_p=GeminiService.top_p,
                                                             top_k=GeminiService.top_k)
+        
+##-------------------start-of-count_tokens()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def count_tokens(prompt:str) -> int:
+
+        """
+
+        Counts the number of tokens in a prompt.
+
+        Parameters:
+        prompt (string) : The prompt to count the tokens of.
+
+        Returns:
+        count (int) : The number of tokens in the prompt.
+
+        """
+
+        return genai.GenerativeModel(GeminiService.model).count_tokens(prompt).total_tokens
 
 ##-------------------start-of-trans()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def translate_message(translation_prompt:str) -> str:
+    async def translate_message(translation_instructions:str, translation_prompt:str) -> str:
 
         """
 
@@ -95,13 +132,16 @@ class GeminiService:
 
         """
 
+        if(GeminiService.decorator_to_use is None):
+            return await GeminiService._translate_message(translation_instructions, translation_prompt)
+
         decorated_function = GeminiService.decorator_to_use(GeminiService._translate_message)
-        return await decorated_function(translation_prompt)
+        return await decorated_function(translation_instructions, translation_prompt)
 
 ##-------------------start-of-_translate_message()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def _translate_message(translation_prompt:str) -> str:
+    async def _translate_message(translation_instructions:str, translation_prompt:str) -> str:
 
         """
 
@@ -116,15 +156,13 @@ class GeminiService:
         """
 
         response = await GeminiService.client.generate_content_async(
-            contents=translation_prompt,
-            stream = GeminiService.stream,
-            GenerationConfig = GeminiService.generation_config
-
+            contents=translation_instructions + "\n" + translation_prompt,
+            generation_config=GeminiService.generation_config,
+            safety_settings=GeminiService.safety_settings,
+            stream=GeminiService.stream
         )
 
-        output = response.text
-        
-        return output
+        return response.text
     
 ##-------------------start-of-test_api_key_validity()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -163,7 +201,7 @@ class GeminiService:
 ##-------------------start-of-get_decorator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_decorator() -> typing.Callable:
+    def get_decorator() -> typing.Union[typing.Callable, None]:
 
         """
 
@@ -175,17 +213,3 @@ class GeminiService:
         """
 
         return GeminiService.decorator_to_use
-    
-old="""
-
-    model = genai.GenerativeModel('gemini-nano')
-
-    generation_config = GenerationConfig(candidate_count=1, max_output_tokens=5)
-
-    api_key = input("Enter your API key: ")
-    genai.configure(api_key=api_key)
-
-    response = await model.generate_content_async("Respond to this prompt with 1.", generation_config=generation_config)
-
-    print(response.text)
-"""

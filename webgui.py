@@ -144,26 +144,35 @@ class KudasaiGUI:
                 """
 
                 key_value_tuple_pairs = []
-
+                
                 kijiku_settings_key_names = {
-                    0 : "model",
-                    1 : "system_message",
-                    2 : "temp",
-                    3 : "top_p",
-                    4 : "n",
-                    5 : "stream",
-                    6 : "stop",
-                    7 : "logit_bias",
-                    8 : "max_tokens",
-                    9 : "presence_penalty",
-                    10 : "frequency_penalty",
-                    11 : "message_mode",
-                    12 : "num_lines",
-                    13 : "sentence_fragmenter_mode",
-                    14 : "je_check_mode",
-                    15 : "num_malformed_batch_retries",
-                    16 : "batch_retry_timeout",
-                    17 : "num_concurrent_batches"
+                    0: "prompt_assembly_mode",
+                    1: "number_of_lines_per_batch",
+                    2: "sentence_fragmenter_mode",
+                    3: "je_check_mode",
+                    4: "number_of_malformed_batch_retries",
+                    5: "batch_retry_timeout",
+                    6: "num_concurrent_batches",
+                    7: "openai_model",
+                    8: "openai_system_message",
+                    9: "openai_temperature",
+                    10: "openai_top_p",
+                    11: "openai_n",
+                    12: "openai_stream",
+                    13: "openai_stop",
+                    14: "openai_logit_bias",
+                    15: "openai_max_tokens",
+                    16: "openai_presence_penalty",
+                    17: "openai_frequency_penalty",
+                    18: "gemini_model",
+                    19: "gemini_prompt",
+                    20: "gemini_temperature",
+                    21: "gemini_top_p",
+                    22: "gemini_top_k",
+                    23: "gemini_candidate_count",
+                    24: "gemini_stream",
+                    25: "gemini_stop_sequences",
+                    26: "gemini_max_output_tokens"
                 }
 
                 for index, setting in enumerate(kijiku_settings):
@@ -292,7 +301,7 @@ class KudasaiGUI:
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
 
                 ## tab 5 | Translation Model 2 | Kijiku
-                with gr.Tab("Translation With OpenAI | Kijiku") as self.kijiku_tab:
+                with gr.Tab("Translation With LLMs | Kijiku") as self.kijiku_tab:
                     with gr.Row():
 
                         ## input file or text input, gui allows for both but will prioritize file input

@@ -16,7 +16,7 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Notes**<a name="notes"></a>
 
-Built for Windows, should work on Linux/MacOS but is untested, attempts were made to make platform agnostic functions, but since I do not have access to a Linux/MacOS machine, I cannot guarantee it will work. If you'd like to test it on Linux/MacOS, please let me know how it goes. I'd be happy to help with any issues that arise. 
+Windows 10 and Linux Mint are the only tested operating systems, feel free to test on other operating systems and report back to me. I will do my best to fix any issues that arise.
 
 Python version: 3.8+
 
@@ -24,14 +24,14 @@ Used to make (Japanese - English) translation easier by preprocessing the Japane
 
 Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
 
-Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on and what I plan to work on.
+Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>
 
 deepl==1.16.1
 
-openai>1.2.0
+openai==1.13.3
 
 backoff==2.2.1
 
@@ -39,9 +39,9 @@ tiktoken==0.6.0
 
 gradio==4.19.2
 
-kairyou==1.3.1
+kairyou==1.4.0
 
-google-generativeai
+google-generativeai==0.4.0
 
 or see requirements.txt
 
@@ -51,8 +51,16 @@ Also requires spacy's ja_core_news_lg model, which can be installed via the foll
 python -m spacy download ja_core_news_lg
 ```
 
+or on Linux
+
+```bash
+python3 -m spacy download ja_core_news_lg
+```
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
+
+Windows is assumed for the rest of this README, but the process should be similar for Linux.
 
 Due to TOML's limitations, you need to install spacy's JP Model, which can not be included automatically due to it being a direct dependency link. Make sure you do this after installing the requirements.txt file.
 
@@ -60,7 +68,7 @@ Due to TOML's limitations, you need to install spacy's JP Model, which can not b
 python -m spacy download ja_core_news_lg
 ```
 
-Simply run Kudasai.py which will take a few seconds to load, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input whatever and Kudasai will skip preprocessing and go straight to translation.
+Simply run Kudasai.py, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input a blank space and Kudasai will skip preprocessing and go straight to translation.
 
 Kudasai will offer to index the text, which is useful for finding new names to add to the replacement json file. This is optional and can be skipped.
 
@@ -140,7 +148,7 @@ These files are:
 
     "translated_text.txt" : The translated text, the text output by Kaiseki or Kijiku.
 
-Kairyou will ask if you'd like to index the text, this is useful for finding new names to add to the replacement json file. If you select 1 for yes, you need to provide a knowledge base, this can either be txt, a path to a txt file, or a path to a folder containing txt files. Kairyou will then index the all three sources and flag all new names with >>><<< in the preprocessed text. 
+Kairyou will ask if you'd like to index the text, this is useful for finding new names to add to the replacement json file. If you select 1 for yes, you need to provide a knowledge base, this can either be txt, a path to a txt file, or a path to a folder containing txt files. Kairyou will then index the all three sources and Kudasai will flag all new names with >>><<< in the preprocessed text. 
 
 After preprocessing is completed, you will be prompted to run a translation module. If you choose to do so, you will be prompted to choose between Kaiseki and Kijiku. See the sections below for more information on each translation module.
 

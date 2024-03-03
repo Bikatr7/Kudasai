@@ -27,20 +27,20 @@ prompt_assembly_mode : 1 or 2. 1 means the system message will actually be treat
 
 number_of_lines_per_batch : The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.
 
-sentence_fragmenter_mode : 1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 2 for gpt-4.
+sentence_fragmenter_mode : 1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 2 for newer models.
 
-je_check_mode : 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for gpt-4.
+je_check_mode : 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for newer models.
 
-number_of_malformed_batch_retries : (Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.
+number_of_malformed_batch_retries : (Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.
 
 batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.
 
-num_concurrent_batches : How many translations batches Kijiku will send to the translation API at a time.
+num_concurrent_batches : How many translations batches Kijiku will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.
 ----------------------------------------------------------------------------------
 Open AI Settings:
 See https://platform.openai.com/docs/api-reference/chat/create for further details
 ----------------------------------------------------------------------------------
-openai_model : ID of the model to use. As of right now, Kijiku only works with 'chat' models.
+openai_model : ID of the model to use. Kijiku only works with 'chat' models.
 
 openai_system_message : Instructions to the model. Basically tells the model how to translate.
 
@@ -67,7 +67,7 @@ openai_stream, openai_logit_bias, openai_stop and openai_n are included for comp
 Gemini Settings:
 https://ai.google.dev/docs/concepts#model-parameters for further details
 ----------------------------------------------------------------------------------
-gemini_model : The model to use. Currently supports these models: https://ai.google.dev/models/gemini
+gemini_model : The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.
 
 gemini_prompt : Instructions to the model. Basically tells the model how to translate.
 
@@ -95,7 +95,9 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
     def validate_json() -> None:
 
         """
+
         Validates the Kijiku Rules.json file.
+
         """
 
         base_kijiku_keys = [
@@ -194,9 +196,6 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             gemini_settings["gemini_candidate_count"] = 1
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            Toolkit.pause_console("\nPress enter to continue.")
             Logger.log_action("Kijiku Rules.json is not valid, setting to invalid_placeholder, current:")
             Logger.log_action(str(JsonHandler.current_kijiku_rules))
             JsonHandler.current_kijiku_rules = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER

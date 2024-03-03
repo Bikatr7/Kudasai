@@ -3,7 +3,9 @@
 class Message:
 
     """
-    Message is a class that is used to send the message to the OpenAI API.
+
+    Message is a class that is used to send translation batches to the OpenAI API.
+
     """
 
     def __init__(self, content: str):
@@ -28,7 +30,9 @@ class Message:
 class SystemTranslationMessage(Message):
 
     """
+
     SystemTranslationMessage is a class that is used to send the system message to the OpenAI API.
+
     """
 
     @property
@@ -40,7 +44,9 @@ class SystemTranslationMessage(Message):
 class ModelTranslationMessage(Message):
 
     """
+
     ModelTranslationMessage is a class that is used to send the model/user message to the OpenAI API.
+    
     """
     
     @property

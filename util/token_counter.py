@@ -79,6 +79,9 @@ class TokenCounter:
 
         self.MODEL = input("Please enter model : ")
 
+        ## lazy workaround for now
+        Kijiku.text_to_translate = [line for line in self.text.splitlines()]
+
         num_tokens, min_cost, self.MODEL = Kijiku.estimate_cost(self.MODEL)
         num_characters = self.count_characters()
 

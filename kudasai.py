@@ -96,7 +96,8 @@ class Kudasai:
         replacement_json (dict): The replacement json.
 
         Returns:
-
+        text_to_index (str): The indexed text.
+        indexing_log (str): The log of the indexing process.
         
         """
 
@@ -123,6 +124,7 @@ class Kudasai:
         """
 
         Marks indexed names in the text.
+        This does not mark all names, but rather the specific occurrences of the names that were flagged by the indexer.
 
         Parameters:
         text (str): The text to mark.

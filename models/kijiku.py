@@ -385,6 +385,9 @@ class Kijiku:
 
         Uses all the other functions to translate the text provided by Kudasai.
 
+        Parameters:
+        is_webgui (bool | optional | default=False) : A bool representing whether the function is being called by the webgui.
+
         """
         
         Logger.log_barrier()
@@ -503,6 +506,9 @@ class Kijiku:
         """
 
         Builds the asynchronous requests.
+
+        Parameters:
+        model (string) : the model used to translate the text.
 
         Returns:
         async_requests (list - coroutine) : A list of coroutines that represent the asynchronous requests.
@@ -826,9 +832,9 @@ class Kijiku:
         Handles the cost estimate prompt.
 
         Parameters:
-        omit_prompt (bool) : whether or not to omit the prompt.
         model (string) : the model used to translate the text.
-
+        omit_prompt (bool) : whether or not to omit the prompt.
+        
         Returns:
         model (string) : the model used to translate the text.
         
@@ -873,13 +879,13 @@ class Kijiku:
         model (string) : the model used to translate the text.
         index (int) : the index of the message in the text file.
         length (int) : the length of the text file.
-        translation_instructions : the translation instructions.
-        translation_prompt : the translation prompt.
+        translation_instructions (typing.Union[str, Message]) : the translation instructions.
+        translation_prompt (typing.Union[str, Message]) : the translation prompt.
 
         Returns:
         index (int) : the index of the message in the text file.
-        translation_prompt : the translation prompt.
-        translated_message (string) : the translated message.
+        translation_prompt (typing.Union[str, Message]) : the translation prompt.
+        translated_message (str) : the translated message.
 
         """
 
@@ -939,7 +945,8 @@ class Kijiku:
         Checks if the translation is good, i.e. the number of lines in the prompt and the number of lines in the translated message are the same.
 
         Parameters:
-        todo
+        translated_message (str) : the translated message.
+        translation_prompt (typing.Union[str, Message]) : the translation prompt.
 
         Returns:
         is_valid (bool) : whether or not the translation is valid.
@@ -972,8 +979,8 @@ class Kijiku:
         Puts translated text back into the text file.
 
         Parameters:
-        todo
-
+        translation_prompt (typing.Union[str, Message]) : the translation prompt.
+        translated_message (str) : the translated message.
 
         """
 

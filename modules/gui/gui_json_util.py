@@ -54,14 +54,15 @@ class GuiJsonUtil:
 
         try:
 
-            for key, value in new_values:
-                new_rules["open ai settings"][key] = JsonHandler.convert_to_correct_type(key, str(value))
+            for header in new_rules.keys():
+                for key, value in new_values:
+                    new_rules[header][key] = JsonHandler.convert_to_correct_type(key, str(value))
 
             JsonHandler.current_kijiku_rules = new_rules
             JsonHandler.validate_json()
 
             ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
-            assert JsonHandler.current_kijiku_rules != FileEnsurer.invalid_kijiku_rules_placeholder
+            assert JsonHandler.current_kijiku_rules != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
 
             ## so, because of how gradio deals with temp file, we need to both dump into the settings file from FileEnsurer AND the gradio_kijiku_rule file which is stored in the temp folder under AppData
             ## name is the path to the file btw

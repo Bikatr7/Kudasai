@@ -15,18 +15,17 @@
     "せんぱい": "senpai",
     "先生": "sensei",
     "せんせい": "sensei",
+    "パイセン":"paisen",
     "氏": "shi",
-    "し": "shi",
-    "上": "ue",
-    "うえ": "ue"
+    "上": "ue"
 
   },
 
   "single_words": {
     "β": "Beta",
     "後輩":"kōhai",
-    "先輩":"senpai"
-
+    "先輩":"senpai",
+    "パイセン":"paisen"
   },
 
   "unicode": {
@@ -116,7 +115,6 @@
     "Himeno Yuki":["姫野","ユキ"],
     "Hirata Yōsuke": ["平田","洋介"],
     "Hondō Ryōtarō": ["本堂","遼太郎"],
-    "Horikita Manabu": ["堀北","学"],
     "Horikita Suzune": ["堀北","鈴音"],
     "Hoshinomiya Chie": ["星之宮","知恵"],
     "Hōsen Kazuomi": ["宝泉","和臣"],
@@ -130,7 +128,6 @@
     "Isomaru Yōkō": ["磯丸","容幸"],
     "Kamogawa Toshizō": ["鴨川","俊三"],
     "Kamuro Masumi": ["神室","真澄"],
-    "Kaneda Satoru": ["金田","悟"],
     "Kanzaki Ryūji": ["神崎","隆二"],
     "Karuizawa Kei": ["軽井沢","恵"],
     "Katsuragi Kōhei": ["葛城","康平"],
@@ -152,7 +149,6 @@
     "Miyamoto Sōshi":["宮本","蒼士"],
     "Mori Nene": ["森","寧々"],
     "Morishita Ai": ["森下","藍"],
-    "Morofuji Rika" : ["諸藤","リカ"],
     "Nagumo Miyabi": ["南雲","雅"],
     "Nanase Tsubasa": ["七瀬","翼"],
     "Naoe Jinnosuke": ["直江","仁之助"],
@@ -201,7 +197,10 @@
   },
 
   "enhanced_check_whitelist": {
-    "Hoshinomiya Chie": ["星之宮","知恵"]
+    "Horikita Manabu": ["堀北","学"],
+    "Hoshinomiya Chie": ["星之宮","知恵"],
+    "Kaneda Satoru": ["金田","悟"],
+    "Morofuji Rika" : ["諸藤","リカ"]
   }
   
 }

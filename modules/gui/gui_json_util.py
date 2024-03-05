@@ -17,7 +17,7 @@ class GuiJsonUtil:
 ##-------------------start-of-fetch_kijiku_setting_key_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def fetch_kijiku_setting_key_values(key_name:str) -> str:
+    def fetch_kijiku_setting_key_values(header:str, key_name:str) -> str:
         
         """
         
@@ -32,7 +32,7 @@ class GuiJsonUtil:
         """
 
         ## Done this way because if the value is None, it'll be shown as a blank string in the settings tab, which is not what we want.
-        return GuiJsonUtil.current_kijiku_rules["open ai settings"].get(key_name, "None")
+        return GuiJsonUtil.current_kijiku_rules[header].get(key_name, "None")
     
 ##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

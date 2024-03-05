@@ -35,7 +35,7 @@ number_of_malformed_batch_retries : (Malformed batch is when je-fixing fails) Ho
 
 batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.
 
-num_concurrent_batches : How many translations batches Kijiku will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.
+number_of_concurrent_batches : How many translations batches Kijiku will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.
 ----------------------------------------------------------------------------------
 Open AI Settings:
 See https://platform.openai.com/docs/api-reference/chat/create for further details
@@ -143,11 +143,11 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "je_check_mode": lambda x: 1 <= x <= 2,
             "number_of_malformed_batch_retries": lambda x: x is isinstance(x, int) and x >= 0,
             "batch_retry_timeout": lambda x: x is isinstance(x, int) and x >= 0,
-            "num_concurrent_batches": lambda x: x is isinstance(x, int) and x >= 0,
+            "number_of_concurrent_batches": lambda x: x is isinstance(x, int) and x >= 0,
             "openai_model": lambda x: x in FileEnsurer.ALLOWED_OPENAI_MODELS,
             "openai_system_message": lambda x: x not in ["", "None", None],
             "openai_temperature": lambda x: 0 <= x <= 2,
-            "openai_top_p": lambda x: 0 <= x <= 2,
+            "openai_top_p": lambda x: 0 <= x <= 1,
             "openai_max_tokens": lambda x: x is None or isinstance(x, int),
             "openai_presence_penalty": lambda x: -2 <= x <= 2,
             "gemini_model": lambda x: x in FileEnsurer.ALLOWED_GEMINI_MODELS,
@@ -358,7 +358,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "je_check_mode": {"type": int, "constraints": lambda x: 1 <= x <= 2},
             "number_of_malformed_batch_retries": {"type": int, "constraints": lambda x: x >= 0},
             "batch_retry_timeout": {"type": int, "constraints": lambda x: x >= 0},
-            "num_concurrent_batches": {"type": int, "constraints": lambda x: x >= 0},
+            "number_of_concurrent_batches": {"type": int, "constraints": lambda x: x >= 0},
             "openai_model": {"type": str, "constraints": lambda x: x in FileEnsurer.ALLOWED_OPENAI_MODELS},
             "openai_system_message": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
             "openai_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},

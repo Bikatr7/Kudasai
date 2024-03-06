@@ -368,7 +368,7 @@ class KudasaiGUI:
                             gr.Markdown("Kijiku Settings")
 
                             self.prompt_assembly_mode_input_field = gr.Dropdown(label='Prompt Assembly Mode',
-                                                                                value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("prompt_assembly_mode")),
+                                                                                value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","prompt_assembly_mode")),
                                                                                 choices=[1,2],
                                                                                 info="1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works. For Gemini, this setting is ignored.",
                                                                                 show_label=True,
@@ -376,7 +376,7 @@ class KudasaiGUI:
                                                                                 elem_id="prompt_assembly_mode")
                             
                             self.number_of_lines_per_batch_input_field = gr.Textbox(label='Number of Lines Per Batch',
-                                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("number_of_lines_per_batch")),
+                                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_lines_per_batch")),
                                                                                     info="The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.",
                                                                                     lines=1,
                                                                                     max_lines=1,
@@ -385,7 +385,7 @@ class KudasaiGUI:
                                                                                     elem_id="number_of_lines_per_batch")
                             
                             self.sentence_fragmenter_mode_input_field = gr.Dropdown(label='Sentence Fragmenter Mode',
-                                                                                    value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode")),
+                                                                                    value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","sentence_fragmenter_mode")),
                                                                                     choices=[1,2],
                                                                                     info="1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 2 for newer models.",
                                                                                     show_label=True,
@@ -393,7 +393,7 @@ class KudasaiGUI:
                                                                                     elem_id="sentence_fragmenter_mode")
                             
                             self.je_check_mode_input_field = gr.Dropdown(label='JE Check Mode',
-                                                                        value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("je_check_mode")),
+                                                                        value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","je_check_mode")),
                                                                         choices=[1,2],
                                                                         info="1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for newer models.",
                                                                         show_label=True,
@@ -401,7 +401,7 @@ class KudasaiGUI:
                                                                         elem_id="je_check_mode")
                             
                             self.number_of_malformed_batch_retries_field = gr.Textbox(label="Number Of Malformed Batch Retries",
-                                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("number_of_malformed_batch_retries"),
+                                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_malformed_batch_retries"),
                                                                                 info="(Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.",
                                                                                 lines=1,
                                                                                 max_lines=1,
@@ -410,7 +410,7 @@ class KudasaiGUI:
                                                                                 elem_id="number_of_malformed_batch_retries")
                                                         
                             self.batch_retry_timeout_input_field = gr.Textbox(label="Batch Retry Timeout",
-                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("batch_retry_timeout"),
+                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","batch_retry_timeout"),
                                                                             info="How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.",
                                                                             lines=1,
                                                                             max_lines=1,
@@ -419,7 +419,7 @@ class KudasaiGUI:
                                                                             elem_id="batch_retry_timeout")
 
                             self.number_of_concurrent_batches_input_field = gr.Textbox(label="Number Of Concurrent Batches",
-                                                                                       value=GuiJsonUtil.fetch_kijiku_setting_key_values("number_of_concurrent_batches"),
+                                                                                       value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_concurrent_batches"),
                                                                                         info="How many translations batches Kijiku will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.",
                                                                                         lines=1,
                                                                                         max_lines=1,
@@ -433,7 +433,7 @@ class KudasaiGUI:
                             gr.Markdown("See https://platform.openai.com/docs/api-reference/chat/create for further details")
 
                             self.openai_model_input_field = gr.Dropdown(label="OpenAI Model",
-                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai_model"),
+                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model"),
                                                                         choices=[model for model in FileEnsurer.ALLOWED_OPENAI_MODELS],
                                                                         info="ID of the model to use. Kijiku only works with 'chat' models.",
                                                                         show_label=True,
@@ -441,7 +441,7 @@ class KudasaiGUI:
                                                                         elem_id="openai_model")
                             
                             self.openai_system_message_input_field = gr.Textbox(label="OpenAI System Message",
-                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai_system_message"),
+                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message"),
                                                                             info="Instructions to the model. Basically tells the model how to translate.",
                                                                             lines=1,
                                                                             max_lines=1,
@@ -450,7 +450,7 @@ class KudasaiGUI:
                                                                             elem_id="openai_system_message")
                             
                             self.openai_temperature_input_field = gr.Slider(label="OpenAI Temperature",
-                                                                        value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai_temperature")),
+                                                                        value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_temperature")),
                                                                         minimum=0.0,
                                                                         maximum=2.0,
                                                                         info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
@@ -459,7 +459,7 @@ class KudasaiGUI:
                                                                         elem_id="openai_temperature")
                             
                             self.openai_top_p_input_field = gr.Slider(label="OpenAI Top P",
-                                                                    value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai_top_p")),
+                                                                    value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_top_p")),
                                                                     minimum=0.0,
                                                                     maximum=1.0,
                                                                     info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
@@ -468,49 +468,49 @@ class KudasaiGUI:
                                                                     elem_id="openai_top_p")
                             
                             self.openai_n_input_field = gr.Textbox(label="OpenAI N",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai_n"),
+                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_n"),
                                                                 info="How many chat completion choices to generate for each input message. Do not change this.",
                                                                 show_label=True,
                                                                 interactive=False,
                                                                 elem_id="openai_n")
                             
                             self.openai_stream_input_field = gr.Textbox(label="OpenAI Stream",
-                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai_stream"),
+                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stream"),
                                                                     info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
                                                                     show_label=True,
                                                                     interactive=False,
                                                                     elem_id="openai_stream")
                             
                             self.openai_stop_input_field = gr.Textbox(label="OpenAI Stop",
-                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai_stop"),
+                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stop"),
                                                                     info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
                                                                     show_label=True,
                                                                     interactive=False,
                                                                     elem_id="openai_stop")
                             
                             self.openai_logit_bias_input_field = gr.Textbox(label="OpenAI Logit Bias",
-                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai_logit_bias"),
+                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_logit_bias"),
                                                                         info="Modifies the likelihood of specified tokens appearing in the completion. Do not change this.",
                                                                         show_label=True,
                                                                         interactive=False,
                                                                         elem_id="openai_logit_bias")
                             
                             self.openai_max_tokens_input_field = gr.Textbox(label="OpenAI Max Tokens",
-                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai_max_tokens"),
+                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_max_tokens"),
                                                                         info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
                                                                         show_label=True,
                                                                         interactive=True,
                                                                         elem_id="openai_max_tokens")
                             
                             self.openai_presence_penalty_input_field = gr.Slider(label="OpenAI Presence Penalty",
-                                                                            value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai_presence_penalty")),
+                                                                            value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_presence_penalty")),
                                                                             info="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.",
                                                                             show_label=True,
                                                                             interactive=True,
                                                                             elem_id="openai_presence_penalty")
                             
                             self.openai_frequency_penalty_input_field = gr.Slider(label="OpenAI Frequency Penalty",
-                                                                            value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai_frequency_penalty")),
+                                                                            value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_frequency_penalty")),
                                                                             info="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.",
                                                                             show_label=True,
                                                                             interactive=True,
@@ -523,7 +523,7 @@ class KudasaiGUI:
                             
 
                         self.gemini_model_input_field = gr.Dropdown(label="Gemini Model",
-                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_model"),
+                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model"),
                                                                     choices=[model for model in FileEnsurer.ALLOWED_GEMINI_MODELS],
                                                                     info="The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.",
                                                                     show_label=True,
@@ -531,14 +531,14 @@ class KudasaiGUI:
                                                                     elem_id="gemini_model")
 
                         self.gemini_prompt_input_field = gr.Textbox(label="Gemini Prompt",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_prompt"),
+                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt"),
                                                                 info="Instructions to the model. Basically tells the model how to translate.",
                                                                 show_label=True,
                                                                 interactive=True,
                                                                 elem_id="gemini_prompt")
                         
                         self.gemini_temperature_input_field = gr.Slider(label="Gemini Temperature",
-                                                                    value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_temperature")),
+                                                                    value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature")),
                                                                     minimum=0.0,
                                                                     maximum=2.0,
                                                                     info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
@@ -547,7 +547,7 @@ class KudasaiGUI:
                                                                     elem_id="gemini_temperature")
                         
                         self.gemini_top_p_input_field = gr.Slider(label="Gemini Top P",
-                                                                value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_top_p")),
+                                                                value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p")),
                                                                 minimum=0.0,
                                                                 maximum=1.0,
                                                                 info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
@@ -556,43 +556,40 @@ class KudasaiGUI:
                                                                 elem_id="gemini_top_p")
                         
                         self.gemini_top_k_input_field = gr.Textbox(label="Gemini Top K",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_top_k"),
+                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k"),
                                                                 info="Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.",
                                                                 show_label=True,
                                                                 interactive=True,
                                                                 elem_id="gemini_top_k")
 
                         self.gemini_candidate_count_input_field = gr.Textbox(label="Gemini Candidate Count",
-                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_candidate_count"),
+                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count"),
                                                                             info="The number of candidates to generate for each input message. Do not change this.",
                                                                             show_label=True,
                                                                             interactive=False,
                                                                             elem_id="gemini_candidate_count")
 
                         self.gemini_stream_input_field = gr.Textbox(label="Gemini Stream",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_stream"),
+                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream"),
                                                                 info="If set, partial message deltas will be sent, like in Gemini chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
                                                                 show_label=True,
                                                                 interactive=False,
                                                                 elem_id="gemini_stream")
                         
                         self.gemini_stop_sequences_input_field = gr.Textbox(label="Gemini Stop Sequences",
-                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_stop_sequences"),
+                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences"),
                                                                         info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
                                                                         show_label=True,
                                                                         interactive=False,
                                                                         elem_id="gemini_stop_sequences")
 
                         self.gemini_max_output_tokens_input_field = gr.Textbox(label="Gemini Max Output Tokens",
-                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini_max_output_tokens"),
+                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"),
                                                                             info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
                                                                             show_label=True,
                                                                             interactive=True,
                                                                             elem_id="gemini_max_output_tokens")
                         
-
-                        
-
 
                     with gr.Row():
                         self.reset_to_default_kijiku_settings_button = gr.Button('Reset to Default', variant='secondary')

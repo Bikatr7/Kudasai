@@ -546,10 +546,8 @@ class KudasaiGUI:
                                                                     interactive=True,
                                                                     elem_id="gemini_temperature")
                         
-                        self.gemini_top_p_input_field = gr.Slider(label="Gemini Top P",
-                                                                value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p")),
-                                                                minimum=0.0,
-                                                                maximum=1.0,
+                        self.gemini_top_p_input_field = gr.Textbox(label="Gemini Top P",
+                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p"),
                                                                 info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
                                                                 show_label=True,
                                                                 interactive=True,
@@ -825,7 +823,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            async def kijiku_translate_button_click(input_txt_file:gr.File, input_text:gr.Textbox, api_key_input:gr.Textbox) -> typing.Tuple[str, str, str]:
+            async def kijiku_translate_button_click(input_txt_file:str, input_text:str, api_key_input:str, llm_type:str) -> typing.Tuple[str, str, str]:
 
                 """
                 
@@ -919,7 +917,8 @@ class KudasaiGUI:
                 
                 """
 
-                model = GuiJsonUtil.fetch_kijiku_setting_key_values("model")
+                model = ""
+
 
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
@@ -1088,51 +1087,39 @@ class KudasaiGUI:
 
 ##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def apply_new_kijiku_settings(input_kijiku_rules_file:gr.File,
-                                        model:str,
-                                        system_message:str,
-                                        temperature:str,
-                                        top_p:str,
-                                        n:str,
-                                        stream:str, 
-                                        stop:str, 
-                                        logit_bias:str, 
-                                        max_tokens:str, 
-                                        presence_penalty:str, 
-                                        frequency_penalty:str, 
-                                        message_mode:str, 
-                                        num_lines:str,
-                                        sentence_fragmenter_mode:str,
-                                        je_check_mode:str,
-                                        num_malformed_batch:str,
-                                        batch_retry_timeout:str,
-                                        num_concurrent_batches:str) -> None:
+            def apply_new_kijiku_settings(input_kijiku_rules_file:str,
+                                        prompt_assembly_mode:int,
+                                        number_of_lines_per_batch:int,
+                                        sentence_fragmenter_mode:int,
+                                        je_check_mode:int,
+                                        num_malformed_batch_retries:int,
+                                        batch_retry_timeout:int,
+                                        num_concurrent_batches:int,
+                                        openai_model:str,
+                                        openai_system_message:str,
+                                        openai_temperature:float,
+                                        openai_top_p:float,
+                                        openai_n:str,
+                                        openai_stream:str,
+                                        openai_stop:str,
+                                        openai_logit_bias:str,
+                                        openai_max_tokens:str,
+                                        openai_presence_penalty:float,
+                                        openai_frequency_penalty:float,
+                                        gemini_model:str,
+                                        gemini_prompt:str,
+                                        gemini_temperature:float,
+                                        gemini_top_p:str,
+                                        gemini_top_k:str,
+                                        gemini_candidate_count:str,
+                                        gemini_stream:str,
+                                        gemini_stop_sequences:str,
+                                        gemini_max_output_tokens:str) -> None:
+
                 
                 """
 
-                Applies the new kijiku settings to the uploaded kijiku rules file.
-
-                Parameters:
-                input_kijiku_rules_file (gr.File) : The input kijiku rules file.
-                model (str) : The model.
-                system_message (str) : The system message.
-                temperature (str) : The temperature.
-                top_p (str) : The top p.
-                n (str) : The n.
-                stream (str) : The stream.
-                stop (str) : The stop.
-                logit_bias (str) : The logit bias.
-                max_tokens (str) : The max tokens.
-                presence_penalty (str) : The presence penalty.
-                frequency_penalty (str) : The frequency penalty.
-                message_mode (str) : The message mode.
-                num_lines (str) : The number of lines.
-                sentence_fragmenter_mode (str) : The sentence fragmenter mode.
-                je_check_mode (str) : The je check mode.
-                num_malformed_batch (str) : The number of malformed batch retries.
-                batch_retry_timeout (str) : The batch retry timeout.
-                num_concurrent_batches (str) : The number of concurrent batches.
-
+                Applies the new kijiku settings to the kijiku rules file.
 
                 """
 
@@ -1140,25 +1127,36 @@ class KudasaiGUI:
                     raise gr.Error("No Kijiku Rules File Selected. Cannot apply settings.")
 
                 ## build the new kijiku settings list so we can create a key-value pair list
-                settings_list = [model, 
-                                system_message, 
-                                temperature, 
-                                top_p, 
-                                n, 
-                                stream, 
-                                stop, 
-                                logit_bias, 
-                                max_tokens, 
-                                presence_penalty, 
-                                frequency_penalty, 
-                                message_mode, 
-                                num_lines,
-                                sentence_fragmenter_mode,
-                                je_check_mode,
-                                num_malformed_batch,
-                                batch_retry_timeout,
-                                num_concurrent_batches]
-                
+                settings_list = [
+                    prompt_assembly_mode,
+                    number_of_lines_per_batch,
+                    sentence_fragmenter_mode,
+                    je_check_mode,
+                    num_malformed_batch_retries,
+                    batch_retry_timeout,
+                    num_concurrent_batches,
+                    openai_model,
+                    openai_system_message,
+                    openai_temperature,
+                    openai_top_p,
+                    openai_n,
+                    openai_stream,
+                    openai_stop,
+                    openai_logit_bias,
+                    openai_max_tokens,
+                    openai_presence_penalty,
+                    openai_frequency_penalty,
+                    gemini_model,
+                    gemini_prompt,
+                    gemini_temperature,
+                    gemini_top_p,
+                    gemini_top_k,
+                    gemini_candidate_count,
+                    gemini_stream,
+                    gemini_stop_sequences,
+                    gemini_max_output_tokens
+                ]
+
                 ## create the new key-value pair list
                 new_key_value_tuple_pairs = create_new_key_value_tuple_pairs(settings_list)
 
@@ -1173,92 +1171,89 @@ class KudasaiGUI:
 
 ##-------------------start-of-reset_to_default_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def reset_to_default_kijiku_settings(input_kijiku_rules_file:str) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
+            def reset_to_default_kijiku_settings(input_kijiku_rules_file:str):
 
                 """
 
                 Resets the kijiku settings to the default values.
-
-                Returns:
-                model_input_field_value (str) : The new model input field value.
-                system_message_input_field_value (str) : The new system message input field value.
-                temperature_input_field_value (float) : The new temperature input field value.
-                top_p_input_field_value (float) : The new top p input field value.
-                n_input_field_value (str) : The new n input field value.
-                stream_input_field_value (str) : The new stream input field value.
-                stop_input_field_value (str) : The new stop input field value.
-                logit_bias_input_field_value (str) : The new logit bias input field value.
-                max_tokens_input_field_value (str) : The new max tokens input field value.
-                presence_penalty_input_field_value (float) : The new presence penalty input field value.
-                frequency_penalty_input_field_value (float) : The new frequency penalty input field value.
-                message_mode_input_field_value (int) : The new message mode input field value.
-                num_lines_input_field_value (str) : The new num lines input field value.
-                sentence_fragmenter_mode_input_field_value (int) : The new sentence fragmenter mode input field value.
-                je_check_mode_input_field_value (int) : The new je check mode input field value.
-                num_malformed_batch_retries_input_field_value (str) : The new num malformed batch retries input field value.
-                batch_retry_timeout_input_field_value (str) : The new batch retry timeout input field value.
-                num_concurrent_batches_input_field_value (str) : The new num concurrent batches input field value.
 
                 """
 
                 if(input_kijiku_rules_file is None):
                     raise gr.Error("No Kijiku Rules File Selected. Cannot reset settings.")
 
-                GuiJsonUtil.current_kijiku_rules = FileEnsurer.default_kijiku_rules
+                GuiJsonUtil.current_kijiku_rules = FileEnsurer.DEFAULT_KIJIKU_RULES
 
-                model_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("model"))
-                system_message_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("system_message"))
-                temperature_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("temp"))
-                top_p_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("top_p"))
-                n_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("n"))
-                stream_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stream"))
-                stop_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stop"))
-                logit_bias_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias"))
-                max_tokens_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens"))
-                presence_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("presence_penalty"))
-                frequency_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("frequency_penalty"))
-                message_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("message_mode"))
-                num_lines_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_lines"))
-                sentence_fragmenter_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode"))
-                je_check_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("je_check_mode"))
-                num_malformed_batch_retries_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_malformed_batch_retries"))
-                batch_retry_timeout_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("batch_retry_timeout"))
-                num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_concurrent_batches"))
+                prompt_assembly_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","prompt_assembly_mode"))
+                number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_lines_per_batch"))
+                sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","sentence_fragmenter_mode"))
+                je_check_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","je_check_mode"))
+                num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","num_malformed_batch_retries"))
+                batch_retry_timeout_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","batch_retry_timeout"))
+                num_concurrent_batches_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","num_concurrent_batches"))
+
+                openai_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model"))
+                openai_system_message_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message"))
+                openai_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_temperature"))
+                openai_top_p_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_top_p"))
+                openai_n_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_n"))
+                openai_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stream"))
+                openai_stop_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stop"))
+                openai_logit_bias_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_logit_bias"))
+                openai_max_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_max_tokens"))
+                openai_presence_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_presence_penalty"))
+                openai_frequency_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_frequency_penalty"))
+
+                gemini_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model"))
+                gemini_prompt_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt"))
+                gemini_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature"))
+                gemini_top_p_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p"))
+                gemini_top_k_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k"))
+                gemini_candidate_count_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count"))
+                gemini_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream"))
+                gemini_stop_sequences_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences"))
+                gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"))
+
+                return_batch = [
+                    prompt_assembly_mode_value,
+                    number_of_lines_per_batch_value,
+                    sentence_fragmenter_mode_value,
+                    je_check_mode_value,
+                    num_malformed_batch_retries_value,
+                    batch_retry_timeout_value,
+                    num_concurrent_batches_value,
+                    openai_model_value,
+                    openai_system_message_value,
+                    openai_temperature_value,
+                    openai_top_p_value,
+                    openai_n_value,
+                    openai_stream_value,
+                    openai_stop_value,
+                    openai_logit_bias_value,
+                    openai_max_tokens_value,
+                    openai_presence_penalty_value,
+                    openai_frequency_penalty_value,
+                    gemini_model_value,
+                    gemini_prompt_value,
+                    gemini_temperature_value,
+                    gemini_top_p_value,
+                    gemini_top_k_value,
+                    gemini_candidate_count_value,
+                    gemini_stream_value,
+                    gemini_stop_sequences_value,
+                    gemini_max_output_tokens_value
+                ]
 
                 gr.Info("Kijiku Settings Reset to Default")
 
-                return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
-            
+                return return_batch
+
 ##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def refresh_kijiku_settings_fields(input_kijiku_rules_file:str) -> typing.Tuple[str, str, float, float, str, str, str, str, str, float, float, int, str, int, int, str, str, str]:
+            def refresh_kijiku_settings_fields(input_kijiku_rules_file:str):
 
                 """
-                
-                Refreshes the kijiku settings fields with the values from the kijiku rules file.
 
-                Parameters:
-                input_kijiku_rules_file (gr.File) : The input kijiku rules file.
-
-                Returns:
-                model_input_field_value (str) : The new model input field value.
-                system_message_input_field_value (str) : The new system message input field value.
-                temperature_input_field_value (float) : The new temperature input field value.
-                top_p_input_field_value (float) : The new top p input field value.
-                n_input_field_value (str) : The new n input field value.
-                stream_input_field_value (str) : The new stream input field value.
-                stop_input_field_value (str) : The new stop input field value.
-                logit_bias_input_field_value (str) : The new logit bias input field value.
-                max_tokens_input_field_value (str) : The new max tokens input field value.
-                presence_penalty_input_field_value (float) : The new presence penalty input field value.
-                frequency_penalty_input_field_value (float) : The new frequency penalty input field value.
-                message_mode_input_field_value (int) : The new message mode input field value.
-                num_lines_input_field_value (str) : The new num lines input field value.
-                sentence_fragmenter_mode_input_field_value (int) : The new sentence fragmenter mode input field value.
-                je_check_mode_input_field_value (int) : The new je check mode input field value.
-                num_malformed_batch_retries_input_field_value (str) : The new num malformed batch retries input field value.
-                batch_retry_timeout_input_field_value (str) : The new batch retry timeout input field value.
-                num_concurrent_batches_input_field_value (str) : The new num concurrent batches input field value.
 
                 """
 
@@ -1271,32 +1266,73 @@ class KudasaiGUI:
                     GuiJsonUtil.current_kijiku_rules = gui_get_json_from_file(input_kijiku_rules_file)
 
                     ## update the default values on the Kijiku Settings tab manually
-                    model_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("model"))
-                    system_message_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("system_message"))
-                    temperature_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("temp"))
-                    top_p_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("top_p"))
-                    n_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("n"))
-                    stream_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stream"))
-                    stop_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("stop"))
-                    logit_bias_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("logit_bias"))
-                    max_tokens_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("max_tokens"))
-                    presence_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("presence_penalty"))
-                    frequency_penalty_input_field_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("frequency_penalty"))
-                    message_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("message_mode")) 
-                    num_lines_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_lines"))
-                    sentence_fragmenter_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("sentence_fragmenter_mode"))
-                    je_check_mode_input_field_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("je_check_mode"))
-                    num_malformed_batch_retries_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_malformed_batch_retries"))
-                    batch_retry_timeout_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("batch_retry_timeout"))
-                    num_concurrent_batches_input_field_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("num_concurrent_batches"))
+                    prompt_assembly_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","prompt_assembly_mode"))
+                    number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_lines_per_batch"))
+                    sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","sentence_fragmenter_mode"))
+                    je_check_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","je_check_mode"))
+                    num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","num_malformed_batch_retries"))
+                    batch_retry_timeout_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","batch_retry_timeout"))
+                    num_concurrent_batches_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","num_concurrent_batches"))
+
+                    openai_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model"))
+                    openai_system_message_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message"))
+                    openai_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_temperature"))
+                    openai_top_p_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_top_p"))
+                    openai_n_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_n"))
+                    openai_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stream"))
+                    openai_stop_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stop"))
+                    openai_logit_bias_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_logit_bias"))
+                    openai_max_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_max_tokens"))
+                    openai_presence_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_presence_penalty"))
+                    openai_frequency_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_frequency_penalty"))
+
+                    gemini_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model"))
+                    gemini_prompt_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt"))
+                    gemini_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature"))
+                    gemini_top_p_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p"))
+                    gemini_top_k_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k"))
+                    gemini_candidate_count_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count"))
+                    gemini_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream"))
+                    gemini_stop_sequences_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences"))
+                    gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"))
+
+                    return_batch = [
+                        prompt_assembly_mode_value,
+                        number_of_lines_per_batch_value,
+                        sentence_fragmenter_mode_value,
+                        je_check_mode_value,
+                        num_malformed_batch_retries_value,
+                        batch_retry_timeout_value,
+                        num_concurrent_batches_value,
+                        openai_model_value,
+                        openai_system_message_value,
+                        openai_temperature_value,
+                        openai_top_p_value,
+                        openai_n_value,
+                        openai_stream_value,
+                        openai_stop_value,
+                        openai_logit_bias_value,
+                        openai_max_tokens_value,
+                        openai_presence_penalty_value,
+                        openai_frequency_penalty_value,
+                        gemini_model_value,
+                        gemini_prompt_value,
+                        gemini_temperature_value,
+                        gemini_top_p_value,
+                        gemini_top_k_value,
+                        gemini_candidate_count_value,
+                        gemini_stream_value,
+                        gemini_stop_sequences_value,
+                        gemini_max_output_tokens_value
+                    ]
 
                 except:
 
                     GuiJsonUtil.current_kijiku_rules = JsonHandler.current_kijiku_rules
                     raise gr.Error("Invalid Custom Kijiku Rules File")
                 
-                return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
-            
+                return return_batch
+
 ##-------------------start-of-clear_kijiku_settings_input_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
             def clear_kijiku_settings_input_fields() -> typing.Tuple[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]:                                                                     

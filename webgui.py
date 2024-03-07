@@ -23,6 +23,7 @@ from models.kijiku import Kijiku
 from translation_services.deepl_service import DeepLService
 
 from translation_services.openai_service import OpenAIService
+from translation_services.gemini_service import GeminiService
 
 from kudasai import Kudasai
 
@@ -861,15 +862,32 @@ class KudasaiGUI:
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
                 JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
+                ## next, set the llm type
+                if(llm_type == "openai"):
+                    Kijiku.LLM_TYPE = llm_type
+
+                elif(llm_type == "gemini"):
+                    Kijiku.LLM_TYPE = "gemini"
+
+                else:
+                    raise gr.Error("Invalid LLM type")
+
                 ## next api key
                 try:
-                    OpenAIService.set_api_key(str(api_key_input))
+                    if(Kijiku.LLM_TYPE == "openai"):
+                        OpenAIService.set_api_key(str(api_key_input))
+                        is_valid, e = await OpenAIService.test_api_key_validity()
 
-                    is_valid, e = await OpenAIService.test_api_key_validity()
+
+                    else:
+
+                        GeminiService.redefine_client()
+                        GeminiService.set_api_key(str(api_key_input))
+                        is_valid, e = await GeminiService.test_api_key_validity()
 
                     if(is_valid == False and e is not None):
                         raise e
-
+                    
                 except:
                     raise gr.Error("Invalid API key")
                 
@@ -900,7 +918,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def kijiku_calculate_costs_button_click(input_txt_file:gr.File, input_text:gr.Textbox) -> str:
+            def kijiku_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str) -> str:
 
 
                 """
@@ -917,7 +935,17 @@ class KudasaiGUI:
                 
                 """
 
-                model = ""
+                ## next, set the llm type
+                if(llm_type == "openai"):
+                    Kijiku.LLM_TYPE = llm_type
+
+                elif(llm_type == "gemini"):
+                    Kijiku.LLM_TYPE = "gemini"
+
+                else:
+                    raise gr.Error("Invalid LLM type")
+
+                model = GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model") if Kijiku.LLM_TYPE == "openai" else GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model")
 
 
                 if(input_txt_file is None and input_text == ""):
@@ -1087,7 +1115,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def apply_new_kijiku_settings(input_kijiku_rules_file:str,
+            def apply_new_kijiku_settings(input_kijiku_rules_file:gr.File,
                                         prompt_assembly_mode:int,
                                         number_of_lines_per_batch:int,
                                         sentence_fragmenter_mode:int,
@@ -1215,6 +1243,7 @@ class KudasaiGUI:
                 gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"))
 
                 return_batch = [
+                    GuiJsonUtil.current_kijiku_rules,
                     prompt_assembly_mode_value,
                     number_of_lines_per_batch_value,
                     sentence_fragmenter_mode_value,
@@ -1335,7 +1364,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-clear_kijiku_settings_input_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
-            def clear_kijiku_settings_input_fields() -> typing.Tuple[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]:                                                                     
+            def clear_kijiku_settings_input_fields():                                                                  
 
                 """
 
@@ -1343,26 +1372,39 @@ class KudasaiGUI:
 
                 """
 
-                model_input_field_value = None
-                system_message_input_field_value = None
-                temperature_input_field_value = None
-                top_p_input_field_value = None
-                n_input_field_value = None
-                stream_input_field_value = None
-                stop_input_field_value = None
-                logit_bias_input_field_value = None
-                max_tokens_input_field_value = None
-                presence_penalty_input_field_value = None
-                frequency_penalty_input_field_value = None
-                message_mode_input_field_value = None
-                num_lines_input_field_value = None
-                sentence_fragmenter_mode_input_field_value = None
-                je_check_mode_input_field_value = None
-                num_malformed_batch_retries_input_field_value = None
-                batch_retry_timeout_input_field_value = None
-                num_concurrent_batches_input_field_value = None
+                input_kijiku_rules_file = None
 
-                return model_input_field_value, system_message_input_field_value, temperature_input_field_value, top_p_input_field_value, n_input_field_value, stream_input_field_value, stop_input_field_value, logit_bias_input_field_value, max_tokens_input_field_value, presence_penalty_input_field_value, frequency_penalty_input_field_value, message_mode_input_field_value, num_lines_input_field_value, sentence_fragmenter_mode_input_field_value, je_check_mode_input_field_value, num_malformed_batch_retries_input_field_value, batch_retry_timeout_input_field_value, num_concurrent_batches_input_field_value
+                prompt_assembly_mode_value = None
+                number_of_lines_per_batch_value = None
+                sentence_fragmenter_mode_value = None
+                je_check_mode_value = None
+                num_malformed_batch_retries_value = None
+                batch_retry_timeout_value = None
+                num_concurrent_batches_value = None
+                
+                openai_model_value = None
+                openai_system_message_value = None
+                openai_temperature_value = None
+                openai_top_p_value = None
+                openai_n_value = None
+                openai_stream_value = None
+                openai_stop_value = None
+                openai_logit_bias_value = None
+                openai_max_tokens_value = None
+                openai_presence_penalty_value = None
+                openai_frequency_penalty_value = None
+                
+                gemini_model_value = None
+                gemini_prompt_value = None
+                gemini_temperature_value = None
+                gemini_top_p_value = None
+                gemini_top_k_value = None
+                gemini_candidate_count_value = None
+                gemini_stream_value = None
+                gemini_stop_sequences_value = None
+                gemini_max_output_tokens_value = None
+
+                return input_kijiku_rules_file, prompt_assembly_mode_value, number_of_lines_per_batch_value, sentence_fragmenter_mode_value, je_check_mode_value, num_malformed_batch_retries_value, batch_retry_timeout_value, num_concurrent_batches_value, openai_model_value, openai_system_message_value, openai_temperature_value, openai_top_p_value, openai_n_value, openai_stream_value, openai_stop_value, openai_logit_bias_value, openai_max_tokens_value, openai_presence_penalty_value, openai_frequency_penalty_value, gemini_model_value, gemini_prompt_value, gemini_temperature_value, gemini_top_p_value, gemini_top_k_value, gemini_candidate_count_value, gemini_stream_value, gemini_stop_sequences_value, gemini_max_output_tokens_value
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1520,7 +1562,8 @@ class KudasaiGUI:
                                                 inputs=[
                                                     self.input_txt_file_kijiku, ## input txt file to translate
                                                     self.input_text_kijiku, ## input text to translate
-                                                    self.kijiku_api_key_input], ## api key input
+                                                    self.kijiku_api_key_input, ## api key input
+                                                    self.llm_option], ## llm option input
                                                 
                                                 outputs=[
                                                     self.kijiku_translated_text_output_field, ## translated text
@@ -1540,7 +1583,8 @@ class KudasaiGUI:
             self.calculate_costs_button_kijiku.click(kijiku_calculate_costs_button_click,
                                                         inputs=[
                                                             self.input_txt_file_kijiku, ## input txt file to calculate costs
-                                                            self.input_text_kijiku], ## input text to calculate costs
+                                                            self.input_text_kijiku,
+                                                            self.llm_option], ## llm option input
                 
                                                         outputs=[self.kijiku_translated_text_output_field]) ## functions as an output field for the cost output field
             
@@ -1612,24 +1656,33 @@ class KudasaiGUI:
             self.apply_changes_button.click(apply_new_kijiku_settings,
                                             inputs=[
                                                 self.input_kijiku_rules_file, ## kijiku rules file
-                                                self.model_input_field, ## model input field
-                                                self.system_message_input_field, ## system message input field
-                                                self.temperature_input_field, ## temperature input field
-                                                self.top_p_input_field, ## top p input field
-                                                self.n_input_field, ## n input field
-                                                self.stream_input_field, ## stream input field
-                                                self.stop_input_field, ## stop input field
-                                                self.logit_bias_input_field, ## logit bias input field
-                                                self.max_tokens_input_field, ## max tokens input field
-                                                self.presence_penalty_input_field, ## presence penalty input field
-                                                self.frequency_penalty_input_field, ## frequency penalty input field
-                                                self.message_mode_input_field, ## message mode input field
-                                                self.num_lines_input_field, ## num lines input field
+                                                self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
+                                                self.number_of_lines_per_batch_input_field, ## num lines input field
                                                 self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                 self.je_check_mode_input_field, ## je check mode input field
-                                                self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
                                                 self.batch_retry_timeout_input_field, ## batch retry timeout input field
-                                                self.num_concurrent_batches_input_field], ## num concurrent batches input field
+                                                self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                self.openai_model_input_field, ## openai model input field
+                                                self.openai_system_message_input_field, ## openai system message input field
+                                                self.openai_temperature_input_field, ## openai temperature input field
+                                                self.openai_top_p_input_field, ## openai top p input field
+                                                self.openai_n_input_field, ## openai n input field
+                                                self.openai_stream_input_field, ## openai stream input field
+                                                self.openai_stop_input_field, ## openai stop input field
+                                                self.openai_logit_bias_input_field, ## openai logit bias input field
+                                                self.openai_max_tokens_input_field, ## openai max tokens input field
+                                                self.openai_presence_penalty_input_field, ## openai presence penalty input field
+                                                self.openai_frequency_penalty_input_field, ## openai frequency penalty input field
+                                                self.gemini_model_input_field, ## gemini model input field
+                                                self.gemini_prompt_input_field, ## gemini prompt input field
+                                                self.gemini_temperature_input_field, ## gemini temperature input field
+                                                self.gemini_top_p_input_field, ## gemini top p input field
+                                                self.gemini_top_k_input_field, ## gemini top k input field
+                                                self.gemini_candidate_count_input_field, ## gemini candidate count input field
+                                                self.gemini_stream_input_field, ## gemini stream input field
+                                                self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
+                                                self.gemini_max_output_tokens_input_field], ## gemini max output tokens input field
                                             
                                             outputs=[])
             
@@ -1638,24 +1691,34 @@ class KudasaiGUI:
             self.reset_to_default_kijiku_settings_button.click(reset_to_default_kijiku_settings,
                                                 inputs=[self.input_kijiku_rules_file],
                                                 
-                                                outputs=[self.model_input_field, ## model input field
-                                                        self.system_message_input_field, ## system message input field
-                                                        self.temperature_input_field, ## temperature input field
-                                                        self.top_p_input_field, ## top p input field
-                                                        self.n_input_field, ## n input field
-                                                        self.stream_input_field, ## stream input field
-                                                        self.stop_input_field, ## stop input field
-                                                        self.logit_bias_input_field, ## logit bias input field
-                                                        self.max_tokens_input_field, ## max tokens input field
-                                                        self.presence_penalty_input_field, ## presence penalty input field
-                                                        self.frequency_penalty_input_field, ## frequency penalty input field
-                                                        self.message_mode_input_field, ## message mode input field
-                                                        self.num_lines_input_field, ## num lines input field
+                                                outputs=[self.input_kijiku_rules_file, ## kijiku rules file
+                                                        self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
+                                                        self.number_of_lines_per_batch_input_field, ## num lines input field
                                                         self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                         self.je_check_mode_input_field, ## je check mode input field
-                                                        self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                        self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
                                                         self.batch_retry_timeout_input_field, ## batch retry timeout input field
-                                                        self.num_concurrent_batches_input_field]) ## num concurrent batches input field
+                                                        self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                        self.openai_model_input_field, ## openai model input field
+                                                        self.openai_system_message_input_field, ## openai system message input field
+                                                        self.openai_temperature_input_field, ## openai temperature input field
+                                                        self.openai_top_p_input_field, ## openai top p input field
+                                                        self.openai_n_input_field, ## openai n input field
+                                                        self.openai_stream_input_field, ## openai stream input field
+                                                        self.openai_stop_input_field, ## openai stop input field
+                                                        self.openai_logit_bias_input_field, ## openai logit bias input field
+                                                        self.openai_max_tokens_input_field, ## openai max tokens input field
+                                                        self.openai_presence_penalty_input_field, ## openai presence penalty input field
+                                                        self.openai_frequency_penalty_input_field, ## openai frequency penalty input field
+                                                        self.gemini_model_input_field, ## gemini model input field
+                                                        self.gemini_prompt_input_field, ## gemini prompt input field
+                                                        self.gemini_temperature_input_field, ## gemini temperature input field
+                                                        self.gemini_top_p_input_field, ## gemini top p input field
+                                                        self.gemini_top_k_input_field, ## gemini top k input field
+                                                        self.gemini_candidate_count_input_field, ## gemini candidate count input field
+                                                        self.gemini_stream_input_field, ## gemini stream input field
+                                                        self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
+                                                        self.gemini_max_output_tokens_input_field])
 
 ##-------------------start-of-discard_changes_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1663,24 +1726,33 @@ class KudasaiGUI:
                                               inputs=[self.input_kijiku_rules_file],
                                               
                                               outputs=[
-                                                self.model_input_field, ## model input field
-                                                self.system_message_input_field, ## system message input field
-                                                self.temperature_input_field, ## temperature input field
-                                                self.top_p_input_field, ## top p input field
-                                                self.n_input_field, ## n input field
-                                                self.stream_input_field, ## stream input field
-                                                self.stop_input_field, ## stop input field
-                                                self.logit_bias_input_field, ## logit bias input field
-                                                self.max_tokens_input_field, ## max tokens input field
-                                                self.presence_penalty_input_field, ## presence penalty input field
-                                                self.frequency_penalty_input_field, ## frequency penalty input field
-                                                self.message_mode_input_field, ## message mode input field
-                                                self.num_lines_input_field, ## num lines input field
-                                                self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
-                                                self.je_check_mode_input_field, ## je check mode input field
-                                                self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
-                                                self.batch_retry_timeout_input_field, ## batch retry timeout input field
-                                                self.num_concurrent_batches_input_field]) ## num concurrent batches input field
+                                                    self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
+                                                    self.number_of_lines_per_batch_input_field, ## num lines input field
+                                                    self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
+                                                    self.je_check_mode_input_field, ## je check mode input field
+                                                    self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
+                                                    self.batch_retry_timeout_input_field, ## batch retry timeout input field
+                                                    self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                    self.openai_model_input_field, ## openai model input field
+                                                    self.openai_system_message_input_field, ## openai system message input field
+                                                    self.openai_temperature_input_field, ## openai temperature input field
+                                                    self.openai_top_p_input_field, ## openai top p input field
+                                                    self.openai_n_input_field, ## openai n input field
+                                                    self.openai_stream_input_field, ## openai stream input field
+                                                    self.openai_stop_input_field, ## openai stop input field
+                                                    self.openai_logit_bias_input_field, ## openai logit bias input field
+                                                    self.openai_max_tokens_input_field, ## openai max tokens input field
+                                                    self.openai_presence_penalty_input_field, ## openai presence penalty input field
+                                                    self.openai_frequency_penalty_input_field, ## openai frequency penalty input field
+                                                    self.gemini_model_input_field, ## gemini model input field
+                                                    self.gemini_prompt_input_field, ## gemini prompt input field
+                                                    self.gemini_temperature_input_field, ## gemini temperature input field
+                                                    self.gemini_top_p_input_field, ## gemini top p input field
+                                                    self.gemini_top_k_input_field, ## gemini top k input field
+                                                    self.gemini_candidate_count_input_field, ## gemini candidate count input field
+                                                    self.gemini_stream_input_field, ## gemini stream input field
+                                                    self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
+                                                    self.gemini_max_output_tokens_input_field]) ## gemini max output tokens input field
 
 
 ##-------------------start-of-input_kijiku_rules_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1689,47 +1761,66 @@ class KudasaiGUI:
                                                 inputs=[self.input_kijiku_rules_file],
                                                 
                                                 outputs=[
-                                                    self.model_input_field, ## model input field
-                                                    self.system_message_input_field, ## system message input field
-                                                    self.temperature_input_field, ## temperature input field
-                                                    self.top_p_input_field, ## top p input field
-                                                    self.n_input_field, ## n input field
-                                                    self.stream_input_field, ## stream input field
-                                                    self.stop_input_field, ## stop input field
-                                                    self.logit_bias_input_field, ## logit bias input field
-                                                    self.max_tokens_input_field, ## max tokens input field
-                                                    self.presence_penalty_input_field, ## presence penalty input field
-                                                    self.frequency_penalty_input_field, ## frequency penalty input field
-                                                    self.message_mode_input_field, ## message mode input field
-                                                    self.num_lines_input_field, ## num lines input field
+                                                    self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
+                                                    self.number_of_lines_per_batch_input_field, ## num lines input field
                                                     self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                     self.je_check_mode_input_field, ## je check mode input field
-                                                    self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                    self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
-                                                    self.num_concurrent_batches_input_field]) ## num concurrent batches input field
+                                                    self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                    self.openai_model_input_field, ## openai model input field
+                                                    self.openai_system_message_input_field, ## openai system message input field
+                                                    self.openai_temperature_input_field, ## openai temperature input field
+                                                    self.openai_top_p_input_field, ## openai top p input field
+                                                    self.openai_n_input_field, ## openai n input field
+                                                    self.openai_stream_input_field, ## openai stream input field
+                                                    self.openai_stop_input_field, ## openai stop input field
+                                                    self.openai_logit_bias_input_field, ## openai logit bias input field
+                                                    self.openai_max_tokens_input_field, ## openai max tokens input field
+                                                    self.openai_presence_penalty_input_field, ## openai presence penalty input field
+                                                    self.openai_frequency_penalty_input_field, ## openai frequency penalty input field
+                                                    self.gemini_model_input_field, ## gemini model input field
+                                                    self.gemini_prompt_input_field, ## gemini prompt input field
+                                                    self.gemini_temperature_input_field, ## gemini temperature input field
+                                                    self.gemini_top_p_input_field, ## gemini top p input field
+                                                    self.gemini_top_k_input_field, ## gemini top k input field
+                                                    self.gemini_candidate_count_input_field, ## gemini candidate count input field
+                                                    self.gemini_stream_input_field, ## gemini stream input field
+                                                    self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
+                                                    self.gemini_max_output_tokens_input_field]) 
             
             self.input_kijiku_rules_file.clear(clear_kijiku_settings_input_fields,
                                                 inputs=[],
                                                 
                                                 outputs=[
-                                                    self.model_input_field, ## model input field
-                                                    self.system_message_input_field, ## system message input field
-                                                    self.temperature_input_field, ## temperature input field
-                                                    self.top_p_input_field, ## top p input field
-                                                    self.n_input_field, ## n input field
-                                                    self.stream_input_field, ## stream input field
-                                                    self.stop_input_field, ## stop input field
-                                                    self.logit_bias_input_field, ## logit bias input field
-                                                    self.max_tokens_input_field, ## max tokens input field
-                                                    self.presence_penalty_input_field, ## presence penalty input field
-                                                    self.frequency_penalty_input_field, ## frequency penalty input field
-                                                    self.message_mode_input_field, ## message mode input field
-                                                    self.num_lines_input_field, ## num lines input field
+                                                    self.input_kijiku_rules_file, ## kijiku rules file
+                                                    self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
+                                                    self.number_of_lines_per_batch_input_field, ## num lines input field
                                                     self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                     self.je_check_mode_input_field, ## je check mode input field
-                                                    self.num_malformed_batch_retries_input_field, ## num malformed batch retries input field
+                                                    self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
-                                                    self.num_concurrent_batches_input_field]) ## num concurrent batches input field
+                                                    self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                    self.openai_model_input_field, ## openai model input field
+                                                    self.openai_system_message_input_field, ## openai system message input field
+                                                    self.openai_temperature_input_field, ## openai temperature input field
+                                                    self.openai_top_p_input_field, ## openai top p input field
+                                                    self.openai_n_input_field, ## openai n input field
+                                                    self.openai_stream_input_field, ## openai stream input field
+                                                    self.openai_stop_input_field, ## openai stop input field
+                                                    self.openai_logit_bias_input_field, ## openai logit bias input field
+                                                    self.openai_max_tokens_input_field, ## openai max tokens input field
+                                                    self.openai_presence_penalty_input_field, ## openai presence penalty input field
+                                                    self.openai_frequency_penalty_input_field, ## openai frequency penalty input field
+                                                    self.gemini_model_input_field, ## gemini model input field
+                                                    self.gemini_prompt_input_field, ## gemini prompt input field
+                                                    self.gemini_temperature_input_field, ## gemini temperature input field
+                                                    self.gemini_top_p_input_field, ## gemini top p input field
+                                                    self.gemini_top_k_input_field, ## gemini top k input field
+                                                    self.gemini_candidate_count_input_field, ## gemini candidate count input field
+                                                    self.gemini_stream_input_field, ## gemini stream input field
+                                                    self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
+                                                    self.gemini_max_output_tokens_input_field])
 
 ##-------------------start-of-logging_tab.select()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

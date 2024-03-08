@@ -137,27 +137,27 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
         ]
 
         validation_rules = {
-            "prompt_assembly_mode": lambda x: 1 <= x <= 2,
-            "number_of_lines_per_batch": lambda x: x is isinstance(x, int) and x > 0,
-            "sentence_fragmenter_mode": lambda x: 1 <= x <= 2,
-            "je_check_mode": lambda x: 1 <= x <= 2,
-            "number_of_malformed_batch_retries": lambda x: x is isinstance(x, int) and x >= 0,
-            "batch_retry_timeout": lambda x: x is isinstance(x, int) and x >= 0,
-            "number_of_concurrent_batches": lambda x: x is isinstance(x, int) and x >= 0,
-            "openai_model": lambda x: x in FileEnsurer.ALLOWED_OPENAI_MODELS,
+            "prompt_assembly_mode": lambda x: isinstance(x, int) and 1 <= x <= 2,
+            "number_of_lines_per_batch": lambda x: isinstance(x, int) and x > 0,
+            "sentence_fragmenter_mode": lambda x: isinstance(x, int) and 1 <= x <= 2,
+            "je_check_mode": lambda x: isinstance(x, int) and 1 <= x <= 2,
+            "number_of_malformed_batch_retries": lambda x: isinstance(x, int) and x >= 0,
+            "batch_retry_timeout": lambda x: isinstance(x, int) and x >= 0,
+            "number_of_concurrent_batches": lambda x: isinstance(x, int) and x >= 0,
+            "openai_model": lambda x: isinstance(x, str) and x in FileEnsurer.ALLOWED_OPENAI_MODELS,
             "openai_system_message": lambda x: x not in ["", "None", None],
-            "openai_temperature": lambda x: 0 <= x <= 2,
-            "openai_top_p": lambda x: 0 <= x <= 1,
+            "openai_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
+            "openai_top_p": lambda x: isinstance(x, float) and 0 <= x <= 1,
             "openai_max_tokens": lambda x: x is None or isinstance(x, int),
-            "openai_presence_penalty": lambda x: -2 <= x <= 2,
-            "gemini_model": lambda x: x in FileEnsurer.ALLOWED_GEMINI_MODELS,
+            "openai_presence_penalty": lambda x: isinstance(x, float) and -2 <= x <= 2,
+            "gemini_model": lambda x: isinstance(x, str) and x in FileEnsurer.ALLOWED_GEMINI_MODELS,
             "gemini_prompt": lambda x: x not in ["", "None", None],
-            "gemini_temperature": lambda x: 0 <= x <= 2,
-            "gemini_top_p": lambda x: x is None or 0 <= x <= 2,
-            "gemini_top_k": lambda x: x is None or isinstance(x, int) and x >= 0,
+            "gemini_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
+            "gemini_top_p": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2),
+            "gemini_top_k": lambda x: x is None or (isinstance(x, int) and x >= 0),
             "gemini_max_output_tokens": lambda x: x is None or isinstance(x, int),
         }
-
+        
         try:
             ## ensure categories are present
             assert "base kijiku settings" in JsonHandler.current_kijiku_rules
@@ -367,18 +367,18 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "openai_stream": {"type": bool, "constraints": lambda x: x is False},
             "openai_stop": {"type": None, "constraints": lambda x: x is None},
             "openai_logit_bias": {"type": None, "constraints": lambda x: x is None},
-            "openai_max_tokens": {"type": typing.Optional[int], "constraints": lambda x: x is None or isinstance(x, int)},
+            "openai_max_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
             "openai_presence_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
             "openai_frequency_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
             "gemini_model": {"type": str, "constraints": lambda x: x in FileEnsurer.ALLOWED_GEMINI_MODELS},
             "gemini_prompt": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
             "gemini_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
-            "gemini_top_p": {"type": typing.Optional[float], "constraints": lambda x: x is None or 0 <= x <= 2},
-            "gemini_top_k": {"type": typing.Optional[int], "constraints": lambda x: x is None or x >= 0},
+            "gemini_top_p": {"type": float, "constraints": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2)},
+            "gemini_top_k": {"type": int, "constraints": lambda x: x is None or x >= 0},
             "gemini_candidate_count": {"type": int, "constraints": lambda x: x == 1},
             "gemini_stream": {"type": bool, "constraints": lambda x: x is False},
             "gemini_stop_sequences": {"type": None, "constraints": lambda x: x is None},
-            "gemini_max_output_tokens": {"type": typing.Optional[int], "constraints": lambda x: x is None or isinstance(x, int)},
+            "gemini_max_output_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
         }
 
         if(setting_name not in type_expectations):
@@ -394,11 +394,15 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
         if(setting_info["type"] is None):
             converted_value = None
-        elif(setting_info["type"] == typing.Optional[int]):
-            if value is None:
+        elif(setting_info["type"] == int) or (setting_info["type"] == float):
+            if value is None or value is '':
                 converted_value = None
-            else:
+            elif setting_info["type"] == int:
                 converted_value = int(value)
+
+            else:
+                converted_value = float(value)
+
         else:
             converted_value = setting_info["type"](value)
 

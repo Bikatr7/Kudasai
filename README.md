@@ -18,7 +18,7 @@
 
 Windows 10 and Linux Mint are the only tested operating systems, feel free to test on other operating systems and report back to me. I will do my best to fix any issues that arise.
 
-Python version: 3.8+
+Python version: 3.10+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
 

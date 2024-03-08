@@ -333,6 +333,8 @@ class KudasaiGUI:
 
                             with gr.Row():
                                 self.llm_option = gr.Dropdown(label='LLM Option', choices=["OpenAI", "Gemini"], value="OpenAI", show_label=True, interactive=True)
+                            
+                            with gr.Row():
                                 self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_openai_api_key, lines=1, max_lines=2, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
@@ -344,19 +346,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=38,max_lines=38, interactive=False, show_copy_button=True)
+                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_kijiku = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=38,max_lines=38, interactive=False, show_copy_button=True)
+                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_je_check_text_kijiku = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=38, max_lines=38, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=43, max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
@@ -367,6 +369,9 @@ class KudasaiGUI:
 
                         with gr.Column():
                             gr.Markdown("Kijiku Settings")
+                            gr.Markdown("See https://github.com/Bikatr7/Kudasai/blob/main/README.md#kijiku-settings for further details")
+                            gr.Markdown("These settings are used for both OpenAI and Gemini, but some settings are ignored by one or the other. For example, Gemini ignores prompt assembly mode.")
+
 
                             self.prompt_assembly_mode_input_field = gr.Dropdown(label='Prompt Assembly Mode',
                                                                                 value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","prompt_assembly_mode")),
@@ -430,8 +435,8 @@ class KudasaiGUI:
 
                         with gr.Column(): 
                             gr.Markdown("OpenAI API Settings")
-                            gr.Markdown("openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
                             gr.Markdown("See https://platform.openai.com/docs/api-reference/chat/create for further details")
+                            gr.Markdown("openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
 
                             self.openai_model_input_field = gr.Dropdown(label="OpenAI Model",
                                                                         value=GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model"),
@@ -517,77 +522,77 @@ class KudasaiGUI:
                                                                             interactive=True,
                                                                             elem_id="openai_frequency_penalty")
 
-                    with gr.Column():
-                        gr.Markdown("Gemini API Settings")
-                        gr.Markdown("https://ai.google.dev/docs/concepts#model-parameters for further details")
-                        gr.Markdown("gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
+                        with gr.Column():
+                            gr.Markdown("Gemini API Settings")
+                            gr.Markdown("https://ai.google.dev/docs/concepts#model-parameters for further details")
+                            gr.Markdown("gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
+                                
+
+                            self.gemini_model_input_field = gr.Dropdown(label="Gemini Model",
+                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model"),
+                                                                        choices=[model for model in FileEnsurer.ALLOWED_GEMINI_MODELS],
+                                                                        info="The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.",
+                                                                        show_label=True,
+                                                                        interactive=True,
+                                                                        elem_id="gemini_model")
+
+                            self.gemini_prompt_input_field = gr.Textbox(label="Gemini Prompt",
+                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt"),
+                                                                    info="Instructions to the model. Basically tells the model how to translate.",
+                                                                    show_label=True,
+                                                                    interactive=True,
+                                                                    elem_id="gemini_prompt")
                             
-
-                        self.gemini_model_input_field = gr.Dropdown(label="Gemini Model",
-                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model"),
-                                                                    choices=[model for model in FileEnsurer.ALLOWED_GEMINI_MODELS],
-                                                                    info="The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.",
+                            self.gemini_temperature_input_field = gr.Slider(label="Gemini Temperature",
+                                                                        value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature")),
+                                                                        minimum=0.0,
+                                                                        maximum=2.0,
+                                                                        info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
+                                                                        show_label=True,
+                                                                        interactive=True,
+                                                                        elem_id="gemini_temperature")
+                            
+                            self.gemini_top_p_input_field = gr.Textbox(label="Gemini Top P",
+                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p"),
+                                                                    info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
                                                                     show_label=True,
                                                                     interactive=True,
-                                                                    elem_id="gemini_model")
-
-                        self.gemini_prompt_input_field = gr.Textbox(label="Gemini Prompt",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt"),
-                                                                info="Instructions to the model. Basically tells the model how to translate.",
-                                                                show_label=True,
-                                                                interactive=True,
-                                                                elem_id="gemini_prompt")
-                        
-                        self.gemini_temperature_input_field = gr.Slider(label="Gemini Temperature",
-                                                                    value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature")),
-                                                                    minimum=0.0,
-                                                                    maximum=2.0,
-                                                                    info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
+                                                                    elem_id="gemini_top_p")
+                            
+                            self.gemini_top_k_input_field = gr.Textbox(label="Gemini Top K",
+                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k"),
+                                                                    info="Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.",
                                                                     show_label=True,
                                                                     interactive=True,
-                                                                    elem_id="gemini_temperature")
-                        
-                        self.gemini_top_p_input_field = gr.Textbox(label="Gemini Top P",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p"),
-                                                                info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
-                                                                show_label=True,
-                                                                interactive=True,
-                                                                elem_id="gemini_top_p")
-                        
-                        self.gemini_top_k_input_field = gr.Textbox(label="Gemini Top K",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k"),
-                                                                info="Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.",
-                                                                show_label=True,
-                                                                interactive=True,
-                                                                elem_id="gemini_top_k")
+                                                                    elem_id="gemini_top_k")
 
-                        self.gemini_candidate_count_input_field = gr.Textbox(label="Gemini Candidate Count",
-                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count"),
-                                                                            info="The number of candidates to generate for each input message. Do not change this.",
+                            self.gemini_candidate_count_input_field = gr.Textbox(label="Gemini Candidate Count",
+                                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count"),
+                                                                                info="The number of candidates to generate for each input message. Do not change this.",
+                                                                                show_label=True,
+                                                                                interactive=False,
+                                                                                elem_id="gemini_candidate_count")
+
+                            self.gemini_stream_input_field = gr.Textbox(label="Gemini Stream",
+                                                                    value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream"),
+                                                                    info="If set, partial message deltas will be sent, like in Gemini chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
+                                                                    show_label=True,
+                                                                    interactive=False,
+                                                                    elem_id="gemini_stream")
+                            
+                            self.gemini_stop_sequences_input_field = gr.Textbox(label="Gemini Stop Sequences",
+                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences"),
+                                                                            info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
                                                                             show_label=True,
                                                                             interactive=False,
-                                                                            elem_id="gemini_candidate_count")
+                                                                            elem_id="gemini_stop_sequences")
 
-                        self.gemini_stream_input_field = gr.Textbox(label="Gemini Stream",
-                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream"),
-                                                                info="If set, partial message deltas will be sent, like in Gemini chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
-                                                                show_label=True,
-                                                                interactive=False,
-                                                                elem_id="gemini_stream")
-                        
-                        self.gemini_stop_sequences_input_field = gr.Textbox(label="Gemini Stop Sequences",
-                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences"),
-                                                                        info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
-                                                                        show_label=True,
-                                                                        interactive=False,
-                                                                        elem_id="gemini_stop_sequences")
-
-                        self.gemini_max_output_tokens_input_field = gr.Textbox(label="Gemini Max Output Tokens",
-                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"),
-                                                                            info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
-                                                                            show_label=True,
-                                                                            interactive=True,
-                                                                            elem_id="gemini_max_output_tokens")
+                            self.gemini_max_output_tokens_input_field = gr.Textbox(label="Gemini Max Output Tokens",
+                                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"),
+                                                                                info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
+                                                                                show_label=True,
+                                                                                interactive=True,
+                                                                                elem_id="gemini_max_output_tokens")
                         
 
                     with gr.Row():

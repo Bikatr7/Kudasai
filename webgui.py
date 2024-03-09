@@ -147,6 +147,60 @@ class KudasaiGUI:
                 
                 except:
                     return ""
+                
+##-------------------start-of-set_kijiku_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
+            async def set_kijiku_api_key(api_key) -> None:
+
+                """
+
+                Sets the kijiku api key.
+
+                Parameters:
+                api_key (str) : The api key.
+
+                """
+
+                ## next api key
+                try:
+                    if(Kijiku.LLM_TYPE == "openai"):
+                        OpenAIService.set_api_key(str(api_key))
+                        is_valid, e = await OpenAIService.test_api_key_validity()
+
+
+                    else:
+
+                        GeminiService.redefine_client()
+                        GeminiService.set_api_key(str(api_key))
+                        is_valid, e = await GeminiService.test_api_key_validity()
+
+                    if(is_valid == False and e is not None):
+                        raise e
+                    
+                except:
+                    raise gr.Error("Invalid API key")
+                
+##-------------------start-of-update_kijiku_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
+            def update_kijiku_api_key(api_key) -> None:
+
+                """
+
+                Updates the kijiku api key.
+
+                Parameters:
+                api_key (str) : The api key.
+
+                """
+
+                ## also gonna want to update the api key file with the new api key
+                if(Kijiku.LLM_TYPE == "openai"):
+                    path_to_api_key = FileEnsurer.openai_api_key_path
+
+                else:
+                    path_to_api_key = FileEnsurer.gemini_api_key_path
+
+                FileEnsurer.standard_overwrite_file(path_to_api_key, base64.b64encode(str(api_key).encode('utf-8')).decode('utf-8'), omit=True)
 
 ##-------------------start-of-create_new_key_value_tuple_pairs()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
 
@@ -833,7 +887,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            async def kijiku_translate_button_click(input_txt_file:str, input_text:str, api_key_input:str, llm_type:str) -> typing.Tuple[str, str, str]:
+            async def kijiku_translate_button_click(input_txt_file:str, input_text:str, api_key:str, llm_type:str) -> typing.Tuple[str, str, str]:
 
                 """
                 
@@ -872,33 +926,14 @@ class KudasaiGUI:
                 JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
 
                 ## next, set the llm type
-                if(llm_type == "openai"):
-                    Kijiku.LLM_TYPE = llm_type
-
-                elif(llm_type == "gemini"):
-                    Kijiku.LLM_TYPE = "gemini"
+                if(llm_type == "OpenAI"):
+                    Kijiku.LLM_TYPE = "openai" 
 
                 else:
-                    raise gr.Error("Invalid LLM type")
+                    Kijiku.LLM_TYPE = "gemini"
+                    GeminiService.redefine_client()
 
-                ## next api key
-                try:
-                    if(Kijiku.LLM_TYPE == "openai"):
-                        OpenAIService.set_api_key(str(api_key_input))
-                        is_valid, e = await OpenAIService.test_api_key_validity()
-
-
-                    else:
-
-                        GeminiService.redefine_client()
-                        GeminiService.set_api_key(str(api_key_input))
-                        is_valid, e = await GeminiService.test_api_key_validity()
-
-                    if(is_valid == False and e is not None):
-                        raise e
-                    
-                except:
-                    raise gr.Error("Invalid API key")
+                await set_kijiku_api_key(api_key)
                 
                 if(input_txt_file is not None):
                     text_to_translate = gui_get_text_from_file(input_txt_file)
@@ -919,15 +954,14 @@ class KudasaiGUI:
 
                 ## Log text is cleared from the client, so we need to get it from the log file
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
-
-                ## also gonna want to update the api key file with the new api key
-                FileEnsurer.standard_overwrite_file(FileEnsurer.openai_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
+                
+                update_kijiku_api_key(api_key)
 
                 return translated_text, je_check_text, log_text
             
 ##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def kijiku_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str) -> str:
+            async def kijiku_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str, api_key:str) -> str:
 
 
                 """
@@ -945,17 +979,16 @@ class KudasaiGUI:
                 """
 
                 ## next, set the llm type
-                if(llm_type == "openai"):
-                    Kijiku.LLM_TYPE = llm_type
-
-                elif(llm_type == "gemini"):
-                    Kijiku.LLM_TYPE = "gemini"
+                if(llm_type == "OpenAI"):
+                    Kijiku.LLM_TYPE = "openai"
 
                 else:
-                    raise gr.Error("Invalid LLM type")
+                    Kijiku.LLM_TYPE = "gemini"
+                    GeminiService.redefine_client()
+
+                await set_kijiku_api_key(api_key)
 
                 model = GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model") if Kijiku.LLM_TYPE == "openai" else GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model")
-
 
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
@@ -974,6 +1007,8 @@ class KudasaiGUI:
                 cost_estimation = "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
                 
                 gr.Info(cost_estimation)
+
+                update_kijiku_api_key(api_key)
 
                 return cost_estimation
             
@@ -1504,7 +1539,29 @@ class KudasaiGUI:
                 else:
                     gr.Info("Preprocessed text copied to Kijiku")
                     return input_text
+                
+##-------------------start-of-switch_kijiku_api_key_value()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
+            def switch_kijiku_api_key_value(llm_type) -> str:
 
+                """
+                
+                Switches the LLM type value.
+
+                Parameters:
+                llm_type (str) : The LLM type.
+
+                Returns:
+                llm_type (str) : The LLM type.
+
+                """
+
+                if(llm_type == "OpenAI"):
+                    return get_saved_openai_api_key()
+                
+                else:
+                    return get_saved_gemini_api_key()
+                
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-load()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1592,7 +1649,8 @@ class KudasaiGUI:
                                                         inputs=[
                                                             self.input_txt_file_kijiku, ## input txt file to calculate costs
                                                             self.input_text_kijiku,
-                                                            self.llm_option], ## llm option input
+                                                            self.llm_option,
+                                                            self.kijiku_api_key_input], ## api key input
                 
                                                         outputs=[self.kijiku_translated_text_output_field]) ## functions as an output field for the cost output field
             
@@ -1836,6 +1894,13 @@ class KudasaiGUI:
                                     inputs=[],
                                     
                                     outputs=[self.debug_log_output_field_log_tab, self.error_log])
+            
+##-------------------start-of-kijiku_api_key_input.change()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.llm_option.change(switch_kijiku_api_key_value,
+                                             inputs=[self.llm_option],
+                                            
+                                            outputs=[self.kijiku_api_key_input])
             
 ##-------------------start-of-save_to_file_indexed_text_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             

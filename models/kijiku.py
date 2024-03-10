@@ -804,7 +804,7 @@ class Kijiku:
         Logger.log_barrier()
 
         if(Kijiku.LLM_TYPE == "gemini"):
-            Logger.log_action("As of Kudasai v3.4.0, Gemini Pro is Free to use", output=True, omit_timestamp=True)
+            Logger.log_action(f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro is Free to use", output=True, omit_timestamp=True)
         
         Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
         Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)

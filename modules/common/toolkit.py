@@ -7,6 +7,7 @@ import platform
 import subprocess
 
 class Toolkit():
+    
     """
     
     A class containing various functions that are used throughout Kudasai.

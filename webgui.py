@@ -262,8 +262,7 @@ class KudasaiGUI:
             ## tab 1 | Main
             with gr.Tab("Kudasai") as self.kudasai_tab:
 
-
-                ## tab 3 | indexing
+                ## tab 2 | indexing
                 with gr.Tab("Indexing | Kairyou") as self.indexing_tab:
                     with gr.Row():
 
@@ -271,8 +270,8 @@ class KudasaiGUI:
                         with gr.Column():
                             self.input_txt_file_indexing = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath')
                             self.input_json_file_indexing = gr.File(label='Replacements JSON file', file_count='single', file_types=['.json'], type='filepath')
-                            self.knowledge_base_file = gr.File(label='Knowledge Base Single File', file_count='single', file_types=['.txt'], type='filepath')
-                            self.knowledge_base_directory = gr.File(label='Knowledge Base Directory', file_count='directory', type='filepath')
+                            self.input_knowledge_base_file = gr.File(label='Knowledge Base Single File', file_count='single', file_types=['.txt'], type='filepath')
+                            self.input_knowledge_base_directory = gr.File(label='Knowledge Base Directory', file_count='directory', type='filepath')
 
                             ## run and clear buttons
                             with gr.Row():
@@ -280,7 +279,7 @@ class KudasaiGUI:
                                 self.indexing_clear_button = gr.Button('Clear', variant='stop')
 
                             with gr.Row():
-                                self.send_to_kairyou = gr.Button('Send to Kairyou (Preprocessing)')
+                                self.send_to_kairyou_button = gr.Button('Send to Kairyou (Preprocessing)')
 
                         ## output fields
                         with gr.Column():
@@ -318,12 +317,12 @@ class KudasaiGUI:
                                 self.preprocessing_clear_button = gr.Button('Clear', variant='stop')
 
                             with gr.Row():
-                                self.send_to_kaiseki = gr.Button('Send to Kaiseki (DeepL)')
-                                self.send_to_kijiku = gr.Button('Send to Kijiku (LLMs)')
+                                self.send_to_kaiseki_button = gr.Button('Send to Kaiseki (DeepL)')
+                                self.send_to_kijiku_button = gr.Button('Send to Kijiku (LLMs)')
 
                         ## output fields
                         with gr.Column():
-                            self.preprocess_output_field  = gr.Textbox(label='Preprocessed text', lines=44, max_lines=44, show_label=True, interactive=False, show_copy_button=True)
+                            self.preprocessing_output_field  = gr.Textbox(label='Preprocessed text', lines=44, max_lines=44, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessed_text = gr.Button('Save As')
@@ -350,27 +349,27 @@ class KudasaiGUI:
                             self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True)
 
                             with gr.Row():
-                                self.kaiseki_api_key_input = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True, type='password')
+                                self.kaiseki_api_key_input_field = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
-                                self.translate_button_kaiseki = gr.Button('Translate', variant="primary")
-                                self.clear_button_kaiseki = gr.Button('Clear', variant='stop')
+                                self.kaiseki_translate_button = gr.Button('Translate', variant="primary")
+                                self.kaiseki_clear_button = gr.Button('Clear', variant='stop')
 
                         ## output fields
                         with gr.Column():
-                            self.output_field_kaiseki = gr.Textbox(label='Translated Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
+                            self.kaiseki_translated_text_output_field = gr.Textbox(label='Translated Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_kaiseki = gr.Button('Save As')
+                                self.save_to_file_kaiseki_translated_text = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kaiseki_je_check_text_field = gr.Textbox(label='JE Check Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
+                            self.kaiseki_je_check_text_output_field = gr.Textbox(label='JE Check Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_je_check_text_kaiseki = gr.Button('Save As')
+                                self.save_to_file_kaiseki_je_check_text = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kaiseki_tab = gr.Textbox(label='Debug Log', lines=31,max_lines=31, interactive=False, show_copy_button=True)
+                            self.kaiseki_debug_log_output_field = gr.Textbox(label='Debug Log', lines=31,max_lines=31, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
@@ -386,33 +385,33 @@ class KudasaiGUI:
                             self.input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='filepath')
 
                             with gr.Row():
-                                self.llm_option = gr.Dropdown(label='LLM Option', choices=["OpenAI", "Gemini"], value="OpenAI", show_label=True, interactive=True)
+                                self.llm_option_dropdown = gr.Dropdown(label='LLM Option', choices=["OpenAI", "Gemini"], value="OpenAI", show_label=True, interactive=True)
                             
                             with gr.Row():
                                 self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_openai_api_key, lines=1, max_lines=2, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
-                                self.translate_button_kijiku = gr.Button('Translate', variant="primary")
-                                self.calculate_costs_button_kijiku = gr.Button('Calculate Costs', variant='secondary')
+                                self.kijiku_translate_button = gr.Button('Translate', variant="primary")
+                                self.kijiku_calculate_costs_button = gr.Button('Calculate Costs', variant='secondary')
 
                             with gr.Row():
-                                self.clear_button_kijiku = gr.Button('Clear', variant='stop')
+                                self.kijiku_clear_button = gr.Button('Clear', variant='stop')
 
                         ## output fields
                         with gr.Column():
                             self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_kijiku = gr.Button('Save As')
+                                self.save_to_file_kijiku_translated_text = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kijiku_je_check_text_field = gr.Textbox(label='JE Check Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
+                            self.kijiku_je_check_text_output_field = gr.Textbox(label='JE Check Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_je_check_text_kijiku = gr.Button('Save As')
+                                self.save_to_file_kijiku_je_check_text = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_kijiku_tab = gr.Textbox(label='Debug Log', lines=43, max_lines=43, interactive=False, show_copy_button=True)
+                            self.kijiku_debug_log_output_field = gr.Textbox(label='Debug Log', lines=43, max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
@@ -460,7 +459,7 @@ class KudasaiGUI:
                                                                         interactive=True,
                                                                         elem_id="je_check_mode")
                             
-                            self.number_of_malformed_batch_retries_field = gr.Textbox(label="Number Of Malformed Batch Retries",
+                            self.number_of_malformed_batch_retries_input_field = gr.Textbox(label="Number Of Malformed Batch Retries",
                                                                                 value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_malformed_batch_retries"),
                                                                                 info="(Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.",
                                                                                 lines=1,
@@ -654,29 +653,29 @@ class KudasaiGUI:
                         
 
                     with gr.Row():
-                        self.reset_to_default_kijiku_settings_button = gr.Button('Reset to Default', variant='secondary')
-                        self.discard_changes_button = gr.Button('Discard Changes', variant='stop')
+                        self.kijiku_settings_reset_to_default_button = gr.Button('Reset to Default', variant='secondary')
+                        self.kijiku_settings_discard_changes_button = gr.Button('Discard Changes', variant='stop')
 
                     with gr.Row():
-                        self.apply_changes_button = gr.Button('Apply Changes', variant='primary')
+                        self.kijiku_settings_apply_changes_button = gr.Button('Apply Changes', variant='primary')
 
                 ## tab 7 | Logging
                 with gr.Tab("Logging") as self.logging_tab:
 
                     with gr.Row():
-                        self.debug_log_output_field_log_tab = gr.Textbox(label='Debug Log', lines=10, interactive=False)
+                        self.logging_tab_debug_log_output_field = gr.Textbox(label='Debug Log', lines=10, interactive=False)
 
                     with gr.Row():
                         self.save_to_file_debug_log_logging_tab = gr.Button('Save As')
 
                     with gr.Row():
-                        self.error_log = gr.Textbox(label='Error Log', lines=10, interactive=False)
+                        self.logging_tab_error_log_output_field = gr.Textbox(label='Error Log', lines=10, interactive=False)
 
                     with gr.Row():
-                        self.save_to_file_error_log = gr.Button('Save As')
+                        self.save_to_file_error_log_logging_tab = gr.Button('Save As')
 
                     with gr.Row():
-                        self.clear_log_button = gr.Button('Clear Logs', variant='stop')
+                        self.logging_clear_logs_button = gr.Button('Clear Logs', variant='stop')
 
 ##-------------------start-of-Listener-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -693,27 +692,31 @@ class KudasaiGUI:
                 if(update_prompt != ""):
                     gr.Info("Update available, see https://github.com/Bikatr7/Kudasai/releases/latest/ for more information.")
 
-##-------------------start-of-indexing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                if(Kudasai.connection == False):
+                    gr.Warning("No internet connection, Auto-MTL features disabled (Indexing and Preprocessing still functional). Please reload the page when you have an internet connection.")
+
+##-------------------start-of-index()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     
-            def indexing_run_button_click(input_txt_file:gr.File, input_json_file_preprocessing:gr.File, knowledge_base_file:str, knowledge_base_directory:typing.List[str]) -> typing.Tuple[str, str, str, str]:
+            def index(input_txt_file:gr.File, input_json_file_preprocessing:gr.File, input_knowledge_base_file:gr.File, input_knowledge_base_directory:typing.List[str]) -> typing.Tuple[str, str, str, str, str]:
                     
                 """
                 
-                Runs the indexing and displays the results in the indexing output field. If no txt file is selected, an error is raised. If no json file is selected, an error is raised. If no knowledge base file is selected, an error is raised.
+                Runs the indexing and displays the results in the indexing output field. If no txt file is selected, an error is raised. If no json file is selected, an error is raised. If no knowledge base file or directory is selected, an error is raised.
                 Knowledge base file or directory must be selected, but not both.
-                Also displays the indexing results, and the debug log.
+                Also displays the indexing results, the debug log, and the error log.
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
                 input_json_file_preprocessing (gr.File) : The input json file.
-                knowledge_base_file (gr.File) : The knowledge base file.
-                knowledge_base_directory (gr.File) : The knowledge base directory.
+                input_knowledge_base_file (gr.File) : The knowledge base file.
+                input_knowledge_base_directory (typing.List[str]) : List of knowledge base file paths.
 
                 Returns:
                 indexed_text (str) : The indexed text.
                 indexing_log (str) : The indexing log.
                 log_text (str) : The log text for the Indexing tab.
                 log_text (str) : The log text for the log tab.
+                error_log (str) : The error log for the log tab.
 
                 """
 
@@ -722,12 +725,15 @@ class KudasaiGUI:
                     if(input_json_file_preprocessing is not None):
 
                         ## must be one, but not both
-                        if(knowledge_base_file is not None or knowledge_base_directory is not None) and not (knowledge_base_file is not None and knowledge_base_directory is not None):
+                        if(input_knowledge_base_file is not None or input_knowledge_base_directory is not None) and not (input_knowledge_base_file is not None and input_knowledge_base_directory is not None):
 
 
                             ## looks like file will just be the file path
                             ## but directory will be a list of file paths, I can't think of a workaround right now, so will have to update kairyou to accept a list of file paths. 
                             ## wait nvm im a genius, let's just read all the files and concatenate them into one string lmfao
+
+                            ## index does not produce an error log
+                            error_log = ""
 
                             knowledge_base_paths = []
                             knowledge_base_string = ""
@@ -735,16 +741,16 @@ class KudasaiGUI:
                             text_to_index = gui_get_text_from_file(input_txt_file)
                             replacements = gui_get_json_from_file(input_json_file_preprocessing)
 
-                            if(knowledge_base_file is not None):
-                                knowledge_base_paths.append(knowledge_base_file)
+                            if(input_knowledge_base_file is not None):
+                                knowledge_base_paths.append(input_knowledge_base_file)
 
                             else:
-                                knowledge_base_paths = [file for file in knowledge_base_directory]
+                                knowledge_base_paths = [file for file in input_knowledge_base_directory]
 
                             for file in knowledge_base_paths:
                                 knowledge_base_string += gui_get_text_from_file(file)
 
-                            gr.Info("Indexing takes a while, please be patient.")
+                            gr.Info("Indexing may take a while, please be patient.")
 
                             unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base_string, replacements)
 
@@ -753,10 +759,10 @@ class KudasaiGUI:
 
                             indexed_text = Kudasai.mark_indexed_names(text_to_index, unique_names)
 
-                            return indexed_text, indexing_log, log_text, log_text
+                            return indexed_text, indexing_log, log_text, log_text, error_log
 
                         else:
-                            raise gr.Error("No knowledge base file or directory selected")
+                            raise gr.Error("No knowledge base file or directory selected (or both selected, select one or the other)")
                     
                     else:
                         raise gr.Error("No JSON file selected")
@@ -764,28 +770,31 @@ class KudasaiGUI:
                 else:
                     raise gr.Error("No TXT file selected")
 
-##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def preprocessing_run_button_click(input_txt_file:gr.File, input_json_file_preprocessing:gr.File, input_text:str) -> typing.Tuple[str, str, str, str]:
+            def preprocess(input_txt_file:gr.File, input_json_file_preprocessing:gr.File, input_text_field_contents:str) -> typing.Tuple[str, str, str, str, str]:
 
                 """
 
                 Runs the preprocessing and displays the results in the preprocessing output field. If no txt file is selected, an error is raised. If no json file is selected, an error is raised.
-                Also displays the preprocessing results, and the debug log.
+                Also displays the preprocessing results, the debug log, and the error log.
+                Prioritizes the txt file input over the text input field.
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
                 input_json_file_preprocessing (gr.File) : The input json file.
+                input_text (str) : The input text.
 
                 Returns:
                 text_to_preprocess (str) : The preprocessed text.
                 preprocessing_log (str) : The preprocessing log.
                 log_text (str) : The log text for the Kairyou tab.
                 log_text (str) : The log text for the log tab.
+                error_log (str) : The error log for the log tab.
 
                 """
 
-                if(input_txt_file == None and input_text == ""):
+                if(input_txt_file == None and input_text_field_contents == ""):
                     raise gr.Error("No TXT file selected and no text input")
 
                 if(input_json_file_preprocessing is not None):
@@ -794,7 +803,7 @@ class KudasaiGUI:
                         text_to_preprocess = gui_get_text_from_file(input_txt_file)
 
                     else:
-                        text_to_preprocess = input_text
+                        text_to_preprocess = input_text_field_contents
 
                     replacements = gui_get_json_from_file(input_json_file_preprocessing)
 
@@ -806,24 +815,24 @@ class KudasaiGUI:
 
                     log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
-                    return preprocessed_text, preprocessing_log, log_text, log_text
+                    return preprocessed_text, preprocessing_log, log_text, log_text, error_log
             
                 else:
                     raise gr.Error("No JSON file selected")
                 
 ##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def kaiseki_translate_button_click(input_txt_file:gr.File, input_text:gr.Textbox, api_key_input:gr.Textbox) -> typing.Tuple[str, str, str]:
+            def translate_with_kaiseki(input_txt_file:gr.File, input_text:str, api_key_input:str) -> typing.Tuple[str, str, str, str]:
 
                 """
                 
                 Translates the text in the input_txt_file or input_text using the DeepL API. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
-                Displays the translated text, and the debug log.
+                Displays the translated text, the debug log, and the error log.
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
-                input_text (gr.Textbox) : The input text.
-                api_key_input (gr.Textbox) : The API key input.
+                input_text (str) : The input text.
+                api_key_input (str) : The API key input.
 
                 Returns:
                 translated_text (str) : The translated text.
@@ -833,7 +842,7 @@ class KudasaiGUI:
                 """
 
                 if(Kudasai.connection == False):
-                    raise gr.Error("No internet connection detected, please connect to the internet to use translation features of Kudasai.")
+                    raise gr.Error("No internet connection detected, please connect to the internet and reload the page to use translation features of Kudasai.")
 
                 ## in case of subsequent runs, we need to reset the static variables
                 Kaiseki.reset_static_variables()
@@ -880,19 +889,21 @@ class KudasaiGUI:
                 ## Log text is cleared from the client, so we need to get it from the log file
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
+                error_text = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
+
                 ## also gonna want to update the api key file with the new api key
                 FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
 
-                return translated_text, je_check_text, log_text
+                return translated_text, je_check_text, log_text, error_text
             
-##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-translate_with_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            async def kijiku_translate_button_click(input_txt_file:str, input_text:str, api_key:str, llm_type:str) -> typing.Tuple[str, str, str]:
+            async def translate_with_kijiku(input_txt_file:gr.File, input_text:str, api_key:str, llm_type:str) -> typing.Tuple[str, str, str, str]:
 
                 """
                 
-                Translates the text in the input_txt_file or input_text using the OpenAI API. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
-                Displays the translated text, and the debug log.
+                Translates the text in the input_txt_file or input_text using either OpenAI or Gemini. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
+                Displays the translated text, the debug log, and the error log.
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
@@ -903,6 +914,7 @@ class KudasaiGUI:
                 translated_text (str) : The translated text.
                 je_check_text (str) : The je check text.
                 log_text (str) : The log text for the Log tab.
+                error_text (str) : The error text for the Log tab.
                 
                 """
 
@@ -911,7 +923,7 @@ class KudasaiGUI:
                     raise gr.Error("No TXT file or text selected")
 
                 if(Kudasai.connection == False):
-                    raise gr.Error("No internet connection detected, please connect to the internet to use translation features of Kudasai.")
+                    raise gr.Error("No internet connection detected, please connect to the internet and reload the page to use translation features of Kudasai.")
 
                 ## in case of subsequent runs, we need to reset the static variables
                 Kijiku.reset_static_variables()
@@ -931,8 +943,8 @@ class KudasaiGUI:
 
                 else:
                     Kijiku.LLM_TYPE = "gemini"
-                    GeminiService.redefine_client()
 
+                ## api key as well
                 await set_kijiku_api_key(api_key)
                 
                 if(input_txt_file is not None):
@@ -941,7 +953,7 @@ class KudasaiGUI:
                 else:
                     text_to_translate = input_text
 
-                ## need to convert to list of strings
+                ## need to convert the text to translate to list of strings
                 Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
 
                 ## commence translation
@@ -954,10 +966,13 @@ class KudasaiGUI:
 
                 ## Log text is cleared from the client, so we need to get it from the log file
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+
+                error_text = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
                 
+                ## then overwrite the api key file with the new api key
                 update_kijiku_api_key(api_key)
 
-                return translated_text, je_check_text, log_text
+                return translated_text, je_check_text, log_text, error_text
             
 ##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -966,24 +981,30 @@ class KudasaiGUI:
 
                 """
                 
-                Calculates the cost of the text in the input_txt_file or input_text using the OpenAI API. If no txt file or text is selected, an error is raised.
+                Calculates the cost of the text in the input_txt_file or input_text using the OpenAI API or Gemini API. If no txt file or text is selected, an error is raised.
                 Displays the cost, and the debug log.
 
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
-                input_text (gr.Textbox) : The input text.
+                input_text (str) : The input text.
+                llm_type (str) : The language model type.
+                api_key (str) : The
 
                 Returns:
                 cost_estimation (str) : The cost estimation formatted as a string.
                 
                 """
 
-                ## next, set the llm type
+                cost_estimation = ""
+
+                ## first set the llm type
                 if(llm_type == "OpenAI"):
                     Kijiku.LLM_TYPE = "openai"
 
                 else:
                     Kijiku.LLM_TYPE = "gemini"
+
+                    ## normally done in Kijiku.commence_translation, but since we're not translating, we need to do it here
                     GeminiService.redefine_client()
 
                 await set_kijiku_api_key(api_key)
@@ -1004,7 +1025,10 @@ class KudasaiGUI:
 
                 num_tokens, estimated_cost, model = Kijiku.estimate_cost(model)
 
-                cost_estimation = "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
+                if(Kijiku.LLM_TYPE == "gemini"):
+                    cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro is Free to use\n"
+
+                cost_estimation += "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
                 
                 gr.Info(cost_estimation)
 
@@ -1012,9 +1036,9 @@ class KudasaiGUI:
 
                 return cost_estimation
             
-##-------------------start-of-indexing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_index_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def indexing_clear_button_click() -> typing.Tuple[None, None, None, None, str, str, str]:
+            def clear_index_tab() -> typing.Tuple[None, None, None, None, str, str, str]:
 
 
                 """
@@ -1024,7 +1048,7 @@ class KudasaiGUI:
                 Returns:
                 input_txt_file_indexing (gr.File) : An empty file.
                 input_json_file_indexing (gr.File) : An empty file.
-                knowledge_base_file (gr.File) : An empty file.
+                input_knowledge_base_file (gr.File) : An empty file.
                 indexing_output_field (str) : An empty string.
                 indexing_results_output_field (str) : An empty string.
                 debug_log_output_field_indexing_tab (str) : An empty string.
@@ -1033,18 +1057,18 @@ class KudasaiGUI:
 
                 input_txt_file_indexing = None
                 input_json_file_indexing = None
-                knowledge_base_file = None
-                knowledge_base_directory = None
+                input_knowledge_base_file = None
+                input_knowledge_base_directory = None
 
                 indexing_output_field = ""
                 indexing_results_output_field = ""
                 debug_log_output_field_indexing_tab = ""
 
-                return input_txt_file_indexing, input_json_file_indexing, knowledge_base_file, knowledge_base_directory, indexing_output_field, indexing_results_output_field, debug_log_output_field_indexing_tab
+                return input_txt_file_indexing, input_json_file_indexing, input_knowledge_base_file, input_knowledge_base_directory, indexing_output_field, indexing_results_output_field, debug_log_output_field_indexing_tab
 
-##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
+##-------------------start-of-clear_preprocessing_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
-            def preprocessing_clear_button_click() -> typing.Tuple[None, None, str, str, str, str]:
+            def clear_preprocessing_tab() -> typing.Tuple[None, None, str, str, str, str]:
 
                 """
 
@@ -1053,7 +1077,7 @@ class KudasaiGUI:
                 Returns:
                 input_txt_file (gr.File) : An empty file.
                 input_json_file_preprocessing (gr.File) : An empty file.
-                preprocess_output_field (str) : An empty string.
+                preprocessing_output_field (str) : An empty string.
                 preprocessing_results_output_field (str) : An empty string.
                 debug_log_output_field_preprocess_tab (str) : An empty string.
 
@@ -1063,15 +1087,15 @@ class KudasaiGUI:
                 input_json_file_preprocessing = None
 
                 input_text = ""
-                preprocess_output_field = ""
+                preprocessing_output_field = ""
                 preprocessing_results_output_field = ""
                 debug_log_output_field_preprocess_tab = ""
 
-                return input_txt_file, input_json_file_preprocessing, input_text, preprocess_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
+                return input_txt_file, input_json_file_preprocessing, input_text, preprocessing_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
             
 ##-------------------start-of-kaiseki_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def kaiseki_clear_button_click() -> typing.Tuple[None, str, str, str, str]:
+            def clear_kaiseki_tab() -> typing.Tuple[None, str, str, str, str]:
 
                 """
                 
@@ -1080,31 +1104,31 @@ class KudasaiGUI:
                 Returns:
                 input_txt_file_kaiseki (gr.File) : An empty file.
                 input_text_kaiseki (str) : An empty string.
-                output_field_kaiseki (str) : An empty string.
+                kaiseki_translated_text_output_field (str) : An empty string.
                 je_check_text_field_kaiseki (str) : An empty string.
-                debug_log_output_field_kaiseki_tab (str) : An empty string.
+                kaiseki_debug_log_output_field (str) : An empty string.
 
                 """
 
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
 
-                ## Same as above, we can assume that the user wants to cancel the translation
+                ## Same as above, we can assume that the user wants to cancel the translation if it's ongoing
                 FileEnsurer.do_interrupt = True
                 
                 input_file_kaiseki = None
 
                 input_text_kaiseki = ""
 
-                output_field_kaiseki = ""
+                kaiseki_translated_text_output_field = ""
                 je_check_text_field_kaiseki = ""
-                debug_log_output_field_kaiseki_tab = ""
+                kaiseki_debug_log_output_field = ""
 
-                return input_file_kaiseki, input_text_kaiseki, output_field_kaiseki, je_check_text_field_kaiseki, debug_log_output_field_kaiseki_tab
+                return input_file_kaiseki, input_text_kaiseki, kaiseki_translated_text_output_field, je_check_text_field_kaiseki, kaiseki_debug_log_output_field
             
-##-------------------start-of-kijiku_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_kijiku_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def kijiku_clear_button_click() -> typing.Tuple[None, str, gr.File, str, str, str]:
+            def clear_kijiku_tab() -> typing.Tuple[None, str, gr.File, str, str, str]:
 
                 """
                 
@@ -1115,14 +1139,14 @@ class KudasaiGUI:
                 input_text_kijiku (str) : An empty string.
                 kijiku_translated_text_output_field (str) : An empty string.
                 je_check_text_field_kijiku (str) : An empty string.
-                debug_log_output_field_kijiku_tab (str) : An empty string.
+                kijiku_debug_log_output_field (str) : An empty string.
 
                 """
 
                 ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
                 self.is_translation_ongoing = False
 
-                ## Same as above, we can assume that the user wants to cancel the translation
+                ## Same as above, we can assume that the user wants to cancel the translation if it's ongoing
                 FileEnsurer.do_interrupt = True
 
                 input_file_kijiku = None
@@ -1134,9 +1158,9 @@ class KudasaiGUI:
 
                 kijiku_translated_text_output_field = ""
                 je_check_text_field_kijiku = ""
-                debug_log_output_field_kijiku_tab = ""
+                kijiku_debug_log_output_field = ""
 
-                return input_file_kijiku, input_text_kijiku, input_kijiku_rules_file, kijiku_translated_text_output_field, je_check_text_field_kijiku, debug_log_output_field_kijiku_tab
+                return input_file_kijiku, input_text_kijiku, input_kijiku_rules_file, kijiku_translated_text_output_field, je_check_text_field_kijiku, kijiku_debug_log_output_field
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -1147,15 +1171,15 @@ class KudasaiGUI:
                 Clears the logs on the log tab.
 
                 Returns:
-                debug_log_output_field_log_tab (str) : An empty string.
-                error_log (str) : An empty string.
+                logging_tab_debug_log_output_field (str) : An empty string.
+                logging_tab_error_log_output_field (str) : An empty string.
 
                 """
 
-                debug_log_output_field_log_tab = ""
-                error_log = ""
+                logging_tab_debug_log_output_field = ""
+                logging_tab_error_log_output_field = ""
 
-                return debug_log_output_field_log_tab, error_log
+                return logging_tab_debug_log_output_field, logging_tab_error_log_output_field
 
 ##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1326,6 +1350,7 @@ class KudasaiGUI:
 
                 """
 
+                Refreshes the kijiku settings fields with the values from the kijiku rules file.                
 
                 """
 
@@ -1459,18 +1484,18 @@ class KudasaiGUI:
 
                 Returns:
                 log_text (str) : The log text.
-                error_log (str) : The error log.
+                logging_tab_error_log_output_field (str) : The error log.
 
                 """
 
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
-                error_log = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
+                logging_tab_error_log_output_field = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
 
-                return log_text, error_log
+                return log_text, logging_tab_error_log_output_field
             
-##-------------------start-of-send_to_kairyou()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-send_to_kairyou_button()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def send_to_kairyou(input_text:str) -> str:
+            def send_to_kairyou_button(input_text:str) -> str:
 
                 """
                 
@@ -1492,9 +1517,9 @@ class KudasaiGUI:
                     gr.Info("Indexed text copied to Kairyou")
                     return input_text
                 
-##-------------------start-of-send_to_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-send_to_kaiseki_button()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def send_to_kaiseki(input_text:str) -> str:
+            def send_to_kaiseki_button(input_text:str) -> str:
 
                 """"
                 
@@ -1516,9 +1541,9 @@ class KudasaiGUI:
                     gr.Info("Preprocessed text copied to Kaiseki")
                     return input_text
                 
-##-------------------start-of-send_to_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-send_to_kijiku_button()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def send_to_kijiku(input_text:str) -> str:
+            def send_to_kijiku_button(input_text:str) -> str:
 
                 """
                 
@@ -1568,135 +1593,140 @@ class KudasaiGUI:
 
             self.gui.load(webgui_update_check)
 
-##-------------------start-of-indexing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-index()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.indexing_run_button.click(indexing_run_button_click,
+            self.indexing_run_button.click(index,
                                             inputs=[
                                                 self.input_txt_file_indexing, ## input txt file to index
                                                 self.input_json_file_indexing, ## input json file
-                                                self.knowledge_base_file, ## knowledge base file
-                                                self.knowledge_base_directory], ## knowledge base directory
+                                                self.input_knowledge_base_file, ## knowledge base file
+                                                self.input_knowledge_base_directory], ## knowledge base directory
 
                                             outputs=[
                                                 self.indexing_output_field, ## indexed text
                                                 self.indexing_results_output_field, ## indexing results
                                                 self.debug_log_output_field_indexing_tab, ## debug log on indexing tab
-                                                self.debug_log_output_field_log_tab]) ## debug log on log tab
+                                                self.logging_tab_debug_log_output_field, ## debug log on log tab
+                                                self.logging_tab_error_log_output_field])
 
+##-------------------start-of-preprocess()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##-------------------start-of-preprocessing_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            self.preprocessing_run_button.click(fn=preprocessing_run_button_click, 
+            self.preprocessing_run_button.click(fn=preprocess, 
                                                 inputs=[
                                                     self.input_txt_file_preprocessing, ## input txt file to preprocess
                                                     self.input_json_file_preprocessing, ## replacements json file
                                                     self.input_text_kairyou], ## input text to preprocess                                                                        
 
                                                 outputs=[
-                                                    self.preprocess_output_field,  ## preprocessed text
+                                                    self.preprocessing_output_field,  ## preprocessed text
                                                     self.preprocessing_results_output_field,  ## kairyou results
                                                     self.debug_log_output_field_preprocess_tab, ## debug log on preprocess tab
-                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
+                                                    self.logging_tab_debug_log_output_field, ## debug log on log tab
+                                                    self.logging_tab_error_log_output_field]) ## error log on log tab
+            
 
+            
 ##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             ## for the actual translation, and the je check text
-            kaiseki_translation_process = self.translate_button_kaiseki.click(kaiseki_translate_button_click,
+            kaiseki_translation_process = self.kaiseki_translate_button.click(translate_with_kaiseki,
                                                 inputs=[
                                                     self.input_txt_file_kaiseki, ## input txt file to translate
                                                     self.input_text_kaiseki, ## input text to translate
-                                                    self.kaiseki_api_key_input], ## api key input
+                                                    self.kaiseki_api_key_input_field], ## api key input
                                                 
                                                 outputs=[
-                                                    self.output_field_kaiseki, ## translated text
-                                                    self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
-                                                    self.debug_log_output_field_log_tab]) ## debug log on log tab
+                                                    self.kaiseki_translated_text_output_field, ## translated text
+                                                    self.kaiseki_je_check_text_output_field, ## je check text field on kaiseki tab
+                                                    self.logging_tab_debug_log_output_field, ## debug log on log tab
+                                                    self.logging_tab_error_log_output_field]) ## error log on log tab
             ## for the kaiseki debug log
-            self.translate_button_kaiseki.click(fn=fetch_log_content,
+            self.kaiseki_translate_button.click(fn=fetch_log_content,
                                                 inputs=[],
 
-                                                outputs=[self.debug_log_output_field_kaiseki_tab], ## debug log on kaiseki tab
+                                                outputs=[self.kaiseki_debug_log_output_field], ## debug log on kaiseki tab
 
                                                 every=.1) ## update every 100ms
             
 
-##-------------------start-of-kijiku_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-translate_with_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             ## for the actual translation, and the je check text
-            kijiku_translation_process = self.translate_button_kijiku.click(kijiku_translate_button_click,
+            kijiku_translation_process = self.kijiku_translate_button.click(translate_with_kijiku,
                                                 inputs=[
                                                     self.input_txt_file_kijiku, ## input txt file to translate
                                                     self.input_text_kijiku, ## input text to translate
                                                     self.kijiku_api_key_input, ## api key input
-                                                    self.llm_option], ## llm option input
+                                                    self.llm_option_dropdown], ## llm option input
                                                 
                                                 outputs=[
                                                     self.kijiku_translated_text_output_field, ## translated text
-                                                    self.kijiku_je_check_text_field, ## je check text field on kijiku tab
-                                                    self.debug_log_output_field_log_tab])
+                                                    self.kijiku_je_check_text_output_field, ## je check text field on kijiku tab
+                                                    self.logging_tab_debug_log_output_field , ## debug log on log tab
+                                                    self.logging_tab_error_log_output_field]) ## error log on log tab
             ## for the kijiku debug log
-            self.translate_button_kijiku.click(fn=fetch_log_content,
+            self.kijiku_translate_button.click(fn=fetch_log_content,
                                                 inputs=[],
 
-                                                outputs=[self.debug_log_output_field_kijiku_tab], ## debug log on kijiku tab
+                                                outputs=[self.kijiku_debug_log_output_field], ## debug log on kijiku tab
 
                                                 every=.1) ## update every 100ms
             
 
 ##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.calculate_costs_button_kijiku.click(kijiku_calculate_costs_button_click,
+            self.kijiku_calculate_costs_button.click(kijiku_calculate_costs_button_click,
                                                         inputs=[
                                                             self.input_txt_file_kijiku, ## input txt file to calculate costs
                                                             self.input_text_kijiku,
-                                                            self.llm_option,
+                                                            self.llm_option_dropdown,
                                                             self.kijiku_api_key_input], ## api key input
                 
                                                         outputs=[self.kijiku_translated_text_output_field]) ## functions as an output field for the cost output field
             
-##-------------------start-of-indexing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_index_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.indexing_clear_button.click(indexing_clear_button_click,
+            self.indexing_clear_button.click(clear_index_tab,
                                             inputs=[],
                                             
                                             outputs=[
                                                 self.input_txt_file_indexing, ## input txt file
                                                 self.input_json_file_indexing, ## input json file
-                                                self.knowledge_base_file, ## knowledge base file
-                                                self.knowledge_base_directory, ## knowledge base directory
+                                                self.input_knowledge_base_file, ## knowledge base file
+                                                self.input_knowledge_base_directory, ## knowledge base directory
                                                 self.indexing_output_field, ## indexing output field
                                                 self.indexing_results_output_field, ## indexing results output field
                                                 self.debug_log_output_field_indexing_tab]) ## debug log on indexing tab
             
-##-------------------start-of-preprocessing_clear_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_preprocessing_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.preprocessing_clear_button.click(preprocessing_clear_button_click,
+            self.preprocessing_clear_button.click(clear_preprocessing_tab,
                                                   inputs=[],
 
                                                   outputs=[
                                                       self.input_txt_file_preprocessing, ## input txt file
                                                       self.input_json_file_preprocessing, ## input json file
                                                       self.input_text_kairyou, ## input text
-                                                      self.preprocess_output_field, ## preprocessed text output field
+                                                      self.preprocessing_output_field, ## preprocessed text output field
                                                       self.preprocessing_results_output_field, ## preprocessing results output field
                                                       self.debug_log_output_field_preprocess_tab])## debug log on preprocess tab
 
 ##-------------------start-of-clear_button_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.clear_button_kaiseki.click(kaiseki_clear_button_click,
+            self.kaiseki_clear_button.click(clear_kaiseki_tab,
                                             inputs=[],
 
                                             outputs=[
                                                 self.input_txt_file_kaiseki, ## input txt file
                                                 self.input_text_kaiseki, ## input text
-                                                self.output_field_kaiseki, ## translation output field
-                                                self.kaiseki_je_check_text_field, ## je check text field on kaiseki tab
-                                                self.debug_log_output_field_kaiseki_tab], ## debug log on kaiseki tab
+                                                self.kaiseki_translated_text_output_field, ## translation output field
+                                                self.kaiseki_je_check_text_output_field, ## je check text field on kaiseki tab
+                                                self.kaiseki_debug_log_output_field], ## debug log on kaiseki tab
 
                                             cancels=kaiseki_translation_process) ## cancels the translation process
 ##-------------------start-of-clear_button_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.clear_button_kijiku.click(kijiku_clear_button_click,
+            self.kijiku_clear_button.click(clear_kijiku_tab,
                                             inputs=[],
 
                                             outputs=[
@@ -1704,29 +1734,29 @@ class KudasaiGUI:
                                                 self.input_text_kijiku, ## input text
                                                 self.input_kijiku_rules_file, ## kijiku rules file
                                                 self.kijiku_translated_text_output_field, ## translation output field
-                                                self.kijiku_je_check_text_field, ## je check text field on kijiku tab
-                                                self.debug_log_output_field_kijiku_tab], ## debug log on kijiku tab
+                                                self.kijiku_je_check_text_output_field, ## je check text field on kijiku tab
+                                                self.kijiku_debug_log_output_field], ## debug log on kijiku tab
             
                                             cancels=kijiku_translation_process)
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.clear_log_button.click(clear_log_button_click,
+            self.logging_clear_logs_button.click(clear_log_button_click,
                                         inputs=[],
 
                                         outputs=[
-                                            self.debug_log_output_field_log_tab,
-                                            self.error_log])
+                                            self.logging_tab_debug_log_output_field,
+                                            self.logging_tab_error_log_output_field])
             
 ##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.apply_changes_button.click(apply_new_kijiku_settings,
+            self.kijiku_settings_apply_changes_button.click(apply_new_kijiku_settings,
                                             inputs=[
                                                 self.input_kijiku_rules_file, ## kijiku rules file
                                                 self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
                                                 self.number_of_lines_per_batch_input_field, ## num lines input field
                                                 self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                 self.je_check_mode_input_field, ## je check mode input field
-                                                self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
+                                                self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                 self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                 self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
                                                 self.openai_model_input_field, ## openai model input field
@@ -1754,7 +1784,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-reset_to_default_kijiku_settings_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.reset_to_default_kijiku_settings_button.click(reset_to_default_kijiku_settings,
+            self.kijiku_settings_reset_to_default_button.click(reset_to_default_kijiku_settings,
                                                 inputs=[self.input_kijiku_rules_file],
                                                 
                                                 outputs=[
@@ -1762,7 +1792,7 @@ class KudasaiGUI:
                                                         self.number_of_lines_per_batch_input_field, ## num lines input field
                                                         self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                         self.je_check_mode_input_field, ## je check mode input field
-                                                        self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
+                                                        self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                         self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                         self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
                                                         self.openai_model_input_field, ## openai model input field
@@ -1788,7 +1818,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-discard_changes_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.discard_changes_button.click(refresh_kijiku_settings_fields,
+            self.kijiku_settings_discard_changes_button.click(refresh_kijiku_settings_fields,
                                               inputs=[self.input_kijiku_rules_file],
                                               
                                               outputs=[
@@ -1796,7 +1826,7 @@ class KudasaiGUI:
                                                     self.number_of_lines_per_batch_input_field, ## num lines input field
                                                     self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                     self.je_check_mode_input_field, ## je check mode input field
-                                                    self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
+                                                    self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                     self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
                                                     self.openai_model_input_field, ## openai model input field
@@ -1831,7 +1861,7 @@ class KudasaiGUI:
                                                     self.number_of_lines_per_batch_input_field, ## num lines input field
                                                     self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                     self.je_check_mode_input_field, ## je check mode input field
-                                                    self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
+                                                    self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                     self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
                                                     self.openai_model_input_field, ## openai model input field
@@ -1864,7 +1894,7 @@ class KudasaiGUI:
                                                     self.number_of_lines_per_batch_input_field, ## num lines input field
                                                     self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
                                                     self.je_check_mode_input_field, ## je check mode input field
-                                                    self.number_of_malformed_batch_retries_field, ## num malformed batch retries input field
+                                                    self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                     self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
                                                     self.openai_model_input_field, ## openai model input field
@@ -1893,12 +1923,12 @@ class KudasaiGUI:
             self.logging_tab.select(fetch_debug_log_content,
                                     inputs=[],
                                     
-                                    outputs=[self.debug_log_output_field_log_tab, self.error_log])
+                                    outputs=[self.logging_tab_debug_log_output_field, self.logging_tab_error_log_output_field])
             
 ##-------------------start-of-kijiku_api_key_input.change()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.llm_option.change(switch_kijiku_api_key_value,
-                                             inputs=[self.llm_option],
+            self.llm_option_dropdown.change(switch_kijiku_api_key_value,
+                                             inputs=[self.llm_option_dropdown],
                                             
                                             outputs=[self.kijiku_api_key_input])
             
@@ -1938,7 +1968,7 @@ class KudasaiGUI:
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.save_to_file_preprocessed_text.click(lambda text: text, ## save text as is
-                inputs=[self.preprocess_output_field],
+                inputs=[self.preprocessing_output_field],
 
                 outputs=[],
 
@@ -1970,8 +2000,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.save_to_file_kaiseki.click(lambda text: text, ## save text as is
-                inputs=[self.output_field_kaiseki],
+            self.save_to_file_kaiseki_translated_text.click(lambda text: text, ## save text as is
+                inputs=[self.kaiseki_translated_text_output_field],
 
                 outputs=[],
 
@@ -1981,8 +2011,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_je_check_text_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.save_to_file_je_check_text_kaiseki.click(lambda text: text, ## save text as is
-                inputs=[self.kaiseki_je_check_text_field],
+            self.save_to_file_kaiseki_je_check_text.click(lambda text: text, ## save text as is
+                inputs=[self.kaiseki_je_check_text_output_field],
 
                 outputs=[],
 
@@ -1993,7 +2023,7 @@ class KudasaiGUI:
 ##-------------------start-of-save_to_file_debug_log_kaiseki_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.save_to_file_debug_log_kaiseki_tab.click(lambda text: text, ## save text as is
-                inputs=[self.debug_log_output_field_kaiseki_tab],
+                inputs=[self.kaiseki_debug_log_output_field],
 
                 outputs=[],
 
@@ -2003,7 +2033,7 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.save_to_file_kijiku.click(lambda text: text, ## save text as is
+            self.save_to_file_kijiku_translated_text.click(lambda text: text, ## save text as is
                 inputs=[self.kijiku_translated_text_output_field],
 
                 outputs=[],
@@ -2014,8 +2044,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_je_check_text_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.save_to_file_je_check_text_kijiku.click(lambda text: text, ## save text as is
-                inputs=[self.kijiku_je_check_text_field],
+            self.save_to_file_kijiku_je_check_text.click(lambda text: text, ## save text as is
+                inputs=[self.kijiku_je_check_text_output_field],
 
                 outputs=[],
 
@@ -2026,7 +2056,7 @@ class KudasaiGUI:
 ##-------------------start-of-save_to_file_debug_log_kijiku_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.save_to_file_debug_log_kijiku_tab.click(lambda text: text, ## save text as is
-                inputs=[self.debug_log_output_field_kijiku_tab],
+                inputs=[self.kijiku_debug_log_output_field],
 
                 outputs=[],
 
@@ -2037,7 +2067,7 @@ class KudasaiGUI:
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.save_to_file_debug_log_logging_tab.click(lambda text: text, ## save text as is
-                inputs=[self.debug_log_output_field_log_tab],
+                inputs=[self.logging_tab_debug_log_output_field],
 
                 outputs=[],
 
@@ -2047,27 +2077,27 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_error_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.save_to_file_error_log.click(lambda text: text, ## save text as is
-                inputs=[self.error_log],
+            self.save_to_file_error_log_logging_tab.click(lambda text: text, ## save text as is
+                inputs=[self.logging_tab_error_log_output_field],
 
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "error_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "logging_tab_error_log_output_field.txt")
             )
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.send_to_kairyou.click(fn=send_to_kairyou, 
+            self.send_to_kairyou_button.click(fn=send_to_kairyou_button, 
                                         inputs=[self.indexing_output_field],
                                         outputs=[self.input_text_kairyou])
                                         
-            self.send_to_kaiseki.click(fn=send_to_kaiseki,
-                                        inputs=[self.preprocess_output_field],
+            self.send_to_kaiseki_button.click(fn=send_to_kaiseki_button,
+                                        inputs=[self.preprocessing_output_field],
                                         outputs=[self.input_text_kaiseki])
             
-            self.send_to_kijiku.click(fn=send_to_kijiku,
-                                        inputs=[self.preprocess_output_field],
+            self.send_to_kijiku_button.click(fn=send_to_kijiku_button,
+                                        inputs=[self.preprocessing_output_field],
                                         outputs=[self.input_text_kijiku])
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                

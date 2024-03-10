@@ -55,15 +55,10 @@ class Kudasai:
 
         FileEnsurer.setup_needed_files()
 
-        Logger.clear_log_file()
-
         Logger.log_barrier()
         Logger.log_action("Kudasai started")
         Logger.log_action("Current version: " + Toolkit.CURRENT_VERSION)
         Logger.log_barrier()
-
-        Logger.push_batch()
-        Logger.clear_batch()
 
         try:
 
@@ -316,10 +311,10 @@ async def main() -> None:
 
     """
 
-    Kudasai.boot()
-    Toolkit.clear_console()
-
     try:
+
+        Kudasai.boot()
+        Toolkit.clear_console()
 
         if(len(sys.argv) <= 1):
             await run_console_version()

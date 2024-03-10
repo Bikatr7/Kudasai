@@ -80,14 +80,14 @@ class FileEnsurer():
         "openai_model": "gpt-4",
         "openai_system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
         "openai_temperature": 0.3,
-        "openai_top_p": 1,
+        "openai_top_p": 1.0,
         "openai_n": 1,
         "openai_stream": False,
         "openai_stop": None,
         "openai_logit_bias": None,
         "openai_max_tokens": None,
-        "openai_presence_penalty": 0,
-        "openai_frequency_penalty": 0
+        "openai_presence_penalty": 0.0,
+        "openai_frequency_penalty": 0.0
     },
 
     "gemini settings": {

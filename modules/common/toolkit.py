@@ -229,7 +229,7 @@ class Toolkit():
         """
 
         if(is_archival):
-            time_stamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+            time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         else:
             time_stamp = "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] "

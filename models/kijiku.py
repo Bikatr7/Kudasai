@@ -390,8 +390,11 @@ class Kijiku:
 
         """
         
+        
         Logger.log_barrier()
-        Logger.log_action("Kijiku Activated, Settings are as follows : ")
+        Logger.log_action("Kijiku Activated, LLM Type : " + Kijiku.LLM_TYPE)
+        Logger.log_barrier()
+        Logger.log_action("Settings are as follows : ")
         Logger.log_barrier()
 
         JsonHandler.print_kijiku_rules()
@@ -545,10 +548,10 @@ class Kijiku:
 
             sentence = Kijiku.text_to_translate[index]
             stripped_sentence = sentence.strip()
-            lower_sentence = sentence.lower()
+            lowercase_sentence = sentence.lower()
 
             has_quotes = any(char in sentence for char in ["「", "」", "『", "』", "【", "】", "\"", "'"])
-            is_part_in_sentence = "part" in lower_sentence
+            is_part_in_sentence = "part" in lowercase_sentence
 
             if(len(prompt) < Kijiku.number_of_lines_per_batch):
 
@@ -620,12 +623,12 @@ class Kijiku:
 
             i+=1
 
-            if(i % 2 == 0):
-                Logger.log_action(str(message))
+            message = str(message) if Kijiku.LLM_TYPE == 'gemini' else message.content # type: ignore
 
-            else:
-                Logger.log_action(str(message))
+            if(i % 2 == 1):
                 Logger.log_barrier()
+
+            Logger.log_action(message)
 
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

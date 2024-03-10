@@ -197,6 +197,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
         except Exception as e:
             Logger.log_action("Kijiku Rules.json is not valid, setting to invalid_placeholder, current:")
+            Logger.log_action("Reason: " + str(e))
             Logger.log_action(str(JsonHandler.current_kijiku_rules))
             JsonHandler.current_kijiku_rules = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
 

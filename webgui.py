@@ -7,6 +7,7 @@ import gradio as gr
 
 from kairyou import Indexer
 from kairyou import Kairyou
+from kairyou.exceptions import InvalidReplacementJsonKeys
 
 ## custom modules
 from modules.common.toolkit import Toolkit
@@ -441,7 +442,8 @@ class KudasaiGUI:
                                                                                     max_lines=1,
                                                                                     show_label=True,
                                                                                     interactive=True,
-                                                                                    elem_id="number_of_lines_per_batch")
+                                                                                    elem_id="number_of_lines_per_batch",
+                                                                                    show_copy_button=True)
                             
                             self.sentence_fragmenter_mode_input_field = gr.Dropdown(label='Sentence Fragmenter Mode',
                                                                                     value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","sentence_fragmenter_mode")),
@@ -466,7 +468,8 @@ class KudasaiGUI:
                                                                                 max_lines=1,
                                                                                 show_label=True,
                                                                                 interactive=True,
-                                                                                elem_id="number_of_malformed_batch_retries")
+                                                                                elem_id="number_of_malformed_batch_retries",
+                                                                                show_copy_button=True)
                                                         
                             self.batch_retry_timeout_input_field = gr.Textbox(label="Batch Retry Timeout",
                                                                             value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","batch_retry_timeout"),
@@ -475,7 +478,8 @@ class KudasaiGUI:
                                                                             max_lines=1,
                                                                             show_label=True,
                                                                             interactive=True,
-                                                                            elem_id="batch_retry_timeout")
+                                                                            elem_id="batch_retry_timeout",
+                                                                            show_copy_button=True)
 
                             self.number_of_concurrent_batches_input_field = gr.Textbox(label="Number Of Concurrent Batches",
                                                                                        value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_concurrent_batches"),
@@ -484,7 +488,8 @@ class KudasaiGUI:
                                                                                         max_lines=1,
                                                                                         show_label=True,
                                                                                         interactive=True,
-                                                                                        elem_id="number_of_concurrent_batches")
+                                                                                        elem_id="number_of_concurrent_batches",
+                                                                                        show_copy_button=True)
 
                         with gr.Column(): 
                             gr.Markdown("OpenAI API Settings")
@@ -506,7 +511,8 @@ class KudasaiGUI:
                                                                             max_lines=1,
                                                                             show_label=True,
                                                                             interactive=True,
-                                                                            elem_id="openai_system_message")
+                                                                            elem_id="openai_system_message",
+                                                                            show_copy_button=True)
                             
                             self.openai_temperature_input_field = gr.Slider(label="OpenAI Temperature",
                                                                         value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_temperature")),
@@ -531,35 +537,42 @@ class KudasaiGUI:
                                                                 info="How many chat completion choices to generate for each input message. Do not change this.",
                                                                 show_label=True,
                                                                 interactive=False,
-                                                                elem_id="openai_n")
+                                                                elem_id="openai_n",
+                                                                show_copy_button=True)
                             
                             self.openai_stream_input_field = gr.Textbox(label="OpenAI Stream",
                                                                     value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stream")),
                                                                     info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
                                                                     show_label=True,
                                                                     interactive=False,
-                                                                    elem_id="openai_stream")
+                                                                    elem_id="openai_stream",
+                                                                    show_copy_button=True)
                             
                             self.openai_stop_input_field = gr.Textbox(label="OpenAI Stop",
                                                                     value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stop")),
                                                                     info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
                                                                     show_label=True,
                                                                     interactive=False,
-                                                                    elem_id="openai_stop")
+                                                                    elem_id="openai_stop",
+                                                                    show_copy_button=True)
                             
                             self.openai_logit_bias_input_field = gr.Textbox(label="OpenAI Logit Bias",
                                                                         value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_logit_bias")),
                                                                         info="Modifies the likelihood of specified tokens appearing in the completion. Do not change this.",
                                                                         show_label=True,
                                                                         interactive=False,
-                                                                        elem_id="openai_logit_bias")
+                                                                        elem_id="openai_logit_bias",
+                                                                        show_copy_button=True)
                             
                             self.openai_max_tokens_input_field = gr.Textbox(label="OpenAI Max Tokens",
                                                                         value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_max_tokens")),
                                                                         info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
+                                                                        lines=1,
+                                                                        max_lines=1,
                                                                         show_label=True,
                                                                         interactive=True,
-                                                                        elem_id="openai_max_tokens")
+                                                                        elem_id="openai_max_tokens",
+                                                                        show_copy_button=True)
                             
                             self.openai_presence_penalty_input_field = gr.Slider(label="OpenAI Presence Penalty",
                                                                             value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_presence_penalty")),
@@ -596,9 +609,12 @@ class KudasaiGUI:
                             self.gemini_prompt_input_field = gr.Textbox(label="Gemini Prompt",
                                                                     value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt")),
                                                                     info="Instructions to the model. Basically tells the model how to translate.",
+                                                                    lines=1,
+                                                                    max_lines=1,
                                                                     show_label=True,
                                                                     interactive=True,
-                                                                    elem_id="gemini_prompt")
+                                                                    elem_id="gemini_prompt",
+                                                                    show_copy_button=True)
                             
                             self.gemini_temperature_input_field = gr.Slider(label="Gemini Temperature",
                                                                         value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature")),
@@ -612,44 +628,62 @@ class KudasaiGUI:
                             self.gemini_top_p_input_field = gr.Textbox(label="Gemini Top P",
                                                                     value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p")),
                                                                     info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
+                                                                    lines=1,
+                                                                    max_lines=1,
                                                                     show_label=True,
                                                                     interactive=True,
-                                                                    elem_id="gemini_top_p")
+                                                                    elem_id="gemini_top_p",
+                                                                    show_copy_button=True)
                             
                             self.gemini_top_k_input_field = gr.Textbox(label="Gemini Top K",
                                                                     value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k")),
                                                                     info="Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.",
+                                                                    lines=1,
+                                                                    max_lines=1,
                                                                     show_label=True,
                                                                     interactive=True,
-                                                                    elem_id="gemini_top_k")
+                                                                    elem_id="gemini_top_k",
+                                                                    show_copy_button=True)
 
                             self.gemini_candidate_count_input_field = gr.Textbox(label="Gemini Candidate Count",
                                                                                 value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count")),
                                                                                 info="The number of candidates to generate for each input message. Do not change this.",
+                                                                                lines=1,
+                                                                                max_lines=1,
                                                                                 show_label=True,
                                                                                 interactive=False,
-                                                                                elem_id="gemini_candidate_count")
+                                                                                elem_id="gemini_candidate_count",
+                                                                                show_copy_button=True)
 
                             self.gemini_stream_input_field = gr.Textbox(label="Gemini Stream",
                                                                     value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream")),
                                                                     info="If set, partial message deltas will be sent, like in Gemini chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
+                                                                    lines=1,
+                                                                    max_lines=1,
                                                                     show_label=True,
                                                                     interactive=False,
-                                                                    elem_id="gemini_stream")
+                                                                    elem_id="gemini_stream",
+                                                                    show_copy_button=True)
                             
                             self.gemini_stop_sequences_input_field = gr.Textbox(label="Gemini Stop Sequences",
                                                                             value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences")),
                                                                             info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
+                                                                            lines=1,
+                                                                            max_lines=1,
                                                                             show_label=True,
                                                                             interactive=False,
-                                                                            elem_id="gemini_stop_sequences")
+                                                                            elem_id="gemini_stop_sequences",
+                                                                            show_copy_button=True)
 
                             self.gemini_max_output_tokens_input_field = gr.Textbox(label="Gemini Max Output Tokens",
                                                                                 value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens")),
                                                                                 info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
+                                                                                lines=1,
+                                                                                max_lines=1,
                                                                                 show_label=True,
                                                                                 interactive=True,
-                                                                                elem_id="gemini_max_output_tokens")
+                                                                                elem_id="gemini_max_output_tokens",
+                                                                                show_copy_button=True)
                         
 
                     with gr.Row():
@@ -663,13 +697,13 @@ class KudasaiGUI:
                 with gr.Tab("Logging") as self.logging_tab:
 
                     with gr.Row():
-                        self.logging_tab_debug_log_output_field = gr.Textbox(label='Debug Log', lines=10, interactive=False)
+                        self.logging_tab_debug_log_output_field = gr.Textbox(label='Debug Log', lines=10, interactive=False, show_copy_button=True)
 
                     with gr.Row():
                         self.save_to_file_debug_log_logging_tab = gr.Button('Save As')
 
                     with gr.Row():
-                        self.logging_tab_error_log_output_field = gr.Textbox(label='Error Log', lines=10, interactive=False)
+                        self.logging_tab_error_log_output_field = gr.Textbox(label='Error Log', lines=10, interactive=False, show_copy_button=True)
 
                     with gr.Row():
                         self.save_to_file_error_log_logging_tab = gr.Button('Save As')
@@ -807,7 +841,12 @@ class KudasaiGUI:
 
                     replacements = gui_get_json_from_file(input_json_file_preprocessing)
 
-                    preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
+                    try:
+
+                        preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
+
+                    except InvalidReplacementJsonKeys:
+                        raise gr.Error("Invalid JSON file, please ensure that the JSON file contains the correct keys See: https://github.com/Bikatr7/Kairyou?tab=readme-ov-file#usage")
 
                     timestamp = Toolkit.get_timestamp(is_archival=True)
 
@@ -843,6 +882,12 @@ class KudasaiGUI:
 
                 if(Kudasai.connection == False):
                     raise gr.Error("No internet connection detected, please connect to the internet and reload the page to use translation features of Kudasai.")
+                
+                if(input_txt_file is None and input_text == ""):
+                    raise gr.Error("No TXT file or text selected")
+                
+                if(api_key_input == ""):
+                    raise gr.Error("No API key provided")
 
                 ## in case of subsequent runs, we need to reset the static variables
                 Kaiseki.reset_static_variables()
@@ -852,12 +897,6 @@ class KudasaiGUI:
 
                 ## if translate button is clicked, we can assume that the translation is ongoing
                 self.is_translation_ongoing = True
-                
-                if(input_txt_file is None and input_text == ""):
-                    raise gr.Error("No TXT file or text selected")
-                
-                if(api_key_input == ""):
-                    raise gr.Error("No API key provided")
                 
                 if(input_txt_file is not None):
                     text_to_translate = gui_get_text_from_file(input_txt_file)
@@ -898,7 +937,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-translate_with_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            async def translate_with_kijiku(input_txt_file:gr.File, input_text:str, api_key:str, llm_type:str) -> typing.Tuple[str, str, str, str]:
+            async def translate_with_kijiku(input_txt_file:gr.File, input_text:str, api_key:str, llm_type:str, kijiku_rules_file:gr.File) -> typing.Tuple[str, str, str, str]:
 
                 """
                 
@@ -921,6 +960,12 @@ class KudasaiGUI:
                 ## check if we have stuff to translate
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
+                
+                if(api_key == ""):
+                    raise gr.Error("No API key provided")
+                
+                if(kijiku_rules_file is None):
+                    raise gr.Error("No Kijiku rules file selected")
 
                 if(Kudasai.connection == False):
                     raise gr.Error("No internet connection detected, please connect to the internet and reload the page to use translation features of Kudasai.")
@@ -976,7 +1021,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            async def kijiku_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str, api_key:str) -> str:
+            async def kijiku_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str, api_key:str, kijiku_rules_file:gr.File) -> str:
 
 
                 """
@@ -995,6 +1040,21 @@ class KudasaiGUI:
                 
                 """
 
+                if(input_txt_file is None and input_text == ""):
+                    raise gr.Error("No TXT file or text selected")
+                
+                if(api_key == "" and llm_type != "OpenAI"):
+                    raise gr.Error("No API key provided. Does not charge for cost estimation, but is required for Gemini Cost Calculation")
+                
+                if(Kudasai.connection == False and llm_type != "OpenAI"):
+                    raise gr.Error("No internet connection detected, please connect to the internet and reload the page to calculate costs for Gemini")
+                
+                if(kijiku_rules_file is None):
+                    raise gr.Error("No Kijiku rules file selected")
+                
+                ## in case of subsequent runs, we need to reset the static variables
+                Kijiku.reset_static_variables()
+
                 cost_estimation = ""
 
                 ## first set the llm type
@@ -1010,9 +1070,6 @@ class KudasaiGUI:
                 await set_kijiku_api_key(api_key)
 
                 model = GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model") if Kijiku.LLM_TYPE == "openai" else GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model")
-
-                if(input_txt_file is None and input_text == ""):
-                    raise gr.Error("No TXT file or text selected")
                 
                 if(input_txt_file is not None):
                     text_to_translate = gui_get_text_from_file(input_txt_file)
@@ -1657,7 +1714,8 @@ class KudasaiGUI:
                                                     self.input_txt_file_kijiku, ## input txt file to translate
                                                     self.input_text_kijiku, ## input text to translate
                                                     self.kijiku_api_key_input, ## api key input
-                                                    self.llm_option_dropdown], ## llm option input
+                                                    self.llm_option_dropdown, ## llm option dropdown
+                                                    self.input_kijiku_rules_file], ## kijiku rules file
                                                 
                                                 outputs=[
                                                     self.kijiku_translated_text_output_field, ## translated text
@@ -1680,7 +1738,8 @@ class KudasaiGUI:
                                                             self.input_txt_file_kijiku, ## input txt file to calculate costs
                                                             self.input_text_kijiku,
                                                             self.llm_option_dropdown,
-                                                            self.kijiku_api_key_input], ## api key input
+                                                            self.kijiku_api_key_input,
+                                                            self.input_kijiku_rules_file], ## kijiku rules file
                 
                                                         outputs=[self.kijiku_translated_text_output_field]) ## functions as an output field for the cost output field
             
@@ -1995,7 +2054,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "processing_debug_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "preprocessing_debug_log_.txt")
             )
 
 ##-------------------start-of-save_to_file_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2006,7 +2065,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text_kaiseki.txt")
             )
 
 ##-------------------start-of-save_to_file_je_check_text_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2017,7 +2076,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text_kaiseki.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_kaiseki_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2028,7 +2087,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_kaiseki.txt")
             )
 
 ##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2039,7 +2098,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text_kijiku.txt")
             )
 
 ##-------------------start-of-save_to_file_je_check_text_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2050,7 +2109,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text_kijiku.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_kijiku_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2061,7 +2120,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_kijiku.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2083,7 +2142,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "logging_tab_error_log_output_field.txt")
+                js=(self.save_as_js).replace("downloaded_text.txt", "error_log.txt")
             )
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

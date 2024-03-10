@@ -19,6 +19,8 @@
 
 Windows 10 and Linux Mint are the only tested operating systems, feel free to test on other operating systems and report back to me. I will do my best to fix any issues that arise.
 
+To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
+
 Python version: 3.10+
 
 Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using DeepL, Gemini, and OpenAI APIs).
@@ -283,6 +285,8 @@ To run the Web GUI, simply run webgui.py in the same directory as kudasai.py
 
 Below are some images of the Web GUI.
 
+Detailed Documentation for this can be found on the Hugging Face hosted version of Kudasai [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
+
 Indexing | Kairyou:
 ![Indexing Screen | Kairyou](https://i.imgur.com/0a2mzOI.png)
 
@@ -295,12 +299,8 @@ Translation | Kaiseki:
 Translation | Kijiku:
 ![Translation Screen | Kijiku](https://i.imgur.com/X6IxyL8.png)
 
-
-
 Kijiku Settings:
 ![Kijiku Settings](https://i.imgur.com/VX0fGd5.png)
-
-
 
 Logging:
 ![Logging](https://i.imgur.com/IkUjpXR.png)
@@ -310,6 +310,11 @@ Logging:
 **Hugging Face**<a name="huggingface"></a>
 
 For those who are interested, or simply cannot run Kudasai locally, a instance of Kudasai's WebGUI is hosted on Hugging Face's servers. You can find it [here](https://huggingface.co/spaces/Bikatr7/Kudasai).
+
+It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally.
+
+To see the README for the Hugging Face hosted version of Kudasai, please see [here](To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
+
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **License**<a name="license"></a>

@@ -3,6 +3,7 @@
 ## for importing, other scripts will use from common.exceptions instead of from the third-party libraries themselves
 from openai import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
 from deepl.exceptions import AuthorizationException, QuotaExceededException
+from google.auth.exceptions import GoogleAuthError
 
 ##-------------------start-of-MaxBatchDurationExceededException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

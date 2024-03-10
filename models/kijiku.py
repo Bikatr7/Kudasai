@@ -19,7 +19,7 @@ from handlers.json_handler import JsonHandler
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
 from modules.common.toolkit import Toolkit
-from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
+from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError
 from modules.common.decorators import permission_error_decorator
 
 from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage, Message
@@ -273,7 +273,7 @@ class Kijiku:
                 FileEnsurer.standard_overwrite_file(api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
                 
             ## if invalid key exit
-            except AuthenticationError: 
+            except (GoogleAuthError, AuthenticationError):
                     
                 Toolkit.clear_console()
                         
@@ -448,13 +448,9 @@ class Kijiku:
         Logger.log_action("Starting Prompt Building")
         Logger.log_barrier()
 
-        if(Kijiku.LLM_TYPE == "openai"):
-            Kijiku.build_openai_translation_batches()
-            model = OpenAIService.model
+        Kijiku.build_translation_batches()
 
-        else:
-            Kijiku.build_gemini_translation_batches()
-            model = GeminiService.model
+        model = OpenAIService.model if Kijiku.LLM_TYPE == "openai" else GeminiService.model
 
         await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
 
@@ -581,37 +577,38 @@ class Kijiku:
 
         return prompt, index
     
-##-------------------start-of-build_openai_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def build_openai_translation_batches() -> None:
+    def build_translation_batches() -> None:
 
         """
 
-        Builds translations batches dict for the OpenAI service.
-        
+        Builds translations batches dict for the specified service.
+
         """
 
         i = 0
 
         while i < len(Kijiku.text_to_translate):
-            batch, i = Kijiku.generate_text_to_translate_batches(i)
 
+            batch, i = Kijiku.generate_text_to_translate_batches(i)
             batch = ''.join(batch)
 
-            ## message mode one structures the first message as a system message and the second message as a model message
-            if(Kijiku.prompt_assembly_mode == 1):
-                system_msg = SystemTranslationMessage(content=str(OpenAIService.system_message))
+            if(Kijiku.LLM_TYPE == 'openai'):
 
-            ## while message mode two structures the first message as a model message and the second message as a model message too, typically used for non-gpt-4 models if at all
+                if(Kijiku.prompt_assembly_mode == 1):
+                    system_msg = SystemTranslationMessage(content=str(OpenAIService.system_message))
+                else:
+                    system_msg = ModelTranslationMessage(content=str(OpenAIService.system_message))
+
+                Kijiku.openai_translation_batches.append(system_msg)
+                model_msg = ModelTranslationMessage(content=batch)
+                Kijiku.openai_translation_batches.append(model_msg)
+
             else:
-                system_msg = ModelTranslationMessage(content=str(OpenAIService.system_message))
-
-            Kijiku.openai_translation_batches.append(system_msg)
-
-            model_msg = ModelTranslationMessage(content=batch)
-
-            Kijiku.openai_translation_batches.append(model_msg)
+                Kijiku.gemini_translation_batches.append(GeminiService.prompt)
+                Kijiku.gemini_translation_batches.append(batch)
 
         Logger.log_barrier()
         Logger.log_action("Built Messages : ")
@@ -619,57 +616,14 @@ class Kijiku:
 
         i = 0
 
-        for message in Kijiku.openai_translation_batches:
+        for message in (Kijiku.openai_translation_batches if Kijiku.LLM_TYPE == 'openai' else Kijiku.gemini_translation_batches):
 
             i+=1
 
             if(i % 2 == 0):
-
                 Logger.log_action(str(message))
-        
+
             else:
-
-                Logger.log_action(str(message))
-                Logger.log_barrier()
-
-##-------------------start-of-build_gemini_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def build_gemini_translation_batches() -> None:
-
-        """
-
-        Builds translations batches dict for the Gemini service.
-        
-        """
-
-        i = 0
-
-        while i < len(Kijiku.text_to_translate):
-            batch, i = Kijiku.generate_text_to_translate_batches(i)
-
-            batch = ''.join(batch)
-
-            ## Gemini does not use system messages or model messages, and instead just takes a string input, so we just need to place the prompt before the text to be translated
-            Kijiku.gemini_translation_batches.append(GeminiService.prompt)
-            Kijiku.gemini_translation_batches.append(batch)
-
-        Logger.log_barrier()
-        Logger.log_action("Built Messages : ")
-        Logger.log_barrier()
-
-        i = 0
-
-        for message in Kijiku.gemini_translation_batches:
-
-            i+=1
-
-            if(i % 2 == 0):
-
-                Logger.log_action(str(message))
-        
-            else:
-
                 Logger.log_action(str(message))
                 Logger.log_barrier()
 
@@ -850,7 +804,7 @@ class Kijiku:
         Logger.log_barrier()
 
         if(Kijiku.LLM_TYPE == "gemini"):
-            print("As of Kudasai v3.4.0, Gemini Pro is Free to use")
+            Logger.log_action("As of Kudasai v3.4.0, Gemini Pro is Free to use", output=True, omit_timestamp=True)
         
         Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
         Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
@@ -873,19 +827,20 @@ class Kijiku:
     async def handle_translation(model:str, index:int, length:int, translation_instructions:typing.Union[str, Message], translation_prompt:typing.Union[str, Message]) -> tuple[int, typing.Union[str, Message], str]:
 
         """
-        Handles the translation for a given system and user message.
+
+        Handles the translation requests for the specified service.
 
         Parameters:
-        model (string) : the model used to translate the text.
-        index (int) : the index of the message in the text file.
-        length (int) : the length of the text file.
-        translation_instructions (typing.Union[str, Message]) : the translation instructions.
-        translation_prompt (typing.Union[str, Message]) : the translation prompt.
+        model (string) : The model of the service used to translate the text.
+        index (int) : The index of the translation batch.
+        length (int) : The length of the translation batch.
+        translation_instructions (typing.Union[str, Message]) : The translation instructions.
+        translation_prompt (typing.Union[str, Message]) : The translation prompt.
 
         Returns:
-        index (int) : the index of the message in the text file.
-        translation_prompt (typing.Union[str, Message]) : the translation prompt.
-        translated_message (str) : the translated message.
+        index (int) : The index of the translation batch.
+        translation_prompt (typing.Union[str, Message]) : The translation prompt.
+        translated_message (str) : The translated message.
 
         """
 
@@ -1044,7 +999,7 @@ class Kijiku:
 
         """
 
-        Fixes the J->E text to be more j-e check friendly.
+        Fixes the J->E text to be more j-e checker friendly.
 
         Note that fix_je() is not always accurate, and may use standard j-e formatting instead of the corrected formatting.
 

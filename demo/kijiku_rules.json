@@ -5,7 +5,7 @@
         "sentence_fragmenter_mode": 3,
         "je_check_mode": 2,
         "number_of_malformed_batch_retries": 1,
-        "batch_retry_timeout": 300,
+        "batch_retry_timeout": 500,
         "number_of_concurrent_batches": 5
     },
 

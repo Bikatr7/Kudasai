@@ -148,7 +148,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "openai_system_message": lambda x: x not in ["", "None", None],
             "openai_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
             "openai_top_p": lambda x: isinstance(x, float) and 0 <= x <= 1,
-            "openai_max_tokens": lambda x: x is None or isinstance(x, int),
+            "openai_max_tokens": lambda x: x is None or isinstance(x, int) and x > 0,
             "openai_presence_penalty": lambda x: isinstance(x, float) and -2 <= x <= 2,
             "gemini_model": lambda x: isinstance(x, str) and x in FileEnsurer.ALLOWED_GEMINI_MODELS,
             "gemini_prompt": lambda x: x not in ["", "None", None],
@@ -342,7 +342,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
         Parameters:
         setting_name (str) : The name of the setting to convert.
-        value (str) : The value to convert.
+        initial_value (str) : The initial value to convert.
 
         Returns:
         (typing.Any) : The converted value.
@@ -394,10 +394,13 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
         if(setting_info["type"] is None):
             converted_value = None
+
         elif(setting_info["type"] == int) or (setting_info["type"] == float):
-            if value is None or value is '':
+
+            if(value is None or value is ''):
                 converted_value = None
-            elif setting_info["type"] == int:
+                
+            elif(setting_info["type"] == int):
                 converted_value = int(value)
 
             else:

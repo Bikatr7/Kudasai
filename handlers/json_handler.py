@@ -398,7 +398,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
         elif(setting_info["type"] == int) or (setting_info["type"] == float):
 
-            if(value is None or value is ''):
+            if(value is None or value == ''):
                 converted_value = None
                 
             elif(setting_info["type"] == int):

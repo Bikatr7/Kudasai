@@ -3,6 +3,7 @@ import os
 import traceback
 import json
 import typing
+import shutil
 
 ## custom modules
 from modules.common.decorators import permission_error_decorator
@@ -148,7 +149,7 @@ class FileEnsurer():
 ##-------------------start-of-check_if_hugging_space()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    def check_if_hugging_space() -> bool:
+    def is_hugging_space() -> bool:
     
         """
         
@@ -187,6 +188,9 @@ class FileEnsurer():
 
         """
 
+
+        FileEnsurer.purge_storage()
+
         ## creates the output directory and config directory if they don't exist
         FileEnsurer.standard_create_directory(FileEnsurer.config_dir)
         FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
@@ -206,6 +210,36 @@ class FileEnsurer():
         if(os.path.exists(FileEnsurer.config_kijiku_rules_path) == False):
             with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
                 json.dump(FileEnsurer.DEFAULT_KIJIKU_RULES, file)
+
+##-------------------start-of-purge_storage()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                
+    @staticmethod
+    @permission_error_decorator()
+    def purge_storage() -> None:
+
+        """
+        
+        In case of hugging face, purges the storage.
+
+        """
+
+        if(not FileEnsurer.is_hugging_space()):
+            return
+
+        stuff_to_purge = [
+            FileEnsurer.secrets_dir,
+            FileEnsurer.config_dir,
+            FileEnsurer.archive_dir
+        ]
+
+        for thing in stuff_to_purge:
+            if(os.path.exists(thing)):
+
+                if(os.path.isdir(thing)):
+                    shutil.rmtree(thing)
+
+                else:
+                    os.remove(thing)
 
 ##--------------------start-of-standard_create_directory()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

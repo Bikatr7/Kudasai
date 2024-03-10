@@ -24,6 +24,8 @@ class FileEnsurer():
     output_dir = os.path.join(script_dir, "output")
     archive_dir = os.path.join(output_dir, "archive")
 
+    hugging_face_flag = os.path.join(script_dir, "util", "hugging_face_flag.py")
+
     ## main dirs (config is just under userprofile on windows, and under home on linux); secrets are under appdata on windows, and under .config on linux
     if(os.name == 'nt'):  ## Windows
         config_dir = os.path.join(os.environ['USERPROFILE'],"KudasaiConfig")
@@ -142,6 +144,19 @@ class FileEnsurer():
 
     do_interrupt = False
     need_to_run_kairyou = True
+
+##-------------------start-of-check_if_hugging_space()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def check_if_hugging_space() -> bool:
+    
+        """
+        
+        Determines if Kudasai is running on a Hugging Face server.
+
+        """
+
+        return os.path.exists(FileEnsurer.hugging_face_flag)
 
 ##--------------------start-of-exit_kudasai()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

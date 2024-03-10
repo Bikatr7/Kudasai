@@ -1,6 +1,7 @@
 ## built-in libraries
 import typing
 import base64
+import os
 
 ## third-party libraries
 import gradio as gr
@@ -103,6 +104,9 @@ class KudasaiGUI:
                 """
 
                 try:
+
+                    assert FileEnsurer.check_if_hugging_space() == False
+
                     ## Api key is encoded in base 64 so we need to decode it before returning
                     return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.deepl_api_key_path).encode('utf-8')).decode('utf-8')
                 
@@ -123,6 +127,9 @@ class KudasaiGUI:
                 """
 
                 try:
+
+                    assert FileEnsurer.check_if_hugging_space() == False
+
                     ## Api key is encoded in base 64 so we need to decode it before returning
                     return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.openai_api_key_path).encode('utf-8')).decode('utf-8')
                 
@@ -143,6 +150,9 @@ class KudasaiGUI:
                 """
 
                 try:
+
+                    assert FileEnsurer.check_if_hugging_space() == False
+
                     ## Api key is encoded in base 64 so we need to decode it before returning
                     return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.gemini_api_key_path).encode('utf-8')).decode('utf-8')
                 
@@ -193,6 +203,9 @@ class KudasaiGUI:
                 api_key (str) : The api key.
 
                 """
+
+                if(FileEnsurer.check_if_hugging_space() == True):
+                    return
 
                 ## also gonna want to update the api key file with the new api key
                 if(Kijiku.LLM_TYPE == "openai"):
@@ -793,6 +806,9 @@ class KudasaiGUI:
 
                             indexed_text = Kudasai.mark_indexed_names(text_to_index, unique_names)
 
+                            if(FileEnsurer.check_if_hugging_space == True):
+                                os.remove(FileEnsurer.output_dir)
+
                             return indexed_text, indexing_log, log_text, log_text, error_log
 
                         else:
@@ -853,6 +869,9 @@ class KudasaiGUI:
                     FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
 
                     log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+
+                    if(FileEnsurer.check_if_hugging_space == True):
+                        os.remove(FileEnsurer.output_dir)
 
                     return preprocessed_text, preprocessing_log, log_text, log_text, error_log
             
@@ -930,8 +949,12 @@ class KudasaiGUI:
 
                 error_text = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
 
-                ## also gonna want to update the api key file with the new api key
-                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
+                if(FileEnsurer.check_if_hugging_space == True):
+                    os.remove(FileEnsurer.output_dir)
+
+                else:
+                    ## also gonna want to update the api key file with the new api key
+                    FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
 
                 return translated_text, je_check_text, log_text, error_text
             
@@ -1013,6 +1036,9 @@ class KudasaiGUI:
                 log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
 
                 error_text = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
+
+                if(FileEnsurer.check_if_hugging_space == True):
+                    os.remove(FileEnsurer.output_dir)
                 
                 ## then overwrite the api key file with the new api key
                 update_kijiku_api_key(api_key)
@@ -1088,6 +1114,9 @@ class KudasaiGUI:
                 cost_estimation += "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
                 
                 gr.Info(cost_estimation)
+
+                if(FileEnsurer.check_if_hugging_space == True):
+                    os.remove(FileEnsurer.output_dir)
 
                 update_kijiku_api_key(api_key)
 

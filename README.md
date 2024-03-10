@@ -3,13 +3,14 @@
 
 - [Notes](#notes)
 - [Dependencies](#dependencies)
-- [Quick Start](#quick-start)
 - [Naming Conventions](#naming-conventions)
+- [Quick Start](#quick-start)
 - [Kairyou](#kairyou)
 - [Kaiseki](#kaiseki)
 - [Kijiku](#kijiku)
 - [Kijiku Settings](#kijiku-settings)
 - [Web GUI](#webgui)
+- [Hugging Face](#huggingface)
 - [License](#license)
 - [Contact](#contact)
 
@@ -20,7 +21,7 @@ Windows 10 and Linux Mint are the only tested operating systems, feel free to te
 
 Python version: 3.10+
 
-Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using deepL/openai API).
+Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using DeepL, Gemini, and OpenAI APIs).
 
 Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
 
@@ -58,11 +59,24 @@ python3 -m spacy download ja_core_news_lg
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+**Naming Conventions**<a name="naming-conventions"></a> 
+
+kudasai.py - Main script - ください　- Please
+
+Kairyou - Preprocessing Package - 改良 - Reform
+
+kaiseki.py - DeepL translation module - 解析 - Parsing
+
+kijiku.py - OpenAI translation module - 基軸 - Foundation
+
+Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that [here](https://github.com/Atreyagaurav/onegai)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
 
 Windows is assumed for the rest of this README, but the process should be similar for Linux.
 
-Due to TOML's limitations, you need to install spacy's JP Model, which can not be included automatically due to it being a direct dependency link. Make sure you do this after installing the requirements.txt file.
+Due to PyPi limitations, you need to install Spacy's JP Model, which can not be included automatically due to it being a direct dependency link which PyPi does not support. Make sure you do this after installing the requirements.txt file.
 
 ```bash
 python -m spacy download ja_core_news_lg
@@ -83,19 +97,6 @@ See the [Kijiku Settings](#kijiku-settings) section for more information on Kiji
 Follow the prompts from there and you should be good to go, results will be stored in the output folder in the same directory as kudasai.py.
 
 If you have any questions, comments, or concerns, please feel free to open an issue.
-
----------------------------------------------------------------------------------------------------------------------------------------------------
-**Naming Conventions**<a name="naming-conventions"></a> 
-
-kudasai.py - Main script - ください　- Please
-
-Kairyou - Preprocessing Package - 改良 - Reform
-
-kaiseki.py - DeepL translation module - 解析 - Parsing
-
-kijiku.py - OpenAI translation module - 基軸 - Foundation
-
-Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that [here](https://github.com/Atreyagaurav/onegai)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -160,7 +161,7 @@ Kaiseki is the DeepL translation module, it is used to translate Japanese to Eng
 
 Kaiseki is effectively deprecated and is only maintained. Do not expect any updates to it anytime soon other than bug fixes or compatibility updates.
 
-Please note an API key is required for Kaiseki to work, you can get one here: https://www.deepl.com/pro#developer.
+Please note an API key is required for Kaiseki to work, you can get one [here](https://www.deepl.com/pro#developer).
 
 It is free under 500k characters per month.
 
@@ -174,15 +175,17 @@ Kaiseki will store your obfuscated api key locally under KudasaiSecrets under %A
 
 **Kijiku**<a name="kijiku"></a>
 
-Kijiku is the OpenAI translation module, it is used to translate Japanese to English. It is very accurate and is the recommended translation module. 
+Kijiku is the LLM translation module, it is used to translate Japanese to English. It is very accurate and is the recommended translation module. 
 
-You also need an api key for Kijiku to work, you can get one here: https://platform.openai.com/
+You also need an api key for Kijiku to work.
 
-Currently, you can get a free API trial credit that lasts for a month and is worth around 15 dollars.
+You can get one here for OpenAI [here](https://platform.openai.com/)
+
+and for Gemini is a bit more complicated, you'll need to make a google cloud project, enable the vertex AI API, and then create an api key. Although Gemini is free under 60 request at once as of Kudasai v3.4.0.
 
 Kijiku is vastly more complicated and has a lot of steps, so let's go over them.
 
-Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to enter your API key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them. Kijiku will store your obfuscated api key locally under KudasaiSecrets under %APPDATA% or ~/.config/ depending on your OS.
+Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to choose a LLM. Then to enter your api key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them. Kijiku will store your obfuscated api key locally under KudasaiSecrets under %APPDATA% or ~/.config/ depending on your OS.
 
 You will be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu, so follow the prompts. If you want to change anything about the settings, you do it here.
 
@@ -190,7 +193,7 @@ You can also choose to upload your own settings file in the settings change menu
 
 You can change your api key right after this step if you wish.
 
-After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text as determined by tiktoken. Kijiku will then prompt for confirmation, run, and translate the preprocessed text and no other input is required.
+After that you will be shown an estimated cost of translation, this is based on the number of tokens in the preprocessed text as determined by tiktoken for OpenAI, and by Google for Gemini. Kijiku will then prompt for confirmation, run, and translate the preprocessed text and no other input is required.
 
 Your translated text will be stored in the output folder in the same directory as kudasai.py.
 
@@ -202,46 +205,73 @@ Also note that Kijiku's settings are somewhat complex, please see the section be
 
 (Fairly technical, can be abstracted away by using default settings or someone else's settings file.)
 
-See https://platform.openai.com/docs/api-reference/chat/create for further details
-
     ----------------------------------------------------------------------------------
-    model : ID of the model to use. As of right now, Kijiku only works with 'chat' models.
+    Kijiku Settings:
 
-    system_message : Instructions to the model. Basically tells the model what to do.
+    prompt_assembly_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works. For Gemini, this setting is ignored.
 
-    temp : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
+    number_of_lines_per_batch : The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.
 
-    top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
+    sentence_fragmenter_mode : 1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 2 for newer models.
 
-    n : How many chat completion choices to generate for each input message. Do not change this.
+    je_check_mode : 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for newer models.
 
-    stream : If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.
-
-    stop : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
-
-    logit_bias : Modifies the likelihood of specified tokens appearing in the completion. Do not change this.
-
-    max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
-
-    presence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.
-
-    frequency_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.
-
-    message_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works.
-
-    num_lines : The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.
-
-    sentence_fragmenter_mode : 1 or 2 or 3 (1 - via regex and other nonsense, 2 - NLP via spacy (depreciated, will default to 3 if you select 2), 3 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 3 for gpt-4.
-
-    je_check_mode : 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for gpt-4.
-
-    num_malformed_batch_retries : How many times Kijiku will attempt to mend a malformed batch, only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case.
+    number_of_malformed_batch_retries : (Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.
 
     batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.
 
-    num_concurrent_batches : How many translations batches Kijiku will send to OpenAI at a time.
+    number_of_concurrent_batches : How many translations batches Kijiku will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.
     ----------------------------------------------------------------------------------
-    stream, logit_bias, stop and n are included for legacy purposes, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values.
+    Open AI Settings:
+    See https://platform.openai.com/docs/api-reference/chat/create for further details
+    ----------------------------------------------------------------------------------
+    openai_model : ID of the model to use. Kijiku only works with 'chat' models.
+
+    openai_system_message : Instructions to the model. Basically tells the model how to translate.
+
+    openai_temperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
+
+    openai_top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
+
+    openai_n : How many chat completion choices to generate for each input message. Do not change this.
+
+    openai_stream : If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.
+
+    openai_stop : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
+
+    openai_logit_bias : Modifies the likelihood of specified tokens appearing in the completion. Do not change this.
+
+    openai_max_tokens :  The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
+
+    openai_presence_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.
+
+    openai_frequency_penalty : Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.
+    ----------------------------------------------------------------------------------
+    openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
+    ----------------------------------------------------------------------------------
+    Gemini Settings:
+    https://ai.google.dev/docs/concepts#model-parameters for further details
+    ----------------------------------------------------------------------------------
+    gemini_model : The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.
+
+    gemini_prompt : Instructions to the model. Basically tells the model how to translate.
+
+    gemini_temperature : What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.
+
+    gemini_top_p : An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.
+
+    gemini_top_k : Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.
+
+    gemini_candidate_count : The number of candidates to generate for each input message. Do not change this.
+
+    gemini_stream : If set, partial message deltas will be sent, like in Gemini Chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. Do not change this.
+
+    gemini_stop_sequences : Up to 4 sequences where the API will stop generating further tokens. Do not change this.
+
+    gemini_max_output_tokens : The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.
+    ----------------------------------------------------------------------------------
+    gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
+    ----------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -254,24 +284,32 @@ To run the Web GUI, simply run webgui.py in the same directory as kudasai.py
 Below are some images of the Web GUI.
 
 Indexing | Kairyou:
-![Indexing Screen | Kairyou](https://i.imgur.com/7HCdLt6.png)
+![Indexing Screen | Kairyou](https://i.imgur.com/0a2mzOI.png)
 
 Preprocessing | Kairyou:
-![Preprocessing Screen | Kairyou](https://i.imgur.com/1qcPpeP.jpg)
+![Preprocessing Screen | Kairyou](https://i.imgur.com/2pt06gC.png)
 
 Translation | Kaiseki:
-![Translation Screen | Kaiseki](https://i.imgur.com/U9GBaLw.jpg)
+![Translation Screen | Kaiseki](https://i.imgur.com/X98JYsp.png)
 
 Translation | Kijiku:
-![Translation Screen | Kijiku](https://i.imgur.com/nySRp9y.jpg)
+![Translation Screen | Kijiku](https://i.imgur.com/X6IxyL8.png)
+
+
 
 Kijiku Settings:
-![Kijiku Settings](https://i.imgur.com/42IZYIz.jpg)
+![Kijiku Settings](https://i.imgur.com/VX0fGd5.png)
+
+
 
 Logging:
-![Logging](https://i.imgur.com/c9LmkPR.jpg)
+![Logging](https://i.imgur.com/IkUjpXR.png)
 
-API Keys above are dead, so no worries on that end.
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+**Hugging Face**<a name="huggingface"></a>
+
+For those who are interested, or simply cannot run Kudasai locally, a instance of Kudasai's WebGUI is hosted on Hugging Face's servers. You can find it [here](https://huggingface.co/spaces/Bikatr7/Kudasai).
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **License**<a name="license"></a>

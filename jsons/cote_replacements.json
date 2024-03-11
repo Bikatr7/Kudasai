@@ -3,11 +3,11 @@
   "honorifics": {
     "ちゃん": "chan",
     "殿": "dono",
-    "どの": "dono",
-    "くん": "kun",
     "君": "kun",
+    "くん": "kun",
     "後輩": "kōhai",
     "こうはい": "kōhai",
+    "パイセン":"paisen",
     "様": "sama",
     "さま": "sama",
     "さん": "san",
@@ -15,10 +15,8 @@
     "せんぱい": "senpai",
     "先生": "sensei",
     "せんせい": "sensei",
-    "パイセン":"paisen",
     "氏": "shi",
     "上": "ue"
-
   },
 
   "single_words": {
@@ -197,10 +195,7 @@
   },
 
   "enhanced_check_whitelist": {
-    "Horikita Manabu": ["堀北","学"],
-    "Hoshinomiya Chie": ["星之宮","知恵"],
-    "Kaneda Satoru": ["金田","悟"],
-    "Morofuji Rika" : ["諸藤","リカ"]
+    "Hoshinomiya Chie": ["星之宮","知恵"]
   }
   
 }

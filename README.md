@@ -313,7 +313,7 @@ For those who are interested, or simply cannot run Kudasai locally, a instance o
 
 It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally.
 
-To see the README for the Hugging Face hosted version of Kudasai, please see [here](To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
+To see the README for the Hugging Face hosted version of Kudasai, plesae see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------

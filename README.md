@@ -181,7 +181,7 @@ You also need an api key for Kijiku to work.
 
 You can get one here for OpenAI [here](https://platform.openai.com/)
 
-and for Gemini is a bit more complicated, you'll need to make a google cloud project, enable the vertex AI API, and then create an api key. Although Gemini is free under 60 requests at once as of Kudasai v3.4.0.
+and for Gemini is a bit more complicated, you'll need to make a google cloud project, enable the vertex AI API, and then create an api key. Although Gemini is free under 60 requests at once as of Kudasai v3.4.0. [This](https://ai.google.dev/tutorials/setup) should help you get started.
 
 Kijiku is vastly more complicated and has a lot of steps, so let's go over them.
 

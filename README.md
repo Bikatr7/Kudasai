@@ -309,7 +309,7 @@ Logging:
 
 For those who are interested, or simply cannot run Kudasai locally, a instance of Kudasai's WebGUI is hosted on Hugging Face's servers. You can find it [here](https://huggingface.co/spaces/Bikatr7/Kudasai).
 
-It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally. The webgui does not save anything through runs, so you will need to download the output files or copy the text out of the webgui. API keys are not saved, and the output folder is overwritten every time you run it. Archives deleted every run as well.
+It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally. The webgui on huggingface does not save anything through runs, so you will need to download the output files or copy the text out of the webgui. API keys are not saved, and the output folder is overwritten every time you run it. Archives deleted every run as well.
 
 To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
 

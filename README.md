@@ -23,7 +23,7 @@ To see the README for the Hugging Face hosted version of Kudasai, please see [he
 
 Python version: 3.10+
 
-Used to make (Japanese - English) translation easier by preprocessing the Japanese text (optional auto translation using DeepL, Gemini, and OpenAI APIs).
+Streamlining Japanese-English Translation with Advanced Preprocessing and Integrated Translation Technologies.
 
 Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
 
@@ -76,9 +76,9 @@ Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onega
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Quick Start**<a name="quick-start"></a>
 
-Windows is assumed for the rest of this README, but the process should be similar for Linux.
+Windows is assumed for the rest of this README, but the process should be similar for Linux. This is for the console version, for something less linear, see the [Web GUI](#webgui) section.
 
-Due to PyPi limitations, you need to install Spacy's JP Model, which can not be included automatically due to it being a direct dependency link which PyPi does not support. Make sure you do this after installing the requirements.txt file.
+Due to PyPi limitations, you need to install Spacy's JP Model, which can not be included automatically due to it being a direct dependency link which PyPi does not support. Make sure you do this after installing the requirements.txt file as it requires spacy to be installed first.
 
 ```bash
 python -m spacy download ja_core_news_lg
@@ -87,8 +87,6 @@ python -m spacy download ja_core_news_lg
 Simply run Kudasai.py, enter a txt file path to the text you wish to translate, and then insert a replacement json file path if you wish to use one. If you do not wish to use a replacement json file, you can simply input a blank space and Kudasai will skip preprocessing and go straight to translation.
 
 Kudasai will offer to index the text, which is useful for finding new names to add to the replacement json file. This is optional and can be skipped.
-
-Can also run webgui.py for a web gui which is simpler and non-linear.
 
 After preprocessing is completed (if triggered), you will be prompted to run the translation modules.
 
@@ -183,11 +181,11 @@ You also need an api key for Kijiku to work.
 
 You can get one here for OpenAI [here](https://platform.openai.com/)
 
-and for Gemini is a bit more complicated, you'll need to make a google cloud project, enable the vertex AI API, and then create an api key. Although Gemini is free under 60 request at once as of Kudasai v3.4.0.
+and for Gemini is a bit more complicated, you'll need to make a google cloud project, enable the vertex AI API, and then create an api key. Although Gemini is free under 60 requests at once as of Kudasai v3.4.0.
 
 Kijiku is vastly more complicated and has a lot of steps, so let's go over them.
 
-Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to choose a LLM. Then to enter your api key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them. Kijiku will store your obfuscated api key locally under KudasaiSecrets under %APPDATA% or ~/.config/ depending on your OS.
+Provided you accept the prompt and choose '2' to run Kijiku, you will be prompted to choose a LLM. Then to enter your api key. Provided all goes well, Kijiku will attempt to load it's settings from KudasaiConfig, if it cannot find them, it will create them from the default. Kijiku will store your obfuscated api key locally under KudasaiSecrets under %APPDATA% or ~/.config/ depending on your OS.
 
 You will be prompted if you'd like to change these settings, if you choose to do so, you'll be asked for which setting you'd like to change, and what to change it too, until you choose to exit. Multiple things can be done in this menu, so follow the prompts. If you want to change anything about the settings, you do it here.
 
@@ -281,7 +279,7 @@ Also note that Kijiku's settings are somewhat complex, please see the section be
 
 Kudasai also offers a Web GUI. It has all the main functionality of the program but in an easier and non-linear way.
 
-To run the Web GUI, simply run webgui.py in the same directory as kudasai.py
+To run the Web GUI, simply run webgui.py which is in the same directory as kudasai.py
 
 Below are some images of the Web GUI.
 
@@ -311,10 +309,9 @@ Logging:
 
 For those who are interested, or simply cannot run Kudasai locally, a instance of Kudasai's WebGUI is hosted on Hugging Face's servers. You can find it [here](https://huggingface.co/spaces/Bikatr7/Kudasai).
 
-It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally.
+It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally. The webgui does not save anything through runs, so you will need to download the output files or copy the text out of the webgui. API keys are not saved, and the output folder is overwritten every time you run it. Archives deleted every run as well.
 
-To see the README for the Hugging Face hosted version of Kudasai, plesae see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
-
+To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **License**<a name="license"></a>

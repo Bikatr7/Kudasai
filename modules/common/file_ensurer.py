@@ -237,6 +237,10 @@ class FileEnsurer():
             FileEnsurer.archive_dir
         ]
 
+        stuff_to_truncate = [
+            FileEnsurer.output_dir
+        ]
+
         for thing in stuff_to_purge:
             if(os.path.exists(thing)):
 
@@ -246,6 +250,18 @@ class FileEnsurer():
                 else:
                     os.remove(thing)
 
+        for thing in stuff_to_truncate:
+            if(os.path.exists(thing)):
+                if(os.path.isdir(thing)):
+                    for file in os.listdir(thing):
+                        file_path = os.path.join(thing, file)
+                        if(os.path.isfile(file_path)):
+                            with open(file_path, "w", encoding="utf-8") as file:
+                                file.truncate()
+
+                else:
+                    with open(thing, "w", encoding="utf-8") as file:
+                        file.truncate()
 ##--------------------start-of-standard_create_directory()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

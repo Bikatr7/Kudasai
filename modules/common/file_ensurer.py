@@ -278,7 +278,7 @@ class FileEnsurer():
         """
 
         if(os.path.isdir(directory_path) == False):
-            os.mkdir(directory_path)
+            os.makedirs(directory_path)
             Logger.log_action(directory_path + " created due to lack of the folder")
 
 ##--------------------start-of-standard_create_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

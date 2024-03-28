@@ -669,8 +669,13 @@ class Kijiku:
             "gemini-1.0-pro-vision-001": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
             "gemini-1.0-pro": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
             "gemini-1.0-pro-vision": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-1.0-pro-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-1.0-pro-vision-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-1.5-pro-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-1.0-ultra-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
             "gemini-pro": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-pro-vision": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0}
+            "gemini-pro-vision": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
+            "gemini-ultra": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0}
         }
 
         assert model in FileEnsurer.ALLOWED_OPENAI_MODELS or model in FileEnsurer.ALLOWED_GEMINI_MODELS, f"""Kudasai does not support : {model}"""
@@ -736,12 +741,29 @@ class Kijiku:
                 print("Warning: gemini-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
                 return Kijiku.estimate_cost("gemini-1.0-pro-vision-001", price_case=8)
             
+            elif(model == "gemini-ultra"):
+                return Kijiku.estimate_cost(model, price_case=8)
+            
             elif(model == "gemini-1.0-pro"):
                 print(f"Warning: gemini-1.0-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
                 return Kijiku.estimate_cost(model, price_case=8)
             
             elif(model == "gemini-1.0-pro-vision"):
                 print("Warning: gemini-1.0-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+                return Kijiku.estimate_cost(model, price_case=8)
+            
+            elif(model == "gemini-1.0-pro-latest"):
+                print(f"Warning: gemini-1.0-pro-latest may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
+                return Kijiku.estimate_cost("gemini-1.0-pro-001", price_case=8)
+            
+            elif(model == "gemini-1.0-pro-vision-latest"):
+                print("Warning: gemini-1.0-pro-vision-latest may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
+                return Kijiku.estimate_cost("gemini-1.0-pro-vision-001", price_case=8)
+            
+            elif(model == "gemini-1.5-pro-latest"):
+                return Kijiku.estimate_cost(model, price_case=8)
+            
+            elif(model == "gemini-1.0-ultra-latest"):
                 return Kijiku.estimate_cost(model, price_case=8)
             
             elif(model == "gemini-1.0-pro-001"):
@@ -807,7 +829,7 @@ class Kijiku:
         Logger.log_barrier()
 
         if(Kijiku.LLM_TYPE == "gemini"):
-            Logger.log_action(f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro is Free to use", output=True, omit_timestamp=True)
+            Logger.log_action(f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n", output=True, omit_timestamp=True)
         
         Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
         Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)

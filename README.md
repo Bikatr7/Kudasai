@@ -42,7 +42,7 @@ tiktoken==0.6.0
 
 gradio==4.19.2
 
-kairyou==1.4.0
+kairyou==1.4.1
 
 google-generativeai==0.4.0
 

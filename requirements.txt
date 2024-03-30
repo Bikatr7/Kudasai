@@ -6,3 +6,4 @@ gradio==4.19.2
 kairyou==1.4.0
 google-generativeai==0.4.0
 easytl==0.0.2
+

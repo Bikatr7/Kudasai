@@ -129,8 +129,13 @@ class FileEnsurer():
         "gemini-1.0-pro-vision-001",
         "gemini-1.0-pro",
         "gemini-1.0-pro-vision",
+        "gemini-1.0-pro-latest",
+        "gemini-1.0-pro-vision-latest",
+        "gemini-1.5-pro-latest",
+        "gemini-1.0-ultra-latest",
         "gemini-pro",
-        "gemini-pro-vision"
+        "gemini-pro-vision",
+        "gemini-ultra"
     ]
 
     INVALID_KIJIKU_RULES_PLACEHOLDER = {
@@ -274,7 +279,7 @@ class FileEnsurer():
         """
 
         if(os.path.isdir(directory_path) == False):
-            os.mkdir(directory_path)
+            os.makedirs(directory_path)
             Logger.log_action(directory_path + " created due to lack of the folder")
 
 ##--------------------start-of-standard_create_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

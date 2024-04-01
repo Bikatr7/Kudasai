@@ -105,8 +105,6 @@ class FileEnsurer():
         "gemini_max_output_tokens": None
     }
 }
-
-
     ALLOWED_OPENAI_MODELS  = [
         "gpt-3.5-turbo",
         "gpt-4",

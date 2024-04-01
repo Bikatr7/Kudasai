@@ -2,8 +2,11 @@ from easytl import EasyTL
 
 async def main():
 
-    EasyTL.set_api_key("gemini", "AIzaSyAKKLwwemQ0sg9Wug79COk3kA2ehWGeO6o")
-    EasyTL.set_api_key("deepl", "e319d8e3-dc1a-130a-1e07-b3df599accc2:fx")
+    gemini_api_key = input("Enter gemini api key: ")
+    deepl_api_key = input("Enter deepl api key: ")
+
+    EasyTL.set_api_key("gemini", gemini_api_key)
+    EasyTL.set_api_key("deepl", deepl_api_key)
 
     print("Api keys set")
 

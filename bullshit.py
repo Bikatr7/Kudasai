@@ -4,9 +4,11 @@ async def main():
 
     gemini_api_key = input("Enter gemini api key: ")
     deepl_api_key = input("Enter deepl api key: ")
+    openai_api_key = input("Enter openai api key: ")
 
     EasyTL.set_api_key("gemini", gemini_api_key)
     EasyTL.set_api_key("deepl", deepl_api_key)
+    EasyTL.set_api_key("openai", openai_api_key)
 
     print("Api keys set")
 
@@ -29,6 +31,16 @@ async def main():
     print(await EasyTL.deepl_translate_async(["私はかたわですよ","それは"], target_lang="es"))
 
     print("phase 4 done, deepl async test")
+
+    print(EasyTL.openai_translate("私はかたわですよ", translation_instructions="Translate this to spanish"))
+    print(EasyTL.openai_translate(["私はかたわですよ","それは"], translation_instructions="Translate this to spanish"))
+
+    print("phase 5 done, openai sync test")
+
+    print(await EasyTL.openai_translate_async("私はかたわですよ", translation_instructions="Translate this to spanish"))
+    print(await EasyTL.openai_translate_async(["私はかたわですよ","それは"], translation_instructions="Translate this to spanish"))
+
+    print("phase 6 done, openai async test")
 
 if(__name__ == '__main__'):
     import asyncio

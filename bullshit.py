@@ -42,6 +42,15 @@ async def main():
 
     print("phase 6 done, openai async test")
 
-if(__name__ == '__main__'):
-    import asyncio
-    asyncio.run(main())
+try:
+
+    if(__name__ == '__main__'):
+        import asyncio
+        asyncio.run(main())
+
+except Exception as e:
+    
+        print("An error occurred")
+    
+        import traceback
+        traceback.print_exc()

@@ -7,8 +7,10 @@ import re
 import base64
 import time
 
+## third-party libraries
+from easytl import EasyTL
+
 ## custom modules
-from translation_services.deepl_service import DeepLService
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger

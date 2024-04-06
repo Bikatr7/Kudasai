@@ -7,10 +7,8 @@ import re
 import base64
 import time
 
-## third-party libraries
-from easytl import EasyTL
-
 ## custom modules
+from translation_services.deepl_service import DeepLService
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
@@ -107,8 +105,8 @@ class Kaiseki:
             with open(FileEnsurer.deepl_api_key_path, 'r', encoding='utf-8') as file:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            EasyTL.set_api_key("deepl", api_key)
-            EasyTL.test_api_key_validity("deepl")
+            DeepLService.set_api_key(api_key)
+            DeepLService.test_api_key_validity()
 
             Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path, output=True)
 
@@ -120,8 +118,8 @@ class Kaiseki:
             ## if valid save the api key
             try: 
 
-                EasyTL.set_api_key("deepl", api_key)
-                EasyTL.test_api_key_validity("deepl")
+                DeepLService.set_api_key(api_key)
+                DeepLService.test_api_key_validity()
 
                 time.sleep(.1)
                     
@@ -454,11 +452,9 @@ class Kaiseki:
                 single_quote_active = True
                 
             try:
-                result = EasyTL.deepl_translate(Kaiseki.sentence_parts[i],
-                                                        source_lang= "JA",
-                                                        target_lang="EN-US")
+                results = DeepLService.translate(Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")
 
-                translated_part = result.rstrip(''.join(c for c in string.punctuation if c not in "'\"")) # type: ignore
+                translated_part = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                 translated_part = translated_part.rstrip() 
 
                 ## here we re-add the tilde, (note not always accurate but mostly is)
@@ -468,11 +464,9 @@ class Kaiseki:
 
                 ## translates the quote and re-adds it back to the sentence part
                 if(single_quote_active == True): 
-                    quote = EasyTL.deepl_translate(Kaiseki.sentence_parts[i],
-                                                        source_lang= "JA",
-                                                        target_lang="EN-US")
+                    quote = DeepLService.translate(quote, source_lang= "JA", target_lang="EN-US")
                     
-                    quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\"")) # type: ignore
+                    quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                     quote = quote.rstrip() 
 
                     translated_part = translated_part.replace("'quote'","'" + quote + "'",1)

@@ -105,6 +105,8 @@ class FileEnsurer():
         "gemini_max_output_tokens": None
     }
 }
+
+
     ALLOWED_OPENAI_MODELS  = [
         "gpt-3.5-turbo",
         "gpt-4",
@@ -260,7 +262,6 @@ class FileEnsurer():
                 else:
                     with open(thing, "w", encoding="utf-8") as file:
                         file.truncate()
-
 ##--------------------start-of-standard_create_directory()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

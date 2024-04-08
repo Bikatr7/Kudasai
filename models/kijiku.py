@@ -418,7 +418,7 @@ class Kijiku:
         Kijiku.gemini_model = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
         Kijiku.gemini_prompt = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_prompt"]
         Kijiku.gemini_temperature = float(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_temperature"])
-        Kijiku.gemini_top_p = float(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_p"])
+        Kijiku.gemini_top_p = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_p"]
         Kijiku.gemini_top_k = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_k"]
         Kijiku.gemini_candidate_count = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_candidate_count"]
         Kijiku.gemini_stream = bool(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stream"])

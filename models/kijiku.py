@@ -737,8 +737,6 @@ class Kijiku:
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
 
-                    translated_message = str(translation_prompt)
-
                     Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
                     break
 
@@ -746,9 +744,6 @@ class Kijiku:
                 ## since gemini is free, we can just try again if it's malformed
                 if("gpt-4" not in model and Kijiku.LLM_TYPE != "gemini"): 
                     break
-
-                assert isinstance(translated_message, str)
-                assert isinstance(translation_prompt, str)
 
                 if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
                     Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
@@ -763,12 +758,12 @@ class Kijiku:
                     Logger.log_error(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
                     Kijiku.num_occurred_malformed_batches += 1
 
-            return index, str(translation_prompt), str(translated_message)
+            return index, translation_prompt, translated_message
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def check_if_translation_is_good(translated_message:str, translation_prompt:typing.Union[SystemTranslationMessage, str]) -> bool:
+    async def check_if_translation_is_good(translated_message:typing.Union[typing.List[str], str], translation_prompt:typing.Union[ModelTranslationMessage, str]) -> bool:
 
         """
         
@@ -788,6 +783,9 @@ class Kijiku:
 
         else:
             prompt = translation_prompt
+
+        if(isinstance(translated_message, list)):
+            translated_message = ''.join(translated_message)
             
         is_valid = False
 

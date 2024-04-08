@@ -14,7 +14,16 @@ class MaxBatchDurationExceededException(Exception):
 
     """
 
-    pass
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display.
+
+        """
+
+        self.message = message
 
 ##-------------------start-of-InvalidAPIKeyException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

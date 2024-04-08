@@ -1395,7 +1395,7 @@ class KudasaiGUI:
                     gemini_max_output_tokens_value
                 ]
 
-                gr.Info("Kijiku Settings Reset to Default")
+                gr.Info("Kijiku Settings Reset to Default. Make sure to press the Apply button to apply the changes.")
 
                 return return_batch
 

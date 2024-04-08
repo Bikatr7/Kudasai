@@ -440,7 +440,7 @@ class Kijiku:
 
         Kijiku.build_translation_batches()
 
-        model = JsonHandler.current_kijiku_rules["openai settings"]["openai_mode"] if Kijiku.LLM_TYPE == "openai" else JsonHandler.current_kijiku_rules["gemini settings"]["gemini_mode"]
+        model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"] if Kijiku.LLM_TYPE == "openai" else JsonHandler.current_kijiku_rules["gemini settings"]["gemini_mode"]
 
         await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
 

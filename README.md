@@ -25,26 +25,20 @@ Python version: 3.10+
 
 Streamlining Japanese-English Translation with Advanced Preprocessing and Integrated Translation Technologies.
 
-Preprocessor is sourced from an external package, which I also designed, called [Kairyou](https://github.com/Bikatr7/Kairyou).
+Preprocessor and Translation logic is sourced from external packages, which I also designed, see [Kairyou](https://github.com/Bikatr7/Kairyou) and [EasyTL](https://github.com/Bikatr7/easytl) for more information.
 
-Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on.
+Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see planned features and progress.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Dependencies**<a name="dependencies"></a>
 
-deepl==1.16.1
-
-openai==1.13.3
-
 backoff==2.2.1
-
-tiktoken==0.6.0
 
 gradio==4.19.2
 
 kairyou==1.4.1
 
-google-generativeai==0.4.0
+easytl==0.0.4
 
 or see requirements.txt
 
@@ -78,7 +72,7 @@ Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onega
 
 Windows is assumed for the rest of this README, but the process should be similar for Linux. This is for the console version, for something less linear, see the [Web GUI](#webgui) section.
 
-Due to PyPi limitations, you need to install Spacy's JP Model, which can not be included automatically due to it being a direct dependency link which PyPi does not support. Make sure you do this after installing the requirements.txt file as it requires spacy to be installed first.
+Due to PyPi limitations, you need to install SpaCy's JP Model, which can not be included automatically due to it being a direct dependency link which PyPi does not support. Make sure you do this after installing the requirements.txt file as it requires Kairyou/SpaCy to be installed first.
 
 ```bash
 python -m spacy download ja_core_news_lg
@@ -181,7 +175,7 @@ You also need an api key for Kijiku to work.
 
 You can get one here for OpenAI [here](https://platform.openai.com/)
 
-and for Gemini is a bit more complicated, you'll need to make a google cloud project, enable the vertex AI API, and then create an api key. Although Gemini is free under 60 requests at once as of Kudasai v3.4.0. [This](https://ai.google.dev/tutorials/setup) should help you get started.
+and for Gemini is a bit more complicated, you'll need to make a google cloud project, enable the vertex AI API, and then create an api key. Although Gemini is free under 60 requests at once as of Kudasai v3.4.2. [This](https://ai.google.dev/tutorials/setup) should help you get started.
 
 Kijiku is vastly more complicated and has a lot of steps, so let's go over them.
 

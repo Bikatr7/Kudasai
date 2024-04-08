@@ -11,9 +11,11 @@ parent_dir = current_dir.parent
 ## Add the parent directory to sys.path so 'modules' can be found
 sys.path.append(str(parent_dir))
 
+## third-party libraries
+from easytl import EasyTL
+
 ## custom modules
 from modules.common.toolkit import Toolkit
-from models.kijiku import Kijiku
 
 class TokenCounter:
 
@@ -37,28 +39,6 @@ class TokenCounter:
 
         self.MODEL:str = ""
 
-##-------------------start-of-count_characters()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    def count_characters(self) -> int:
-
-        """
-
-        Counts the number of characters in a string.
-    
-        Parameters:
-        self (object - TokenCounter) : The TokenCounter object.
-
-        Returns:
-        num_characters (int) The number of characters in the text.
-
-        """
-
-        Toolkit.clear_console()
-
-        num_characters = len(self.text)
-
-        return num_characters
-
 ##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def estimate_cost(self, text_file:str) -> None:
@@ -78,17 +58,19 @@ class TokenCounter:
             self.text = file.read()
 
         self.MODEL = input("Please enter model : ")
+        self.service = "openai" if "gpt" in self.MODEL else "gemini"
 
-        ## lazy workaround for now
-        Kijiku.text_to_translate = [line for line in self.text.splitlines()]
+        text_to_translate = [line for line in self.text.splitlines()]
 
-        num_tokens, min_cost, self.MODEL = Kijiku.estimate_cost(self.MODEL)
-        num_characters = self.count_characters()
+        num_tokens, min_cost, self.MODEL = EasyTL.calculate_cost(text=text_to_translate, service=self.service, model=self.MODEL)
 
-        print("This is an estimate of the cost of translating a text using Kudasai. The actual cost may be higher or lower depending on the model used and the number of tokens in the text.\n")
-        print("Estimated Number of Tokens in Text : " + str(num_tokens))
-        print("Estimated Minimum Cost of Translation : " + str(min_cost))
-        print("Number of Characters in Text : " + str(num_characters) + "\n")
+        print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
+
+        if(self.service == "gemini"):
+            print(f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n")
+        
+        print("Estimated number of tokens : " + str(num_tokens))
+        print("Estimated minimum cost : " + str(min_cost) + " USD")
 
         Toolkit.pause_console()
 

@@ -2,6 +2,9 @@
 import json
 import typing
 
+## third-party libraries
+from easytl import ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
+
 ## custom modules
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
@@ -144,13 +147,13 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "number_of_malformed_batch_retries": lambda x: isinstance(x, int) and x >= 0,
             "batch_retry_timeout": lambda x: isinstance(x, int) and x >= 0,
             "number_of_concurrent_batches": lambda x: isinstance(x, int) and x >= 0,
-            "openai_model": lambda x: isinstance(x, str) and x in FileEnsurer.ALLOWED_OPENAI_MODELS,
+            "openai_model": lambda x: isinstance(x, str) and x in ALLOWED_OPENAI_MODELS,
             "openai_system_message": lambda x: x not in ["", "None", None],
             "openai_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
             "openai_top_p": lambda x: isinstance(x, float) and 0 <= x <= 1,
             "openai_max_tokens": lambda x: x is None or isinstance(x, int) and x > 0,
             "openai_presence_penalty": lambda x: isinstance(x, float) and -2 <= x <= 2,
-            "gemini_model": lambda x: isinstance(x, str) and x in FileEnsurer.ALLOWED_GEMINI_MODELS,
+            "gemini_model": lambda x: isinstance(x, str) and x in ALLOWED_GEMINI_MODELS,
             "gemini_prompt": lambda x: x not in ["", "None", None],
             "gemini_temperature": lambda x: isinstance(x, float) and 0 <= x <= 2,
             "gemini_top_p": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2),
@@ -360,7 +363,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "number_of_malformed_batch_retries": {"type": int, "constraints": lambda x: x >= 0},
             "batch_retry_timeout": {"type": int, "constraints": lambda x: x >= 0},
             "number_of_concurrent_batches": {"type": int, "constraints": lambda x: x >= 0},
-            "openai_model": {"type": str, "constraints": lambda x: x in FileEnsurer.ALLOWED_OPENAI_MODELS},
+            "openai_model": {"type": str, "constraints": lambda x: x in ALLOWED_OPENAI_MODELS},
             "openai_system_message": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
             "openai_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
             "openai_top_p": {"type": float, "constraints": lambda x: 0 <= x <= 2},
@@ -371,7 +374,7 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "openai_max_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
             "openai_presence_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
             "openai_frequency_penalty": {"type": float, "constraints": lambda x: -2 <= x <= 2},
-            "gemini_model": {"type": str, "constraints": lambda x: x in FileEnsurer.ALLOWED_GEMINI_MODELS},
+            "gemini_model": {"type": str, "constraints": lambda x: x in ALLOWED_GEMINI_MODELS},
             "gemini_prompt": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
             "gemini_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},
             "gemini_top_p": {"type": float, "constraints": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2)},

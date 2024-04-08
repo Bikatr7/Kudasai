@@ -1,5 +1,6 @@
 ## Basically Deprecated, use Kijiku instead. Currently only maintained for backwards compatibility.
 ##---------------------------------------
+##---------------------------------------
 ## built-in libraries
 import string
 import time
@@ -7,8 +8,10 @@ import re
 import base64
 import time
 
+## third-party libraries
+from easytl import EasyTL
+
 ## custom modules
-from translation_services.deepl_service import DeepLService
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.logger import Logger
@@ -105,8 +108,10 @@ class Kaiseki:
             with open(FileEnsurer.deepl_api_key_path, 'r', encoding='utf-8') as file:
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            DeepLService.set_api_key(api_key)
-            DeepLService.test_api_key_validity()
+            EasyTL.set_api_key("deepl", api_key)
+            is_valid, e = EasyTL.test_api_key_validity("deepl")
+
+            assert is_valid == True, e
 
             Logger.log_action("Used saved api key in " + FileEnsurer.deepl_api_key_path, output=True)
 
@@ -118,8 +123,10 @@ class Kaiseki:
             ## if valid save the api key
             try: 
 
-                DeepLService.set_api_key(api_key)
-                DeepLService.test_api_key_validity()
+                EasyTL.set_api_key("deepl", api_key)
+                is_valid, e = EasyTL.test_api_key_validity("deepl")
+
+                assert is_valid, e
 
                 time.sleep(.1)
                     
@@ -136,7 +143,7 @@ class Kaiseki:
                 
                 Toolkit.pause_console()
                     
-                raise e
+                raise e # type: ignore
 
             ## other error, alert user and raise it
             except Exception as e: 
@@ -452,7 +459,9 @@ class Kaiseki:
                 single_quote_active = True
                 
             try:
-                results = DeepLService.translate(Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")
+                results = EasyTL.deepl_translate(text=Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")
+
+                assert isinstance(results, str), "ValueError: " + str(results)
 
                 translated_part = results.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                 translated_part = translated_part.rstrip() 
@@ -464,7 +473,9 @@ class Kaiseki:
 
                 ## translates the quote and re-adds it back to the sentence part
                 if(single_quote_active == True): 
-                    quote = DeepLService.translate(quote, source_lang= "JA", target_lang="EN-US")
+                    results = EasyTL.deepl_translate(text=Kaiseki.sentence_parts[i], source_lang= "JA", target_lang="EN-US")
+
+                    assert isinstance(results, str), "ValueError: " + str(results)
                     
                     quote = quote.rstrip(''.join(c for c in string.punctuation if c not in "'\""))
                     quote = quote.rstrip() 

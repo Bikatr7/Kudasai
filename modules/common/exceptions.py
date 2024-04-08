@@ -1,9 +1,8 @@
 ## third-party libraries
-
 ## for importing, other scripts will use from common.exceptions instead of from the third-party libraries themselves
-from openai import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
-from deepl.exceptions import AuthorizationException, QuotaExceededException
-from google.auth.exceptions import GoogleAuthError
+from easytl import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError
+from easytl import AuthorizationException, QuotaExceededException
+from easytl import GoogleAuthError
 
 ##-------------------start-of-MaxBatchDurationExceededException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -15,7 +14,16 @@ class MaxBatchDurationExceededException(Exception):
 
     """
 
-    pass
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display.
+
+        """
+
+        self.message = message
 
 ##-------------------start-of-InvalidAPIKeyException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

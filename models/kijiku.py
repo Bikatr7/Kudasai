@@ -9,8 +9,8 @@ import os
 
 ## third party modules
 from kairyou import KatakanaUtil
+from easytl import EasyTL, Message, SystemTranslationMessage, ModelTranslationMessage
 
-import tiktoken
 import backoff
 
 ## custom modules
@@ -21,11 +21,6 @@ from modules.common.logger import Logger
 from modules.common.toolkit import Toolkit
 from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError
 from modules.common.decorators import permission_error_decorator
-
-from custom_classes.messages import SystemTranslationMessage, ModelTranslationMessage, Message
-
-from translation_services.openai_service import OpenAIService
-from translation_services.gemini_service import GeminiService
 
 ##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -48,7 +43,7 @@ class Kijiku:
 
     ## the messages that will be sent to the api, contains a system message and a model message, system message is the instructions,
     ## model message is the text that will be translated  
-    openai_translation_batches:typing.List[Message] = []
+    openai_translation_batches:typing.List[SystemTranslationMessage | ModelTranslationMessage] = []
 
     ## meanwhile for gemini, we just need to send the prompt and the text to be translated concatenated together
     gemini_translation_batches:typing.List[str] = []
@@ -73,6 +68,8 @@ class Kijiku:
     number_of_malformed_batch_retries:int
     batch_retry_timeout:float
     num_concurrent_batches:int
+
+    decorator_to_use:typing.Callable
 
 ##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -196,10 +193,10 @@ class Kijiku:
         Toolkit.clear_console()
 
         if(Kijiku.LLM_TYPE == "openai"):
-            await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, OpenAIService.set_api_key, OpenAIService.test_api_key_validity)
+            await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
 
         else:
-            await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, GeminiService.set_api_key, GeminiService.test_api_key_validity)
+            await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
 
         ## try to load the kijiku rules
         try: 
@@ -232,17 +229,14 @@ class Kijiku:
 
         """
 
-        if(service != "OpenAI"):
-            GeminiService.redefine_client()
-
         ## get saved API key if exists
         try:
             with open(api_key_path, 'r', encoding='utf-8') as file: 
                 api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
 
-            api_key_setter(api_key)
+            api_key_setter(service.lower(), api_key)
 
-            is_valid, e = await api_key_tester()
+            is_valid, e =  api_key_tester(service.lower())
 
             ## if not valid, raise the exception that caused the test to fail
             if(not is_valid and e is not None):
@@ -263,9 +257,9 @@ class Kijiku:
             ## if valid save the API key
             try: 
 
-                api_key_setter(api_key)
+                api_key_setter(service.lower(), api_key)
 
-                is_valid, e = await api_key_tester()
+                is_valid, e =  api_key_tester(service.lower())
 
                 if(not is_valid and e is not None):
                     raise e
@@ -365,14 +359,14 @@ class Kijiku:
                 if(os.path.exists(FileEnsurer.openai_api_key_path)):
 
                     os.remove(FileEnsurer.openai_api_key_path)
-                    await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, OpenAIService.set_api_key, OpenAIService.test_api_key_validity)
+                    await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
 
             else:
     
                 if(os.path.exists(FileEnsurer.gemini_api_key_path)):
 
                     os.remove(FileEnsurer.gemini_api_key_path)
-                    await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, GeminiService.set_api_key, GeminiService.test_api_key_validity)
+                    await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
 
         Toolkit.clear_console()
 
@@ -409,41 +403,34 @@ class Kijiku:
 
         Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
 
-        OpenAIService.model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"]
-        OpenAIService.system_message = JsonHandler.current_kijiku_rules["openai settings"]["openai_system_message"]
-        OpenAIService.temperature = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_temperature"])
-        OpenAIService.top_p = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_top_p"])
-        OpenAIService.n = int(JsonHandler.current_kijiku_rules["openai settings"]["openai_n"])
-        OpenAIService.stream = bool(JsonHandler.current_kijiku_rules["openai settings"]["openai_stream"])
-        OpenAIService.stop = JsonHandler.current_kijiku_rules["openai settings"]["openai_stop"]
-        OpenAIService.logit_bias = JsonHandler.current_kijiku_rules["openai settings"]["openai_logit_bias"]
-        OpenAIService.max_tokens = JsonHandler.current_kijiku_rules["openai settings"]["openai_max_tokens"]
-        OpenAIService.presence_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_presence_penalty"])
-        OpenAIService.frequency_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_frequency_penalty"])
+        Kijiku.openai_model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"]
+        Kijiku.openai_system_message = JsonHandler.current_kijiku_rules["openai settings"]["openai_system_message"]
+        Kijiku.openai_temperature = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_temperature"])
+        Kijiku.openai_top_p = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_top_p"])
+        Kijiku.openai_n = int(JsonHandler.current_kijiku_rules["openai settings"]["openai_n"])
+        Kijiku.openai_stream = bool(JsonHandler.current_kijiku_rules["openai settings"]["openai_stream"])
+        Kijiku.openai_stop = JsonHandler.current_kijiku_rules["openai settings"]["openai_stop"]
+        Kijiku.openai_logit_bias = JsonHandler.current_kijiku_rules["openai settings"]["openai_logit_bias"]
+        Kijiku.openai_max_tokens = JsonHandler.current_kijiku_rules["openai settings"]["openai_max_tokens"]
+        Kijiku.openai_presence_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_presence_penalty"])
+        Kijiku.openai_frequency_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_frequency_penalty"])
 
-        GeminiService.model = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
-        GeminiService.prompt = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_prompt"]
-        GeminiService.temperature = float(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_temperature"])
-        GeminiService.top_p = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_p"]
-        GeminiService.top_k = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_k"]
-        GeminiService.candidate_count = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_candidate_count"]
-        GeminiService.stream = bool(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stream"])
-        GeminiService.stop_sequences = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stop_sequences"]
-        GeminiService.max_output_tokens = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_max_output_tokens"]
+        Kijiku.gemini_model = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
+        Kijiku.gemini_prompt = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_prompt"]
+        Kijiku.gemini_temperature = float(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_temperature"])
+        Kijiku.gemini_top_p = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_p"]
+        Kijiku.gemini_top_k = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_k"]
+        Kijiku.gemini_candidate_count = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_candidate_count"]
+        Kijiku.gemini_stream = bool(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stream"])
+        Kijiku.gemini_stop_sequences = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stop_sequences"]
+        Kijiku.gemini_max_output_tokens = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_max_output_tokens"]
+
 
         if(Kijiku.LLM_TYPE == "openai"):
-
-            ## set the decorator to use
-            decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
-
-            OpenAIService.set_decorator(decorator_to_use)
+            Kijiku.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
 
         else:
-        
-            decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
-
-            GeminiService.redefine_client()
-            GeminiService.set_decorator(decorator_to_use)
+            Kijiku.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
 
         Toolkit.clear_console()
 
@@ -453,7 +440,7 @@ class Kijiku:
 
         Kijiku.build_translation_batches()
 
-        model = OpenAIService.model if Kijiku.LLM_TYPE == "openai" else GeminiService.model
+        model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"] if Kijiku.LLM_TYPE == "openai" else JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
 
         await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
 
@@ -519,7 +506,14 @@ class Kijiku:
         translation_batches = Kijiku.openai_translation_batches if Kijiku.LLM_TYPE == "openai" else Kijiku.gemini_translation_batches
 
         for i in range(0, len(translation_batches), 2):
-            async_requests.append(Kijiku.handle_translation(model, i, len(translation_batches), translation_batches[i], translation_batches[i+1]))
+
+            instructions = translation_batches[i]
+            prompt = translation_batches[i+1]
+
+            assert isinstance(instructions, SystemTranslationMessage) or isinstance(instructions, str)
+            assert isinstance(prompt, ModelTranslationMessage) or isinstance(prompt, str)
+
+            async_requests.append(Kijiku.handle_translation(model, i, len(translation_batches), instructions, prompt))
 
         return async_requests
 
@@ -601,16 +595,16 @@ class Kijiku:
             if(Kijiku.LLM_TYPE == 'openai'):
 
                 if(Kijiku.prompt_assembly_mode == 1):
-                    system_msg = SystemTranslationMessage(content=str(OpenAIService.system_message))
+                    system_msg = SystemTranslationMessage(content=str(Kijiku.openai_system_message))
                 else:
-                    system_msg = ModelTranslationMessage(content=str(OpenAIService.system_message))
+                    system_msg = SystemTranslationMessage(content=str(Kijiku.openai_system_message))
 
                 Kijiku.openai_translation_batches.append(system_msg)
                 model_msg = ModelTranslationMessage(content=batch)
                 Kijiku.openai_translation_batches.append(model_msg)
 
             else:
-                Kijiku.gemini_translation_batches.append(GeminiService.prompt)
+                Kijiku.gemini_translation_batches.append(Kijiku.gemini_prompt)
                 Kijiku.gemini_translation_batches.append(batch)
 
         Logger.log_barrier()
@@ -630,177 +624,6 @@ class Kijiku:
 
             Logger.log_action(message)
 
-##-------------------start-of-estimate_cost()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def estimate_cost(model:str, price_case:int | None = None) -> typing.Tuple[int, float, str]:
-
-        """
-
-        Attempts to estimate cost.
-
-        Parameters:
-        model (string) : the model used to translate the text.
-        price_case (int) : the price case used to calculate the cost.
-
-        Returns:
-        num_tokens (int) : the number of tokens used.
-        min_cost (float) : the minimum cost of translation.
-        model (string) : the model used to translate the text.
-
-        """
-
-        MODEL_COSTS = {
-            "gpt-3.5-turbo": {"price_case": 2, "input_cost": 0.0010, "output_cost": 0.0020},
-            "gpt-4": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
-            "gpt-4-turbo-preview": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
-            "gpt-3.5-turbo-0613": {"price_case": 1, "input_cost": 0.0015, "output_cost": 0.0020},
-            "gpt-3.5-turbo-0301": {"price_case": 1, "input_cost": 0.0015, "output_cost": 0.0020},
-            "gpt-3.5-turbo-1106": {"price_case": 2, "input_cost": 0.0010, "output_cost": 0.0020},
-            "gpt-3.5-turbo-0125": {"price_case": 7, "input_cost": 0.0005, "output_cost": 0.0015},
-            "gpt-3.5-turbo-16k-0613": {"price_case": 3, "input_cost": 0.0030, "output_cost": 0.0040},
-            "gpt-4-1106-preview": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
-            "gpt-4-0125-preview": {"price_case": 4, "input_cost": 0.01, "output_cost": 0.03},
-            "gpt-4-0314": {"price_case": 5, "input_cost": 0.03, "output_cost": 0.06},
-            "gpt-4-0613": {"price_case": 5, "input_cost": 0.03, "output_cost": 0.06},
-            "gpt-4-32k-0314": {"price_case": 6, "input_cost": 0.06, "output_cost": 0.012},
-            "gpt-4-32k-0613": {"price_case": 6, "input_cost": 0.06, "output_cost": 0.012},
-            "gemini-1.0-pro-001": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-1.0-pro-vision-001": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-1.0-pro": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-1.0-pro-vision": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-1.0-pro-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-1.0-pro-vision-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-1.5-pro-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-1.0-ultra-latest": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-pro": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-pro-vision": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0},
-            "gemini-ultra": {"price_case": 8, "input_cost": 0.0, "output_cost": 0.0}
-        }
-
-        assert model in FileEnsurer.ALLOWED_OPENAI_MODELS or model in FileEnsurer.ALLOWED_GEMINI_MODELS, f"""Kudasai does not support : {model}"""
-
-        ## default models are first, then the rest are sorted by price case
-        if(price_case is None):
-
-            if(model == "gpt-3.5-turbo"):
-                print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-1106 as it is the most recent version of gpt-3.5-turbo.")
-                return Kijiku.estimate_cost("gpt-3.5-turbo-1106", price_case=2)
-            
-            elif(model == "gpt-4"):
-                print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-1106-preview as it is the most recent version of gpt-4.")
-                return Kijiku.estimate_cost("gpt-4-1106-preview", price_case=4)
-            
-            elif(model == "gpt-4-turbo-preview"):
-                print("Warning: gpt-4-turbo-preview may change over time. Returning num tokens assuming gpt-4-0125-preview as it is the most recent version of gpt-4-turbo-preview.")
-                return Kijiku.estimate_cost("gpt-4-0125-preview", price_case=4)
-            
-            elif(model == "gpt-3.5-turbo-0613"):
-                print("Warning: gpt-3.5-turbo-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
-                return Kijiku.estimate_cost(model, price_case=1)
-
-            elif(model == "gpt-3.5-turbo-0301"):
-                print("Warning: gpt-3.5-turbo-0301 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106 unless you are specifically trying to break the filter.")
-                return Kijiku.estimate_cost(model, price_case=1)
-            
-            elif(model == "gpt-3.5-turbo-1106"):
-                return Kijiku.estimate_cost(model, price_case=2)
-            
-            elif(model == "gpt-3.5-turbo-0125"):
-                return Kijiku.estimate_cost(model, price_case=7)
-            
-            elif(model == "gpt-3.5-turbo-16k-0613"):
-                print("Warning: gpt-3.5-turbo-16k-0613 is considered depreciated by OpenAI as of November 6, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-3.5-turbo-1106.")
-                return Kijiku.estimate_cost(model, price_case=3)
-            
-            elif(model == "gpt-4-1106-preview"):
-                return Kijiku.estimate_cost(model, price_case=4)
-            
-            elif(model == "gpt-4-0125-preview"):
-                return Kijiku.estimate_cost(model, price_case=4)
-            
-            elif(model == "gpt-4-0314"):
-                print("Warning: gpt-4-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-0613.")
-                return Kijiku.estimate_cost(model, price_case=5)
-            
-            elif(model == "gpt-4-0613"):
-                return Kijiku.estimate_cost(model, price_case=5)
-            
-            elif(model == "gpt-4-32k-0314"):
-                print("Warning: gpt-4-32k-0314 is considered depreciated by OpenAI as of June 13, 2023 and could be shutdown as early as June 13, 2024. Consider switching to gpt-4-32k-0613.")
-                return Kijiku.estimate_cost(model, price_case=6)
-            
-            elif(model == "gpt-4-32k-0613"):
-                return Kijiku.estimate_cost(model, price_case=6)
-            
-            elif(model == "gemini-pro"):
-                print(f"Warning: gemini-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-                return Kijiku.estimate_cost("gemini-1.0-pro-001", price_case=8)
-            
-            elif(model == "gemini-pro-vision"):
-                print("Warning: gemini-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
-                return Kijiku.estimate_cost("gemini-1.0-pro-vision-001", price_case=8)
-            
-            elif(model == "gemini-ultra"):
-                return Kijiku.estimate_cost(model, price_case=8)
-            
-            elif(model == "gemini-1.0-pro"):
-                print(f"Warning: gemini-1.0-pro may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-                return Kijiku.estimate_cost(model, price_case=8)
-            
-            elif(model == "gemini-1.0-pro-vision"):
-                print("Warning: gemini-1.0-pro-vision may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
-                return Kijiku.estimate_cost(model, price_case=8)
-            
-            elif(model == "gemini-1.0-pro-latest"):
-                print(f"Warning: gemini-1.0-pro-latest may change over time. Returning num tokens assuming gemini-1.0-pro-001 as it is the most recent version of gemini-1.0-pro.")
-                return Kijiku.estimate_cost("gemini-1.0-pro-001", price_case=8)
-            
-            elif(model == "gemini-1.0-pro-vision-latest"):
-                print("Warning: gemini-1.0-pro-vision-latest may change over time. Returning num tokens assuming gemini-1.0-pro-vision-001 as it is the most recent version of gemini-1.0-pro-vision.")
-                return Kijiku.estimate_cost("gemini-1.0-pro-vision-001", price_case=8)
-            
-            elif(model == "gemini-1.5-pro-latest"):
-                return Kijiku.estimate_cost(model, price_case=8)
-            
-            elif(model == "gemini-1.0-ultra-latest"):
-                return Kijiku.estimate_cost(model, price_case=8)
-            
-            elif(model == "gemini-1.0-pro-001"):
-                return Kijiku.estimate_cost(model, price_case=8)
-            
-            elif(model == "gemini-1.0-pro-vision-001"):
-                return Kijiku.estimate_cost(model, price_case=8)
-            
-        else:
-
-            cost_details = MODEL_COSTS.get(model)
-
-            if(not cost_details):
-                raise ValueError(f"Cost details not found for model: {model}.")
-
-            ## break down the text into a string than into tokens
-            text = ''.join(Kijiku.text_to_translate)
-
-            if(Kijiku.LLM_TYPE == "openai"):
-                encoding = tiktoken.encoding_for_model(model)
-                num_tokens = len(encoding.encode(text))
-
-            else:
-                num_tokens = GeminiService.count_tokens(text)
-
-            input_cost = cost_details["input_cost"]
-            output_cost = cost_details["output_cost"]
-
-            min_cost_for_input = (num_tokens / 1000) * input_cost
-            min_cost_for_output = (num_tokens / 1000) * output_cost
-            min_cost = min_cost_for_input + min_cost_for_output
-
-            return num_tokens, min_cost, model
-        
-        ## type checker doesn't like the chance of None being returned, so we raise an exception here if it gets to this point
-        raise Exception("An unknown error occurred while calculating the minimum cost of translation.")
-    
 ##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -819,8 +642,10 @@ class Kijiku:
         
         """ 
 
+        translation_instructions = Kijiku.openai_system_message if Kijiku.LLM_TYPE == "openai" else Kijiku.gemini_prompt
+
         ## get cost estimate and confirm
-        num_tokens, min_cost, model = Kijiku.estimate_cost(model)
+        num_tokens, min_cost, model = EasyTL.calculate_cost(text=Kijiku.text_to_translate, service=Kijiku.LLM_TYPE, model=model,translation_instructions=translation_instructions)
 
         print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
@@ -849,7 +674,7 @@ class Kijiku:
 ##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    async def handle_translation(model:str, index:int, length:int, translation_instructions:typing.Union[str, Message], translation_prompt:typing.Union[str, Message]) -> tuple[int, typing.Union[str, Message], str]:
+    async def handle_translation(model:str, index:int, length:int, translation_instructions:typing.Union[str, SystemTranslationMessage], translation_prompt:typing.Union[str, ModelTranslationMessage]) -> tuple[int, str, str]:
 
         """
 
@@ -885,19 +710,39 @@ class Kijiku:
                 try:
 
                     if(Kijiku.LLM_TYPE == "openai"):
-                        translated_message = await OpenAIService.translate_message(translation_instructions, translation_prompt) # type: ignore
+                        translated_message = await EasyTL.openai_translate_async(text=translation_prompt,
+                                                                                decorator=Kijiku.decorator_to_use,
+                                                                                translation_instructions=translation_instructions,
+                                                                                model=model,
+                                                                                temperature=Kijiku.openai_temperature,
+                                                                                top_p=Kijiku.openai_top_p,
+                                                                                stop=Kijiku.openai_stop,
+                                                                                max_tokens=Kijiku.openai_max_tokens,
+                                                                                presence_penalty=Kijiku.openai_presence_penalty,
+                                                                                frequency_penalty=Kijiku.openai_frequency_penalty)
 
                     else:
-                        translated_message = await GeminiService.translate_message(translation_instructions, translation_prompt) # type: ignore
+
+                        assert isinstance(translation_prompt, str)
+
+                        translated_message = await EasyTL.gemini_translate_async(text=translation_prompt,
+                                                                                 decorator=Kijiku.decorator_to_use,
+                                                                                 model=model,
+                                                                                 temperature=Kijiku.gemini_temperature,
+                                                                                 top_p=Kijiku.gemini_top_p,
+                                                                                 top_k=Kijiku.gemini_top_k,
+                                                                                 stop_sequences=Kijiku.gemini_stop_sequences,
+                                                                                 max_output_tokens=Kijiku.gemini_max_output_tokens)
 
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
-                    translated_message = translation_prompt.content if isinstance(translation_prompt, Message) else translation_prompt
+
                     Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
-                if("gpt-4" not in model):
+                ## since gemini is free, we can just try again if it's malformed
+                if("gpt-4" not in model and Kijiku.LLM_TYPE != "gemini"): 
                     break
 
                 if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
@@ -913,12 +758,18 @@ class Kijiku:
                     Logger.log_error(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
                     Kijiku.num_occurred_malformed_batches += 1
 
+            if(isinstance(translation_prompt, ModelTranslationMessage)):
+                translation_prompt = translation_prompt.content
+
+            if(isinstance(translated_message, typing.List)):
+                translated_message = ''.join(translated_message)
+
             return index, translation_prompt, translated_message
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def check_if_translation_is_good(translated_message:str, translation_prompt:typing.Union[Message, str]) -> bool:
+    async def check_if_translation_is_good(translated_message:typing.Union[typing.List[str], str], translation_prompt:typing.Union[ModelTranslationMessage, str]) -> bool:
 
         """
         
@@ -938,6 +789,9 @@ class Kijiku:
 
         else:
             prompt = translation_prompt
+
+        if(isinstance(translated_message, list)):
+            translated_message = ''.join(translated_message)
             
         is_valid = False
 

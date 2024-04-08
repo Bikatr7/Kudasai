@@ -7,7 +7,9 @@ import gradio as gr
 
 from kairyou import Indexer
 from kairyou import Kairyou
-from kairyou.exceptions import InvalidReplacementJsonKeys
+from kairyou import InvalidReplacementJsonKeys
+
+from easytl import EasyTL, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
 
 ## custom modules
 from modules.common.toolkit import Toolkit
@@ -21,10 +23,6 @@ from handlers.json_handler import JsonHandler
 
 from models.kaiseki import Kaiseki
 from models.kijiku import Kijiku
-from translation_services.deepl_service import DeepLService
-
-from translation_services.openai_service import OpenAIService
-from translation_services.gemini_service import GeminiService
 
 from kudasai import Kudasai
 
@@ -165,15 +163,14 @@ class KudasaiGUI:
                 ## next api key
                 try:
                     if(Kijiku.LLM_TYPE == "openai"):
-                        OpenAIService.set_api_key(str(api_key))
-                        is_valid, e = await OpenAIService.test_api_key_validity()
+                        EasyTL.set_api_key(Kijiku.LLM_TYPE, str(api_key))
+                        is_valid, e = EasyTL.test_api_key_validity(Kijiku.LLM_TYPE)
 
 
                     else:
 
-                        GeminiService.redefine_client()
-                        GeminiService.set_api_key(str(api_key))
-                        is_valid, e = await GeminiService.test_api_key_validity()
+                        EasyTL.set_api_key(Kijiku.LLM_TYPE, str(api_key))
+                        is_valid, e = EasyTL.test_api_key_validity(Kijiku.LLM_TYPE)
 
                     if(is_valid == False and e is not None):
                         raise e
@@ -498,7 +495,7 @@ class KudasaiGUI:
 
                             self.openai_model_input_field = gr.Dropdown(label="OpenAI Model",
                                                                         value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model")),
-                                                                        choices=[model for model in FileEnsurer.ALLOWED_OPENAI_MODELS],
+                                                                        choices=[model for model in ALLOWED_OPENAI_MODELS],
                                                                         info="ID of the model to use. Kijiku only works with 'chat' models.",
                                                                         show_label=True,
                                                                         interactive=True,
@@ -600,7 +597,7 @@ class KudasaiGUI:
 
                             self.gemini_model_input_field = gr.Dropdown(label="Gemini Model",
                                                                         value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model")),
-                                                                        choices=[model for model in FileEnsurer.ALLOWED_GEMINI_MODELS],
+                                                                        choices=[model for model in ALLOWED_GEMINI_MODELS],
                                                                         info="The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.",
                                                                         show_label=True,
                                                                         interactive=True,
@@ -905,9 +902,9 @@ class KudasaiGUI:
                     text_to_translate = input_text
 
                 try:
-                    DeepLService.set_api_key(str(api_key_input))
+                    EasyTL.set_api_key("deepl", str(api_key_input))
 
-                    is_valid, e = DeepLService.test_api_key_validity()
+                    is_valid, e = EasyTL.test_api_key_validity("deepl")
 
                     if(is_valid == False and e is not None):
                         raise e
@@ -1064,8 +1061,6 @@ class KudasaiGUI:
                 else:
                     Kijiku.LLM_TYPE = "gemini"
 
-                    ## normally done in Kijiku.commence_translation, but since we're not translating, we need to do it here
-                    GeminiService.redefine_client()
 
                 await set_kijiku_api_key(api_key)
 
@@ -1077,10 +1072,9 @@ class KudasaiGUI:
                 else:
                     text_to_translate = input_text
 
-                ## need to convert to list of strings
-                Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
+                translation_instructions = GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message") if Kijiku.LLM_TYPE == "openai" else GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt")
 
-                num_tokens, estimated_cost, model = Kijiku.estimate_cost(model)
+                num_tokens, estimated_cost, model = EasyTL.calculate_cost(text=text_to_translate, service=Kijiku.LLM_TYPE, model=model, translation_instructions=translation_instructions)
 
                 if(Kijiku.LLM_TYPE == "gemini"):
                     cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro is Free to use\n"

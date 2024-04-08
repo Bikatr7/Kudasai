@@ -1077,7 +1077,7 @@ class KudasaiGUI:
                 num_tokens, estimated_cost, model = EasyTL.calculate_cost(text=text_to_translate, service=Kijiku.LLM_TYPE, model=model, translation_instructions=translation_instructions)
 
                 if(Kijiku.LLM_TYPE == "gemini"):
-                    cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro is Free to use\n"
+                    cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n"
 
                 cost_estimation += "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
                 

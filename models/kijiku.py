@@ -236,7 +236,7 @@ class Kijiku:
 
             api_key_setter(service.lower(), api_key)
 
-            is_valid, e = await api_key_tester(service.lower())
+            is_valid, e =  api_key_tester(service.lower())
 
             ## if not valid, raise the exception that caused the test to fail
             if(not is_valid and e is not None):
@@ -259,7 +259,7 @@ class Kijiku:
 
                 api_key_setter(service.lower(), api_key)
 
-                is_valid, e = await api_key_tester(service.lower())
+                is_valid, e =  api_key_tester(service.lower())
 
                 if(not is_valid and e is not None):
                     raise e

@@ -758,6 +758,12 @@ class Kijiku:
                     Logger.log_error(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
                     Kijiku.num_occurred_malformed_batches += 1
 
+            if(isinstance(translation_prompt, ModelTranslationMessage)):
+                translation_prompt = translation_prompt.content
+
+            if(isinstance(translated_message, typing.List)):
+                translated_message = ''.join(translated_message)
+
             return index, translation_prompt, translated_message
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

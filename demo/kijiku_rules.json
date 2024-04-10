@@ -6,11 +6,11 @@
         "je_check_mode": 2,
         "number_of_malformed_batch_retries": 1,
         "batch_retry_timeout": 700,
-        "number_of_concurrent_batches": 5
+        "number_of_concurrent_batches": 2
     },
 
     "openai settings": {
-        "openai_model": "gpt-4",
+        "openai_model": "gpt-4-turbo",
         "openai_system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
         "openai_temperature": 0.3,
         "openai_top_p": 1,
@@ -24,7 +24,7 @@
     },
 
     "gemini settings": {
-        "gemini_model": "gemini-pro",
+        "gemini_model": "gemini-ultra",
         "gemini_prompt": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
         "gemini_temperature": 0.3,
         "gemini_top_p": null,

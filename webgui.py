@@ -1080,7 +1080,7 @@ class KudasaiGUI:
                     cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n"
 
                 cost_estimation += "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
-                cost_estimation += "This is a rough estimate, please remember to check actual cost on the appropriate platform when needed"
+                cost_estimation += "\nThis is a rough estimate, please remember to check actual cost on the appropriate platform when needed"
                 
                 gr.Info(cost_estimation)
 

@@ -647,7 +647,7 @@ class Kijiku:
         ## get cost estimate and confirm
         num_tokens, min_cost, model = EasyTL.calculate_cost(text=Kijiku.text_to_translate, service=Kijiku.LLM_TYPE, model=model,translation_instructions=translation_instructions)
 
-        print("\nNote that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
+        print("Note that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
         Logger.log_barrier()
         Logger.log_action("Calculating cost")
@@ -658,7 +658,6 @@ class Kijiku:
         
         Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
         Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
-        Logger.log_action("This is a rough estimate, please remember to check actual cost on the appropriate platform when needed",output=True, omit_timestamp=True)
         Logger.log_barrier()
 
         if(not omit_prompt):

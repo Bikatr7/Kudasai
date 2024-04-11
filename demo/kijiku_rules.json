@@ -24,7 +24,7 @@
     },
 
     "gemini settings": {
-        "gemini_model": "gemini-ultra",
+        "gemini_model": "gemini-1.5-pro-latest",
         "gemini_prompt": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
         "gemini_temperature": 0.3,
         "gemini_top_p": null,

@@ -658,6 +658,7 @@ class Kijiku:
         
         Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
         Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
+        Logger.log_action("This is a rough estimate, please remember to check actual cost on the appropriate platform when needed",output=True, omit_timestamp=True)
         Logger.log_barrier()
 
         if(not omit_prompt):

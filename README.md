@@ -36,9 +36,9 @@ backoff==2.2.1
 
 gradio==4.19.2
 
-kairyou==1.4.1
+kairyou==1.5.0
 
-easytl==0.0.4
+easytl==0.1.0
 
 or see requirements.txt
 

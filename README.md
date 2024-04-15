@@ -38,7 +38,7 @@ gradio==4.19.2
 
 kairyou==1.5.0
 
-easytl==0.1.0
+easytl==0.1.1
 
 or see requirements.txt
 

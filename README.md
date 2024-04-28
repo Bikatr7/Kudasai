@@ -319,7 +319,7 @@ Please note that this information is a brief summary of the GPL. For a detailed 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Contact**<a name="contact"></a>
 
-If you have any questions, comments, or concerns, please feel free to contact me at [Tetralon07@gmail.com](mailto:Tetralon07@gmail.com).
+If you have any questions, comments, or concerns, please feel free to contact me at [Bikatr7@proton.me](mailto:Bikatr7@proton.me)
 
 For any bugs or suggestions please use the issues tab [here](https://github.com/Bikatr7/Kudasai/issues).
 

@@ -13,7 +13,7 @@ from kairyou.types import NameAndOccurrence
 
 ## custom modules
 from models.kaiseki import Kaiseki 
-from models.kijiku import Kijiku
+from modules.common.translation import Kijiku
 
 from handlers.json_handler import JsonHandler
 

@@ -33,5 +33,13 @@
         "gemini_stream": false,
         "gemini_stop_sequences": null,
         "gemini_max_output_tokens": null
+    },
+
+    "deepl settings":{
+        "context": null,
+        "split_sentences": "ALL",
+        "preserve_formatting": true,
+        "formality": "default"
     }
+    
 }

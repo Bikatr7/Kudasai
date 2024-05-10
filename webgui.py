@@ -13,7 +13,6 @@ from easytl import EasyTL, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
 
 ## custom modules
 from modules.common.toolkit import Toolkit
-from modules.common.logger import Logger
 from modules.common.file_ensurer import FileEnsurer
 
 from modules.gui.gui_file_util import gui_get_text_from_file, gui_get_json_from_file

@@ -5,6 +5,7 @@ import json
 import asyncio
 import re
 import typing
+import logging
 
 ## third-party libraries
 from kairyou import Kairyou
@@ -19,7 +20,6 @@ from handlers.json_handler import JsonHandler
 
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
-from modules.common.logger import Logger
 
 ##-------------------start-of-Kudasai---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,10 +55,7 @@ class Kudasai:
 
         FileEnsurer.setup_needed_files()
 
-        Logger.log_barrier()
-        Logger.log_action("Kudasai started")
-        Logger.log_action("Current version: " + Toolkit.CURRENT_VERSION)
-        Logger.log_barrier()
+        logging.info(f"Kudasai started; Current version : {Toolkit.CURRENT_VERSION}")
 
         try:
 
@@ -259,11 +256,7 @@ class Kudasai:
         If the user is running the CLI or Console version of Kudasai, this function is called to run the Kaiseki module.
 
         """
-
-        Logger.log_action("--------------------")
-        Logger.log_action("Kaiseki started")
-        Logger.log_action("--------------------")
-
+ 
         Kaiseki.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
 
         Kaiseki.translate()
@@ -285,9 +278,7 @@ class Kudasai:
 
         """
 
-        Logger.log_action("--------------------")
-        Logger.log_action("Kijiku started")
-        Logger.log_action("--------------------")
+        logging.info("Kijiku started")
 
         Toolkit.clear_console()
 
@@ -354,7 +345,6 @@ async def run_console_version():
         raise e
 
     await Kudasai.run_kudasai()
-    Logger.push_batch()
 
 ##-------------------start-of-run_cli_version()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -380,7 +370,6 @@ async def run_cli_version():
         Kudasai.need_to_run_kairyou = False
 
     await Kudasai.run_kudasai()
-    Logger.push_batch()
 
 ##-------------------start-of-print_usage_statement()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -392,13 +381,26 @@ def print_usage_statement():
 
     """
 
-    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>", output=True, omit_timestamp=True)
-    Logger.log_action("or run Kudasai.py without any arguments to run the console version.", output=True, omit_timestamp=True)
+    python_command = "python" if Toolkit.is_windows() else "python3"
 
-    print("\n")
+    print(f"Usage: {python_command} Kudasai.py <input_file> <replacement_json>"
+          f"or run Kudasai.py without any arguments to run the console version.\n")
 
 ##-------------------start-of-submain()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-if(__name__ == '__main__'):
+if(__name__ == "__main__"):
+    ## setup logging
+    logging.basicConfig(level=logging.DEBUG, 
+                        filename=FileEnsurer.debug_log_path
+                        filemode='w', 
+                        format='[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', 
+                        datefmt='%Y-%m-%d %H:%M:%S')
+
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
     asyncio.run(main())

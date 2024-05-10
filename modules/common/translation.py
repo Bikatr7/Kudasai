@@ -17,7 +17,6 @@ import backoff
 from handlers.json_handler import JsonHandler
 
 from modules.common.file_ensurer import FileEnsurer
-from modules.common.logger import Logger
 from modules.common.toolkit import Toolkit
 from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError
 from modules.common.decorators import permission_error_decorator

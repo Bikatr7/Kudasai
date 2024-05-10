@@ -1,13 +1,13 @@
 ## built-in libraries
 import json
 import typing
+import logging
 
 ## third-party libraries
 from easytl import ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
 
 ## custom modules
 from modules.common.file_ensurer import FileEnsurer
-from modules.common.logger import Logger
 from modules.common.toolkit import Toolkit
 
 ##-------------------start-of-JsonHandler---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -199,13 +199,14 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             gemini_settings["gemini_candidate_count"] = 1
 
         except Exception as e:
-            Logger.log_action("Kijiku Rules.json is not valid, setting to invalid_placeholder, current:")
-            Logger.log_action("Reason: " + str(e))
-            Logger.log_action(str(JsonHandler.current_kijiku_rules))
+            logging.warning(f"Kijiku Rules.json is not valid, setting to invalid_placeholder, current:"
+                            f"\n{JsonHandler.current_kijiku_rules}"
+                            f"\nReason: {e}")
+            
             JsonHandler.current_kijiku_rules = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
 
-        Logger.log_action("Kijiku Rules.json is valid, current:")
-        Logger.log_action(str(JsonHandler.current_kijiku_rules))
+        logging.info(f"Kijiku Rules.json is valid, current:"
+                    f"\n{JsonHandler.current_kijiku_rules}")    
 
 ##-------------------start-of-reset_kijiku_rules_to_default()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -272,22 +273,21 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
         print("-------------------")
 
         for key,value in JsonHandler.current_kijiku_rules["base kijiku settings"].items():
-            Logger.log_action(key + " : " + str(value), output=output, omit_timestamp=output)
+            logging.info(key + " : " + str(value))
 
         print("-------------------")
         print("Open AI Settings:")
         print("-------------------")
 
         for key,value in JsonHandler.current_kijiku_rules["openai settings"].items():
-            Logger.log_action(key + " : " + str(value), output=output, omit_timestamp=output)
+            logging.info(key + " : " + str(value))
 
         print("-------------------")
         print("Gemini Settings:")
         print("-------------------")
 
         for key,value in JsonHandler.current_kijiku_rules["gemini settings"].items():
-            Logger.log_action(key + " : " + str(value), output=output, omit_timestamp=output)
-
+            logging.info(key + " : " + str(value))
 
 ##-------------------start-of-change_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -233,7 +233,7 @@ class Kudasai:
 
         print(Translator.translation_print_result)
 
-        Translator.write_kijiku_results()
+        Translator.write_translator_results()
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -333,16 +333,19 @@ def print_usage_statement():
 
 
 if(__name__ == "__main__"):
+
+    FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
+
     ## setup logging
     
     ## Debug log setup
-    debug_log_handler = logging.FileHandler(FileEnsurer.debug_log_path)
+    debug_log_handler = logging.FileHandler(FileEnsurer.debug_log_path, mode='w+', encoding='utf-8')
     debug_log_handler.setLevel(logging.DEBUG)
     debug_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     debug_log_handler.setFormatter(debug_formatter)
 
     ## Error log setup
-    error_log_handler = logging.FileHandler(FileEnsurer.error_log_path)
+    error_log_handler = logging.FileHandler(FileEnsurer.error_log_path, mode='w+', encoding='utf-8')
     error_log_handler.setLevel(logging.WARNING)
     error_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     error_log_handler.setFormatter(error_formatter)

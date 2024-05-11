@@ -16,34 +16,34 @@ class JsonHandler:
 
     """
     
-    Handles the Kijiku Rules.json file and interactions with it.
+    Handles the translation_settings.json file and interactions with it.
 
     """
 
-    current_kijiku_rules = dict()
+    current_translation_settings = dict()
 
-    kijiku_settings_message = """
+    translation_settings_message = """
 ----------------------------------------------------------------------------------
-Kijiku Settings:
+Base Translation Settings:
 
 prompt_assembly_mode : 1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works. For Gemini, this setting is ignored.
 
 number_of_lines_per_batch : The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.
 
-sentence_fragmenter_mode : 1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 2 for newer models.
+sentence_fragmenter_mode : 1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kudasai fragments the sentences if at all. Use 2 for newer models.
 
 je_check_mode : 1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for newer models.
 
-number_of_malformed_batch_retries : (Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.
+number_of_malformed_batch_retries : (Malformed batch is when je-fixing fails) How many times Kudasai will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.
 
-batch_retry_timeout : How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.
+batch_retry_timeout : How long Kudasai will try to translate a batch in seconds, if a requests exceeds this duration, Kudasai will leave it untranslated.
 
-number_of_concurrent_batches : How many translations batches Kijiku will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.
+number_of_concurrent_batches : How many translations batches Kudasai will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.
 ----------------------------------------------------------------------------------
 Open AI Settings:
 See https://platform.openai.com/docs/api-reference/chat/create for further details
 ----------------------------------------------------------------------------------
-openai_model : ID of the model to use. Kijiku only works with 'chat' models.
+openai_model : ID of the model to use. Kudasai only works with 'chat' models.
 
 openai_system_message : Instructions to the model. Basically tells the model how to translate.
 
@@ -111,11 +111,11 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        Validates the Kijiku Rules.json file.
+        Validates the translation_settings.json file.
 
         """
 
-        base_kijiku_keys = [
+        base_translation_keys = [
             "prompt_assembly_mode",
             "number_of_lines_per_batch",
             "sentence_fragmenter_mode",
@@ -186,26 +186,26 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
         
         try:
             ## ensure categories are present
-            assert "base kijiku settings" in JsonHandler.current_kijiku_rules
-            assert "openai settings" in JsonHandler.current_kijiku_rules
-            assert "gemini settings" in JsonHandler.current_kijiku_rules
-            assert "deepl settings" in JsonHandler.current_kijiku_rules
+            assert "base translation settings" in JsonHandler.current_translation_settings
+            assert "openai settings" in JsonHandler.current_translation_settings
+            assert "gemini settings" in JsonHandler.current_translation_settings
+            assert "deepl settings" in JsonHandler.current_translation_settings
 
             ## assign to variables to reduce repetitive access
-            base_kijiku_settings = JsonHandler.current_kijiku_rules["base kijiku settings"]
-            openai_settings = JsonHandler.current_kijiku_rules["openai settings"]
-            gemini_settings = JsonHandler.current_kijiku_rules["gemini settings"]
-            deepl_settings = JsonHandler.current_kijiku_rules["deepl settings"]
+            base_translation_settings = JsonHandler.current_translation_settings["base translation settings"]
+            openai_settings = JsonHandler.current_translation_settings["openai settings"]
+            gemini_settings = JsonHandler.current_translation_settings["gemini settings"]
+            deepl_settings = JsonHandler.current_translation_settings["deepl settings"]
 
             ## ensure all keys are present
-            assert all(key in base_kijiku_settings for key in base_kijiku_keys)
+            assert all(key in base_translation_settings for key in base_translation_keys)
             assert all(key in openai_settings for key in openai_keys)
             assert all(key in gemini_settings for key in gemini_keys)
             assert all(key in deepl_settings for key in deepl_keys)
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():
-                if(key in base_kijiku_settings and not validate(base_kijiku_settings[key])):
+                if(key in base_translation_settings and not validate(base_translation_settings[key])):
                     raise ValueError(f"Invalid value for {key}")
                 elif(key in openai_settings and not validate(openai_settings[key])):
                     raise ValueError(f"Invalid value for {key}")
@@ -235,14 +235,14 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
                 raise ValueError("Invalid value for deepl_split_sentences")
 
         except Exception as e:
-            logging.warning(f"Kijiku Rules.json is not valid, setting to invalid_placeholder, current:"
-                            f"\n{JsonHandler.current_kijiku_rules}"
+            logging.warning(f"translation_settings.json is not valid, setting to invalid_placeholder, current:"
+                            f"\n{JsonHandler.current_translation_settings}"
                             f"\nReason: {e}")
             
-            JsonHandler.current_kijiku_rules = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
+            JsonHandler.current_translation_settings = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
 
-        logging.info(f"Kijiku Rules.json is valid, current:"
-                    f"\n{JsonHandler.current_kijiku_rules}")    
+        logging.info(f"translation_settings.json is valid, current:"
+                    f"\n{JsonHandler.current_translation_settings}")    
 
 ##-------------------start-of-reset_kijiku_rules_to_default()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -255,7 +255,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        JsonHandler.current_kijiku_rules = FileEnsurer.DEFAULT_KIJIKU_RULES
+        JsonHandler.current_translation_settings = FileEnsurer.DEFAULT_KIJIKU_RULES
         
         JsonHandler.dump_kijiku_rules()
 
@@ -268,12 +268,12 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        Dumps the Kijiku Rules.json file to disk.
+        Dumps the translation_settings.json file to disk.
 
         """
 
         with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
-            json.dump(JsonHandler.current_kijiku_rules, file)
+            json.dump(JsonHandler.current_translation_settings, file)
 
 ##-------------------start-of-load_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -282,12 +282,12 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        Loads the Kijiku Rules.json file into memory.
+        Loads the translation_settings.json file into memory.
 
         """
 
         with open(FileEnsurer.config_kijiku_rules_path, 'r', encoding='utf-8') as file:
-            JsonHandler.current_kijiku_rules = json.load(file)
+            JsonHandler.current_translation_settings = json.load(file)
 
 ##-------------------start-of-print_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -296,7 +296,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        Prints the Kijiku Rules.json file to the log.
+        Prints the translation_settings.json file to the log.
         Logs by default, but can be set to print to console as well.
 
         Parameters:
@@ -304,14 +304,14 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
         
-        sections = ["base kijiku settings", "openai settings", "gemini settings", "deepl settings"]
+        sections = ["base translation settings", "openai settings", "gemini settings", "deepl settings"]
 
         for section in sections:
             print("-------------------")
             print(f"{section.capitalize()}:")
             print("-------------------")
 
-            for key,value in JsonHandler.current_kijiku_rules[section].items():
+            for key,value in JsonHandler.current_translation_settings[section].items():
                 log_message = key + " : " + str(value)
                 logging.info(log_message)
                 if(output):
@@ -324,7 +324,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        Allows the user to change the settings of the Kijiku Rules.json file
+        Allows the user to change the settings of the translation_settings.json file
 
         """
         
@@ -332,7 +332,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
             Toolkit.clear_console()
 
-            settings_print_message = JsonHandler.kijiku_settings_message + SettingsChanger.generate_settings_change_menu()
+            settings_print_message = JsonHandler.translation_settings_message + SettingsChanger.generate_settings_change_menu()
 
             action = input(settings_print_message).lower()
 
@@ -347,16 +347,16 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
                 print("Resetting to default settings.")
                 JsonHandler.reset_kijiku_rules_to_default()
 
-            elif(action in JsonHandler.current_kijiku_rules["base kijiku settings"]):
-                SettingsChanger.change_setting("base kijiku settings", action)
+            elif(action in JsonHandler.current_translation_settings["base translation settings"]):
+                SettingsChanger.change_setting("base translation settings", action)
 
-            elif(action in JsonHandler.current_kijiku_rules["openai settings"]):
+            elif(action in JsonHandler.current_translation_settings["openai settings"]):
                 SettingsChanger.change_setting("openai settings", action)
 
-            elif(action in JsonHandler.current_kijiku_rules["gemini settings"]):
+            elif(action in JsonHandler.current_translation_settings["gemini settings"]):
                 SettingsChanger.change_setting("gemini settings", action)
 
-            elif(action in JsonHandler.current_kijiku_rules["deepl settings"]):
+            elif(action in JsonHandler.current_translation_settings["deepl settings"]):
                 SettingsChanger.change_setting("deepl settings", action)
 
             else:
@@ -459,7 +459,7 @@ class SettingsChanger:
 
     """
     
-    Handles changing the settings of the Kijiku Rules.json file.
+    Handles changing the settings of the translation_settings.json file.
 
     """
 
@@ -483,22 +483,22 @@ Current settings:
 
 """
 
-        for key,value in JsonHandler.current_kijiku_rules["base kijiku settings"].items():
+        for key,value in JsonHandler.current_translation_settings["base translation settings"].items():
             menu += key + " : " + str(value) + "\n"
 
         print("\n")
 
-        for key,value in JsonHandler.current_kijiku_rules["openai settings"].items():
+        for key,value in JsonHandler.current_translation_settings["openai settings"].items():
             menu += key + " : " + str(value) + "\n"
 
         print("\n")
 
-        for key,value in JsonHandler.current_kijiku_rules["gemini settings"].items():
+        for key,value in JsonHandler.current_translation_settings["gemini settings"].items():
             menu += key + " : " + str(value) + "\n"
             
         print("\n")
 
-        for key,value in JsonHandler.current_kijiku_rules["deepl settings"].items():
+        for key,value in JsonHandler.current_translation_settings["deepl settings"].items():
             menu += key + " : " + str(value) + "\n"
 
         menu += """
@@ -516,25 +516,25 @@ Enter the name of the setting you want to change, type d to reset to default, ty
 
         """
 
-        Loads a custom json into the Kijiku Rules.json file.
+        Loads a custom json into the translation_settings.json file.
 
         """
 
         Toolkit.clear_console()
 
         ## saves old rules in case on invalid json
-        old_kijiku_rules = JsonHandler.current_kijiku_rules
+        old_kijiku_rules = JsonHandler.current_translation_settings
 
         try:
 
             ## loads the custom json file
             with open(FileEnsurer.external_kijiku_rules_path, 'r', encoding='utf-8') as file:
-                JsonHandler.current_kijiku_rules = json.load(file) 
+                JsonHandler.current_translation_settings = json.load(file) 
 
             JsonHandler.validate_json()
 
             ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
-            assert JsonHandler.current_kijiku_rules != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
+            assert JsonHandler.current_translation_settings != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
             
             JsonHandler.dump_kijiku_rules()
 
@@ -542,11 +542,11 @@ Enter the name of the setting you want to change, type d to reset to default, ty
         
         except AssertionError:
             print("Invalid JSON file. Please try again.")
-            JsonHandler.current_kijiku_rules = old_kijiku_rules
+            JsonHandler.current_translation_settings = old_kijiku_rules
 
         except FileNotFoundError:
             print("Missing JSON file. Make sure you have a json in the same directory as kudasai.py and that the json is named \"kijiku_rules.json\". Please try again.")
-            JsonHandler.current_kijiku_rules = old_kijiku_rules
+            JsonHandler.current_translation_settings = old_kijiku_rules
 
 ##-------------------start-of-change_setting()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -555,7 +555,7 @@ Enter the name of the setting you want to change, type d to reset to default, ty
 
         """
 
-        Changes the setting of the Kijiku Rules.json file.
+        Changes the setting of the translation_settings.json file.
 
         Parameters:
         setting_area (str) : The area of the setting to change.
@@ -568,7 +568,7 @@ Enter the name of the setting you want to change, type d to reset to default, ty
         try:
             converted_value = JsonHandler.convert_to_correct_type(setting_name, new_value)
 
-            JsonHandler.current_kijiku_rules[setting_area][setting_name] = converted_value
+            JsonHandler.current_translation_settings[setting_area][setting_name] = converted_value
             print(f"Updated {setting_name} to {converted_value}.")
         
         except Exception as e:

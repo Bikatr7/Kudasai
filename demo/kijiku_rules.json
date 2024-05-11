@@ -1,5 +1,5 @@
 {
-    "base kijiku settings": {
+    "base translation settings": {
         "prompt_assembly_mode": 1,
         "number_of_lines_per_batch": 48,
         "sentence_fragmenter_mode": 2,

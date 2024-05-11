@@ -4,9 +4,30 @@ from easytl import AuthenticationError, InternalServerError, RateLimitError, API
 from easytl import AuthorizationException, QuotaExceededException
 from easytl import GoogleAuthError
 
+##-------------------start-of-KudasaiException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class KudasaiException(Exception):
+
+    """
+
+    KudasaiException is an exception that is raised when an error occurs within the Kudasai Application.
+
+    """
+
+    def __init__(self, message:str) -> None:
+
+        """
+
+        Parameters:
+        message (string) : The message to display.
+
+        """
+
+        self.message = message
+
 ##-------------------start-of-MaxBatchDurationExceededException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class MaxBatchDurationExceededException(Exception):
+class MaxBatchDurationExceededException(KudasaiException):
 
     """
 
@@ -27,7 +48,7 @@ class MaxBatchDurationExceededException(Exception):
 
 ##-------------------start-of-InvalidAPIKeyException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class InvalidAPIKeyException(Exception):
+class InvalidAPIKeyException(KudasaiException):
 
     """
 
@@ -48,7 +69,7 @@ class InvalidAPIKeyException(Exception):
 
 ##-------------------start-of-TooManyFileAccessAttemptsException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class TooManyFileAccessAttemptsException(Exception):
+class TooManyFileAccessAttemptsException(KudasaiException):
 
     """
 

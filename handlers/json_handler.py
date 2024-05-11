@@ -239,7 +239,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
                             f"\n{JsonHandler.current_translation_settings}"
                             f"\nReason: {e}")
             
-            JsonHandler.current_translation_settings = FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
+            JsonHandler.current_translation_settings = FileEnsurer.INVALID_TRANSLATION_SETTINGS_PLACEHOLDER
 
         logging.info(f"translation_settings.json is valid, current:"
                     f"\n{JsonHandler.current_translation_settings}")    
@@ -272,7 +272,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        with open(FileEnsurer.config_kijiku_rules_path, 'w+', encoding='utf-8') as file:
+        with open(FileEnsurer.config_translation_settings_path, 'w+', encoding='utf-8') as file:
             json.dump(JsonHandler.current_translation_settings, file)
 
 ##-------------------start-of-load_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -286,7 +286,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        with open(FileEnsurer.config_kijiku_rules_path, 'r', encoding='utf-8') as file:
+        with open(FileEnsurer.config_translation_settings_path, 'r', encoding='utf-8') as file:
             JsonHandler.current_translation_settings = json.load(file)
 
 ##-------------------start-of-print_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -523,18 +523,18 @@ Enter the name of the setting you want to change, type d to reset to default, ty
         Toolkit.clear_console()
 
         ## saves old rules in case on invalid json
-        old_kijiku_rules = JsonHandler.current_translation_settings
+        old_translation_settings = JsonHandler.current_translation_settings
 
         try:
 
             ## loads the custom json file
-            with open(FileEnsurer.external_kijiku_rules_path, 'r', encoding='utf-8') as file:
+            with open(FileEnsurer.external_translation_settings_path, 'r', encoding='utf-8') as file:
                 JsonHandler.current_translation_settings = json.load(file) 
 
             JsonHandler.validate_json()
 
             ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
-            assert JsonHandler.current_translation_settings != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
+            assert JsonHandler.current_translation_settings != FileEnsurer.INVALID_TRANSLATION_SETTINGS_PLACEHOLDER
             
             JsonHandler.dump_kijiku_rules()
 
@@ -542,11 +542,11 @@ Enter the name of the setting you want to change, type d to reset to default, ty
         
         except AssertionError:
             print("Invalid JSON file. Please try again.")
-            JsonHandler.current_translation_settings = old_kijiku_rules
+            JsonHandler.current_translation_settings = old_translation_settings
 
         except FileNotFoundError:
-            print("Missing JSON file. Make sure you have a json in the same directory as kudasai.py and that the json is named \"kijiku_rules.json\". Please try again.")
-            JsonHandler.current_translation_settings = old_kijiku_rules
+            print("Missing JSON file. Make sure you have a json in the same directory as kudasai.py and that the json is named \"translation_settings.json\". Please try again.")
+            JsonHandler.current_translation_settings = old_translation_settings
 
 ##-------------------start-of-change_setting()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             

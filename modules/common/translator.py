@@ -6,6 +6,7 @@ import time
 import typing
 import asyncio
 import os
+import logging
 
 ## third party modules
 from kairyou import KatakanaUtil
@@ -18,17 +19,17 @@ from handlers.json_handler import JsonHandler
 
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.toolkit import Toolkit
-from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError
+from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError, DeepLException
 from modules.common.decorators import permission_error_decorator
 
-##-------------------start-of-Kijiku--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-Translator--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class Kijiku:
+class Translator:
 
     """
     
-    Kijiku is a secondary class that is used to interact with LLMs and translate text.
-    Currently supports OpenAI and Gemini.
+    Translator is a class that is used to interact with translation methods and translate text.
+    Currently supports OpenAI, Gemini, and DeepL.
     
     """
     
@@ -47,6 +48,9 @@ class Kijiku:
     ## meanwhile for gemini, we just need to send the prompt and the text to be translated concatenated together
     gemini_translation_batches:typing.List[str] = []
 
+    ## same as above, but for deepl
+    deepl_translation_batches:typing.List[str] = []
+
     num_occurred_malformed_batches = 0
 
     ## semaphore to limit the number of concurrent batches
@@ -54,7 +58,7 @@ class Kijiku:
 
     ##--------------------------------------------------------------------------------------------------------------------------
 
-    LLM_TYPE:typing.Literal["openai", "gemini"] = "openai"
+    TRANSLATION_METHOD:typing.Literal["openai", "gemini", "deepl"] = "openai"
 
     translation_print_result = ""
 
@@ -78,14 +82,14 @@ class Kijiku:
         """
         
         Returns the max batch duration.
-        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called.
+        Structured as a function so that it can be used as a lambda function in the backoff decorator. As decorators call the function when they are defined/runtime, not when they are called. Which I learned the hard way.
 
         Returns:
         max_batch_duration (float) : the max batch duration.
 
         """
 
-        return Kijiku.max_batch_duration
+        return Translator.max_batch_duration
     
 ##-------------------start-of-log_retry()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,9 +107,7 @@ class Kijiku:
 
         retry_msg = f"Retrying translation after {details['wait']} seconds after {details['tries']} tries {details['target']} due to {details['exception']}."
 
-        Logger.log_barrier()
-        Logger.log_action(retry_msg)
-        Logger.log_barrier()
+        logging.warning(retry_msg)
 
 ##-------------------start-of-log_failure()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -121,11 +123,9 @@ class Kijiku:
 
         """
 
-        error_msg = f"Exceeded duration, returning untranslated text after {details['tries']} tries {details['target']}."
+        error_msg = f"Exceeded allowed duration of {details['wait']} seconds, returning untranslated text after {details['tries']} tries {details['target']}."
 
-        Logger.log_barrier()
-        Logger.log_error(error_msg)
-        Logger.log_barrier()
+        logging.error(error_msg)
 
         raise MaxBatchDurationExceededException(error_msg)
 
@@ -140,27 +140,25 @@ class Kijiku:
 
         """
 
-        Logger.clear_batch()
-
         ## set this here cause the try-except could throw before we get past the settings configuration
         time_start = time.time()
 
         try:
         
-            await Kijiku.initialize()
+            await Translator.initialize()
 
             JsonHandler.validate_json()
 
-            await Kijiku.check_settings()
+            await Translator.check_settings()
 
             ## set actual start time to the end of the settings configuration
             time_start = time.time()
 
-            await Kijiku.commence_translation()
+            await Translator.commence_translation()
 
         except Exception as e:
             
-            Kijiku.translation_print_result += "An error has occurred, outputting results so far..."
+            Translator.translation_print_result += "An error has occurred, outputting results so far..."
 
             FileEnsurer.handle_critical_exception(e)
 
@@ -168,7 +166,7 @@ class Kijiku:
 
             time_end = time.time() 
 
-            Kijiku.assemble_results(time_start, time_end)
+            Translator.assemble_results(time_start, time_end)
 
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -177,37 +175,43 @@ class Kijiku:
 
         """
 
-        Sets the API Key for the respective service and loads the kijiku rules.
+        Sets the API Key for the respective service and loads the translation settings.
     
         """
 
-        print("What LLM do you want to use? (1 for OpenAI or 2 for Gemini) : ")
+        method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl) : \n")
 
-        if(input("\n") == "1"):
-            Kijiku.LLM_TYPE = "openai"
+        if(method == "1"):
+            Translator.TRANSLATION_METHOD = "openai"
         
+        elif(method == "2"):
+            Translator.TRANSLATION_METHOD = "gemini"
+
         else:
-            Kijiku.LLM_TYPE = "gemini"
+            Translator.TRANSLATION_METHOD = "deepl"
 
         Toolkit.clear_console()
 
-        if(Kijiku.LLM_TYPE == "openai"):
-            await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
+        if(Translator.TRANSLATION_METHOD == "openai"):
+            await Translator.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
+
+        elif(Translator.TRANSLATION_METHOD == "gemini"):
+            await Translator.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
 
         else:
-            await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
+            await Translator.init_api_key("DeepL", FileEnsurer.deepl_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
 
-        ## try to load the kijiku rules
+        ## try to load the translation settings
         try: 
 
-            JsonHandler.load_kijiku_rules()
+            JsonHandler.load_translation_settings()
 
-        ## if the kijiku rules don't exist, create them
+        ## if the translation settings don't exist, create them
         except: 
             
-            JsonHandler.reset_kijiku_rules_to_default()
+            JsonHandler.reset_translation_settings_to_default()
 
-            JsonHandler.load_kijiku_rules()
+            JsonHandler.load_translation_settings()
             
         Toolkit.clear_console()
 
@@ -240,9 +244,8 @@ class Kijiku:
             ## if not valid, raise the exception that caused the test to fail
             if(not is_valid and e is not None):
                 raise e
-        
-            Logger.log_action("Used saved API key in " + api_key_path, output=True)
-            Logger.log_barrier()
+
+            logging.info(f"Used saved API key in {api_key_path}")        
 
             time.sleep(2)
 
@@ -269,19 +272,19 @@ class Kijiku:
             except (GoogleAuthError, AuthenticationError):
                     
                 Toolkit.clear_console()
-                        
-                Logger.log_action(f"Authorization error while setting up {service}, please double check your API key as it appears to be incorrect.", output=True)
+
+                logging.error(f"Authorization error while setting up {service}, please double check your API key as it appears to be incorrect.") 
 
                 Toolkit.pause_console()
                         
-                exit()
+                exit(1)
 
             ## other error, alert user and raise it
             except Exception as e: 
 
                 Toolkit.clear_console()
                         
-                Logger.log_action(f"Unknown error while setting up {service}, The error is as follows " + str(e)  + "\nThe exception will now be raised.", output=True)
+                logging.error(f"Unknown error while setting up {service}, The error is as follows " + str(e)  + "\nThe exception will now be raised.")
 
                 Toolkit.pause_console()
 
@@ -299,17 +302,15 @@ class Kijiku:
 
         """
 
-        Logger.clear_batch()
-
-        Kijiku.text_to_translate = []
-        Kijiku.translated_text = []
-        Kijiku.je_check_text = []
-        Kijiku.error_text = []
-        Kijiku.openai_translation_batches = []
-        Kijiku.gemini_translation_batches = []
-        Kijiku.num_occurred_malformed_batches = 0
-        Kijiku.translation_print_result = ""
-        Kijiku.LLM_TYPE = "openai"
+        Translator.text_to_translate = []
+        Translator.translated_text = []
+        Translator.je_check_text = []
+        Translator.error_text = []
+        Translator.openai_translation_batches = []
+        Translator.gemini_translation_batches = []
+        Translator.num_occurred_malformed_batches = 0
+        Translator.translation_print_result = ""
+        Translator.TRANSLATION_METHOD = "openai"
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -318,7 +319,7 @@ class Kijiku:
 
         """
 
-        Prompts the user to confirm the settings in the kijiku rules file.
+        Prompts the user to confirm the settings in the translation settings file.
 
         """
 
@@ -326,18 +327,18 @@ class Kijiku:
 
         try:
 
-            JsonHandler.print_kijiku_rules(output=True)
+            JsonHandler.log_translation_settings(output_to_console=True)
 
         except:
             Toolkit.clear_console()
 
-            if(input("It's likely that you're using an outdated version of the kijiku rules file, press 1 to reset these to default or 2 to exit and resolve manually : ") == "1"):
+            if(input("It's likely that you're using an outdated version of the translation settings file, press 1 to reset these to default or 2 to exit and resolve manually : ") == "1"):
                 Toolkit.clear_console()
-                JsonHandler.reset_kijiku_rules_to_default()
-                JsonHandler.load_kijiku_rules()
+                JsonHandler.reset_translation_settings_to_default()
+                JsonHandler.load_translation_settings()
 
                 print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
-                JsonHandler.print_kijiku_rules(output=True)
+                JsonHandler.log_translation_settings(output_to_console=True)
 
             else:
                 FileEnsurer.exit_kudasai()
@@ -345,7 +346,7 @@ class Kijiku:
         if(input("\n") == "1"):
             pass
         else:
-            JsonHandler.change_kijiku_settings()
+            JsonHandler.change_translation_settings()
 
         Toolkit.clear_console()
 
@@ -353,19 +354,26 @@ class Kijiku:
 
         if(input("\n") == "1"):
 
-            if(Kijiku.LLM_TYPE == "openai"):
+            if(Translator.TRANSLATION_METHOD == "openai"):
 
                 if(os.path.exists(FileEnsurer.openai_api_key_path)):
 
                     os.remove(FileEnsurer.openai_api_key_path)
-                    await Kijiku.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
+                    await Translator.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
 
-            else:
+            elif(Translator.TRANSLATION_METHOD == "gemini"):
     
                 if(os.path.exists(FileEnsurer.gemini_api_key_path)):
 
                     os.remove(FileEnsurer.gemini_api_key_path)
-                    await Kijiku.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_api_key, EasyTL.test_api_key_validity)
+                    await Translator.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
+
+            else:
+
+                if(os.path.exists(FileEnsurer.deepl_api_key_path)):
+
+                    os.remove(FileEnsurer.deepl_api_key_path)
+                    await Translator.init_api_key("DeepL", FileEnsurer.deepl_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
 
         Toolkit.clear_console()
 
@@ -382,106 +390,99 @@ class Kijiku:
         is_webgui (bool | optional | default=False) : A bool representing whether the function is being called by the webgui.
 
         """
+
+        logging.info(f"Translator Activated, Translation Method : {Translator.TRANSLATION_METHOD}"
+                     f"Settings are as follows : ")
         
-        
-        Logger.log_barrier()
-        Logger.log_action("Kijiku Activated, LLM Type : " + Kijiku.LLM_TYPE)
-        Logger.log_barrier()
-        Logger.log_action("Settings are as follows : ")
-        Logger.log_barrier()
+        JsonHandler.log_translation_settings()
 
-        JsonHandler.print_kijiku_rules()
+        Translator.prompt_assembly_mode = int(JsonHandler.current_translation_settings["base translation settings"]["prompt_assembly_mode"])
+        Translator.number_of_lines_per_batch = int(JsonHandler.current_translation_settings["base translation settings"]["number_of_lines_per_batch"])
+        Translator.sentence_fragmenter_mode = int(JsonHandler.current_translation_settings["base translation settings"]["sentence_fragmenter_mode"])
+        Translator.je_check_mode = int(JsonHandler.current_translation_settings["base translation settings"]["je_check_mode"])
+        Translator.num_of_malform_retries = int(JsonHandler.current_translation_settings["base translation settings"]["number_of_malformed_batch_retries"])
+        Translator.max_batch_duration = float(JsonHandler.current_translation_settings["base translation settings"]["batch_retry_timeout"])
+        Translator.num_concurrent_batches = int(JsonHandler.current_translation_settings["base translation settings"]["number_of_concurrent_batches"])
 
-        Kijiku.prompt_assembly_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["prompt_assembly_mode"])
-        Kijiku.number_of_lines_per_batch = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["number_of_lines_per_batch"])
-        Kijiku.sentence_fragmenter_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["sentence_fragmenter_mode"])
-        Kijiku.je_check_mode = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["je_check_mode"])
-        Kijiku.num_of_malform_retries = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["number_of_malformed_batch_retries"])
-        Kijiku.max_batch_duration = float(JsonHandler.current_kijiku_rules["base kijiku settings"]["batch_retry_timeout"])
-        Kijiku.num_concurrent_batches = int(JsonHandler.current_kijiku_rules["base kijiku settings"]["number_of_concurrent_batches"])
+        Translator._semaphore = asyncio.Semaphore(Translator.num_concurrent_batches)
 
-        Kijiku._semaphore = asyncio.Semaphore(Kijiku.num_concurrent_batches)
+        Translator.openai_model = JsonHandler.current_translation_settings["openai settings"]["openai_model"]
+        Translator.openai_system_message = JsonHandler.current_translation_settings["openai settings"]["openai_system_message"]
+        Translator.openai_temperature = float(JsonHandler.current_translation_settings["openai settings"]["openai_temperature"])
+        Translator.openai_top_p = float(JsonHandler.current_translation_settings["openai settings"]["openai_top_p"])
+        Translator.openai_n = int(JsonHandler.current_translation_settings["openai settings"]["openai_n"])
+        Translator.openai_stream = bool(JsonHandler.current_translation_settings["openai settings"]["openai_stream"])
+        Translator.openai_stop = JsonHandler.current_translation_settings["openai settings"]["openai_stop"]
+        Translator.openai_logit_bias = JsonHandler.current_translation_settings["openai settings"]["openai_logit_bias"]
+        Translator.openai_max_tokens = JsonHandler.current_translation_settings["openai settings"]["openai_max_tokens"]
+        Translator.openai_presence_penalty = float(JsonHandler.current_translation_settings["openai settings"]["openai_presence_penalty"])
+        Translator.openai_frequency_penalty = float(JsonHandler.current_translation_settings["openai settings"]["openai_frequency_penalty"])
 
-        Kijiku.openai_model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"]
-        Kijiku.openai_system_message = JsonHandler.current_kijiku_rules["openai settings"]["openai_system_message"]
-        Kijiku.openai_temperature = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_temperature"])
-        Kijiku.openai_top_p = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_top_p"])
-        Kijiku.openai_n = int(JsonHandler.current_kijiku_rules["openai settings"]["openai_n"])
-        Kijiku.openai_stream = bool(JsonHandler.current_kijiku_rules["openai settings"]["openai_stream"])
-        Kijiku.openai_stop = JsonHandler.current_kijiku_rules["openai settings"]["openai_stop"]
-        Kijiku.openai_logit_bias = JsonHandler.current_kijiku_rules["openai settings"]["openai_logit_bias"]
-        Kijiku.openai_max_tokens = JsonHandler.current_kijiku_rules["openai settings"]["openai_max_tokens"]
-        Kijiku.openai_presence_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_presence_penalty"])
-        Kijiku.openai_frequency_penalty = float(JsonHandler.current_kijiku_rules["openai settings"]["openai_frequency_penalty"])
+        Translator.gemini_model = JsonHandler.current_translation_settings["gemini settings"]["gemini_model"]
+        Translator.gemini_prompt = JsonHandler.current_translation_settings["gemini settings"]["gemini_prompt"]
+        Translator.gemini_temperature = float(JsonHandler.current_translation_settings["gemini settings"]["gemini_temperature"])
+        Translator.gemini_top_p = JsonHandler.current_translation_settings["gemini settings"]["gemini_top_p"]
+        Translator.gemini_top_k = JsonHandler.current_translation_settings["gemini settings"]["gemini_top_k"]
+        Translator.gemini_candidate_count = JsonHandler.current_translation_settings["gemini settings"]["gemini_candidate_count"]
+        Translator.gemini_stream = bool(JsonHandler.current_translation_settings["gemini settings"]["gemini_stream"])
+        Translator.gemini_stop_sequences = JsonHandler.current_translation_settings["gemini settings"]["gemini_stop_sequences"]
+        Translator.gemini_max_output_tokens = JsonHandler.current_translation_settings["gemini settings"]["gemini_max_output_tokens"]
 
-        Kijiku.gemini_model = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
-        Kijiku.gemini_prompt = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_prompt"]
-        Kijiku.gemini_temperature = float(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_temperature"])
-        Kijiku.gemini_top_p = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_p"]
-        Kijiku.gemini_top_k = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_top_k"]
-        Kijiku.gemini_candidate_count = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_candidate_count"]
-        Kijiku.gemini_stream = bool(JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stream"])
-        Kijiku.gemini_stop_sequences = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_stop_sequences"]
-        Kijiku.gemini_max_output_tokens = JsonHandler.current_kijiku_rules["gemini settings"]["gemini_max_output_tokens"]
+        Translator.deepl_context = JsonHandler.current_translation_settings["deepl settings"]["deepl_context"]
+        Translator.deepl_split_sentences = JsonHandler.current_translation_settings["deepl settings"]["deepl_split_sentences"]
+        Translator.deepl_preserve_formatting = JsonHandler.current_translation_settings["deepl settings"]["deepl_preserve_formatting"]
+        Translator.deepl_formality = JsonHandler.current_translation_settings["deepl settings"]["deepl_formality"]
 
+        if(Translator.TRANSLATION_METHOD == "openai"):
+            Translator.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Translator.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError), on_backoff=lambda details: Translator.log_retry(details), on_giveup=lambda details: Translator.log_failure(details), raise_on_giveup=False)
 
-        if(Kijiku.LLM_TYPE == "openai"):
-            Kijiku.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+        elif(Translator.TRANSLATION_METHOD == "gemini"):
+            Translator.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Translator.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Translator.log_retry(details), on_giveup=lambda details: Translator.log_failure(details), raise_on_giveup=False)
 
         else:
-            Kijiku.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Kijiku.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Kijiku.log_retry(details), on_giveup=lambda details: Kijiku.log_failure(details), raise_on_giveup=False)
+            Translator.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Translator.get_max_batch_duration(), exception=(DeepLException), on_backoff=lambda details: Translator.log_retry(details), on_giveup=lambda details: Translator.log_failure(details), raise_on_giveup=False)
 
         Toolkit.clear_console()
 
-        Logger.log_barrier()
-        Logger.log_action("Starting Prompt Building")
-        Logger.log_barrier()
+        logging.info("Starting Prompt Building...")
 
-        Kijiku.build_translation_batches()
-
-        model = JsonHandler.current_kijiku_rules["openai settings"]["openai_model"] if Kijiku.LLM_TYPE == "openai" else JsonHandler.current_kijiku_rules["gemini settings"]["gemini_model"]
-
-        await Kijiku.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
-
-        Toolkit.clear_console()
-
-        Logger.log_barrier()
+        Translator.build_translation_batches()
         
-        Logger.log_action("Starting Translation...", output=not is_webgui)
-        Logger.log_barrier()
+
+        translation_methods = {
+            "openai": JsonHandler.current_translation_settings["openai settings"]["openai_model"],
+            "gemini": JsonHandler.current_translation_settings["gemini settings"]["gemini_model"],
+            "deepl": "deepl"
+        }
+        
+        model = translation_methods[Translator.TRANSLATION_METHOD]
+
+        await Translator.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
+
+        Toolkit.clear_console()
+
+        logging.info("Starting Translation...")
 
         ## requests to run asynchronously
-        async_requests = Kijiku.build_async_requests(model)
+        async_requests = Translator.build_async_requests(model)
 
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
-
-        Logger.log_barrier()
-        Logger.log_action("Translation Complete!", output=not is_webgui)
-
-        Logger.log_barrier()
-        Logger.log_action("Starting Redistribution...", output=not is_webgui)
-
-        Logger.log_barrier()
 
         ## Sort results based on the index to maintain order
         sorted_results = sorted(results, key=lambda x: x[0])
 
         ## Redistribute the sorted results
-        for index, translated_prompt, translated_message in sorted_results:
-            Kijiku.redistribute(translated_prompt, translated_message)
+        for _, translated_prompt, translated_message in sorted_results:
+            Translator.redistribute(translated_prompt, translated_message)
 
         ## try to pair the text for j-e checking if the mode is 2
-        if(Kijiku.je_check_mode == 2):
-            Kijiku.je_check_text = Kijiku.fix_je()
+        if(Translator.je_check_mode == 2):
+            Translator.je_check_text = Translator.fix_je()
 
         Toolkit.clear_console()
 
-        Logger.log_action("Done!", output=not is_webgui)
-        Logger.log_barrier()
-
-        ## assemble error text based of the error list
-        Kijiku.error_text = Logger.errors
+        logging.info("Done!")
 
 ##-------------------start-of-build_async_requests()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
@@ -502,17 +503,33 @@ class Kijiku:
 
         async_requests = []
 
-        translation_batches = Kijiku.openai_translation_batches if Kijiku.LLM_TYPE == "openai" else Kijiku.gemini_translation_batches
+        translation_batches_methods = {
+            "openai": Translator.openai_translation_batches,
+            "gemini": Translator.gemini_translation_batches,
+            "deepl": Translator.deepl_translation_batches
+        }
+        
+        translation_batches = translation_batches_methods[Translator.TRANSLATION_METHOD]
 
-        for i in range(0, len(translation_batches), 2):
+        if(Translator.TRANSLATION_METHOD != "deepl"):
 
-            instructions = translation_batches[i]
-            prompt = translation_batches[i+1]
+            for i in range(0, len(translation_batches), 2):
 
-            assert isinstance(instructions, SystemTranslationMessage) or isinstance(instructions, str)
-            assert isinstance(prompt, ModelTranslationMessage) or isinstance(prompt, str)
+                instructions = translation_batches[i]
+                prompt = translation_batches[i+1]
 
-            async_requests.append(Kijiku.handle_translation(model, i, len(translation_batches), instructions, prompt))
+                assert isinstance(instructions, SystemTranslationMessage) or isinstance(instructions, str)
+                assert isinstance(prompt, ModelTranslationMessage) or isinstance(prompt, str)
+
+                async_requests.append(Translator.handle_translation(model, i, len(translation_batches), prompt, instructions))
+
+        else:
+
+            for batch in translation_batches:
+
+                assert isinstance(batch, str)
+
+                async_requests.append(Translator.handle_translation(model, 0, len(translation_batches), batch, None))
 
         return async_requests
 
@@ -537,34 +554,34 @@ class Kijiku:
         prompt = []
         non_word_pattern = re.compile(r'^[\W_\s\n-]+$')
 
-        while(index < len(Kijiku.text_to_translate)):
+        while(index < len(Translator.text_to_translate)):
 
-            sentence = Kijiku.text_to_translate[index]
+            sentence = Translator.text_to_translate[index]
             stripped_sentence = sentence.strip()
             lowercase_sentence = sentence.lower()
 
             has_quotes = any(char in sentence for char in ["「", "」", "『", "』", "【", "】", "\"", "'"])
             is_part_in_sentence = "part" in lowercase_sentence
 
-            if(len(prompt) < Kijiku.number_of_lines_per_batch):
+            if(len(prompt) < Translator.number_of_lines_per_batch):
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(f'{sentence}\n')
-                    Logger.log_action(f"Sentence : {sentence}, Sentence is a pov change... adding to prompt.")
+                    logging.info(f"Sentence : {sentence}, Sentence is a pov change... adding to prompt.")
 
                 elif(stripped_sentence == ''):
-                    Logger.log_action(f"Sentence : {sentence} is empty... skipping.")
+                    logging.info(f"Sentence : {sentence} is empty... skipping.")
 
                 elif(is_part_in_sentence or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence)):
                     prompt.append(f'{sentence}\n') 
-                    Logger.log_action(f"Sentence : {sentence}, Sentence is part marker... adding to prompt.")
+                    logging.info(f"Sentence : {sentence}, Sentence is part marker... adding to prompt.")
 
                 elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(stripped_sentence) and not has_quotes):
-                    Logger.log_action(f"Sentence : {sentence}, Sentence is punctuation... skipping.")
+                    logging.info(f"Sentence : {sentence}, Sentence is punctuation... skipping.")
                     
                 else:
                     prompt.append(f'{sentence}\n')
-                    Logger.log_action(f"Sentence : {sentence}, Sentence is a valid sentence... adding to prompt.")
+                    logging.info(f"Sentence : {sentence}, Sentence is a valid sentence... adding to prompt.")
 
             else:
                 return prompt, index
@@ -586,42 +603,53 @@ class Kijiku:
 
         i = 0
 
-        while i < len(Kijiku.text_to_translate):
+        while i < len(Translator.text_to_translate):
 
-            batch, i = Kijiku.generate_text_to_translate_batches(i)
+            batch, i = Translator.generate_text_to_translate_batches(i)
             batch = ''.join(batch)
 
-            if(Kijiku.LLM_TYPE == 'openai'):
+            if(Translator.TRANSLATION_METHOD == 'openai'):
 
-                if(Kijiku.prompt_assembly_mode == 1):
-                    system_msg = SystemTranslationMessage(content=str(Kijiku.openai_system_message))
+                if(Translator.prompt_assembly_mode == 1):
+                    system_msg = SystemTranslationMessage(content=str(Translator.openai_system_message))
                 else:
-                    system_msg = SystemTranslationMessage(content=str(Kijiku.openai_system_message))
+                    system_msg = SystemTranslationMessage(content=str(Translator.openai_system_message))
 
-                Kijiku.openai_translation_batches.append(system_msg)
+                Translator.openai_translation_batches.append(system_msg)
                 model_msg = ModelTranslationMessage(content=batch)
-                Kijiku.openai_translation_batches.append(model_msg)
+                Translator.openai_translation_batches.append(model_msg)
+
+            elif(Translator.TRANSLATION_METHOD == 'deepl'):
+                Translator.gemini_translation_batches.append(Translator.gemini_prompt)
+                Translator.gemini_translation_batches.append(batch)
 
             else:
-                Kijiku.gemini_translation_batches.append(Kijiku.gemini_prompt)
-                Kijiku.gemini_translation_batches.append(batch)
+                Translator.deepl_translation_batches.append(batch)
 
-        Logger.log_barrier()
-        Logger.log_action("Built Messages : ")
-        Logger.log_barrier()
+        logging_message = "Built Messages: \n\n"
+
+        batches_to_iterate = {
+            "openai": Translator.openai_translation_batches,
+            "gemini": Translator.gemini_translation_batches,
+            "deepl": Translator.deepl_translation_batches
+        }
 
         i = 0
 
-        for message in (Kijiku.openai_translation_batches if Kijiku.LLM_TYPE == 'openai' else Kijiku.gemini_translation_batches):
+        batches = batches_to_iterate[Translator.TRANSLATION_METHOD]
+
+        for message in batches:
 
             i+=1
 
-            message = str(message) if Kijiku.LLM_TYPE == 'gemini' else message.content # type: ignore
+            message = str(message) if Translator.TRANSLATION_METHOD != 'openai' else message.content # type: ignore
 
-            if(i % 2 == 1):
-                Logger.log_barrier()
+            if(i % 2 == 1 and Translator.TRANSLATION_METHOD != 'deepl'):
+                logging_message += "\n" "------------------------" "\n"
 
-            Logger.log_action(message)
+            logging_message += message + "\n"
+
+        logging.info(logging_message)
 
 ##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -641,39 +669,43 @@ class Kijiku:
         
         """ 
 
-        translation_instructions = Kijiku.openai_system_message if Kijiku.LLM_TYPE == "openai" else Kijiku.gemini_prompt
+        translation_instructions_methods = {
+            "openai": Translator.openai_system_message,
+            "gemini": Translator.gemini_prompt,
+            "deepl": None
+        }
+        
+        translation_instructions = translation_instructions_methods[Translator.TRANSLATION_METHOD]
 
         ## get cost estimate and confirm
-        num_tokens, min_cost, model = EasyTL.calculate_cost(text=Kijiku.text_to_translate, service=Kijiku.LLM_TYPE, model=model,translation_instructions=translation_instructions)
+        num_tokens, min_cost, model = EasyTL.calculate_cost(text=Translator.text_to_translate, service=Translator.TRANSLATION_METHOD, model=model,translation_instructions=translation_instructions)
 
         print("Note that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
-        Logger.log_barrier()
-        Logger.log_action("Calculating cost")
-        Logger.log_barrier()
-
-        if(Kijiku.LLM_TYPE == "gemini"):
-            Logger.log_action(f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 15 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute. Requests correspond to number_of_current_batches in kijiku_settings.", output=True, omit_timestamp=True)
+        if(Translator.TRANSLATION_METHOD == "gemini"):
+            logging.info(f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 15 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute. Requests correspond to number_of_current_batches in the translation settings.")
         
-        Logger.log_action("Estimated number of tokens : " + str(num_tokens), output=True, omit_timestamp=True)
-        Logger.log_action("Estimated minimum cost : " + str(min_cost) + " USD", output=True, omit_timestamp=True)
-        Logger.log_barrier()
+        logging.info("Estimated number of tokens : " + str(num_tokens))
+        logging.info("Estimated minimum cost : " + str(min_cost) + " USD")
 
         if(not omit_prompt):
             if(input("\nContinue? (1 for yes or 2 for no) : ") == "1"):
-                Logger.log_action("User confirmed translation.")
+                logging.info("User confirmed translation.")
 
             else:
-                Logger.log_action("User cancelled translation.")
-                Logger.push_batch()
-                exit()
+                logging.info("User cancelled translation.")
+                exit(0)
 
         return model
     
 ##-------------------start-of-handle_translation()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
-    async def handle_translation(model:str, index:int, length:int, translation_instructions:typing.Union[str, SystemTranslationMessage], translation_prompt:typing.Union[str, ModelTranslationMessage]) -> tuple[int, str, str]:
+    async def handle_translation(model:str, 
+                                 batch_index:int,
+                                 length_of_batch:int, 
+                                 text_to_translate:typing.Union[str, ModelTranslationMessage],
+                                 translation_instructions:typing.Union[str, SystemTranslationMessage, None]) -> tuple[int, str, str]: 
 
         """
 
@@ -681,20 +713,20 @@ class Kijiku:
 
         Parameters:
         model (string) : The model of the service used to translate the text.
-        index (int) : The index of the translation batch.
-        length (int) : The length of the translation batch.
-        translation_instructions (typing.Union[str, Message]) : The translation instructions.
-        translation_prompt (typing.Union[str, Message]) : The translation prompt.
+        batch_index (int) : Which batch we are currently on.
+        length_of_batch (int) : How long the batches are.
+        text_to_translate (typing.Union[str, ModelTranslationMessage]) : The text to translate.
+        translation_instructions (typing.Union[str, SystemTranslationMessage, None]) : The translation instructions.
 
         Returns:
-        index (int) : The index of the translation batch.
-        translation_prompt (typing.Union[str, Message]) : The translation prompt.
-        translated_message (str) : The translated message.
+        batch_index (int) : The batch index.
+        text_to_translate (str) : The text to translate.
+        translated_text (str) : The translated text
 
         """
 
         ## Basically limits the number of concurrent batches
-        async with Kijiku._semaphore:
+        async with Translator._semaphore:
             num_tries = 0
 
             while True:
@@ -703,72 +735,87 @@ class Kijiku:
                 if(FileEnsurer.do_interrupt == True):
                     raise Exception("Interrupted by user.")
 
-                message_number = (index // 2) + 1
-                Logger.log_action(f"Trying translation for batch {message_number} of {length//2}...", output=True)
+                batch_number = (batch_index // 2) + 1
+
+                logging.info(f"Trying translation for batch {batch_number} of {length_of_batch//2}...")
 
                 try:
 
-                    if(Kijiku.LLM_TYPE == "openai"):
-                        translated_message = await EasyTL.openai_translate_async(text=translation_prompt,
-                                                                                decorator=Kijiku.decorator_to_use,
+                    if(Translator.TRANSLATION_METHOD == "openai"):
+
+                        assert isinstance(text_to_translate, ModelTranslationMessage)
+
+                        translated_message = await EasyTL.openai_translate_async(text=text_to_translate,
+                                                                                decorator=Translator.decorator_to_use,
                                                                                 translation_instructions=translation_instructions,
                                                                                 model=model,
-                                                                                temperature=Kijiku.openai_temperature,
-                                                                                top_p=Kijiku.openai_top_p,
-                                                                                stop=Kijiku.openai_stop,
-                                                                                max_tokens=Kijiku.openai_max_tokens,
-                                                                                presence_penalty=Kijiku.openai_presence_penalty,
-                                                                                frequency_penalty=Kijiku.openai_frequency_penalty)
+                                                                                temperature=Translator.openai_temperature,
+                                                                                top_p=Translator.openai_top_p,
+                                                                                stop=Translator.openai_stop,
+                                                                                max_tokens=Translator.openai_max_tokens,
+                                                                                presence_penalty=Translator.openai_presence_penalty,
+                                                                                frequency_penalty=Translator.openai_frequency_penalty)
 
+                    elif(Translator.TRANSLATION_METHOD == "gemini"):
+
+                        assert isinstance(text_to_translate, str)
+
+                        translated_message = await EasyTL.gemini_translate_async(text=text_to_translate,
+                                                                                 decorator=Translator.decorator_to_use,
+                                                                                 model=model,
+                                                                                 temperature=Translator.gemini_temperature,
+                                                                                 top_p=Translator.gemini_top_p,
+                                                                                 top_k=Translator.gemini_top_k,
+                                                                                 stop_sequences=Translator.gemini_stop_sequences,
+                                                                                 max_output_tokens=Translator.gemini_max_output_tokens)
+                        
                     else:
 
-                        assert isinstance(translation_prompt, str)
+                        assert isinstance(text_to_translate, str)
 
-                        translated_message = await EasyTL.gemini_translate_async(text=translation_prompt,
-                                                                                 decorator=Kijiku.decorator_to_use,
-                                                                                 model=model,
-                                                                                 temperature=Kijiku.gemini_temperature,
-                                                                                 top_p=Kijiku.gemini_top_p,
-                                                                                 top_k=Kijiku.gemini_top_k,
-                                                                                 stop_sequences=Kijiku.gemini_stop_sequences,
-                                                                                 max_output_tokens=Kijiku.gemini_max_output_tokens)
+                        translated_message = await EasyTL.deepl_translate_async(text=text_to_translate,
+                                                                               decorator=Translator.decorator_to_use,
+                                                                               context=Translator.deepl_context,
+                                                                               split_sentences=Translator.deepl_split_sentences,
+                                                                               preserve_formatting=Translator.deepl_preserve_formatting,
+                                                                               formality=Translator.deepl_formality)
 
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
 
-                    Logger.log_error(f"Batch {message_number} of {length//2} was not translated due to exceeding the max request duration, returning the untranslated text...", output=True)
+                    logging.error(f"Batch {batch_number} of {length_of_batch//2} was not translated due to exceeding the max request duration, returning the untranslated text...")
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
                 ## since gemini is free, we can just try again if it's malformed
-                if("gpt-4" not in model and Kijiku.LLM_TYPE != "gemini"): 
+                if("gpt-4" not in model and Translator.TRANSLATION_METHOD not in ["openai", "deepl"]):
                     break
 
-                if(await Kijiku.check_if_translation_is_good(translated_message, translation_prompt)):
-                    Logger.log_action(f"Translation for batch {message_number} of {length//2} successful!", output=True)
+                if(await Translator.check_if_translation_is_good(translated_message, text_to_translate)): # type: ignore
+                    logging.info(f"Translation for batch {batch_number} of {length_of_batch//2} successful!")
                     break
 
-                if(num_tries >= Kijiku.num_of_malform_retries):
-                    Logger.log_action(f"Batch {message_number} of {length//2} was malformed, but exceeded the maximum number of retries, Translation successful!", output=True)
+                if(num_tries >= Translator.num_of_malform_retries):
+                    logging.info(f"Batch {batch_number} of {length_of_batch//2} was malformed but exceeded the max number of retries ({Translator.num_of_malform_retries}), returning the untranslated text...")
                     break
 
                 else:
                     num_tries += 1
-                    Logger.log_error(f"Batch {message_number} of {length//2} was malformed, retrying...", output=True)
-                    Kijiku.num_occurred_malformed_batches += 1
+                    logging.error(f"Batch {batch_number} of {length_of_batch//2} was malformed, retrying...")
+                    Translator.num_occurred_malformed_batches += 1
 
-            if(isinstance(translation_prompt, ModelTranslationMessage)):
-                translation_prompt = translation_prompt.content
+            if(isinstance(text_to_translate, ModelTranslationMessage)):
+                text_to_translate = text_to_translate.content
 
             if(isinstance(translated_message, typing.List)):
-                translated_message = ''.join(translated_message)
+                translated_message = ''.join(translated_message) # type: ignore
 
-            return index, translation_prompt, translated_message
+            return batch_index, text_to_translate, translated_message # type: ignore
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def check_if_translation_is_good(translated_message:typing.Union[typing.List[str], str], translation_prompt:typing.Union[ModelTranslationMessage, str]) -> bool:
+    async def check_if_translation_is_good(translated_message:typing.Union[typing.List[str], str], text_to_translate:typing.Union[ModelTranslationMessage, str]) -> bool:
 
         """
         
@@ -776,18 +823,18 @@ class Kijiku:
 
         Parameters:
         translated_message (str) : the translated message.
-        translation_prompt (typing.Union[str, Message]) : the translation prompt.
+        text_to_translate (typing.Union[str, Message]) : the translation prompt.
 
         Returns:
         is_valid (bool) : whether or not the translation is valid.
 
         """
 
-        if(not isinstance(translation_prompt, str)):
-            prompt = translation_prompt.content
+        if(not isinstance(text_to_translate, str)):
+            prompt = text_to_translate.content
 
         else:
-            prompt = translation_prompt
+            prompt = text_to_translate
 
         if(isinstance(translated_message, list)):
             translated_message = ''.join(translated_message)
@@ -805,37 +852,37 @@ class Kijiku:
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def redistribute(translation_prompt:typing.Union[Message, str], translated_message:str) -> None:
+    def redistribute(text_to_translate:typing.Union[Message, str], translated_message:str) -> None:
 
         """
 
         Puts translated text back into the text file.
 
         Parameters:
-        translation_prompt (typing.Union[str, Message]) : the translation prompt.
+        text_to_translate (typing.Union[str, Message]) : the translation prompt.
         translated_message (str) : the translated message.
 
         """
 
-        if(not isinstance(translation_prompt, str)):
-            prompt = translation_prompt.content
+        if(not isinstance(text_to_translate, str)):
+            prompt = text_to_translate.content
 
         else:
-            prompt = translation_prompt
+            prompt = text_to_translate
 
         ## Separates with hyphens if the mode is 1 
-        if(Kijiku.je_check_mode == 1):
+        if(Translator.je_check_mode == 1):
 
-            Kijiku.je_check_text.append("\n-------------------------\n"+ prompt + "\n\n")
-            Kijiku.je_check_text.append(translated_message + '\n')
+            Translator.je_check_text.append("\n-------------------------\n"+ prompt + "\n\n")
+            Translator.je_check_text.append(translated_message + '\n')
         
         ## Mode two tries to pair the text for j-e checking, see fix_je() for more details
-        elif(Kijiku.je_check_mode == 2):
-            Kijiku.je_check_text.append(prompt)
-            Kijiku.je_check_text.append(translated_message)
+        elif(Translator.je_check_mode == 2):
+            Translator.je_check_text.append(prompt)
+            Translator.je_check_text.append(translated_message)
 
         ## mode 1 is the default mode, uses regex and other nonsense to split sentences
-        if(Kijiku.sentence_fragmenter_mode == 1): 
+        if(Translator.sentence_fragmenter_mode == 1): 
 
             sentences = re.findall(r"(.*?(?:(?:\"|\'|-|~|!|\?|%|\(|\)|\.\.\.|\.|---|\[|\])))(?:\s|$)", translated_message)
 
@@ -858,17 +905,17 @@ class Kijiku:
                     build_string += f" {sentence}"
                     continue
 
-                Kijiku.translated_text.append(sentence + '\n')
+                Translator.translated_text.append(sentence + '\n')
 
-            for i in range(len(Kijiku.translated_text)):
-                if Kijiku.translated_text[i] in patched_sentences:
-                    index = patched_sentences.index(Kijiku.translated_text[i])
-                    Kijiku.translated_text[i] = patched_sentences[index]
+            for i in range(len(Translator.translated_text)):
+                if Translator.translated_text[i] in patched_sentences:
+                    index = patched_sentences.index(Translator.translated_text[i])
+                    Translator.translated_text[i] = patched_sentences[index]
 
         ## mode 2 just assumes the LLM formatted it properly
-        elif(Kijiku.sentence_fragmenter_mode == 2):
+        elif(Translator.sentence_fragmenter_mode == 2):
             
-            Kijiku.translated_text.append(translated_message + '\n\n')
+            Translator.translated_text.append(translated_message + '\n\n')
         
 ##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -889,9 +936,9 @@ class Kijiku:
         i = 1
         final_list = []
 
-        while i < len(Kijiku.je_check_text):
-            jap = Kijiku.je_check_text[i-1].split('\n')
-            eng = Kijiku.je_check_text[i].split('\n')
+        while i < len(Translator.je_check_text):
+            jap = Translator.je_check_text[i-1].split('\n')
+            eng = Translator.je_check_text[i].split('\n')
 
             jap = [line for line in jap if line.strip()]  ## Remove blank lines
             eng = [line for line in eng if line.strip()]  ## Remove blank lines    
@@ -910,8 +957,8 @@ class Kijiku:
 
             else:
 
-                final_list.append(Kijiku.je_check_text[i-1] + '\n\n')
-                final_list.append(Kijiku.je_check_text[i] + '\n\n')
+                final_list.append(Translator.je_check_text[i-1] + '\n\n')
+                final_list.append(Translator.je_check_text[i] + '\n\n')
 
                 final_list.append("--------------------------------------------------\n")
 
@@ -926,7 +973,7 @@ class Kijiku:
 
         """
 
-        Generates the Kijiku translation print result, does not directly output/return, but rather sets Kijiku.translation_print_result to the output.
+        Generates the Translator translation print result, does not directly output/return, but rather sets Translator.translation_print_result to the output.
 
         Parameters:
         time_start (float) : When the translation started.
@@ -936,24 +983,24 @@ class Kijiku:
 
         result = (
             f"Time Elapsed : {Toolkit.get_elapsed_time(time_start, time_end)}\n"
-            f"Number of malformed batches : {Kijiku.num_occurred_malformed_batches}\n\n"
+            f"Number of malformed batches : {Translator.num_occurred_malformed_batches}\n\n"
             f"Debug text have been written to : {FileEnsurer.debug_log_path}\n"
             f"J->E text have been written to : {FileEnsurer.je_check_path}\n"
             f"Translated text has been written to : {FileEnsurer.translated_text_path}\n"
             f"Errors have been written to : {FileEnsurer.error_log_path}\n"
         )
         
-        Kijiku.translation_print_result = result
+        Translator.translation_print_result = result
 
-##-------------------start-of-write_kijiku_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-write_translator_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     @permission_error_decorator()
-    def write_kijiku_results() -> None:
+    def write_translator_results() -> None:
 
         """
         
-        This function is called to write the results of the Kijiku translation module to the output directory.
+        This function is called to write the results of the Translator module to the output directory.
 
         """
 
@@ -961,27 +1008,23 @@ class Kijiku:
         FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
 
         with open(FileEnsurer.error_log_path, 'a+', encoding='utf-8') as file:
-            file.writelines(Kijiku.error_text)
+            file.writelines(Translator.error_text)
 
         with open(FileEnsurer.je_check_path, 'w', encoding='utf-8') as file:
-            file.writelines(Kijiku.je_check_text)
+            file.writelines(Translator.je_check_text)
 
         with open(FileEnsurer.translated_text_path, 'w', encoding='utf-8') as file:
-            file.writelines(Kijiku.translated_text)
+            file.writelines(Translator.translated_text)
 
         ## Instructions to create a copy of the output for archival
         FileEnsurer.standard_create_directory(FileEnsurer.archive_dir)
 
         timestamp = Toolkit.get_timestamp(is_archival=True)
 
-        ## pushes the tl debug log to the file without clearing the file
-        Logger.push_batch()
-        Logger.clear_batch()
-
-        list_of_result_tuples = [('kijiku_translated_text', Kijiku.translated_text), 
-                                 ('kijiku_je_check_text', Kijiku.je_check_text), 
-                                 ('kijiku_error_log', Kijiku.error_text),
-                                 ('debug_log', FileEnsurer.standard_read_file(Logger.log_file_path))]
+        list_of_result_tuples = [('kudasai_translated_text', Translator.translated_text), 
+                                 ('kudasai_je_check_text', Translator.je_check_text), 
+                                 ('kudasai_error_log', Translator.error_text),
+                                 ('debug_log', FileEnsurer.standard_read_file(FileEnsurer.debug_log_path))]
 
         FileEnsurer.archive_results(list_of_result_tuples, 
-                                    module='kijiku', timestamp=timestamp)
+                                    module='translator', timestamp=timestamp)

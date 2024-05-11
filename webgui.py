@@ -21,7 +21,7 @@ from modules.gui.gui_json_util import GuiJsonUtil
 from handlers.json_handler import JsonHandler
 
 from models.kaiseki import Kaiseki
-from modules.common.translation import Kijiku
+from modules.common.translator import Kijiku
 
 from kudasai import Kudasai
 

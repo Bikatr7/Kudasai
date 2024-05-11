@@ -36,10 +36,10 @@
     },
 
     "deepl settings":{
-        "context": null,
-        "split_sentences": "ALL",
-        "preserve_formatting": true,
-        "formality": "default"
+        "deepl_context": null,
+        "deepl_split_sentences": "ALL",
+        "deepl_preserve_formatting": true,
+        "deepl_formality": "default"
     }
     
 }

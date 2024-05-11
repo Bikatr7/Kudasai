@@ -90,6 +90,18 @@ gemini_max_output_tokens : The maximum number of tokens to generate in the chat 
 ----------------------------------------------------------------------------------
 gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
 ----------------------------------------------------------------------------------
+Deepl Settings:
+https://developers.deepl.com/docs/api-reference/translate for further details
+----------------------------------------------------------------------------------
+deepl_context : The context in which the text should be translated. This is used to improve the translation. If you don't have any context, you can leave this empty or set it to None.
+
+deepl_split_sentences : How the text should be split into sentences. Possible values are 'OFF', 'ALL', 'NO_NEWLINES'. Setting this to None changes it to 'ALL'.
+
+deepl_preserve_formatting : Whether the formatting of the text should be preserved. If you don't want to preserve the formatting, you can set this to False. None is the same as True.
+
+deepl_formality : The formality of the text. Possible values are 'default', 'more', 'less', 'prefer_more', 'prefer_less'. If you don't want to change the formality, you can set this to None.
+
+----------------------------------------------------------------------------------
     """
 
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -139,6 +151,13 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "gemini_max_output_tokens"
         ]
 
+        deepl_keys = [
+            "deepl_context",
+            "deepl_split_sentences",
+            "deepl_preserve_formatting",
+            "deepl_formality"
+        ]
+
         validation_rules = {
             "prompt_assembly_mode": lambda x: isinstance(x, int) and 1 <= x <= 2,
             "number_of_lines_per_batch": lambda x: isinstance(x, int) and x > 0,
@@ -159,6 +178,10 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "gemini_top_p": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2),
             "gemini_top_k": lambda x: x is None or (isinstance(x, int) and x >= 0),
             "gemini_max_output_tokens": lambda x: x is None or isinstance(x, int),
+            "deepl_context": lambda x: x is None or isinstance(x, str),
+            "deepl_split_sentences": lambda x: x is None or isinstance(x, str),
+            "deepl_preserve_formatting": lambda x: x is None or isinstance(x, bool),
+            "deepl_formality": lambda x: x is None or isinstance(x, str)
         }
         
         try:
@@ -166,24 +189,31 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             assert "base kijiku settings" in JsonHandler.current_kijiku_rules
             assert "openai settings" in JsonHandler.current_kijiku_rules
             assert "gemini settings" in JsonHandler.current_kijiku_rules
+            assert "deepl settings" in JsonHandler.current_kijiku_rules
 
             ## assign to variables to reduce repetitive access
             base_kijiku_settings = JsonHandler.current_kijiku_rules["base kijiku settings"]
             openai_settings = JsonHandler.current_kijiku_rules["openai settings"]
             gemini_settings = JsonHandler.current_kijiku_rules["gemini settings"]
+            deepl_settings = JsonHandler.current_kijiku_rules["deepl settings"]
 
-            ## ensure all keys are present
             ## ensure all keys are present
             assert all(key in base_kijiku_settings for key in base_kijiku_keys)
             assert all(key in openai_settings for key in openai_keys)
             assert all(key in gemini_settings for key in gemini_keys)
+            assert all(key in deepl_settings for key in deepl_keys)
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():
-                if(key in openai_settings and not validate(openai_settings[key])):
+                if(key in base_kijiku_settings and not validate(base_kijiku_settings[key])):
+                    raise ValueError(f"Invalid value for {key}")
+                elif(key in openai_settings and not validate(openai_settings[key])):
                     raise ValueError(f"Invalid value for {key}")
                 elif(key in gemini_settings and not validate(gemini_settings[key])):
                     raise ValueError(f"Invalid value for {key}")
+                elif(key in deepl_settings and not validate(deepl_settings[key])):
+                    raise ValueError(f"Invalid value for {key}")
+                
 
             ## force stop/logit_bias into None
             openai_settings["openai_stop"] = None
@@ -195,8 +225,14 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
             ## force n and candidate_count to 1
             openai_settings["openai_n"] = 1
-
             gemini_settings["gemini_candidate_count"] = 1
+
+            ## ensure deepl_formality and deepl_split_sentences are in allowed values
+            if(isinstance(deepl_settings["deepl_formality"], str) and deepl_settings["deepl_formality"] not in ["default", "more", "less", "prefer_more", "prefer_less"]):
+                raise ValueError("Invalid value for deepl_formality")
+            
+            if(isinstance(deepl_settings["deepl_split_sentences"], str) and deepl_settings["deepl_split_sentences"] not in ["OFF", "ALL", "NO_NEWLINES"]):
+                raise ValueError("Invalid value for deepl_split_sentences")
 
         except Exception as e:
             logging.warning(f"Kijiku Rules.json is not valid, setting to invalid_placeholder, current:"
@@ -268,26 +304,18 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
         """
         
-        print("-------------------")
-        print("Base Kijiku Settings:")
-        print("-------------------")
+        sections = ["base kijiku settings", "openai settings", "gemini settings", "deepl settings"]
 
-        for key,value in JsonHandler.current_kijiku_rules["base kijiku settings"].items():
-            logging.info(key + " : " + str(value))
+        for section in sections:
+            print("-------------------")
+            print(f"{section.capitalize()}:")
+            print("-------------------")
 
-        print("-------------------")
-        print("Open AI Settings:")
-        print("-------------------")
-
-        for key,value in JsonHandler.current_kijiku_rules["openai settings"].items():
-            logging.info(key + " : " + str(value))
-
-        print("-------------------")
-        print("Gemini Settings:")
-        print("-------------------")
-
-        for key,value in JsonHandler.current_kijiku_rules["gemini settings"].items():
-            logging.info(key + " : " + str(value))
+            for key,value in JsonHandler.current_kijiku_rules[section].items():
+                log_message = key + " : " + str(value)
+                logging.info(log_message)
+                if(output):
+                    print(log_message)
 
 ##-------------------start-of-change_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -327,6 +355,9 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 
             elif(action in JsonHandler.current_kijiku_rules["gemini settings"]):
                 SettingsChanger.change_setting("gemini settings", action)
+
+            elif(action in JsonHandler.current_kijiku_rules["deepl settings"]):
+                SettingsChanger.change_setting("deepl settings", action)
 
             else:
                 print("Invalid setting name. Please try again.")
@@ -383,6 +414,10 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
             "gemini_stream": {"type": bool, "constraints": lambda x: x is False},
             "gemini_stop_sequences": {"type": None, "constraints": lambda x: x is None},
             "gemini_max_output_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
+            "deepl_context": {"type": str, "constraints": lambda x: x is None or isinstance(x, str)},
+            "deepl_split_sentences": {"type": str, "constraints": lambda x: x is None or isinstance(x, str)},
+            "deepl_preserve_formatting": {"type": bool, "constraints": lambda x: x is None or isinstance(x, bool)},
+            "deepl_formality": {"type": str, "constraints": lambda x: x is None or isinstance(x, str)}
         }
 
         if(setting_name not in type_expectations):
@@ -459,6 +494,11 @@ Current settings:
         print("\n")
 
         for key,value in JsonHandler.current_kijiku_rules["gemini settings"].items():
+            menu += key + " : " + str(value) + "\n"
+            
+        print("\n")
+
+        for key,value in JsonHandler.current_kijiku_rules["deepl settings"].items():
             menu += key + " : " + str(value) + "\n"
 
         menu += """

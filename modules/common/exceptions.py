@@ -3,6 +3,7 @@
 from easytl import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
 from easytl import AuthorizationException, QuotaExceededException
 from easytl import GoogleAuthError
+from easytl import DeepLException
 
 ##-------------------start-of-KudasaiException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

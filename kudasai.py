@@ -334,16 +334,30 @@ def print_usage_statement():
 
 if(__name__ == "__main__"):
     ## setup logging
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename=FileEnsurer.debug_log_path,
-                        filemode='w', 
-                        format='[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', 
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    
+    ## Debug log setup
+    debug_log_handler = logging.FileHandler(FileEnsurer.debug_log_path)
+    debug_log_handler.setLevel(logging.DEBUG)
+    debug_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    debug_log_handler.setFormatter(debug_formatter)
 
+    ## Error log setup
+    error_log_handler = logging.FileHandler(FileEnsurer.error_log_path)
+    error_log_handler.setLevel(logging.WARNING)
+    error_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    error_log_handler.setFormatter(error_formatter)
+
+    ## Console handler setup
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+    console_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    console.setFormatter(console_formatter)
+
+    ## Add handlers to the logger
+    logger = logging.getLogger('')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(debug_log_handler)
+    logger.addHandler(error_log_handler)
+    logger.addHandler(console)
 
     asyncio.run(main())

@@ -13,7 +13,7 @@ from kairyou import Indexer
 from kairyou.types import NameAndOccurrence
 
 ## custom modules
-from modules.common.translator import Kijiku
+from modules.common.translator import Translator
 
 from handlers.json_handler import JsonHandler
 
@@ -186,7 +186,7 @@ class Kudasai:
         else:
             print("(Preprocessing skipped)")
 
-        await Kudasai.run_kijiku()
+        await Kudasai.run_translator()
 
         Toolkit.pause_console("\nPress any key to exit...")
 
@@ -210,30 +210,30 @@ class Kudasai:
             Toolkit.pause_console()
             Toolkit.clear_console()
     
-##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-run_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def run_kijiku() -> None:
+    async def run_translator() -> None:
 
         """
         
-        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kijiku module.
+        If the user is running the CLI or Console version of Kudasai, this function is called to run the Translator module.
 
         """
 
-        logging.info("Kijiku started")
+        logging.info("Translator started")
 
         Toolkit.clear_console()
 
-        Kijiku.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
+        Translator.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
 
-        await Kijiku.translate()
+        await Translator.translate()
 
         Toolkit.clear_console()
 
-        print(Kijiku.translation_print_result)
+        print(Translator.translation_print_result)
 
-        Kijiku.write_kijiku_results()
+        Translator.write_kijiku_results()
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

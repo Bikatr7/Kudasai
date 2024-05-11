@@ -244,27 +244,27 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
         logging.info(f"translation_settings.json is valid, current:"
                     f"\n{JsonHandler.current_translation_settings}")    
 
-##-------------------start-of-reset_kijiku_rules_to_default()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-reset_translation_settings_to_default()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def reset_kijiku_rules_to_default() -> None:
+    def reset_translation_settings_to_default() -> None:
 
         """
 
-        Resets the kijiku_rules json to default.
+        Resets the translation_settings.json to default.
 
         """
 
         JsonHandler.current_translation_settings = FileEnsurer.DEFAULT_KIJIKU_RULES
         
-        JsonHandler.dump_kijiku_rules()
+        JsonHandler.dump_translation_settings()
 
-        JsonHandler.load_kijiku_rules()
+        JsonHandler.load_translation_settings()
 
-##-------------------start-of-dump_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-dump_translation_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def dump_kijiku_rules() -> None:
+    def dump_translation_settings() -> None:
 
         """
 
@@ -275,10 +275,10 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
         with open(FileEnsurer.config_translation_settings_path, 'w+', encoding='utf-8') as file:
             json.dump(JsonHandler.current_translation_settings, file)
 
-##-------------------start-of-load_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-load_translation_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def load_kijiku_rules() -> None:
+    def load_translation_settings() -> None:
 
         """
 
@@ -289,10 +289,10 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
         with open(FileEnsurer.config_translation_settings_path, 'r', encoding='utf-8') as file:
             JsonHandler.current_translation_settings = json.load(file)
 
-##-------------------start-of-print_kijiku_rules()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-log_translation_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def print_kijiku_rules(output:bool=False) -> None:
+    def log_translation_settings(output_to_console:bool=False) -> None:
 
         """
 
@@ -300,7 +300,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
         Logs by default, but can be set to print to console as well.
 
         Parameters:
-        output (bool | optional | default=False) : Whether to print to console as well.
+        output_to_console (bool | optional | default=False) : Whether to print to console as well.
 
         """
         
@@ -314,13 +314,13 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
             for key,value in JsonHandler.current_translation_settings[section].items():
                 log_message = key + " : " + str(value)
                 logging.info(log_message)
-                if(output):
+                if(output_to_console):
                     print(log_message)
 
-##-------------------start-of-change_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-change_translation_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def change_kijiku_settings() -> None:
+    def change_translation_settings() -> None:
 
         """
 
@@ -345,7 +345,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
             elif(action == "d"):
                 print("Resetting to default settings.")
-                JsonHandler.reset_kijiku_rules_to_default()
+                JsonHandler.reset_translation_settings_to_default()
 
             elif(action in JsonHandler.current_translation_settings["base translation settings"]):
                 SettingsChanger.change_setting("base translation settings", action)
@@ -364,7 +364,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
             Toolkit.pause_console("\nPress enter to continue.")
 
-        JsonHandler.dump_kijiku_rules()
+        JsonHandler.dump_translation_settings()
         
 ##-------------------start-of-convert_to_correct_type()-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -536,7 +536,7 @@ Enter the name of the setting you want to change, type d to reset to default, ty
             ## validate_json() sets a dict to the invalid placeholder if it's invalid, so if it's that, it's invalid
             assert JsonHandler.current_translation_settings != FileEnsurer.INVALID_TRANSLATION_SETTINGS_PLACEHOLDER
             
-            JsonHandler.dump_kijiku_rules()
+            JsonHandler.dump_translation_settings()
 
             print("Settings loaded successfully.")
         

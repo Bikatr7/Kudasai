@@ -13,7 +13,6 @@ from kairyou import Indexer
 from kairyou.types import NameAndOccurrence
 
 ## custom modules
-from models.kaiseki import Kaiseki 
 from modules.common.translation import Kijiku
 
 from handlers.json_handler import JsonHandler
@@ -59,20 +58,20 @@ class Kudasai:
 
         try:
 
-            with open(FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
-                JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
+            with open(FileEnsurer.config_translation_settings_path, "r") as kijiku_rules_file:
+                JsonHandler.current_translation_settings = json.load(kijiku_rules_file)
 
             JsonHandler.validate_json()
 
-            assert JsonHandler.current_kijiku_rules != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
+            assert JsonHandler.current_translation_settings != FileEnsurer.INVALID_TRANSLATION_SETTINGS_PLACEHOLDER
 
         except:
 
-            print("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
+            print("Invalid translation_settings.json file. Please check the file for errors or mistakes. If you are unsure, delete the file and run Kudasai again. Your file is located at: " + FileEnsurer.config_translation_settings_path)
 
             Toolkit.pause_console()
 
-            raise Exception("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
+            raise Exception("Invalid translation_settings.json file. Please check the file for errors or mistakes. If you are unsure, delete the file and run Kudasai again. Your file is located at: " + FileEnsurer.config_translation_settings_path)
         
 ##-------------------start-of-run_kairyou_indexer()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -141,7 +140,7 @@ class Kudasai:
                     new_text += text[last_end:match.start()] + f">>>{name}<<<"
                     last_end = match.end()
 
-            new_text += text[last_end:]  # Append the rest of the text
+            new_text += text[last_end:]  ## Append the rest of the text
             text = new_text
 
         return text
@@ -187,7 +186,7 @@ class Kudasai:
         else:
             print("(Preprocessing skipped)")
 
-        await Kudasai.determine_autotranslation_module()
+        await Kudasai.run_kijiku()
 
         Toolkit.pause_console("\nPress any key to exit...")
 
@@ -211,62 +210,6 @@ class Kudasai:
             Toolkit.pause_console()
             Toolkit.clear_console()
     
-##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    async def determine_autotranslation_module() -> None:
-
-        """
-        
-        If the user is running the CLI or Console version of Kudasai, this function is called to determine which autotranslation module to use.
-
-        """
-
-        if(not Kudasai.connection):
-            Toolkit.clear_console()
-
-            print("You are not connected to the internet. Please connect to the internet to use the autotranslation feature.\n")
-            Toolkit.pause_console()
-
-            exit()
-
-        pathing = ""
-
-        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki (deepL)\n2.Kijiku (OpenAI/Gemini)\n3.Exit\n\n"
-
-        pathing = input(pathing_msg)
-
-        Toolkit.clear_console()
-
-        if(pathing == "1"):
-            Kudasai.run_kaiseki()
-        elif(pathing == "2"):
-            await Kudasai.run_kijiku()
-        else:
-            Toolkit.clear_console()
-            exit()
-
-##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def run_kaiseki() -> None:
-
-        """
-        
-        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kaiseki module.
-
-        """
- 
-        Kaiseki.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
-
-        Kaiseki.translate()
-
-        Toolkit.clear_console()
-
-        print(Kaiseki.translation_print_result)
-
-        Kaiseki.write_kaiseki_results() 
-
 ##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -392,7 +335,7 @@ def print_usage_statement():
 if(__name__ == "__main__"):
     ## setup logging
     logging.basicConfig(level=logging.DEBUG, 
-                        filename=FileEnsurer.debug_log_path
+                        filename=FileEnsurer.debug_log_path,
                         filemode='w', 
                         format='[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', 
                         datefmt='%Y-%m-%d %H:%M:%S')

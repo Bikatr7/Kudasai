@@ -36,7 +36,7 @@
     },
 
     "deepl settings":{
-        "deepl_context": null,
+        "deepl_context": "",
         "deepl_split_sentences": "ALL",
         "deepl_preserve_formatting": true,
         "deepl_formality": "default"

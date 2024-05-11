@@ -67,7 +67,7 @@ class FileEnsurer():
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
 
     DEFAULT_KIJIKU_RULES = {
-    "base kijiku settings": {
+    "base translation settings": {
         "prompt_assembly_mode": 1,
         "number_of_lines_per_batch": 36,
         "sentence_fragmenter_mode": 2,
@@ -101,6 +101,13 @@ class FileEnsurer():
         "gemini_stream": False,
         "gemini_stop_sequences": None,
         "gemini_max_output_tokens": None
+    },
+
+    "deepl settings":{
+        "deepl_context": "",
+        "deepl_split_sentences": "ALL",
+        "deepl_preserve_formatting": True,
+        "deepl_formality": "default"
     }
 }
     INVALID_TRANSLATION_SETTINGS_PLACEHOLDER = {

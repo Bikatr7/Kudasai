@@ -93,13 +93,13 @@ gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for
 Deepl Settings:
 https://developers.deepl.com/docs/api-reference/translate for further details
 ----------------------------------------------------------------------------------
-deepl_context : The context in which the text should be translated. This is used to improve the translation. If you don't have any context, you can leave this empty or set it to None.
+deepl_context : The context in which the text should be translated. This is used to improve the translation. If you don't have any context, you can leave this empty.
 
-deepl_split_sentences : How the text should be split into sentences. Possible values are 'OFF', 'ALL', 'NO_NEWLINES'. Setting this to None changes it to 'ALL'.
+deepl_split_sentences : How the text should be split into sentences. Possible values are 'OFF', 'ALL', 'NO_NEWLINES'.
 
-deepl_preserve_formatting : Whether the formatting of the text should be preserved. If you don't want to preserve the formatting, you can set this to False. None is the same as True.
+deepl_preserve_formatting : Whether the formatting of the text should be preserved. If you don't want to preserve the formatting, you can set this to False.
 
-deepl_formality : The formality of the text. Possible values are 'default', 'more', 'less', 'prefer_more', 'prefer_less'. If you don't want to change the formality, you can set this to None.
+deepl_formality : The formality of the text. Possible values are 'default', 'more', 'less', 'prefer_more', 'prefer_less'.
 
 ----------------------------------------------------------------------------------
     """
@@ -178,18 +178,18 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
             "gemini_top_p": lambda x: x is None or (isinstance(x, float) and 0 <= x <= 2),
             "gemini_top_k": lambda x: x is None or (isinstance(x, int) and x >= 0),
             "gemini_max_output_tokens": lambda x: x is None or isinstance(x, int),
-            "deepl_context": lambda x: x is None or isinstance(x, str),
-            "deepl_split_sentences": lambda x: x is None or isinstance(x, str),
-            "deepl_preserve_formatting": lambda x: x is None or isinstance(x, bool),
-            "deepl_formality": lambda x: x is None or isinstance(x, str)
+            "deepl_context": lambda x: isinstance(x, str),
+            "deepl_split_sentences": lambda x: isinstance(x, str),
+            "deepl_preserve_formatting": lambda x: isinstance(x, bool),
+            "deepl_formality": lambda x: isinstance(x, str)
         }
         
         try:
             ## ensure categories are present
-            assert "base translation settings" in JsonHandler.current_translation_settings
-            assert "openai settings" in JsonHandler.current_translation_settings
-            assert "gemini settings" in JsonHandler.current_translation_settings
-            assert "deepl settings" in JsonHandler.current_translation_settings
+            assert "base translation settings" in JsonHandler.current_translation_settings, "base translation settings not found"
+            assert "openai settings" in JsonHandler.current_translation_settings, "openai settings not found"
+            assert "gemini settings" in JsonHandler.current_translation_settings, "gemini settings not found"
+            assert "deepl settings" in JsonHandler.current_translation_settings, "deepl settings not found"
 
             ## assign to variables to reduce repetitive access
             base_translation_settings = JsonHandler.current_translation_settings["base translation settings"]
@@ -198,10 +198,10 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
             deepl_settings = JsonHandler.current_translation_settings["deepl settings"]
 
             ## ensure all keys are present
-            assert all(key in base_translation_settings for key in base_translation_keys)
-            assert all(key in openai_settings for key in openai_keys)
-            assert all(key in gemini_settings for key in gemini_keys)
-            assert all(key in deepl_settings for key in deepl_keys)
+            assert all(key in base_translation_settings for key in base_translation_keys), "base translation settings keys missing"
+            assert all(key in openai_settings for key in openai_keys), "openai settings keys missing"
+            assert all(key in gemini_settings for key in gemini_keys), "gemini settings keys missing"
+            assert all(key in deepl_settings for key in deepl_keys), "deepl settings keys missing"
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():
@@ -414,10 +414,10 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
             "gemini_stream": {"type": bool, "constraints": lambda x: x is False},
             "gemini_stop_sequences": {"type": None, "constraints": lambda x: x is None},
             "gemini_max_output_tokens": {"type": int, "constraints": lambda x: x is None or isinstance(x, int)},
-            "deepl_context": {"type": str, "constraints": lambda x: x is None or isinstance(x, str)},
-            "deepl_split_sentences": {"type": str, "constraints": lambda x: x is None or isinstance(x, str)},
-            "deepl_preserve_formatting": {"type": bool, "constraints": lambda x: x is None or isinstance(x, bool)},
-            "deepl_formality": {"type": str, "constraints": lambda x: x is None or isinstance(x, str)}
+            "deepl_context": {"type": str, "constraints": lambda x: isinstance(x, str)},
+            "deepl_split_sentences": {"type": str, "constraints": lambda x: isinstance(x, str)},
+            "deepl_preserve_formatting": {"type": bool, "constraints": lambda x: isinstance(x, bool)},
+            "deepl_formality": {"type": str, "constraints": lambda x: isinstance(x, str)}
         }
 
         if(setting_name not in type_expectations):

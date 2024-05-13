@@ -29,6 +29,22 @@ class Toolkit():
 
         os.system('cls' if os.name == 'nt' else 'clear')
 
+##-------------------start-of-is_windows()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def is_windows() -> bool:
+
+        """
+        
+        Returns True if Kudasai is running on Windows.
+
+        Returns:
+        is_windows (bool) : If Kudasai is running on Windows.
+
+        """
+
+        return os.name == 'nt'
+
 ##-------------------start-of-pause_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod

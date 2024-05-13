@@ -1,0 +1,45 @@
+{
+    "base translation settings": {
+        "prompt_assembly_mode": 1,
+        "number_of_lines_per_batch": 48,
+        "sentence_fragmenter_mode": 2,
+        "je_check_mode": 2,
+        "number_of_malformed_batch_retries": 1,
+        "batch_retry_timeout": 700,
+        "number_of_concurrent_batches": 2
+    },
+
+    "openai settings": {
+        "openai_model": "gpt-4-turbo",
+        "openai_system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "openai_temperature": 0.3,
+        "openai_top_p": 1,
+        "openai_n": 1,
+        "openai_stream": false,
+        "openai_stop": null,
+        "openai_logit_bias": null,
+        "openai_max_tokens": null,
+        "openai_presence_penalty": 0,
+        "openai_frequency_penalty": 0
+    },
+
+    "gemini settings": {
+        "gemini_model": "gemini-1.5-pro-latest",
+        "gemini_prompt": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "gemini_temperature": 0.3,
+        "gemini_top_p": null,
+        "gemini_top_k": null,
+        "gemini_candidate_count": 1,
+        "gemini_stream": false,
+        "gemini_stop_sequences": null,
+        "gemini_max_output_tokens": null
+    },
+
+    "deepl settings":{
+        "deepl_context": "",
+        "deepl_split_sentences": "ALL",
+        "deepl_preserve_formatting": true,
+        "deepl_formality": "default"
+    }
+    
+}

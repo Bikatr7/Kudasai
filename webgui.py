@@ -13,7 +13,6 @@ from easytl import EasyTL, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
 
 ## custom modules
 from modules.common.toolkit import Toolkit
-from modules.common.logger import Logger
 from modules.common.file_ensurer import FileEnsurer
 
 from modules.gui.gui_file_util import gui_get_text_from_file, gui_get_json_from_file
@@ -22,7 +21,7 @@ from modules.gui.gui_json_util import GuiJsonUtil
 from handlers.json_handler import JsonHandler
 
 from models.kaiseki import Kaiseki
-from models.kijiku import Kijiku
+from modules.common.translator import Kijiku
 
 from kudasai import Kudasai
 

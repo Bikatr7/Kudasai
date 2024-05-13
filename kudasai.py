@@ -5,6 +5,7 @@ import json
 import asyncio
 import re
 import typing
+import logging
 
 ## third-party libraries
 from kairyou import Kairyou
@@ -12,14 +13,12 @@ from kairyou import Indexer
 from kairyou.types import NameAndOccurrence
 
 ## custom modules
-from models.kaiseki import Kaiseki 
-from models.kijiku import Kijiku
+from modules.common.translator import Translator
 
 from handlers.json_handler import JsonHandler
 
 from modules.common.toolkit import Toolkit
 from modules.common.file_ensurer import FileEnsurer
-from modules.common.logger import Logger
 
 ##-------------------start-of-Kudasai---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,27 +54,24 @@ class Kudasai:
 
         FileEnsurer.setup_needed_files()
 
-        Logger.log_barrier()
-        Logger.log_action("Kudasai started")
-        Logger.log_action("Current version: " + Toolkit.CURRENT_VERSION)
-        Logger.log_barrier()
+        logging.info(f"Kudasai started; Current version : {Toolkit.CURRENT_VERSION}")
 
         try:
 
-            with open(FileEnsurer.config_kijiku_rules_path, "r") as kijiku_rules_file:
-                JsonHandler.current_kijiku_rules = json.load(kijiku_rules_file)
+            with open(FileEnsurer.config_translation_settings_path, "r") as kijiku_rules_file:
+                JsonHandler.current_translation_settings = json.load(kijiku_rules_file)
 
             JsonHandler.validate_json()
 
-            assert JsonHandler.current_kijiku_rules != FileEnsurer.INVALID_KIJIKU_RULES_PLACEHOLDER
+            assert JsonHandler.current_translation_settings != FileEnsurer.INVALID_TRANSLATION_SETTINGS_PLACEHOLDER
 
         except:
 
-            print("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
+            print("Invalid translation_settings.json file. Please check the file for errors or mistakes. If you are unsure, delete the file and run Kudasai again. Your file is located at: " + FileEnsurer.config_translation_settings_path)
 
             Toolkit.pause_console()
 
-            raise Exception("Invalid kijiku_rules.json file. Please check the file for errors. If you are unsure, delete the file and run Kudasai again. Your kijiku rules file is located at: " + FileEnsurer.config_kijiku_rules_path)
+            raise Exception("Invalid translation_settings.json file. Please check the file for errors or mistakes. If you are unsure, delete the file and run Kudasai again. Your file is located at: " + FileEnsurer.config_translation_settings_path)
         
 ##-------------------start-of-run_kairyou_indexer()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -144,7 +140,7 @@ class Kudasai:
                     new_text += text[last_end:match.start()] + f">>>{name}<<<"
                     last_end = match.end()
 
-            new_text += text[last_end:]  # Append the rest of the text
+            new_text += text[last_end:]  ## Append the rest of the text
             text = new_text
 
         return text
@@ -190,7 +186,7 @@ class Kudasai:
         else:
             print("(Preprocessing skipped)")
 
-        await Kudasai.determine_autotranslation_module()
+        await Kudasai.run_translator()
 
         Toolkit.pause_console("\nPress any key to exit...")
 
@@ -214,92 +210,30 @@ class Kudasai:
             Toolkit.pause_console()
             Toolkit.clear_console()
     
-##-------------------start-of-determine_autotranslation_module()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-run_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def determine_autotranslation_module() -> None:
+    async def run_translator() -> None:
 
         """
         
-        If the user is running the CLI or Console version of Kudasai, this function is called to determine which autotranslation module to use.
+        If the user is running the CLI or Console version of Kudasai, this function is called to run the Translator module.
 
         """
 
-        if(not Kudasai.connection):
-            Toolkit.clear_console()
-
-            print("You are not connected to the internet. Please connect to the internet to use the autotranslation feature.\n")
-            Toolkit.pause_console()
-
-            exit()
-
-        pathing = ""
-
-        pathing_msg = "Please select an auto-translation module:\n\n1.Kaiseki (deepL)\n2.Kijiku (OpenAI/Gemini)\n3.Exit\n\n"
-
-        pathing = input(pathing_msg)
+        logging.info("Translator started")
 
         Toolkit.clear_console()
 
-        if(pathing == "1"):
-            Kudasai.run_kaiseki()
-        elif(pathing == "2"):
-            await Kudasai.run_kijiku()
-        else:
-            Toolkit.clear_console()
-            exit()
+        Translator.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
 
-##-------------------start-of-run_kaiseki()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def run_kaiseki() -> None:
-
-        """
-        
-        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kaiseki module.
-
-        """
-
-        Logger.log_action("--------------------")
-        Logger.log_action("Kaiseki started")
-        Logger.log_action("--------------------")
-
-        Kaiseki.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
-
-        Kaiseki.translate()
+        await Translator.translate()
 
         Toolkit.clear_console()
 
-        print(Kaiseki.translation_print_result)
+        print(Translator.translation_print_result)
 
-        Kaiseki.write_kaiseki_results() 
-
-##-------------------start-of-run_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    async def run_kijiku() -> None:
-
-        """
-        
-        If the user is running the CLI or Console version of Kudasai, this function is called to run the Kijiku module.
-
-        """
-
-        Logger.log_action("--------------------")
-        Logger.log_action("Kijiku started")
-        Logger.log_action("--------------------")
-
-        Toolkit.clear_console()
-
-        Kijiku.text_to_translate = [line for line in Kudasai.text_to_preprocess.splitlines()]
-
-        await Kijiku.translate()
-
-        Toolkit.clear_console()
-
-        print(Kijiku.translation_print_result)
-
-        Kijiku.write_kijiku_results()
+        Translator.write_translator_results()
 
 ##-------------------start-of-main()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -354,7 +288,6 @@ async def run_console_version():
         raise e
 
     await Kudasai.run_kudasai()
-    Logger.push_batch()
 
 ##-------------------start-of-run_cli_version()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -380,7 +313,6 @@ async def run_cli_version():
         Kudasai.need_to_run_kairyou = False
 
     await Kudasai.run_kudasai()
-    Logger.push_batch()
 
 ##-------------------start-of-print_usage_statement()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -392,13 +324,43 @@ def print_usage_statement():
 
     """
 
-    Logger.log_action("Usage: python Kudasai.py <input_file> <replacement_json>", output=True, omit_timestamp=True)
-    Logger.log_action("or run Kudasai.py without any arguments to run the console version.", output=True, omit_timestamp=True)
+    python_command = "python" if Toolkit.is_windows() else "python3"
 
-    print("\n")
+    print(f"Usage: {python_command} Kudasai.py <input_file> <replacement_json>"
+          f"or run Kudasai.py without any arguments to run the console version.\n")
 
 ##-------------------start-of-submain()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-if(__name__ == '__main__'):
+if(__name__ == "__main__"):
+
+    FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
+
+    ## setup logging
+    
+    ## Debug log setup
+    debug_log_handler = logging.FileHandler(FileEnsurer.debug_log_path, mode='w+', encoding='utf-8')
+    debug_log_handler.setLevel(logging.DEBUG)
+    debug_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    debug_log_handler.setFormatter(debug_formatter)
+
+    ## Error log setup
+    error_log_handler = logging.FileHandler(FileEnsurer.error_log_path, mode='w+', encoding='utf-8')
+    error_log_handler.setLevel(logging.WARNING)
+    error_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    error_log_handler.setFormatter(error_formatter)
+
+    ## Console handler setup
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    console.setFormatter(console_formatter)
+
+    ## Add handlers to the logger
+    logger = logging.getLogger('')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(debug_log_handler)
+    logger.addHandler(error_log_handler)
+    logger.addHandler(console)
+
     asyncio.run(main())

@@ -448,7 +448,6 @@ class Translator:
 
         Translator.build_translation_batches()
         
-
         translation_methods = {
             "openai": JsonHandler.current_translation_settings["openai settings"]["openai_model"],
             "gemini": JsonHandler.current_translation_settings["gemini settings"]["gemini_model"],
@@ -468,6 +467,8 @@ class Translator:
 
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
+
+        logging.info("Redistributing Translated Text...")
 
         ## Sort results based on the index to maintain order
         sorted_results = sorted(results, key=lambda x: x[0])
@@ -619,7 +620,7 @@ class Translator:
                 model_msg = ModelTranslationMessage(content=batch)
                 Translator.openai_translation_batches.append(model_msg)
 
-            elif(Translator.TRANSLATION_METHOD == 'deepl'):
+            elif(Translator.TRANSLATION_METHOD == 'gemini'):
                 Translator.gemini_translation_batches.append(Translator.gemini_prompt)
                 Translator.gemini_translation_batches.append(batch)
 
@@ -672,7 +673,7 @@ class Translator:
         translation_instructions_methods = {
             "openai": Translator.openai_system_message,
             "gemini": Translator.gemini_prompt,
-            "deepl": None
+            "deepl": None,
         }
         
         translation_instructions = translation_instructions_methods[Translator.TRANSLATION_METHOD]

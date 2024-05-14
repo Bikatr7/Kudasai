@@ -19,7 +19,7 @@ from handlers.json_handler import JsonHandler
 
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.toolkit import Toolkit
-from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthorizationException, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError, DeepLException
+from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthorizationException, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError, DeepLException, GoogleAPIError
 from modules.common.decorators import permission_error_decorator
 
 ##-------------------start-of-Translator--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -179,40 +179,28 @@ class Translator:
     
         """
 
-        method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl) : \n")
-
-        if(method == "1"):
-            Translator.TRANSLATION_METHOD = "openai"
+        translation_methods = {
+            "1": ("openai", FileEnsurer.openai_api_key_path),
+            "2": ("gemini", FileEnsurer.gemini_api_key_path),
+            "3": ("deepl", FileEnsurer.deepl_api_key_path),
+        }
         
-        elif(method == "2"):
-            Translator.TRANSLATION_METHOD = "gemini"
-
-        else:
-            Translator.TRANSLATION_METHOD = "deepl"
-
+        method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl) : \n")
+        
+        Translator.TRANSLATION_METHOD, api_key_path = translation_methods.get(method, ("deepl", FileEnsurer.deepl_api_key_path))
+        
         Toolkit.clear_console()
-
-        if(Translator.TRANSLATION_METHOD == "openai"):
-            await Translator.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
-
-        elif(Translator.TRANSLATION_METHOD == "gemini"):
-            await Translator.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
-
-        else:
-            await Translator.init_api_key("DeepL", FileEnsurer.deepl_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
-
+        
+        await Translator.init_api_key(Translator.TRANSLATION_METHOD.capitalize(), api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
+        
         ## try to load the translation settings
         try: 
-
             JsonHandler.load_translation_settings()
-
         ## if the translation settings don't exist, create them
         except: 
-            
             JsonHandler.reset_translation_settings_to_default()
-
             JsonHandler.load_translation_settings()
-            
+        
         Toolkit.clear_console()
 
 ##-------------------start-of-init_openai_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -326,12 +314,12 @@ class Translator:
         print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
         method_to_section_dict = {
-            "openai": "openai settings",
-            "gemini": "gemini settings",
-            "deepl": "deepl settings"
+            "openai": ("openai settings", "OpenAI", FileEnsurer.openai_api_key_path),
+            "gemini": ("gemini settings", "Gemini", FileEnsurer.gemini_api_key_path),
+            "deepl": ("deepl settings", "DeepL", FileEnsurer.deepl_api_key_path)
         }
-        
-        section_to_target = method_to_section_dict[Translator.TRANSLATION_METHOD]
+
+        section_to_target, method_name, api_key_path = method_to_section_dict[Translator.TRANSLATION_METHOD]
 
         try:
 
@@ -347,13 +335,10 @@ class Translator:
 
                 print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
                 JsonHandler.log_translation_settings(output_to_console=True, specific_section=section_to_target)
-
             else:
                 FileEnsurer.exit_kudasai()
 
-        if(input("\n") == "1"):
-            pass
-        else:
+        if(input("\n") != "1"):
             JsonHandler.change_translation_settings()
 
         Toolkit.clear_console()
@@ -361,27 +346,9 @@ class Translator:
         print("Do you want to change your API key? (1 for yes or 2 for no) : ")
 
         if(input("\n") == "1"):
-
-            if(Translator.TRANSLATION_METHOD == "openai"):
-
-                if(os.path.exists(FileEnsurer.openai_api_key_path)):
-
-                    os.remove(FileEnsurer.openai_api_key_path)
-                    await Translator.init_api_key("OpenAI", FileEnsurer.openai_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
-
-            elif(Translator.TRANSLATION_METHOD == "gemini"):
-    
-                if(os.path.exists(FileEnsurer.gemini_api_key_path)):
-
-                    os.remove(FileEnsurer.gemini_api_key_path)
-                    await Translator.init_api_key("Gemini", FileEnsurer.gemini_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
-
-            else:
-
-                if(os.path.exists(FileEnsurer.deepl_api_key_path)):
-
-                    os.remove(FileEnsurer.deepl_api_key_path)
-                    await Translator.init_api_key("DeepL", FileEnsurer.deepl_api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
+            if(os.path.exists(api_key_path)):
+                os.remove(api_key_path)
+                await Translator.init_api_key(method_name, api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
 
         Toolkit.clear_console()
 
@@ -441,14 +408,20 @@ class Translator:
         Translator.deepl_preserve_formatting = JsonHandler.current_translation_settings["deepl settings"]["deepl_preserve_formatting"]
         Translator.deepl_formality = JsonHandler.current_translation_settings["deepl settings"]["deepl_formality"]
 
-        if(Translator.TRANSLATION_METHOD == "openai"):
-            Translator.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Translator.get_max_batch_duration(), exception=(AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError), on_backoff=lambda details: Translator.log_retry(details), on_giveup=lambda details: Translator.log_failure(details), raise_on_giveup=False)
-
-        elif(Translator.TRANSLATION_METHOD == "gemini"):
-            Translator.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Translator.get_max_batch_duration(), exception=(Exception), on_backoff=lambda details: Translator.log_retry(details), on_giveup=lambda details: Translator.log_failure(details), raise_on_giveup=False)
-
-        else:
-            Translator.decorator_to_use = backoff.on_exception(backoff.expo, max_time=lambda: Translator.get_max_batch_duration(), exception=(DeepLException), on_backoff=lambda details: Translator.log_retry(details), on_giveup=lambda details: Translator.log_failure(details), raise_on_giveup=False)
+        exception_dict = {
+            "openai": (AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError),
+            "gemini": GoogleAPIError,
+            "deepl": DeepLException
+        }
+        
+        Translator.decorator_to_use = backoff.on_exception(
+            backoff.expo,
+            max_time=lambda: Translator.get_max_batch_duration(),
+            exception=exception_dict.get(Translator.TRANSLATION_METHOD, None),
+            on_backoff=lambda details: Translator.log_retry(details),
+            on_giveup=lambda details: Translator.log_failure(details),
+            raise_on_giveup=False
+        )
 
         Toolkit.clear_console()
 
@@ -511,7 +484,7 @@ class Translator:
         """
 
         async_requests = []
-
+        
         translation_batches_methods = {
             "openai": Translator.openai_translation_batches,
             "gemini": Translator.gemini_translation_batches,
@@ -519,27 +492,26 @@ class Translator:
         }
         
         translation_batches = translation_batches_methods[Translator.TRANSLATION_METHOD]
-
+        batch_length = len(translation_batches)
+        
         if(Translator.TRANSLATION_METHOD != "deepl"):
 
-            for i in range(0, len(translation_batches), 2):
-
+            for i in range(0, batch_length, 2):
                 instructions = translation_batches[i]
                 prompt = translation_batches[i+1]
-
-                assert isinstance(instructions, SystemTranslationMessage) or isinstance(instructions, str)
-                assert isinstance(prompt, ModelTranslationMessage) or isinstance(prompt, str)
-
-                async_requests.append(Translator.handle_translation(model, i, len(translation_batches), prompt, instructions))
+            
+                assert isinstance(instructions, (SystemTranslationMessage, str))
+                assert isinstance(prompt, (ModelTranslationMessage, str))
+            
+                async_requests.append(Translator.handle_translation(model, i, batch_length, prompt, instructions))
 
         else:
-
             for i, batch in enumerate(translation_batches):
 
                 assert isinstance(batch, str)
-
-                async_requests.append(Translator.handle_translation(model, i, len(translation_batches), batch, None))
-
+            
+                async_requests.append(Translator.handle_translation(model, i, batch_length, batch, None))
+        
         return async_requests
 
 ##-------------------start-of-generate_text_to_translate_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -562,41 +534,36 @@ class Translator:
 
         prompt = []
         non_word_pattern = re.compile(r'^[\W_\s\n-]+$')
-
+        special_chars = ["▼", "△", "◇"]
+        quotes = ["「", "」", "『", "』", "【", "】", "\"", "'"]
+        part_chars = ["１","２","３","４","５","６","７","８","９", " "]
+        
         while(index < len(Translator.text_to_translate)):
 
-            sentence = Translator.text_to_translate[index]
-            stripped_sentence = sentence.strip()
+            sentence = Translator.text_to_translate[index].strip()
             lowercase_sentence = sentence.lower()
-
-            has_quotes = any(char in sentence for char in ["「", "」", "『", "』", "【", "】", "\"", "'"])
+        
+            has_quotes = any(char in sentence for char in quotes)
             is_part_in_sentence = "part" in lowercase_sentence
-
+            is_special_char = any(char in sentence for char in special_chars)
+            is_part_char = all(char in sentence for char in part_chars)
+        
             if(len(prompt) < Translator.number_of_lines_per_batch):
-
-                if(any(char in sentence for char in ["▼", "△", "◇"])):
+                if(is_special_char or is_part_in_sentence or is_part_char):
                     prompt.append(f'{sentence}\n')
-                    logging.debug(f"Sentence : {sentence}, Sentence is a pov change... adding to prompt.")
+                    logging.debug(f"Sentence : {sentence}, Sentence is a pov change or part marker... adding to prompt.")
 
-                elif(stripped_sentence == ''):
-                    logging.debug(f"Sentence : {sentence} is empty... skipping.")
-
-                elif(is_part_in_sentence or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence)):
-                    prompt.append(f'{sentence}\n') 
-                    logging.debug(f"Sentence : {sentence}, Sentence is part marker... adding to prompt.")
-
-                elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(stripped_sentence) and not has_quotes):
+                elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(sentence) and not has_quotes):
                     logging.debug(f"Sentence : {sentence}, Sentence is punctuation... skipping.")
-                    
-                else:
+
+                elif(sentence):
                     prompt.append(f'{sentence}\n')
                     logging.debug(f"Sentence : {sentence}, Sentence is a valid sentence... adding to prompt.")
-
             else:
                 return prompt, index
-
+        
             index += 1
-
+        
         return prompt, index
     
 ##-------------------start-of-build_translation_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -703,7 +670,7 @@ class Translator:
 
             else:
                 logging.info("User cancelled translation.")
-                exit(0)
+                FileEnsurer.exit_kudasai()
 
         return model
     
@@ -746,48 +713,52 @@ class Translator:
 
                 batch_number = (batch_index // 2) + 1
 
-                logging.info(f"Trying translation for batch {batch_number} of {length_of_batch//2 + 1}...")
+                logging.info(f"Trying translation for batch {batch_number} of {length_of_batch//2}...")
 
                 try:
 
-                    if(Translator.TRANSLATION_METHOD == "openai"):
-
-                        assert isinstance(text_to_translate, ModelTranslationMessage)
-
-                        translated_message = await EasyTL.openai_translate_async(text=text_to_translate,
-                                                                                decorator=Translator.decorator_to_use,
-                                                                                translation_instructions=translation_instructions,
-                                                                                model=model,
-                                                                                temperature=Translator.openai_temperature,
-                                                                                top_p=Translator.openai_top_p,
-                                                                                stop=Translator.openai_stop,
-                                                                                max_tokens=Translator.openai_max_tokens,
-                                                                                presence_penalty=Translator.openai_presence_penalty,
-                                                                                frequency_penalty=Translator.openai_frequency_penalty)
-
-                    elif(Translator.TRANSLATION_METHOD == "gemini"):
-
-                        assert isinstance(text_to_translate, str)
-
-                        translated_message = await EasyTL.gemini_translate_async(text=text_to_translate,
-                                                                                 decorator=Translator.decorator_to_use,
-                                                                                 model=model,
-                                                                                 temperature=Translator.gemini_temperature,
-                                                                                 top_p=Translator.gemini_top_p,
-                                                                                 top_k=Translator.gemini_top_k,
-                                                                                 stop_sequences=Translator.gemini_stop_sequences,
-                                                                                 max_output_tokens=Translator.gemini_max_output_tokens)
-                        
-                    else:
-
-                        assert isinstance(text_to_translate, str)
-
-                        translated_message = await EasyTL.deepl_translate_async(text=text_to_translate,
-                                                                               decorator=Translator.decorator_to_use,
-                                                                               context=Translator.deepl_context,
-                                                                               split_sentences=Translator.deepl_split_sentences,
-                                                                               preserve_formatting=Translator.deepl_preserve_formatting,
-                                                                               formality=Translator.deepl_formality)
+                    translation_methods = {
+                        "openai": EasyTL.openai_translate_async,
+                        "gemini": EasyTL.gemini_translate_async,
+                        "deepl": EasyTL.deepl_translate_async
+                    }
+                    
+                    translation_params = {
+                        "openai": {
+                            "text": text_to_translate,
+                            "decorator": Translator.decorator_to_use,
+                            "translation_instructions": translation_instructions,
+                            "model": model,
+                            "temperature": Translator.openai_temperature,
+                            "top_p": Translator.openai_top_p,
+                            "stop": Translator.openai_stop,
+                            "max_tokens": Translator.openai_max_tokens,
+                            "presence_penalty": Translator.openai_presence_penalty,
+                            "frequency_penalty": Translator.openai_frequency_penalty
+                        },
+                        "gemini": {
+                            "text": text_to_translate,
+                            "decorator": Translator.decorator_to_use,
+                            "model": model,
+                            "temperature": Translator.gemini_temperature,
+                            "top_p": Translator.gemini_top_p,
+                            "top_k": Translator.gemini_top_k,
+                            "stop_sequences": Translator.gemini_stop_sequences,
+                            "max_output_tokens": Translator.gemini_max_output_tokens
+                        },
+                        "deepl": {
+                            "text": text_to_translate,
+                            "decorator": Translator.decorator_to_use,
+                            "context": Translator.deepl_context,
+                            "split_sentences": Translator.deepl_split_sentences,
+                            "preserve_formatting": Translator.deepl_preserve_formatting,
+                            "formality": Translator.deepl_formality
+                        }
+                    }
+                    
+                    assert isinstance(text_to_translate, ModelTranslationMessage if Translator.TRANSLATION_METHOD == "openai" else str)
+                    
+                    translated_message = await translation_methods[Translator.TRANSLATION_METHOD](**translation_params[Translator.TRANSLATION_METHOD])
 
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
@@ -850,15 +821,10 @@ class Translator:
         if(isinstance(translated_message, list)):
             translated_message = ''.join(translated_message)
             
-        is_valid = False
-
         jap = [line for line in prompt.split('\n') if line.strip()]  ## Remove blank lines
         eng = [line for line in translated_message.split('\n') if line.strip()]  ## Remove blank lines
-
-        if(len(jap) == len(eng)):
-            is_valid = True
     
-        return is_valid
+        return len(jap) == len(eng)
     
 ##-------------------start-of-redistribute()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -947,36 +913,30 @@ class Translator:
         i = 1
         final_list = []
 
-        while i < len(Translator.je_check_text):
+        while(i < len(Translator.je_check_text)):
             jap = Translator.je_check_text[i-1].split('\n')
             eng = Translator.je_check_text[i].split('\n')
 
-            jap = [line for line in jap if line.strip()]  ## Remove blank lines
-            eng = [line for line in eng if line.strip()]  ## Remove blank lines    
+            jap = [line for line in jap if(line.strip())]  # Remove blank lines
+            eng = [line for line in eng if(line.strip())]  # Remove blank lines    
 
             final_list.append("-------------------------\n")
 
             if(len(jap) == len(eng)):
-
-                for jap_line,eng_line in zip(jap,eng):
-                    if(jap_line and eng_line): ## check if jap_line and eng_line aren't blank
+                for(jap_line, eng_line) in zip(jap, eng):
+                    if(jap_line and eng_line):  # check if jap_line and eng_line aren't blank
                         final_list.append(jap_line + '\n\n')
                         final_list.append(eng_line + '\n\n')
-
                         final_list.append("--------------------------------------------------\n")
-     
-
             else:
-
                 final_list.append(Translator.je_check_text[i-1] + '\n\n')
                 final_list.append(Translator.je_check_text[i] + '\n\n')
-
                 final_list.append("--------------------------------------------------\n")
 
-            i+=2
+            i += 2
 
         return final_list
-
+    
 ##-------------------start-of-assemble_results()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod

@@ -43,7 +43,7 @@ openai_frequency_penalty : Number between -2.0 and 2.0. Positive values penalize
 openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translation_settings.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
 ----------------------------------------------------------------------------------
 Gemini Settings:
-https://ai.google.dev/docs/concepts#model-parameters for further details
+See https://ai.google.dev/docs/concepts#model-parameters for further details
 ----------------------------------------------------------------------------------
 gemini_model : The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and 1.5 models and their aliases.
 
@@ -66,7 +66,7 @@ gemini_max_output_tokens : The maximum number of tokens to generate in the chat 
 gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translation_settings.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.
 ----------------------------------------------------------------------------------
 Deepl Settings:
-https://developers.deepl.com/docs/api-reference/translate for further details
+See https://developers.deepl.com/docs/api-reference/translate for further details
 ----------------------------------------------------------------------------------
 deepl_context : The context in which the text should be translated. This is used to improve the translation. If you don't have any context, you can leave this empty. This is a DeepL Alpha feature and could be subject to change.
 

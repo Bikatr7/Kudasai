@@ -20,8 +20,7 @@ from modules.gui.gui_json_util import GuiJsonUtil
 
 from handlers.json_handler import JsonHandler
 
-from models.kaiseki import Kaiseki
-from modules.common.translator import Kijiku
+from modules.common.translator import Translator
 
 from kudasai import Kudasai
 
@@ -36,19 +35,10 @@ class KudasaiGUI:
     """
 
     ## scary javascript code that allows us to save textbox contents to a file
-    save_as_js = """
-    (text) => {
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'downloaded_text.txt';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-    """
+    with open(FileEnsurer.js_save_to_file_path, 'r', encoding='utf-8') as f:
+        js_save_to_file = f.read()
 
-    ## used for whether the debug log tab for kaiseki/kijiku should be actively refreshing based of Logger.current_batch
+    ## used for whether the debug log tab for Translator should be actively refreshing based of Logger.current_batch
     is_translation_ongoing = False
 
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -81,18 +71,18 @@ class KudasaiGUI:
                 if(self.is_translation_ongoing == False):
                     return "No translation ongoing"
 
-                if(Logger.current_batch == ""):
-                    return "No log content found."
+                with open(FileEnsurer.debug_log_path, 'r', encoding='utf-8') as f:
+                    log_text = f.read()
                 
-                return Logger.current_batch
+                return log_text
             
-##-------------------start-of-get_saved_kaiseki_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-get_saved_deepl_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def get_saved_kaiseki_api_key() -> str:
+            def get_saved_deepl_api_key() -> str:
 
                 """
                 
-                Gets the saved kaiseki api key from the config folder, if it exists.
+                Gets the saved deepl api key from the config folder, if it exists.
 
                 Returns:
                 api_key (str) : The api key.
@@ -146,30 +136,24 @@ class KudasaiGUI:
                 except:
                     return ""
                 
-##-------------------start-of-set_kijiku_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-set_translator_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            async def set_kijiku_api_key(api_key) -> None:
+            async def set_translator_api_key(api_key) -> None:
 
                 """
 
-                Sets the kijiku api key.
+                Sets the translator api key.
 
                 Parameters:
                 api_key (str) : The api key.
 
                 """
 
-                ## next api key
                 try:
-                    if(Kijiku.LLM_TYPE == "openai"):
-                        EasyTL.set_api_key(Kijiku.LLM_TYPE, str(api_key))
-                        is_valid, e = EasyTL.test_api_key_validity(Kijiku.LLM_TYPE)
 
+                    EasyTL.set_credentials(Translator.TRANSLATION_METHOD, str(api_key))
+                    is_valid, e = EasyTL.test_credentials(Translator.TRANSLATION_METHOD)
 
-                    else:
-
-                        EasyTL.set_api_key(Kijiku.LLM_TYPE, str(api_key))
-                        is_valid, e = EasyTL.test_api_key_validity(Kijiku.LLM_TYPE)
 
                     if(is_valid == False and e is not None):
                         raise e
@@ -177,38 +161,41 @@ class KudasaiGUI:
                 except:
                     raise gr.Error("Invalid API key")
                 
-##-------------------start-of-update_kijiku_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-update_translator_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def update_kijiku_api_key(api_key) -> None:
+            def update_translator_api_key(api_key) -> None:
 
                 """
 
-                Updates the kijiku api key.
+                Updates the translator api key.
 
                 Parameters:
                 api_key (str) : The api key.
 
                 """
 
-                ## also gonna want to update the api key file with the new api key
-                if(Kijiku.LLM_TYPE == "openai"):
-                    path_to_api_key = FileEnsurer.openai_api_key_path
+                method_to_path = {
+                    "openai": FileEnsurer.openai_api_key_path,
+                    "gemini": FileEnsurer.gemini_api_key_path,
+                    "deepl": FileEnsurer.deepl_api_key_path
+                }
 
-                else:
-                    path_to_api_key = FileEnsurer.gemini_api_key_path
+                path_to_api_key = method_to_path.get(Translator.TRANSLATION_METHOD, None)
+
+                assert path_to_api_key is not None, "Invalid translation method"
 
                 FileEnsurer.standard_overwrite_file(path_to_api_key, base64.b64encode(str(api_key).encode('utf-8')).decode('utf-8'), omit=True)
 
 ##-------------------start-of-create_new_key_value_tuple_pairs()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
 
-            def create_new_key_value_tuple_pairs(kijiku_settings:typing.List[str]) -> typing.List[typing.Tuple[str, str]]:
+            def create_new_key_value_tuple_pairs(translation_settings:typing.List[str]) -> typing.List[typing.Tuple[str, str]]:
                 
                 """
 
-                Applies the new kijiku settings to the uploaded kijiku rules file.
+                Applies the new translation to the uploaded translation_settings.json file.
 
                 Parameters:
-                kijiku_settings (typing.List[typing.Union[gr.Textbox,gr.Slider,gr.Dropdown]]) : The kijiku setting values
+                translation_settings (typing.List[typing.Union[gr.Textbox,gr.Slider,gr.Dropdown]]) : The translation settings.
 
                 Returns:
                 key_value_tuple_pairs (typing.List[typing.Tuple[str, str]]) : The new key value tuple pairs.
@@ -217,7 +204,7 @@ class KudasaiGUI:
 
                 key_value_tuple_pairs = []
                 
-                kijiku_settings_key_names = {
+                translation_settings_key_names = {
                     0: "prompt_assembly_mode",
                     1: "number_of_lines_per_batch",
                     2: "sentence_fragmenter_mode",
@@ -244,11 +231,15 @@ class KudasaiGUI:
                     23: "gemini_candidate_count",
                     24: "gemini_stream",
                     25: "gemini_stop_sequences",
-                    26: "gemini_max_output_tokens"
+                    26: "gemini_max_output_tokens",
+                    27: "deepl_context",
+                    28: "deepl_split_sentences",
+                    29: "deepl_preserve_formatting",
+                    30: "deepl_formality",
                 }
 
-                for index, setting in enumerate(kijiku_settings):
-                    key = kijiku_settings_key_names.get(index)
+                for index, setting in enumerate(translation_settings):
+                    key = translation_settings_key_names.get(index)
 
                     key_value_tuple_pairs.append((key, setting))
 
@@ -260,7 +251,7 @@ class KudasaiGUI:
             with gr.Tab("Kudasai") as self.kudasai_tab:
 
                 ## tab 2 | indexing
-                with gr.Tab("Indexing | Kairyou") as self.indexing_tab:
+                with gr.Tab("Name Indexing | Kairyou") as self.indexing_tab:
                     with gr.Row():
 
                         ## input fields, text input for indexing, and replacement json file input.
@@ -276,7 +267,7 @@ class KudasaiGUI:
                                 self.indexing_clear_button = gr.Button('Clear', variant='stop')
 
                             with gr.Row():
-                                self.send_to_kairyou_button = gr.Button('Send to Kairyou (Preprocessing)')
+                                self.send_to_kairyou_button = gr.Button('Send to Preprocessing (Kairyou)')
 
                         ## output fields
                         with gr.Column():
@@ -299,7 +290,7 @@ class KudasaiGUI:
 
 
                 ## tab 3 | preprocessing
-                with gr.Tab("Preprocessing | Kairyou") as self.preprocessing_tab:
+                with gr.Tab("Text Preprocessing | Kairyou") as self.preprocessing_tab:
                     with gr.Row():
 
                         ## input fields, text input for preprocessing, and replacement json file input.
@@ -314,8 +305,7 @@ class KudasaiGUI:
                                 self.preprocessing_clear_button = gr.Button('Clear', variant='stop')
 
                             with gr.Row():
-                                self.send_to_kaiseki_button = gr.Button('Send to Kaiseki (DeepL)')
-                                self.send_to_kijiku_button = gr.Button('Send to Kijiku (LLMs)')
+                                self.send_to_translator_button = gr.Button('Send to Translator')
 
                         ## output fields
                         with gr.Column():
@@ -336,95 +326,61 @@ class KudasaiGUI:
                             with gr.Row():
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')
 
-                ## tab 4 | Translation Model 1 | Kaiseki
-                with gr.Tab("Translation With DeepL | Kaiseki") as self.kaiseki_tab:
+                ## tab 4 | Translation
+                with gr.Tab("Text Translation | Translator") as self.translator_tab:
                     with gr.Row():
 
                         ## input file or text input, gui allows for both but will prioritize file input
                         with gr.Column():
-                            self.input_txt_file_kaiseki = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath', interactive=True)
-                            self.input_text_kaiseki = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True)
+                            self.input_txt_file_translator = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath', interactive=True)
+                            self.input_text_translator = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
+                            self.input_translation_rules_file = gr.File(value = FileEnsurer.config_translation_settings_path, label='Translation Settings File', file_count='single', file_types=['.json'], type='filepath')
 
                             with gr.Row():
-                                self.kaiseki_api_key_input_field = gr.Textbox(label='API Key', value=get_saved_kaiseki_api_key, lines=1, show_label=True, interactive=True, type='password')
-
-                            with gr.Row():
-                                self.kaiseki_translate_button = gr.Button('Translate', variant="primary")
-                                self.kaiseki_clear_button = gr.Button('Clear', variant='stop')
-
-                        ## output fields
-                        with gr.Column():
-                            self.kaiseki_translated_text_output_field = gr.Textbox(label='Translated Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
-
-                            with gr.Row():
-                                self.save_to_file_kaiseki_translated_text = gr.Button('Save As')
-
-                        with gr.Column():
-                            self.kaiseki_je_check_text_output_field = gr.Textbox(label='JE Check Text', lines=31,max_lines=31, interactive=False, show_copy_button=True)
-
-                            with gr.Row():
-                                self.save_to_file_kaiseki_je_check_text = gr.Button('Save As')
-
-                        with gr.Column():
-                            self.kaiseki_debug_log_output_field = gr.Textbox(label='Debug Log', lines=31,max_lines=31, interactive=False, show_copy_button=True)
-
-                            with gr.Row():
-                                self.save_to_file_debug_log_kaiseki_tab = gr.Button('Save As')
-
-                ## tab 5 | Translation Model 2 | Kijiku
-                with gr.Tab("Translation With LLMs | Kijiku") as self.kijiku_tab:
-                    with gr.Row():
-
-                        ## input file or text input, gui allows for both but will prioritize file input
-                        with gr.Column():
-                            self.input_txt_file_kijiku = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath', interactive=True)
-                            self.input_text_kijiku = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
-                            self.input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='filepath')
-
-                            with gr.Row():
-                                self.llm_option_dropdown = gr.Dropdown(label='LLM Option', choices=["OpenAI", "Gemini"], value="OpenAI", show_label=True, interactive=True)
+                                self.llm_option_dropdown = gr.Dropdown(label='Translation Method', choices=["OpenAI", "Gemini", "DeepL"], value="OpenAI", show_label=True, interactive=True)
                             
                             with gr.Row():
-                                self.kijiku_api_key_input = gr.Textbox(label='API Key', value=get_saved_openai_api_key, lines=1, max_lines=2, show_label=True, interactive=True, type='password')
+                                self.translator_api_key_input = gr.Textbox(label='API Key', value=get_saved_openai_api_key, lines=1, max_lines=2, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
-                                self.kijiku_translate_button = gr.Button('Translate', variant="primary")
-                                self.kijiku_calculate_costs_button = gr.Button('Calculate Costs', variant='secondary')
+                                self.translator_translate_button = gr.Button('Translate', variant="primary")
+                                self.translator_calculate_cost_button = gr.Button('Calculate Cost', variant='secondary')
 
                             with gr.Row():
-                                self.kijiku_clear_button = gr.Button('Clear', variant='stop')
+                                self.translator_clear_button = gr.Button('Clear', variant='stop')
 
                         ## output fields
                         with gr.Column():
-                            self.kijiku_translated_text_output_field = gr.Textbox(label='Translated Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
+                            self.translator_translated_text_output_field = gr.Textbox(label='Translated Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_kijiku_translated_text = gr.Button('Save As')
+                                self.save_to_file_translator_translated_text = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kijiku_je_check_text_output_field = gr.Textbox(label='JE Check Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
+                            self.translator_je_check_text_output_field = gr.Textbox(label='JE Check Text', lines=43,max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_kijiku_je_check_text = gr.Button('Save As')
+                                self.save_to_file_translator_je_check_text = gr.Button('Save As')
 
                         with gr.Column():
-                            self.kijiku_debug_log_output_field = gr.Textbox(label='Debug Log', lines=43, max_lines=43, interactive=False, show_copy_button=True)
+                            self.translator_debug_log_output_field = gr.Textbox(label='Debug Log', lines=43, max_lines=43, interactive=False, show_copy_button=True)
 
                             with gr.Row():
-                                self.save_to_file_debug_log_kijiku_tab = gr.Button('Save As')
+                                self.save_to_file_debug_log_translator_tab = gr.Button('Save As')
 
-                ## tab 6 | Kijiku Settings
-                with gr.Tab("Kijiku Settings") as self.kijiku_settings_tab:
+                ## tab 5 | Settings
+                with gr.Tab("Translation Settings") as self.translation_settings_tab:
                     with gr.Row():
 
                         with gr.Column():
-                            gr.Markdown("Kijiku Settings")
-                            gr.Markdown("See https://github.com/Bikatr7/Kudasai/blob/main/README.md#kijiku-settings for further details")
-                            gr.Markdown("These settings are used for both OpenAI and Gemini, but some settings are ignored by one or the other. For example, Gemini ignores prompt assembly mode.")
+                            gr.Markdown("Base Translation Settings")
+                            gr.Markdown("See CHANGE THIS LINK LATER YOU FUCKING DUMBASS for further details")
+                            gr.Markdown("These settings are used for both OpenAI and Gemini, but some settings are ignored by one or the other. For example, Gemini & DeepL ignores prompt assembly mode.")
 
+                            ## all these need to be changed later
 
                             self.prompt_assembly_mode_input_field = gr.Dropdown(label='Prompt Assembly Mode',
-                                                                                value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","prompt_assembly_mode")),
+                                                                                value=int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","prompt_assembly_mode")),
                                                                                 choices=[1,2],
                                                                                 info="1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works. For Gemini, this setting is ignored.",
                                                                                 show_label=True,
@@ -432,7 +388,7 @@ class KudasaiGUI:
                                                                                 elem_id="prompt_assembly_mode")
                             
                             self.number_of_lines_per_batch_input_field = gr.Textbox(label='Number of Lines Per Batch',
-                                                                                    value=(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_lines_per_batch")),
+                                                                                    value=(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_lines_per_batch")),
                                                                                     info="The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.",
                                                                                     lines=1,
                                                                                     max_lines=1,
@@ -442,15 +398,15 @@ class KudasaiGUI:
                                                                                     show_copy_button=True)
                             
                             self.sentence_fragmenter_mode_input_field = gr.Dropdown(label='Sentence Fragmenter Mode',
-                                                                                    value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","sentence_fragmenter_mode")),
+                                                                                    value=int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","sentence_fragmenter_mode")),
                                                                                     choices=[1,2],
-                                                                                    info="1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Kijiku fragments the sentences if at all. Use 2 for newer models.",
+                                                                                    info="1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Translator fragments the sentences if at all. Use 2 for newer models.",
                                                                                     show_label=True,
                                                                                     interactive=True,
                                                                                     elem_id="sentence_fragmenter_mode")
                             
                             self.je_check_mode_input_field = gr.Dropdown(label='JE Check Mode',
-                                                                        value=int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","je_check_mode")),
+                                                                        value=int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","je_check_mode")),
                                                                         choices=[1,2],
                                                                         info="1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for newer models.",
                                                                         show_label=True,
@@ -458,8 +414,8 @@ class KudasaiGUI:
                                                                         elem_id="je_check_mode")
                             
                             self.number_of_malformed_batch_retries_input_field = gr.Textbox(label="Number Of Malformed Batch Retries",
-                                                                                value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_malformed_batch_retries"),
-                                                                                info="(Malformed batch is when je-fixing fails) How many times Kijiku will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.",
+                                                                                value=GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_malformed_batch_retries"),
+                                                                                info="(Malformed batch is when je-fixing fails) How many times Translator will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.",
                                                                                 lines=1,
                                                                                 max_lines=1,
                                                                                 show_label=True,
@@ -468,8 +424,8 @@ class KudasaiGUI:
                                                                                 show_copy_button=True)
                                                         
                             self.batch_retry_timeout_input_field = gr.Textbox(label="Batch Retry Timeout",
-                                                                            value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","batch_retry_timeout"),
-                                                                            info="How long Kijiku will try to translate a batch in seconds, if a requests exceeds this duration, Kijiku will leave it untranslated.",
+                                                                            value=GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","batch_retry_timeout"),
+                                                                            info="How long Translator will try to translate a batch in seconds, if a requests exceeds this duration, Translator will leave it untranslated.",
                                                                             lines=1,
                                                                             max_lines=1,
                                                                             show_label=True,
@@ -478,8 +434,8 @@ class KudasaiGUI:
                                                                             show_copy_button=True)
 
                             self.number_of_concurrent_batches_input_field = gr.Textbox(label="Number Of Concurrent Batches",
-                                                                                       value=GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_concurrent_batches"),
-                                                                                        info="How many translations batches Kijiku will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.",
+                                                                                       value=GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_concurrent_batches"),
+                                                                                        info="How many translations batches Translator will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.",
                                                                                         lines=1,
                                                                                         max_lines=1,
                                                                                         show_label=True,
@@ -488,20 +444,23 @@ class KudasaiGUI:
                                                                                         show_copy_button=True)
 
                         with gr.Column(): 
+
+                            ## all these need to be changed later as well
+
                             gr.Markdown("OpenAI API Settings")
                             gr.Markdown("See https://platform.openai.com/docs/api-reference/chat/create for further details")
                             gr.Markdown("openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
 
                             self.openai_model_input_field = gr.Dropdown(label="OpenAI Model",
-                                                                        value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model")),
+                                                                        value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model")),
                                                                         choices=[model for model in ALLOWED_OPENAI_MODELS],
-                                                                        info="ID of the model to use. Kijiku only works with 'chat' models.",
+                                                                        info="ID of the model to use. Translator only works with 'chat' models.",
                                                                         show_label=True,
                                                                         interactive=True,
                                                                         elem_id="openai_model")
                             
                             self.openai_system_message_input_field = gr.Textbox(label="OpenAI System Message",
-                                                                            value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message")),
+                                                                            value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message")),
                                                                             info="Instructions to the model. Basically tells the model how to translate.",
                                                                             lines=1,
                                                                             max_lines=1,
@@ -511,7 +470,7 @@ class KudasaiGUI:
                                                                             show_copy_button=True)
                             
                             self.openai_temperature_input_field = gr.Slider(label="OpenAI Temperature",
-                                                                        value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_temperature")),
+                                                                        value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_temperature")),
                                                                         minimum=0.0,
                                                                         maximum=2.0,
                                                                         info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
@@ -520,7 +479,7 @@ class KudasaiGUI:
                                                                         elem_id="openai_temperature")
                             
                             self.openai_top_p_input_field = gr.Slider(label="OpenAI Top P",
-                                                                    value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_top_p")),
+                                                                    value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_top_p")),
                                                                     minimum=0.0,
                                                                     maximum=1.0,
                                                                     info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
@@ -529,7 +488,7 @@ class KudasaiGUI:
                                                                     elem_id="openai_top_p")
                             
                             self.openai_n_input_field = gr.Textbox(label="OpenAI N",
-                                                                value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_n")),
+                                                                value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_n")),
                                                                 info="How many chat completion choices to generate for each input message. Do not change this.",
                                                                 show_label=True,
                                                                 interactive=False,
@@ -537,7 +496,7 @@ class KudasaiGUI:
                                                                 show_copy_button=True)
                             
                             self.openai_stream_input_field = gr.Textbox(label="OpenAI Stream",
-                                                                    value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stream")),
+                                                                    value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stream")),
                                                                     info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
                                                                     show_label=True,
                                                                     interactive=False,
@@ -545,7 +504,7 @@ class KudasaiGUI:
                                                                     show_copy_button=True)
                             
                             self.openai_stop_input_field = gr.Textbox(label="OpenAI Stop",
-                                                                    value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stop")),
+                                                                    value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stop")),
                                                                     info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
                                                                     show_label=True,
                                                                     interactive=False,
@@ -553,7 +512,7 @@ class KudasaiGUI:
                                                                     show_copy_button=True)
                             
                             self.openai_logit_bias_input_field = gr.Textbox(label="OpenAI Logit Bias",
-                                                                        value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_logit_bias")),
+                                                                        value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_logit_bias")),
                                                                         info="Modifies the likelihood of specified tokens appearing in the completion. Do not change this.",
                                                                         show_label=True,
                                                                         interactive=False,
@@ -561,7 +520,7 @@ class KudasaiGUI:
                                                                         show_copy_button=True)
                             
                             self.openai_max_tokens_input_field = gr.Textbox(label="OpenAI Max Tokens",
-                                                                        value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_max_tokens")),
+                                                                        value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_max_tokens")),
                                                                         info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
                                                                         lines=1,
                                                                         max_lines=1,
@@ -571,7 +530,7 @@ class KudasaiGUI:
                                                                         show_copy_button=True)
                             
                             self.openai_presence_penalty_input_field = gr.Slider(label="OpenAI Presence Penalty",
-                                                                            value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_presence_penalty")),
+                                                                            value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_presence_penalty")),
                                                                             info="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.",
                                                                             minimum=-2.0,
                                                                             maximum=2.0,
@@ -580,7 +539,7 @@ class KudasaiGUI:
                                                                             elem_id="openai_presence_penalty")
                             
                             self.openai_frequency_penalty_input_field = gr.Slider(label="OpenAI Frequency Penalty",
-                                                                            value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_frequency_penalty")),
+                                                                            value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_frequency_penalty")),
                                                                             info="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.",
                                                                             minimum=-2.0,
                                                                             maximum=2.0,
@@ -589,13 +548,16 @@ class KudasaiGUI:
                                                                             elem_id="openai_frequency_penalty")
 
                         with gr.Column():
+
+                            ## these need to be changed later as well
+
                             gr.Markdown("Gemini API Settings")
                             gr.Markdown("https://ai.google.dev/docs/concepts#model-parameters for further details")
                             gr.Markdown("gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
                                 
 
                             self.gemini_model_input_field = gr.Dropdown(label="Gemini Model",
-                                                                        value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model")),
+                                                                        value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model")),
                                                                         choices=[model for model in ALLOWED_GEMINI_MODELS],
                                                                         info="The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.",
                                                                         show_label=True,
@@ -603,7 +565,7 @@ class KudasaiGUI:
                                                                         elem_id="gemini_model")
 
                             self.gemini_prompt_input_field = gr.Textbox(label="Gemini Prompt",
-                                                                    value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt")),
+                                                                    value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt")),
                                                                     info="Instructions to the model. Basically tells the model how to translate.",
                                                                     lines=1,
                                                                     max_lines=1,
@@ -613,7 +575,7 @@ class KudasaiGUI:
                                                                     show_copy_button=True)
                             
                             self.gemini_temperature_input_field = gr.Slider(label="Gemini Temperature",
-                                                                        value=float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature")),
+                                                                        value=float(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_temperature")),
                                                                         minimum=0.0,
                                                                         maximum=2.0,
                                                                         info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
@@ -622,7 +584,7 @@ class KudasaiGUI:
                                                                         elem_id="gemini_temperature")
                             
                             self.gemini_top_p_input_field = gr.Textbox(label="Gemini Top P",
-                                                                    value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p")),
+                                                                    value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_p")),
                                                                     info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
                                                                     lines=1,
                                                                     max_lines=1,
@@ -632,7 +594,7 @@ class KudasaiGUI:
                                                                     show_copy_button=True)
                             
                             self.gemini_top_k_input_field = gr.Textbox(label="Gemini Top K",
-                                                                    value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k")),
+                                                                    value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_k")),
                                                                     info="Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.",
                                                                     lines=1,
                                                                     max_lines=1,
@@ -642,7 +604,7 @@ class KudasaiGUI:
                                                                     show_copy_button=True)
 
                             self.gemini_candidate_count_input_field = gr.Textbox(label="Gemini Candidate Count",
-                                                                                value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count")),
+                                                                                value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_candidate_count")),
                                                                                 info="The number of candidates to generate for each input message. Do not change this.",
                                                                                 lines=1,
                                                                                 max_lines=1,
@@ -652,7 +614,7 @@ class KudasaiGUI:
                                                                                 show_copy_button=True)
 
                             self.gemini_stream_input_field = gr.Textbox(label="Gemini Stream",
-                                                                    value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream")),
+                                                                    value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stream")),
                                                                     info="If set, partial message deltas will be sent, like in Gemini chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
                                                                     lines=1,
                                                                     max_lines=1,
@@ -662,7 +624,7 @@ class KudasaiGUI:
                                                                     show_copy_button=True)
                             
                             self.gemini_stop_sequences_input_field = gr.Textbox(label="Gemini Stop Sequences",
-                                                                            value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences")),
+                                                                            value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stop_sequences")),
                                                                             info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
                                                                             lines=1,
                                                                             max_lines=1,
@@ -672,7 +634,7 @@ class KudasaiGUI:
                                                                             show_copy_button=True)
 
                             self.gemini_max_output_tokens_input_field = gr.Textbox(label="Gemini Max Output Tokens",
-                                                                                value=str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens")),
+                                                                                value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_max_output_tokens")),
                                                                                 info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
                                                                                 lines=1,
                                                                                 max_lines=1,
@@ -680,16 +642,58 @@ class KudasaiGUI:
                                                                                 interactive=True,
                                                                                 elem_id="gemini_max_output_tokens",
                                                                                 show_copy_button=True)
+                            
+                        with gr.Column():
+                                
+                                ## all these need to be changed later, the text was autogenerated
+    
+                                gr.Markdown("DeepL API Settings")
+                                gr.Markdown("https://www.deepl.com/docs-api/accessing-the-api/authentication/ for further details")
+                                gr.Markdown("deepl_context, deepl_split_sentences, deepl_preserve_formatting and deepl_formality are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
+    
+                                self.deepl_context_input_field = gr.Textbox(label="DeepL Context",
+                                                                        value=str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context")),
+                                                                        info="The context in which the text should be translated. This is used to help the model better understand the context of the text. For example, if the text is a formal letter, the context could be 'formal'.",
+                                                                        lines=1,
+                                                                        max_lines=1,
+                                                                        show_label=True,
+                                                                        interactive=True,
+                                                                        elem_id="deepl_context",
+                                                                        show_copy_button=True)
+                                
+                                self.deepl_split_sentences_input_field = gr.Dropdown(label="DeepL Split Sentences",
+                                                                                value=int(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_split_sentences")),
+                                                                                choices=[0,1],
+                                                                                info="Whether the API should split the input text into sentences. This is useful if the input text is a large block of text with no punctuation. 0 means no splitting, 1 means splitting.",
+                                                                                show_label=True,
+                                                                                interactive=True,
+                                                                                elem_id="deepl_split_sentences")
+                                
+                                self.deepl_preserve_formatting_input_field = gr.Dropdown(label="DeepL Preserve Formatting",
+                                                                                    value=int(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_preserve_formatting")),
+                                                                                    choices=[0,1],
+                                                                                    info="Whether the API should preserve the formatting of the input text. This is useful if the input text contains code or other formatting that should not be changed. 0 means no preservation, 1 means preservation.",
+                                                                                    show_label=True,
+                                                                                    interactive=True,
+                                                                                    elem_id="deepl_preserve_formatting")
+                                
+                                self.deepl_formality_input_field = gr.Dropdown(label="DeepL Formality",
+                                                                            value=int(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_formality")),
+                                                                            choices=[0,1],
+                                                                            info="The formality of the text. This is used to help the model better understand the tone of the text. 0 means informal, 1 means formal.",
+                                                                            show_label=True,
+                                                                            interactive=True,
+                                                                            elem_id="deepl_formality")
                         
 
                     with gr.Row():
-                        self.kijiku_settings_reset_to_default_button = gr.Button('Reset to Default', variant='secondary')
-                        self.kijiku_settings_discard_changes_button = gr.Button('Discard Changes', variant='stop')
+                        self.translation_settings_reset_to_default_button = gr.Button('Reset to Default', variant='secondary')
+                        self.translation_settings_discard_changes_button = gr.Button('Discard Changes', variant='stop')
 
                     with gr.Row():
-                        self.kijiku_settings_apply_changes_button = gr.Button('Apply Changes', variant='primary')
+                        self.translation_settings_apply_changes_button = gr.Button('Apply Changes', variant='primary')
 
-                ## tab 7 | Logging
+                ## tab 6 | Logging
                 with gr.Tab("Logging") as self.logging_tab:
 
                     with gr.Row():
@@ -785,7 +789,7 @@ class KudasaiGUI:
                             unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base_string, replacements)
 
                             ## Indexer does not directly log anything, in case of anything else touching it, we will grab the log from the log file
-                            log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+                            log_text = FileEnsurer.standard_read_file(FileEnsurer.debug_log_path)
 
                             indexed_text = Kudasai.mark_indexed_names(text_to_index, unique_names)
 
@@ -842,102 +846,27 @@ class KudasaiGUI:
                         preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
 
                     except InvalidReplacementJsonKeys:
+                        ## link needs to be updated later
                         raise gr.Error("Invalid JSON file, please ensure that the JSON file contains the correct keys See: https://github.com/Bikatr7/Kairyou?tab=readme-ov-file#usage")
 
                     timestamp = Toolkit.get_timestamp(is_archival=True)
 
                     FileEnsurer.write_kairyou_results(preprocessed_text, preprocessing_log, error_log, timestamp)
 
-                    log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+                    log_text = FileEnsurer.standard_read_file(FileEnsurer.debug_log_path)
 
                     return preprocessed_text, preprocessing_log, log_text, log_text, error_log
             
                 else:
                     raise gr.Error("No JSON file selected")
                 
-##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            def translate_with_kaiseki(input_txt_file:gr.File, input_text:str, api_key_input:str) -> typing.Tuple[str, str, str, str]:
-
-                """
-                
-                Translates the text in the input_txt_file or input_text using the DeepL API. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
-                Displays the translated text, the debug log, and the error log.
-
-                Parameters:
-                input_txt_file (gr.File) : The input txt file.
-                input_text (str) : The input text.
-                api_key_input (str) : The API key input.
-
-                Returns:
-                translated_text (str) : The translated text.
-                je_check_text (str) : The je check text.
-                log_text (str) : The log text for the Log tab.
-
-                """
-
-                if(Kudasai.connection == False):
-                    raise gr.Error("No internet connection detected, please connect to the internet and reload the page to use translation features of Kudasai.")
-                
-                if(input_txt_file is None and input_text == ""):
-                    raise gr.Error("No TXT file or text selected")
-                
-                if(api_key_input == ""):
-                    raise gr.Error("No API key provided")
-
-                ## in case of subsequent runs, we need to reset the static variables
-                Kaiseki.reset_static_variables()
-
-                ## start of translation, so we can assume that that we don't want to interrupt it
-                FileEnsurer.do_interrupt = False
-
-                ## if translate button is clicked, we can assume that the translation is ongoing
-                self.is_translation_ongoing = True
-                
-                if(input_txt_file is not None):
-                    text_to_translate = gui_get_text_from_file(input_txt_file)
-
-                else:
-                    text_to_translate = input_text
-
-                try:
-                    EasyTL.set_api_key("deepl", str(api_key_input))
-
-                    is_valid, e = EasyTL.test_api_key_validity("deepl")
-
-                    if(is_valid == False and e is not None):
-                        raise e
-
-                except:
-                    raise gr.Error("Invalid API key")
-                
-                Kaiseki.text_to_translate  = [line for line in str(text_to_translate).splitlines()]
-
-                Kaiseki.commence_translation()
-
-                Kaiseki.write_kaiseki_results()
-
-                ## je check text and translated text are lists of strings, so we need to convert them to strings
-                translated_text = "\n".join(Kaiseki.translated_text)
-                je_check_text = "\n".join(Kaiseki.je_check_text)
-
-                ## Log text is cleared from the client, so we need to get it from the log file
-                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
-
-                error_text = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
-
-                ## also gonna want to update the api key file with the new api key
-                FileEnsurer.standard_overwrite_file(FileEnsurer.deepl_api_key_path, base64.b64encode(str(api_key_input).encode('utf-8')).decode('utf-8'), omit=True)
-
-                return translated_text, je_check_text, log_text, error_text
+##-------------------start-of-translate_with_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-##-------------------start-of-translate_with_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            
-            async def translate_with_kijiku(input_txt_file:gr.File, input_text:str, api_key:str, llm_type:str, kijiku_rules_file:gr.File) -> typing.Tuple[str, str, str, str]:
+            async def translate_with_translator(input_txt_file:gr.File, input_text:str, api_key:str, llm_type:str, translation_settings_file:gr.File) -> typing.Tuple[str, str, str, str]:
 
                 """
                 
-                Translates the text in the input_txt_file or input_text using either OpenAI or Gemini. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
+                Translates the text in the input_txt_file or input_text using either OpenAI, Gemini, or DeepL. If no txt file or text is selected, an error is raised. If no API key is provided or the API key is invalid, an error is raised.
                 Displays the translated text, the debug log, and the error log.
 
                 Parameters:
@@ -960,14 +889,14 @@ class KudasaiGUI:
                 if(api_key == ""):
                     raise gr.Error("No API key provided")
                 
-                if(kijiku_rules_file is None):
-                    raise gr.Error("No Kijiku rules file selected")
+                if(translation_settings_file is None):
+                    raise gr.Error("No Translation Settings File selected")
 
                 if(Kudasai.connection == False):
                     raise gr.Error("No internet connection detected, please connect to the internet and reload the page to use translation features of Kudasai.")
 
                 ## in case of subsequent runs, we need to reset the static variables
-                Kijiku.reset_static_variables()
+                Translator.reset_static_variables()
 
                 ## start of translation, so we can assume that that we don't want to interrupt it
                 FileEnsurer.do_interrupt = False
@@ -976,17 +905,20 @@ class KudasaiGUI:
                 self.is_translation_ongoing = True
 
                 ## first, set the json in the json handler to the json currently set as in gui_json_util
-                JsonHandler.current_kijiku_rules = GuiJsonUtil.current_kijiku_rules
+                JsonHandler.current_translation_settings = GuiJsonUtil.current_translation_settings
 
                 ## next, set the llm type
                 if(llm_type == "OpenAI"):
-                    Kijiku.LLM_TYPE = "openai" 
+                    Translator.TRANSLATION_METHOD = "openai" 
+
+                elif(llm_type == "Gemini"):
+                    Translator.TRANSLATION_METHOD = "gemini"
 
                 else:
-                    Kijiku.LLM_TYPE = "gemini"
+                    Translator.TRANSLATION_METHOD = "deepl"
 
                 ## api key as well
-                await set_kijiku_api_key(api_key)
+                await set_translator_api_key(api_key)
                 
                 if(input_txt_file is not None):
                     text_to_translate = gui_get_text_from_file(input_txt_file)
@@ -995,34 +927,35 @@ class KudasaiGUI:
                     text_to_translate = input_text
 
                 ## need to convert the text to translate to list of strings
-                Kijiku.text_to_translate = [line for line in str(text_to_translate).splitlines()]
+                Translator.text_to_translate = [line for line in str(text_to_translate).splitlines()]
 
                 ## commence translation
-                await Kijiku.commence_translation(is_webgui=True)
-                Kijiku.write_kijiku_results()
+                await Translator.commence_translation(is_webgui=True)
+
+                Translator.write_translator_results()
 
                 ## je check text and translated text are lists of strings, so we need to convert them to strings
-                translated_text = "\n".join(Kijiku.translated_text)
-                je_check_text = "\n".join(Kijiku.je_check_text)
+                translated_text = "\n".join(Translator.translated_text)
+                je_check_text = "\n".join(Translator.je_check_text)
 
                 ## Log text is cleared from the client, so we need to get it from the log file
-                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+                log_text = FileEnsurer.standard_read_file(FileEnsurer.debug_log_path)
 
                 error_text = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
                 
                 ## then overwrite the api key file with the new api key
-                update_kijiku_api_key(api_key)
+                update_translator_api_key(api_key)
 
                 return translated_text, je_check_text, log_text, error_text
             
-##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of translator_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            async def kijiku_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str, api_key:str, kijiku_rules_file:gr.File) -> str:
+            async def translator_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str, api_key:str, translation_settings_file:gr.File) -> str:
 
 
                 """
                 
-                Calculates the cost of the text in the input_txt_file or input_text using the OpenAI API or Gemini API. If no txt file or text is selected, an error is raised.
+                Calculates the cost of the text in the input_txt_file or input_text using the OpenAI, Gemini, or DeepL APIs. If no txt file or text is selected, an error is raised.
                 Displays the cost, and the debug log.
 
                 Parameters:
@@ -1039,51 +972,68 @@ class KudasaiGUI:
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
                 
-                if(api_key == "" and llm_type != "OpenAI"):
+                if(api_key == "" and llm_type not in ["OpenAI","DeepL"]):
                     raise gr.Error("No API key provided. Does not charge for cost estimation, but is required for Gemini Cost Calculation")
                 
                 if(Kudasai.connection == False and llm_type != "OpenAI"):
                     raise gr.Error("No internet connection detected, please connect to the internet and reload the page to calculate costs for Gemini")
                 
-                if(kijiku_rules_file is None):
-                    raise gr.Error("No Kijiku rules file selected")
+                if(translation_settings_file is None):
+                    raise gr.Error("No Translation Settings File selected")
                 
                 ## in case of subsequent runs, we need to reset the static variables
-                Kijiku.reset_static_variables()
+                Translator.reset_static_variables()
 
                 cost_estimation = ""
 
                 ## first set the llm type
                 if(llm_type == "OpenAI"):
-                    Kijiku.LLM_TYPE = "openai"
+                    Translator.TRANSLATION_METHOD = "openai"
+
+                elif(llm_type == "Gemini"):
+                    Translator.TRANSLATION_METHOD = "gemini"
 
                 else:
-                    Kijiku.LLM_TYPE = "gemini"
+                    Translator.TRANSLATION_METHOD = "deepl"
 
+                await set_translator_api_key(api_key)
 
-                await set_kijiku_api_key(api_key)
+                translation_methods = {
+                    "openai": GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model"),
+                    "gemini": GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model"),
+                    "deepl": "deep"
+                }
 
-                model = GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model") if Kijiku.LLM_TYPE == "openai" else GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model")
-                
+                model = translation_methods.get(Translator.TRANSLATION_METHOD) 
+
                 if(input_txt_file is not None):
                     text_to_translate = gui_get_text_from_file(input_txt_file)
 
                 else:
                     text_to_translate = input_text
 
-                translation_instructions = GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message") if Kijiku.LLM_TYPE == "openai" else GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt")
+                translation_instructions_dict = {
+                    "openai": GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message"),
+                    "gemini": GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt"),
+                    "deepl": None
+                }
 
-                num_tokens, estimated_cost, model = EasyTL.calculate_cost(text=text_to_translate, service=Kijiku.LLM_TYPE, model=model, translation_instructions=translation_instructions)
+                translation_instructions = translation_instructions_dict.get(Translator.TRANSLATION_METHOD)
 
-                if(Kijiku.LLM_TYPE == "gemini"):
+                num_tokens, estimated_cost, model = EasyTL.calculate_cost(text=text_to_translate, service=Translator.TRANSLATION_METHOD, model=model, translation_instructions=translation_instructions)
+
+                if(Translator.TRANSLATION_METHOD == "gemini"):
+                    ## need to update this too as it's incorrect i think
                     cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n"
 
-                cost_estimation += "Estimated number of tokens : " + str(num_tokens) + "\n" + "Estimated minimum cost : " + str(estimated_cost) + " USD"
-                cost_estimation += "\nThis is a rough estimate, please remember to check actual cost on the appropriate platform when needed"
+
+                token_type = "characters" if Translator.TRANSLATION_METHOD == "deepl" else "tokens"
+
+                cost_estimation += f"Estimated number of {token_type} : {num_tokens}\nEstimated minimum cost : {estimated_cost} USD\nThis is a rough estimate, please remember to check actual cost on the appropriate platform when needed"
                 
                 gr.Info(cost_estimation)
 
-                update_kijiku_api_key(api_key)
+                update_translator_api_key(api_key)
 
                 return cost_estimation
             
@@ -1144,53 +1094,20 @@ class KudasaiGUI:
 
                 return input_txt_file, input_json_file_preprocessing, input_text, preprocessing_output_field, preprocessing_results_output_field, debug_log_output_field_preprocess_tab
             
-##-------------------start-of-kaiseki_run_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_translator_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def clear_kaiseki_tab() -> typing.Tuple[None, str, str, str, str]:
+            def clear_translator_tab() -> typing.Tuple[None, str, gr.File, str, str, str]:
 
                 """
                 
-                Clears all fields on the Kaiseki tab. As well as the input fields.
+                Clears all fields on the Translator tab. As well as the input fields.
 
                 Returns:
-                input_txt_file_kaiseki (gr.File) : An empty file.
-                input_text_kaiseki (str) : An empty string.
-                kaiseki_translated_text_output_field (str) : An empty string.
-                je_check_text_field_kaiseki (str) : An empty string.
-                kaiseki_debug_log_output_field (str) : An empty string.
-
-                """
-
-                ## if clear button is clicked, we can assume that the translation is over, or that the user wants to cancel the translation
-                self.is_translation_ongoing = False
-
-                ## Same as above, we can assume that the user wants to cancel the translation if it's ongoing
-                FileEnsurer.do_interrupt = True
-                
-                input_file_kaiseki = None
-
-                input_text_kaiseki = ""
-
-                kaiseki_translated_text_output_field = ""
-                je_check_text_field_kaiseki = ""
-                kaiseki_debug_log_output_field = ""
-
-                return input_file_kaiseki, input_text_kaiseki, kaiseki_translated_text_output_field, je_check_text_field_kaiseki, kaiseki_debug_log_output_field
-            
-##-------------------start-of-clear_kijiku_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            
-            def clear_kijiku_tab() -> typing.Tuple[None, str, gr.File, str, str, str]:
-
-                """
-                
-                Clears all fields on the Kijiku tab. As well as the input fields.
-
-                Returns:
-                input_txt_file_kijiku (gr.File) : An empty file.
-                input_text_kijiku (str) : An empty string.
-                kijiku_translated_text_output_field (str) : An empty string.
-                je_check_text_field_kijiku (str) : An empty string.
-                kijiku_debug_log_output_field (str) : An empty string.
+                input_txt_file_translator (gr.File) : An empty file.
+                input_text_translator (str) : An empty string.
+                translator_translated_text_output_field (str) : An empty string.
+                je_check_text_field_translator (str) : An empty string.
+                translator_debug_log_output_field (str) : An empty string.
 
                 """
 
@@ -1200,18 +1117,18 @@ class KudasaiGUI:
                 ## Same as above, we can assume that the user wants to cancel the translation if it's ongoing
                 FileEnsurer.do_interrupt = True
 
-                input_file_kijiku = None
+                input_file_translator = None
 
-                input_text_kijiku = ""
+                input_text_translator = ""
 
                 ## Also gonna want to reset the json input field to the default json file
-                input_kijiku_rules_file = gr.File(value = FileEnsurer.config_kijiku_rules_path, label='Kijiku Rules File', file_count='single', file_types=['.json'], type='filepath')
+                input_translation_rules_file = gr.File(value = FileEnsurer.config_translation_settings_path, label='Translation Settings File', file_count='single', file_types=['.json'], type='filepath')
 
-                kijiku_translated_text_output_field = ""
-                je_check_text_field_kijiku = ""
-                kijiku_debug_log_output_field = ""
+                translator_translated_text_output_field = ""
+                je_check_text_field_translator = ""
+                translator_debug_log_output_field = ""
 
-                return input_file_kijiku, input_text_kijiku, input_kijiku_rules_file, kijiku_translated_text_output_field, je_check_text_field_kijiku, kijiku_debug_log_output_field
+                return input_file_translator, input_text_translator, input_translation_rules_file, translator_translated_text_output_field, je_check_text_field_translator, translator_debug_log_output_field
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -1228,7 +1145,7 @@ class KudasaiGUI:
                 """
 
                 ## also needs to clear the log and error log files
-                FileEnsurer.standard_overwrite_file(Logger.log_file_path, "")
+                FileEnsurer.standard_overwrite_file(FileEnsurer.debug_log_path, "")
                 FileEnsurer.standard_overwrite_file(FileEnsurer.error_log_path, "")
 
                 logging_tab_debug_log_output_field = ""
@@ -1236,9 +1153,10 @@ class KudasaiGUI:
 
                 return logging_tab_debug_log_output_field, logging_tab_error_log_output_field
 
-##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-apply_new_translator_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def apply_new_kijiku_settings(input_kijiku_rules_file:gr.File,
+            def apply_new_translator_settings(
+                                        input_translation_rules_file:gr.File,
                                         prompt_assembly_mode:int,
                                         number_of_lines_per_batch:int,
                                         sentence_fragmenter_mode:int,
@@ -1265,19 +1183,23 @@ class KudasaiGUI:
                                         gemini_candidate_count:str,
                                         gemini_stream:str,
                                         gemini_stop_sequences:str,
-                                        gemini_max_output_tokens:str) -> None:
+                                        gemini_max_output_tokens:str,
+                                        deepl_context:str,
+                                        deepl_split_sentences:str,
+                                        deepl_preserve_formatting:bool,
+                                        deepl_formality:str) -> None:
 
                 
                 """
 
-                Applies the new kijiku settings to the kijiku rules file.
+                Applies the new translation settings to the Translation Settings File.
 
                 """
 
-                if(input_kijiku_rules_file is None):
-                    raise gr.Error("No Kijiku Rules File Selected. Cannot apply settings.")
+                if(input_translation_rules_file is None):
+                    raise gr.Error("No Translation Settings File Selected. Cannot apply settings.")
 
-                ## build the new kijiku settings list so we can create a key-value pair list
+                ## build the new translation settings list so we can create a key-value pair list
                 settings_list = [
                     prompt_assembly_mode,
                     number_of_lines_per_batch,
@@ -1305,7 +1227,12 @@ class KudasaiGUI:
                     gemini_candidate_count,
                     gemini_stream,
                     gemini_stop_sequences,
-                    gemini_max_output_tokens
+                    gemini_max_output_tokens,
+                    deepl_context,
+                    deepl_split_sentences,
+                    deepl_preserve_formatting,
+                    deepl_formality
+                
                 ]
 
                 ## create the new key-value pair list
@@ -1313,57 +1240,62 @@ class KudasaiGUI:
 
                 try:
                     ## and then have the GuiJsonUtil apply the new kijiku settings
-                    GuiJsonUtil.update_kijiku_settings_with_new_values(input_kijiku_rules_file, new_key_value_tuple_pairs)
+                    GuiJsonUtil.update_translation_settings_with_new_values(input_translation_rules_file, new_key_value_tuple_pairs)
 
                 except:
-                    raise gr.Error("Invalid Kijiku Settings")
+                    raise gr.Error("Invalid Translator Settings")
 
-                gr.Info("Kijiku Settings Applied")
+                gr.Info("Translator Settings Applied")
 
-##-------------------start-of-reset_to_default_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-reset_to_default_translation_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def reset_to_default_kijiku_settings(input_kijiku_rules_file:gr.File):
-
-                """
-
-                Resets the kijiku settings to the default values.
+            def reset_to_default_translation_settings(input_translation_rules_file:gr.File):
 
                 """
 
-                if(input_kijiku_rules_file is None):
-                    raise gr.Error("No Kijiku Rules File Selected. Cannot reset settings.")
+                Resets the translation settings to the default values.
 
-                GuiJsonUtil.current_kijiku_rules = FileEnsurer.DEFAULT_KIJIKU_RULES
+                """
 
-                prompt_assembly_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","prompt_assembly_mode"))
-                number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_lines_per_batch"))
-                sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","sentence_fragmenter_mode"))
-                je_check_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","je_check_mode"))
-                num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_malformed_batch_retries"))
-                batch_retry_timeout_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","batch_retry_timeout"))
-                num_concurrent_batches_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_concurrent_batches"))
+                if(input_translation_rules_file is None):
+                    raise gr.Error("No Translation Settings File Selected. Cannot reset settings.")
 
-                openai_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model"))
-                openai_system_message_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message"))
-                openai_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_temperature"))
-                openai_top_p_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_top_p"))
-                openai_n_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_n"))
-                openai_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stream"))
-                openai_stop_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stop"))
-                openai_logit_bias_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_logit_bias"))
-                openai_max_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_max_tokens"))
-                openai_presence_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_presence_penalty"))
-                openai_frequency_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_frequency_penalty"))
+                GuiJsonUtil.current_translation_settings = FileEnsurer.DEFAULT_KIJIKU_RULES
 
-                gemini_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model"))
-                gemini_prompt_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt"))
-                gemini_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature"))
-                gemini_top_p_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p"))
-                gemini_top_k_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k"))
-                gemini_candidate_count_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count"))
-                gemini_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream"))
-                gemini_stop_sequences_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences"))
-                gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"))
+                prompt_assembly_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","prompt_assembly_mode"))
+                number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_lines_per_batch"))
+                sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","sentence_fragmenter_mode"))
+                je_check_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","je_check_mode"))
+                num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_malformed_batch_retries"))
+                batch_retry_timeout_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","batch_retry_timeout"))
+                num_concurrent_batches_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_concurrent_batches"))
+
+                openai_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model"))
+                openai_system_message_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message"))
+                openai_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_temperature"))
+                openai_top_p_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_top_p"))
+                openai_n_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_n"))
+                openai_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stream"))
+                openai_stop_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stop"))
+                openai_logit_bias_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_logit_bias"))
+                openai_max_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_max_tokens"))
+                openai_presence_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_presence_penalty"))
+                openai_frequency_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_frequency_penalty"))
+
+                gemini_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model"))
+                gemini_prompt_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt"))
+                gemini_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_temperature"))
+                gemini_top_p_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_p"))
+                gemini_top_k_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_k"))
+                gemini_candidate_count_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_candidate_count"))
+                gemini_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stream"))
+                gemini_stop_sequences_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stop_sequences"))
+                gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_max_output_tokens"))
+
+                deepl_context = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context"))
+                deepl_split_sentences = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_split_sentences"))
+                deepl_preserve_formatting = bool(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_preserve_formatting"))
+                deepl_formality = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_formality"))
 
                 return_batch = [
                     prompt_assembly_mode_value,
@@ -1392,61 +1324,70 @@ class KudasaiGUI:
                     gemini_candidate_count_value,
                     gemini_stream_value,
                     gemini_stop_sequences_value,
-                    gemini_max_output_tokens_value
+                    gemini_max_output_tokens_value,
+                    deepl_context,
+                    deepl_split_sentences,
+                    deepl_preserve_formatting,
+                    deepl_formality
                 ]
 
-                gr.Info("Kijiku Settings Reset to Default. Make sure to press the Apply button to apply the changes.")
+                gr.Info("Translator Settings Reset to Default. Make sure to press the Apply button to apply the changes.")
 
                 return return_batch
 
-##-------------------start-of-refresh_kijiku_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-refresh_translation_settings_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def refresh_kijiku_settings_fields(input_kijiku_rules_file:str):
-
-                """
-
-                Refreshes the kijiku settings fields with the values from the kijiku rules file.                
+            def refresh_translation_settings_fields(input_translation_rules_file:str):
 
                 """
 
+                Refreshes the translation settings fields with the values from the Translation Settings File.                
 
-                if(input_kijiku_rules_file is None):
-                    raise gr.Error("No Kijiku Rules File Selected. Cannot refresh settings.")
+                """
 
-                ## assume that the user has uploaded a valid kijiku rules file, if it's not, that's on them
+
+                if(input_translation_rules_file is None):
+                    raise gr.Error("No Translation Settings File Selected. Cannot refresh settings.")
+
+                ## assume that the user has uploaded a valid Translation Settings File, if it's not, that's on them
                 try:
-                    GuiJsonUtil.current_kijiku_rules = gui_get_json_from_file(input_kijiku_rules_file)
+                    GuiJsonUtil.current_translation_settings = gui_get_json_from_file(input_translation_rules_file)
 
-                    ## update the default values on the Kijiku Settings tab manually
-                    prompt_assembly_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","prompt_assembly_mode"))
-                    number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_lines_per_batch"))
-                    sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","sentence_fragmenter_mode"))
-                    je_check_mode_value = int(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","je_check_mode"))
-                    num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_malformed_batch_retries"))
-                    batch_retry_timeout_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","batch_retry_timeout"))
-                    num_concurrent_batches_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("base kijiku settings","number_of_concurrent_batches"))
+                    ## update the default values on the Translator Settings tab manually
+                    prompt_assembly_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","prompt_assembly_mode"))
+                    number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_lines_per_batch"))
+                    sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","sentence_fragmenter_mode"))
+                    je_check_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","je_check_mode"))
+                    num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_malformed_batch_retries"))
+                    batch_retry_timeout_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","batch_retry_timeout"))
+                    num_concurrent_batches_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_concurrent_batches"))
 
-                    openai_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_model"))
-                    openai_system_message_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_system_message"))
-                    openai_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_temperature"))
-                    openai_top_p_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_top_p"))
-                    openai_n_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_n"))
-                    openai_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stream"))
-                    openai_stop_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_stop"))
-                    openai_logit_bias_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_logit_bias"))
-                    openai_max_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_max_tokens"))
-                    openai_presence_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_presence_penalty"))
-                    openai_frequency_penalty_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("openai settings","openai_frequency_penalty"))
+                    openai_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model"))
+                    openai_system_message_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message"))
+                    openai_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_temperature"))
+                    openai_top_p_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_top_p"))
+                    openai_n_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_n"))
+                    openai_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stream"))
+                    openai_stop_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stop"))
+                    openai_logit_bias_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_logit_bias"))
+                    openai_max_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_max_tokens"))
+                    openai_presence_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_presence_penalty"))
+                    openai_frequency_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_frequency_penalty"))
 
-                    gemini_model_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_model"))
-                    gemini_prompt_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_prompt"))
-                    gemini_temperature_value = float(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_temperature"))
-                    gemini_top_p_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_p"))
-                    gemini_top_k_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_top_k"))
-                    gemini_candidate_count_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_candidate_count"))
-                    gemini_stream_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stream"))
-                    gemini_stop_sequences_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_stop_sequences"))
-                    gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_kijiku_setting_key_values("gemini settings","gemini_max_output_tokens"))
+                    gemini_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model"))
+                    gemini_prompt_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt"))
+                    gemini_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_temperature"))
+                    gemini_top_p_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_p"))
+                    gemini_top_k_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_k"))
+                    gemini_candidate_count_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_candidate_count"))
+                    gemini_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stream"))
+                    gemini_stop_sequences_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stop_sequences"))
+                    gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_max_output_tokens"))
+
+                    deepl_context = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context"))
+                    deepl_split_sentences = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_split_sentences"))
+                    deepl_preserve_formatting = bool(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_preserve_formatting"))
+                    deepl_formality = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_formality"))
 
                     return_batch = [
                         prompt_assembly_mode_value,
@@ -1475,19 +1416,23 @@ class KudasaiGUI:
                         gemini_candidate_count_value,
                         gemini_stream_value,
                         gemini_stop_sequences_value,
-                        gemini_max_output_tokens_value
+                        gemini_max_output_tokens_value,
+                        deepl_context,
+                        deepl_split_sentences,
+                        deepl_preserve_formatting,
+                        deepl_formality
                     ]
 
                 except:
 
-                    GuiJsonUtil.current_kijiku_rules = JsonHandler.current_kijiku_rules
-                    raise gr.Error("Invalid Custom Kijiku Rules File")
+                    GuiJsonUtil.current_translation_settings = JsonHandler.current_translation_settings
+                    raise gr.Error("Invalid Custom Translation Settings File")
                 
                 return return_batch
 
-##-------------------start-of-clear_kijiku_settings_input_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_translation_settings_input_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
-            def clear_kijiku_settings_input_fields():                                                                  
+            def clear_translation_settings_input_fields():                                                                  
 
                 """
 
@@ -1495,7 +1440,10 @@ class KudasaiGUI:
 
                 """
 
-                input_kijiku_rules_file = None
+
+                ## you need todo the deepl ones
+
+                input_translation_rules_file = None
 
                 prompt_assembly_mode_value = None
                 number_of_lines_per_batch_value = None
@@ -1527,7 +1475,7 @@ class KudasaiGUI:
                 gemini_stop_sequences_value = None
                 gemini_max_output_tokens_value = None
 
-                return input_kijiku_rules_file, prompt_assembly_mode_value, number_of_lines_per_batch_value, sentence_fragmenter_mode_value, je_check_mode_value, num_malformed_batch_retries_value, batch_retry_timeout_value, num_concurrent_batches_value, openai_model_value, openai_system_message_value, openai_temperature_value, openai_top_p_value, openai_n_value, openai_stream_value, openai_stop_value, openai_logit_bias_value, openai_max_tokens_value, openai_presence_penalty_value, openai_frequency_penalty_value, gemini_model_value, gemini_prompt_value, gemini_temperature_value, gemini_top_p_value, gemini_top_k_value, gemini_candidate_count_value, gemini_stream_value, gemini_stop_sequences_value, gemini_max_output_tokens_value
+                return input_translation_rules_file, prompt_assembly_mode_value, number_of_lines_per_batch_value, sentence_fragmenter_mode_value, je_check_mode_value, num_malformed_batch_retries_value, batch_retry_timeout_value, num_concurrent_batches_value, openai_model_value, openai_system_message_value, openai_temperature_value, openai_top_p_value, openai_n_value, openai_stream_value, openai_stop_value, openai_logit_bias_value, openai_max_tokens_value, openai_presence_penalty_value, openai_frequency_penalty_value, gemini_model_value, gemini_prompt_value, gemini_temperature_value, gemini_top_p_value, gemini_top_k_value, gemini_candidate_count_value, gemini_stream_value, gemini_stop_sequences_value, gemini_max_output_tokens_value
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1596,13 +1544,10 @@ class KudasaiGUI:
                     gr.Info("Preprocessed text copied to Kaiseki")
                     return input_text
                 
-##-------------------start-of-send_to_kijiku_button()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-send_to_translator_button()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def send_to_kijiku_button(input_text:str) -> str:
-
-                """
-                
-                Sends the preprocessed text to Kijiku.
+            def send_to_translator_button(input_tTranslator')
+                Sends the preprocessed text to Translator.
 
                 Parameters:
                 input_text (str) : The input text.
@@ -1613,11 +1558,11 @@ class KudasaiGUI:
                 """
 
                 if(input_text == ""):
-                    gr.Warning("No preprocessed text to send to Kijiku")
+                    gr.Warning("No preprocessed text to send to Translator")
                     return ""
                 
                 else:
-                    gr.Info("Preprocessed text copied to Kijiku")
+                    gr.Info("Preprocessed text copied to Translator")
                     return input_text
                 
 ##-------------------start-of-switch_kijiku_api_key_value()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1706,42 +1651,42 @@ class KudasaiGUI:
                                                 every=.1) ## update every 100ms
             
 
-##-------------------start-of-translate_with_kijiku()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-translate_with_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             ## for the actual translation, and the je check text
-            kijiku_translation_process = self.kijiku_translate_button.click(translate_with_kijiku,
+            kijiku_translation_process = self.translator_translate_button.click(translate_with_translator,
                                                 inputs=[
-                                                    self.input_txt_file_kijiku, ## input txt file to translate
-                                                    self.input_text_kijiku, ## input text to translate
-                                                    self.kijiku_api_key_input, ## api key input
-                                                    self.llm_option_dropdown, ## llm option dropdown
-                                                    self.input_kijiku_rules_file], ## kijiku rules file
+                                                    self.input_txt_file_translator, ## input txt file to translate
+                                                    self.input_text_translator, ## input text to translate
+                                                    self.translator_api_key_input, ## api key input
+                                                    self.llm_option_dropdown, ## Translation Method dropdown
+                                                    self.input_translation_rules_file], ## Translation S, "DeepL"ettings File
                                                 
                                                 outputs=[
-                                                    self.kijiku_translated_text_output_field, ## translated text
-                                                    self.kijiku_je_check_text_output_field, ## je check text field on kijiku tab
+                                                    self.translator_translated_text_output_field, ## translated text
+                                                    self.translator_je_check_text_output_field, ## je check text field on kijiku tab
                                                     self.logging_tab_debug_log_output_field , ## debug log on log tab
                                                     self.logging_tab_error_log_output_field]) ## error log on log tab
             ## for the kijiku debug log
-            self.kijiku_translate_button.click(fn=fetch_log_content,
+            self.translator_translate_button.click(fn=fetch_log_content,
                                                 inputs=[],
 
-                                                outputs=[self.kijiku_debug_log_output_field], ## debug log on kijiku tab
+                                                outputs=[self.translator_debug_log_output_field], ## debug log on kijiku tab
 
                                                 every=.1) ## update every 100ms
             
 
-##-------------------start-of-kijiku_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of translator_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.kijiku_calculate_costs_button.click(kijiku_calculate_costs_button_click,
+            self.translator_calculate_cost_button.click translator_calculate_costs_button_click,
                                                         inputs=[
-                                                            self.input_txt_file_kijiku, ## input txt file to calculate costs
-                                                            self.input_text_kijiku,
+                                                            self.input_txt_file_translator, ## input txt file to calculate costs
+                                                            self.input_text_translator,
                                                             self.llm_option_dropdown,
-                                                            self.kijiku_api_key_input,
-                                                            self.input_kijiku_rules_file], ## kijiku rules file
+                                                            self.translator_api_key_input,
+                                                            self.input_translation_rules_file], ## Translation Settings File
                 
-                                                        outputs=[self.kijiku_translated_text_output_field]) ## functions as an output field for the cost output field
+                                                        outputs=[self.translator_translated_text_output_field]) ## functions as an output field for the cost output field
             
 ##-------------------start-of-clear_index_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1785,16 +1730,16 @@ class KudasaiGUI:
                                             cancels=kaiseki_translation_process) ## cancels the translation process
 ##-------------------start-of-clear_button_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.kijiku_clear_button.click(clear_kijiku_tab,
+            self.translator_clear_button.click(clear_translator_tab,
                                             inputs=[],
 
                                             outputs=[
-                                                self.input_txt_file_kijiku, ## input txt file
-                                                self.input_text_kijiku, ## input text
-                                                self.input_kijiku_rules_file, ## kijiku rules file
-                                                self.kijiku_translated_text_output_field, ## translation output field
-                                                self.kijiku_je_check_text_output_field, ## je check text field on kijiku tab
-                                                self.kijiku_debug_log_output_field], ## debug log on kijiku tab
+                                                self.input_txt_file_translator, ## input txt file
+                                                self.input_text_translator, ## input text
+                                                self.input_translation_rules_file, ## Translation Settings File
+                                                self.translator_translated_text_output_field, ## translation output field
+                                                self.translator_je_check_text_output_field, ## je check text field on kijiku tab
+                                                self.translator_debug_log_output_field], ## debug log on kijiku tab
             
                                             cancels=kijiku_translation_process)
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1806,11 +1751,11 @@ class KudasaiGUI:
                                             self.logging_tab_debug_log_output_field,
                                             self.logging_tab_error_log_output_field])
             
-##-------------------start-of-apply_new_kijiku_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-apply_new_translator_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.kijiku_settings_apply_changes_button.click(apply_new_kijiku_settings,
+            self.translation_settings_apply_changes_button.click(apply_new_translator_settings,
                                             inputs=[
-                                                self.input_kijiku_rules_file, ## kijiku rules file
+                                                self.input_translation_rules_file, ## Translation Settings File
                                                 self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
                                                 self.number_of_lines_per_batch_input_field, ## num lines input field
                                                 self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
@@ -1843,8 +1788,8 @@ class KudasaiGUI:
             
 ##-------------------start-of-reset_to_default_kijiku_settings_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.kijiku_settings_reset_to_default_button.click(reset_to_default_kijiku_settings,
-                                                inputs=[self.input_kijiku_rules_file],
+            self.translation_settings_reset_to_default_button.click(reset_to_default_translation_settings,
+                                                inputs=[self.input_translation_rules_file],
                                                 
                                                 outputs=[
                                                         self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
@@ -1877,8 +1822,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-discard_changes_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.kijiku_settings_discard_changes_button.click(refresh_kijiku_settings_fields,
-                                              inputs=[self.input_kijiku_rules_file],
+            self.translation_settings_discard_changes_button.click(refresh_translation_settings_fields,
+                                              inputs=[self.input_translation_rules_file],
                                               
                                               outputs=[
                                                     self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
@@ -1912,8 +1857,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-input_kijiku_rules_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.input_kijiku_rules_file.upload(refresh_kijiku_settings_fields,
-                                                inputs=[self.input_kijiku_rules_file],
+            self.input_translation_rules_file.upload(refresh_translation_settings_fields,
+                                                inputs=[self.input_translation_rules_file],
                                                 
                                                 outputs=[
                                                     self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
@@ -1944,11 +1889,11 @@ class KudasaiGUI:
                                                     self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
                                                     self.gemini_max_output_tokens_input_field]) 
             
-            self.input_kijiku_rules_file.clear(clear_kijiku_settings_input_fields,
+            self.input_translation_rules_file.clear(clear_translation_settings_input_fields,
                                                 inputs=[],
                                                 
                                                 outputs=[
-                                                    self.input_kijiku_rules_file, ## kijiku rules file
+                                                    self.input_translation_rules_file, ## Translation Settings File
                                                     self.prompt_assembly_mode_input_field, ## prompt assembly mode input field
                                                     self.number_of_lines_per_batch_input_field, ## num lines input field
                                                     self.sentence_fragmenter_mode_input_field, ## sentence fragmenter mode input field
@@ -1984,12 +1929,12 @@ class KudasaiGUI:
                                     
                                     outputs=[self.logging_tab_debug_log_output_field, self.logging_tab_error_log_output_field])
             
-##-------------------start-of-kijiku_api_key_input.change()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-translator_api_key_input.change()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.llm_option_dropdown.change(switch_kijiku_api_key_value,
                                              inputs=[self.llm_option_dropdown],
                                             
-                                            outputs=[self.kijiku_api_key_input])
+                                            outputs=[self.translator_api_key_input])
             
 ##-------------------start-of-save_to_file_indexed_text_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -2092,8 +2037,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.save_to_file_kijiku_translated_text.click(lambda text: text, ## save text as is
-                inputs=[self.kijiku_translated_text_output_field],
+            self.save_to_file_translator_translated_text.click(lambda text: text, ## save text as is
+                inputs=[self.translator_translated_text_output_field],
 
                 outputs=[],
 
@@ -2103,8 +2048,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_je_check_text_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.save_to_file_kijiku_je_check_text.click(lambda text: text, ## save text as is
-                inputs=[self.kijiku_je_check_text_output_field],
+            self.save_to_file_translator_je_check_text.click(lambda text: text, ## save text as is
+                inputs=[self.translator_je_check_text_output_field],
 
                 outputs=[],
 
@@ -2114,8 +2059,8 @@ class KudasaiGUI:
 
 ##-------------------start-of-save_to_file_debug_log_kijiku_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.save_to_file_debug_log_kijiku_tab.click(lambda text: text, ## save text as is
-                inputs=[self.kijiku_debug_log_output_field],
+            self.save_to_file_debug_log_translator_tab.click(lambda text: text, ## save text as is
+                inputs=[self.translator_debug_log_output_field],
 
                 outputs=[],
 
@@ -2155,9 +2100,9 @@ class KudasaiGUI:
                                         inputs=[self.preprocessing_output_field],
                                         outputs=[self.input_text_kaiseki])
             
-            self.send_to_kijiku_button.click(fn=send_to_kijiku_button,
-                                        inputs=[self.preprocessing_output_field],
-                                        outputs=[self.input_text_kijiku])
+            self.send_to_translator_button.click(fn=send_to_translator_button,
+                                        inputs=[self.preprocessingTranslator')
+                                Translator').input_text_translator])
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
@@ -2171,7 +2116,7 @@ class KudasaiGUI:
 
         Kudasai.boot()
 
-        GuiJsonUtil.current_kijiku_rules = JsonHandler.current_kijiku_rules
+        GuiJsonUtil.current_translation_settings = JsonHandler.current_translation_settings
 
         self.build_gui()
         self.gui.queue().launch(inbrowser=True, show_error=True, show_api=False, favicon_path=FileEnsurer.favicon_path)

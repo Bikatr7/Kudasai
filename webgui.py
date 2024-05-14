@@ -41,6 +41,48 @@ class KudasaiGUI:
     ## used for whether the debug log tab for Translator should be actively refreshing based of Logger.current_batch
     is_translation_ongoing = False
 
+    with open(FileEnsurer.translation_settings_description_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    description_dict = {
+        "prompt_assembly_mode": lines[4],
+        "number_of_lines_per_batch": lines[6],
+        "sentence_fragmenter_mode": lines[8],
+        "je_check_mode": lines[10],
+        "number_of_malformed_batch_retries": lines[12],
+        "batch_retry_timeout": lines[14],
+        "number_of_concurrent_batches": lines[16],
+        "openai_help_link": lines[19],
+        "openai_model": lines[21],
+        "openai_system_message": lines[23],
+        "openai_temperature": lines[25],
+        "openai_top_p": lines[27],
+        "openai_n": lines[29],
+        "openai_stream": lines[31],
+        "openai_stop": lines[33],
+        "openai_logit_bias": lines[35],
+        "openai_max_tokens": lines[37],
+        "openai_presence_penalty": lines[39],
+        "openai_frequency_penalty": lines[41],
+        "openai_disclaimer": lines[43],
+        "gemini_help_link": lines[46],
+        "gemini_model": lines[48],
+        "gemini_prompt": lines[50],
+        "gemini_temperature": lines[52],
+        "gemini_top_p": lines[54],
+        "gemini_top_k": lines[56],
+        "gemini_candidate_count": lines[58],
+        "gemini_stream": lines[60],
+        "gemini_stop_sequences": lines[62],
+        "gemini_max_output_tokens": lines[64],
+        "gemini_disclaimer": lines[66],
+        "deepl_help_link": lines[69],
+        "deepl_context": lines[71],
+        "deepl_split_sentences": lines[73],
+        "deepl_preserve_formatting": lines[75],
+        "deepl_formality": lines[77],
+    }
+
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def build_gui(self) -> None:
@@ -76,62 +118,35 @@ class KudasaiGUI:
                 
                 return log_text
             
-##-------------------start-of-get_saved_deepl_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            def get_saved_deepl_api_key() -> str:
+##-------------------start-of-get_saved_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            @staticmethod
+            def get_saved_api_key(service_name:typing.Literal["openai","gemini","deepl"]) -> str:
 
                 """
-                
-                Gets the saved deepl api key from the config folder, if it exists.
+                Gets the saved api key from the config folder, if it exists.
+
+                Parameters:
+                service_name (str): The name of the service (e.g., "deepl", "openai", "gemini").
 
                 Returns:
                 api_key (str) : The api key.
 
                 """
 
-                try:
-                    ## Api key is encoded in base 64 so we need to decode it before returning
-                    return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.deepl_api_key_path).encode('utf-8')).decode('utf-8')
-                
-                except:
-                    return ""
-                
-##-------------------start-of-get_saved_openai_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                
-            def get_saved_openai_api_key() -> str:
+                service_to_path = {
+                    "openai": FileEnsurer.openai_api_key_path,
+                    "gemini": FileEnsurer.gemini_api_key_path,
+                    "deepl": FileEnsurer.deepl_api_key_path
+                }
 
-                """
-                
-                Gets the saved openai api key from the config folder, if it exists.
+                api_key_path = service_to_path.get(service_name, "")
 
-                Returns:
-                api_key (str) : The api key.
-
-                """
 
                 try:
                     ## Api key is encoded in base 64 so we need to decode it before returning
-                    return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.openai_api_key_path).encode('utf-8')).decode('utf-8')
-                
-                except:
-                    return ""
-                
-##-------------------start-of-get_saved_gemini_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                
-            def get_saved_gemini_api_key() -> str:
-
-                """
-                
-                Gets the saved gemini api key from the config folder, if it exists.
-
-                Returns:
-                api_key (str) : The api key.
-
-                """
-
-                try:
-                    ## Api key is encoded in base 64 so we need to decode it before returning
-                    return base64.b64decode(FileEnsurer.standard_read_file(FileEnsurer.gemini_api_key_path).encode('utf-8')).decode('utf-8')
+                    return base64.b64decode(FileEnsurer.standard_read_file(api_key_path).encode('utf-8')).decode('utf-8')
                 
                 except:
                     return ""
@@ -340,7 +355,7 @@ class KudasaiGUI:
                                 self.llm_option_dropdown = gr.Dropdown(label='Translation Method', choices=["OpenAI", "Gemini", "DeepL"], value="OpenAI", show_label=True, interactive=True)
                             
                             with gr.Row():
-                                self.translator_api_key_input = gr.Textbox(label='API Key', value=get_saved_openai_api_key, lines=1, max_lines=2, show_label=True, interactive=True, type='password')
+                                self.translator_api_key_input = gr.Textbox(label='API Key', value=get_saved_api_key("openai"), lines=1, max_lines=2, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
                                 self.translator_translate_button = gr.Button('Translate', variant="primary")
@@ -374,22 +389,20 @@ class KudasaiGUI:
 
                         with gr.Column():
                             gr.Markdown("Base Translation Settings")
-                            gr.Markdown("See CHANGE THIS LINK LATER YOU FUCKING DUMBASS for further details")
-                            gr.Markdown("These settings are used for both OpenAI and Gemini, but some settings are ignored by one or the other. For example, Gemini & DeepL ignores prompt assembly mode.")
+                            gr.Markdown("These settings are used for both OpenAI, Gemini, and DeepL.")
 
-                            ## all these need to be changed later
 
                             self.prompt_assembly_mode_input_field = gr.Dropdown(label='Prompt Assembly Mode',
                                                                                 value=int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","prompt_assembly_mode")),
                                                                                 choices=[1,2],
-                                                                                info="1 or 2. 1 means the system message will actually be treated as a system message. 2 means it'll be treated as a user message. 1 is recommend for gpt-4 otherwise either works. For Gemini, this setting is ignored.",
+                                                                                info=KudasaiGUI.description_dict.get("prompt_assembly_mode"),
                                                                                 show_label=True,
                                                                                 interactive=True,
                                                                                 elem_id="prompt_assembly_mode")
                             
                             self.number_of_lines_per_batch_input_field = gr.Textbox(label='Number of Lines Per Batch',
                                                                                     value=(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_lines_per_batch")),
-                                                                                    info="The number of lines to be built into a prompt at once. Theoretically, more lines would be more cost effective, but other complications may occur with higher lines. So far been tested up to 48.",
+                                                                                    info=KudasaiGUI.description_dict.get("number_of_lines_per_batch"),
                                                                                     lines=1,
                                                                                     max_lines=1,
                                                                                     show_label=True,
@@ -400,7 +413,7 @@ class KudasaiGUI:
                             self.sentence_fragmenter_mode_input_field = gr.Dropdown(label='Sentence Fragmenter Mode',
                                                                                     value=int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","sentence_fragmenter_mode")),
                                                                                     choices=[1,2],
-                                                                                    info="1 or 2  (1 - via regex and other nonsense) 2 - None (Takes formatting and text directly from API return)) the API can sometimes return a result on a single line, so this determines the way Translator fragments the sentences if at all. Use 2 for newer models.",
+                                                                                    info=KudasaiGUI.description_dict.get("sentence_fragmenter_mode"),
                                                                                     show_label=True,
                                                                                     interactive=True,
                                                                                     elem_id="sentence_fragmenter_mode")
@@ -408,14 +421,14 @@ class KudasaiGUI:
                             self.je_check_mode_input_field = gr.Dropdown(label='JE Check Mode',
                                                                         value=int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","je_check_mode")),
                                                                         choices=[1,2],
-                                                                        info="1 or 2, 1 will print out the jap then the english below separated by ---, 2 will attempt to pair the english and jap sentences, placing the jap above the eng. If it cannot, it will default to 1. Use 2 for newer models.",
+                                                                        info=KudasaiGUI.description_dict.get("je_check_mode"),
                                                                         show_label=True,
                                                                         interactive=True,
                                                                         elem_id="je_check_mode")
                             
                             self.number_of_malformed_batch_retries_input_field = gr.Textbox(label="Number Of Malformed Batch Retries",
                                                                                 value=GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_malformed_batch_retries"),
-                                                                                info="(Malformed batch is when je-fixing fails) How many times Translator will attempt to mend a malformed batch (mending is resending the request), only for gpt4. Be careful with increasing as cost increases at (cost * length * n) at worst case. This setting is ignored if je_check_mode is set to 1.",
+                                                                                info=KudasaiGUI.description_dict.get("number_of_malformed_batch_retries"),
                                                                                 lines=1,
                                                                                 max_lines=1,
                                                                                 show_label=True,
@@ -425,7 +438,7 @@ class KudasaiGUI:
                                                         
                             self.batch_retry_timeout_input_field = gr.Textbox(label="Batch Retry Timeout",
                                                                             value=GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","batch_retry_timeout"),
-                                                                            info="How long Translator will try to translate a batch in seconds, if a requests exceeds this duration, Translator will leave it untranslated.",
+                                                                            info=KudasaiGUI.description_dict.get("batch_retry_timeout"),
                                                                             lines=1,
                                                                             max_lines=1,
                                                                             show_label=True,
@@ -435,7 +448,7 @@ class KudasaiGUI:
 
                             self.number_of_concurrent_batches_input_field = gr.Textbox(label="Number Of Concurrent Batches",
                                                                                        value=GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_concurrent_batches"),
-                                                                                        info="How many translations batches Translator will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 60.",
+                                                                                        info=KudasaiGUI.description_dict.get("number_of_concurrent_batches"),
                                                                                         lines=1,
                                                                                         max_lines=1,
                                                                                         show_label=True,
@@ -448,20 +461,20 @@ class KudasaiGUI:
                             ## all these need to be changed later as well
 
                             gr.Markdown("OpenAI API Settings")
-                            gr.Markdown("See https://platform.openai.com/docs/api-reference/chat/create for further details")
-                            gr.Markdown("openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translator_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
+                            gr.Markdown(str(KudasaiGUI.description_dict.get("openai_help_link")))
+                            gr.Markdown(str(KudasaiGUI.description_dict.get("openai_disclaimer")))
 
                             self.openai_model_input_field = gr.Dropdown(label="OpenAI Model",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model")),
                                                                         choices=[model for model in ALLOWED_OPENAI_MODELS],
-                                                                        info="ID of the model to use. Translator only works with 'chat' models.",
+                                                                        info=KudasaiGUI.description_dict.get("openai_model"),
                                                                         show_label=True,
                                                                         interactive=True,
                                                                         elem_id="openai_model")
                             
                             self.openai_system_message_input_field = gr.Textbox(label="OpenAI System Message",
                                                                             value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message")),
-                                                                            info="Instructions to the model. Basically tells the model how to translate.",
+                                                                            info=KudasaiGUI.description_dict.get("openai_system_message"),
                                                                             lines=1,
                                                                             max_lines=1,
                                                                             show_label=True,
@@ -473,8 +486,7 @@ class KudasaiGUI:
                                                                         value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_temperature")),
                                                                         minimum=0.0,
                                                                         maximum=2.0,
-                                                                        info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
-                                                                        show_label=True,
+                                                                        info=KudasaiGUI.description_dict.get("openai_temperature"),
                                                                         interactive=True,
                                                                         elem_id="openai_temperature")
                             
@@ -482,14 +494,14 @@ class KudasaiGUI:
                                                                     value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_top_p")),
                                                                     minimum=0.0,
                                                                     maximum=1.0,
-                                                                    info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
+                                                                    info=KudasaiGUI.description_dict.get("openai_top_p"),
                                                                     show_label=True,
                                                                     interactive=True,
                                                                     elem_id="openai_top_p")
                             
                             self.openai_n_input_field = gr.Textbox(label="OpenAI N",
                                                                 value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_n")),
-                                                                info="How many chat completion choices to generate for each input message. Do not change this.",
+                                                                info=KudasaiGUI.description_dict.get("openai_n"),
                                                                 show_label=True,
                                                                 interactive=False,
                                                                 elem_id="openai_n",
@@ -497,7 +509,7 @@ class KudasaiGUI:
                             
                             self.openai_stream_input_field = gr.Textbox(label="OpenAI Stream",
                                                                     value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stream")),
-                                                                    info="If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
+                                                                    info=KudasaiGUI.description_dict.get("openai_stream"),
                                                                     show_label=True,
                                                                     interactive=False,
                                                                     elem_id="openai_stream",
@@ -505,7 +517,7 @@ class KudasaiGUI:
                             
                             self.openai_stop_input_field = gr.Textbox(label="OpenAI Stop",
                                                                     value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stop")),
-                                                                    info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
+                                                                    info=KudasaiGUI.description_dict.get("openai_stop"),
                                                                     show_label=True,
                                                                     interactive=False,
                                                                     elem_id="openai_stop",
@@ -513,7 +525,7 @@ class KudasaiGUI:
                             
                             self.openai_logit_bias_input_field = gr.Textbox(label="OpenAI Logit Bias",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_logit_bias")),
-                                                                        info="Modifies the likelihood of specified tokens appearing in the completion. Do not change this.",
+                                                                        info=KudasaiGUI.description_dict.get("openai_logit_bias"),
                                                                         show_label=True,
                                                                         interactive=False,
                                                                         elem_id="openai_logit_bias",
@@ -521,7 +533,7 @@ class KudasaiGUI:
                             
                             self.openai_max_tokens_input_field = gr.Textbox(label="OpenAI Max Tokens",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_max_tokens")),
-                                                                        info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
+                                                                        info=KudasaiGUI.description_dict.get("openai_max_tokens"),
                                                                         lines=1,
                                                                         max_lines=1,
                                                                         show_label=True,
@@ -530,43 +542,42 @@ class KudasaiGUI:
                                                                         show_copy_button=True)
                             
                             self.openai_presence_penalty_input_field = gr.Slider(label="OpenAI Presence Penalty",
-                                                                            value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_presence_penalty")),
-                                                                            info="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics. While negative values encourage repetition. Should leave this at 0.0.",
-                                                                            minimum=-2.0,
-                                                                            maximum=2.0,
-                                                                            show_label=True,
-                                                                            interactive=True,
-                                                                            elem_id="openai_presence_penalty")
+                                                                        value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_presence_penalty")),
+                                                                        info=KudasaiGUI.description_dict.get("openai_presence_penalty"),
+                                                                        minimum=-2.0,
+                                                                        maximum=2.0,
+                                                                        show_label=True,
+                                                                        interactive=True,
+                                                                        elem_id="openai_presence_penalty")
                             
                             self.openai_frequency_penalty_input_field = gr.Slider(label="OpenAI Frequency Penalty",
-                                                                            value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_frequency_penalty")),
-                                                                            info="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim. Negative values encourage repetition. Should leave this at 0.0.",
-                                                                            minimum=-2.0,
-                                                                            maximum=2.0,
-                                                                            show_label=True,
-                                                                            interactive=True,
-                                                                            elem_id="openai_frequency_penalty")
+                                                                        value=float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_frequency_penalty")),
+                                                                        info=KudasaiGUI.description_dict.get("openai_frequency_penalty"),
+                                                                        minimum=-2.0,
+                                                                        maximum=2.0,
+                                                                        show_label=True,
+                                                                        interactive=True,
+                                                                        elem_id="openai_frequency_penalty")
+
+                    with gr.Row():
 
                         with gr.Column():
 
-                            ## these need to be changed later as well
-
                             gr.Markdown("Gemini API Settings")
-                            gr.Markdown("https://ai.google.dev/docs/concepts#model-parameters for further details")
-                            gr.Markdown("gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translator_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
-                                
+                            gr.Markdown(str(KudasaiGUI.description_dict.get("gemini_help_link")))
+                            gr.Markdown(str(KudasaiGUI.description_dict.get("gemini_disclaimer")))
 
                             self.gemini_model_input_field = gr.Dropdown(label="Gemini Model",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model")),
                                                                         choices=[model for model in ALLOWED_GEMINI_MODELS],
-                                                                        info="The model to use. Currently only supports gemini-pro and gemini-pro-vision, the 1.0 model and it's aliases.",
+                                                                        info=KudasaiGUI.description_dict.get("gemini_model"),
                                                                         show_label=True,
                                                                         interactive=True,
                                                                         elem_id="gemini_model")
 
                             self.gemini_prompt_input_field = gr.Textbox(label="Gemini Prompt",
                                                                     value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt")),
-                                                                    info="Instructions to the model. Basically tells the model how to translate.",
+                                                                    info=KudasaiGUI.description_dict.get("gemini_prompt"),
                                                                     lines=1,
                                                                     max_lines=1,
                                                                     show_label=True,
@@ -578,14 +589,14 @@ class KudasaiGUI:
                                                                         value=float(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_temperature")),
                                                                         minimum=0.0,
                                                                         maximum=2.0,
-                                                                        info="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. Lower values are typically better for translation.",
+                                                                        info=KudasaiGUI.description_dict.get("gemini_temperature"),
                                                                         show_label=True,
                                                                         interactive=True,
                                                                         elem_id="gemini_temperature")
                             
                             self.gemini_top_p_input_field = gr.Textbox(label="Gemini Top P",
                                                                     value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_p")),
-                                                                    info="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. I generally recommend altering this or temperature but not both.",
+                                                                    info=KudasaiGUI.description_dict.get("gemini_top_p"),
                                                                     lines=1,
                                                                     max_lines=1,
                                                                     show_label=True,
@@ -595,7 +606,7 @@ class KudasaiGUI:
                             
                             self.gemini_top_k_input_field = gr.Textbox(label="Gemini Top K",
                                                                     value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_k")),
-                                                                    info="Determines the number of most probable tokens to consider for each selection step. A higher value increases diversity, a lower value makes the output more deterministic.",
+                                                                    info=KudasaiGUI.description_dict.get("gemini_top_k"),
                                                                     lines=1,
                                                                     max_lines=1,
                                                                     show_label=True,
@@ -605,7 +616,7 @@ class KudasaiGUI:
 
                             self.gemini_candidate_count_input_field = gr.Textbox(label="Gemini Candidate Count",
                                                                                 value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_candidate_count")),
-                                                                                info="The number of candidates to generate for each input message. Do not change this.",
+                                                                                info=KudasaiGUI.description_dict.get("gemini_candidate_count"),
                                                                                 lines=1,
                                                                                 max_lines=1,
                                                                                 show_label=True,
@@ -615,7 +626,7 @@ class KudasaiGUI:
 
                             self.gemini_stream_input_field = gr.Textbox(label="Gemini Stream",
                                                                     value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stream")),
-                                                                    info="If set, partial message deltas will be sent, like in Gemini chat. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data: [DONE] message. See the OpenAI python library on GitHub for example code. Do not change this.",
+                                                                    info=KudasaiGUI.description_dict.get("gemini_stream"),
                                                                     lines=1,
                                                                     max_lines=1,
                                                                     show_label=True,
@@ -625,7 +636,7 @@ class KudasaiGUI:
                             
                             self.gemini_stop_sequences_input_field = gr.Textbox(label="Gemini Stop Sequences",
                                                                             value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stop_sequences")),
-                                                                            info="Up to 4 sequences where the API will stop generating further tokens. Do not change this.",
+                                                                            info=KudasaiGUI.description_dict.get("gemini_stop_sequences"),
                                                                             lines=1,
                                                                             max_lines=1,
                                                                             show_label=True,
@@ -635,7 +646,7 @@ class KudasaiGUI:
 
                             self.gemini_max_output_tokens_input_field = gr.Textbox(label="Gemini Max Output Tokens",
                                                                                 value=str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_max_output_tokens")),
-                                                                                info="The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length. I wouldn't recommend changing this. Is none by default. If you change to an integer, make sure it doesn't exceed that model's context length or your request will fail and repeat till timeout.",
+                                                                                info=KudasaiGUI.description_dict.get("gemini_max_output_tokens"),
                                                                                 lines=1,
                                                                                 max_lines=1,
                                                                                 show_label=True,
@@ -644,16 +655,13 @@ class KudasaiGUI:
                                                                                 show_copy_button=True)
                             
                         with gr.Column():
-                                
-                                ## all these need to be changed later, the text was autogenerated
-    
+                                    
                                 gr.Markdown("DeepL API Settings")
-                                gr.Markdown("https://www.deepl.com/docs-api/accessing-the-api/authentication/ for further details")
-                                gr.Markdown("deepl_context, deepl_split_sentences, deepl_preserve_formatting and deepl_formality are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translator_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
-    
+                                gr.Markdown(str(KudasaiGUI.description_dict.get("deepl_help_link")))
+
                                 self.deepl_context_input_field = gr.Textbox(label="DeepL Context",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context")),
-                                                                        info="The context in which the text should be translated. This is used to help the model better understand the context of the text. For example, if the text is a formal letter, the context could be 'formal'.",
+                                                                        info=KudasaiGUI.description_dict.get("deepl_context"),
                                                                         lines=1,
                                                                         max_lines=1,
                                                                         show_label=True,
@@ -662,25 +670,24 @@ class KudasaiGUI:
                                                                         show_copy_button=True)
                                 
                                 self.deepl_split_sentences_input_field = gr.Dropdown(label="DeepL Split Sentences",
-                                                                                value=int(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_split_sentences")),
-                                                                                choices=[0,1],
-                                                                                info="Whether the API should split the input text into sentences. This is useful if the input text is a large block of text with no punctuation. 0 means no splitting, 1 means splitting.",
+                                                                                value=str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_split_sentences")),
+                                                                                choices=['OFF', 'ALL', 'NO_NEWLINES'],
+                                                                                info=KudasaiGUI.description_dict.get("deepl_split_sentences"),
                                                                                 show_label=True,
                                                                                 interactive=True,
                                                                                 elem_id="deepl_split_sentences")
                                 
-                                self.deepl_preserve_formatting_input_field = gr.Dropdown(label="DeepL Preserve Formatting",
-                                                                                    value=int(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_preserve_formatting")),
-                                                                                    choices=[0,1],
-                                                                                    info="Whether the API should preserve the formatting of the input text. This is useful if the input text contains code or other formatting that should not be changed. 0 means no preservation, 1 means preservation.",
+                                self.deepl_preserve_formatting_input_field = gr.Checkbox(label="DeepL Preserve Formatting",
+                                                                                    value=bool(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_preserve_formatting")),
+                                                                                    info=KudasaiGUI.description_dict.get("deepl_preserve_formatting"),
                                                                                     show_label=True,
                                                                                     interactive=True,
                                                                                     elem_id="deepl_preserve_formatting")
                                 
                                 self.deepl_formality_input_field = gr.Dropdown(label="DeepL Formality",
-                                                                            value=int(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_formality")),
-                                                                            choices=[0,1],
-                                                                            info="The formality of the text. This is used to help the model better understand the tone of the text. 0 means informal, 1 means formal.",
+                                                                            value=str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_formality")),
+                                                                            choices=['default', 'more', 'less', 'prefer_more', 'prefer_less'],
+                                                                            info=KudasaiGUI.description_dict.get("deepl_formality"),
                                                                             show_label=True,
                                                                             interactive=True,
                                                                             elem_id="deepl_formality")
@@ -986,15 +993,7 @@ class KudasaiGUI:
 
                 cost_estimation = ""
 
-                ## first set the llm type
-                if(translation_method == "OpenAI"):
-                    Translator.TRANSLATION_METHOD = "openai"
-
-                elif(translation_method == "Gemini"):
-                    Translator.TRANSLATION_METHOD = "gemini"
-
-                else:
-                    Translator.TRANSLATION_METHOD = "deepl"
+                Translator.TRANSLATION_METHOD = str(translation_method.lower()) # type: ignore
 
                 await set_translator_api_key(api_key)
 
@@ -1023,9 +1022,7 @@ class KudasaiGUI:
                 num_tokens, estimated_cost, model = EasyTL.calculate_cost(text=text_to_translate, service=Translator.TRANSLATION_METHOD, model=model, translation_instructions=translation_instructions)
 
                 if(Translator.TRANSLATION_METHOD == "gemini"):
-                    ## need to update this too as it's incorrect i think
-                    cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 60 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\nIt is currently unknown whether the ultra model parameter is connecting to the actual ultra model and not a pro one. As it works, but does not appear on any documentation.\n"
-
+                    cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 15 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\n"
 
                 token_type = "characters" if Translator.TRANSLATION_METHOD == "deepl" else "tokens"
 
@@ -1262,74 +1259,41 @@ class KudasaiGUI:
 
                 GuiJsonUtil.current_translation_settings = FileEnsurer.DEFAULT_TRANSLATION_SETTING
 
-                prompt_assembly_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","prompt_assembly_mode"))
-                number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_lines_per_batch"))
-                sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","sentence_fragmenter_mode"))
-                je_check_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","je_check_mode"))
-                num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_malformed_batch_retries"))
-                batch_retry_timeout_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","batch_retry_timeout"))
-                num_concurrent_batches_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_concurrent_batches"))
-
-                openai_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model"))
-                openai_system_message_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message"))
-                openai_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_temperature"))
-                openai_top_p_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_top_p"))
-                openai_n_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_n"))
-                openai_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stream"))
-                openai_stop_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stop"))
-                openai_logit_bias_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_logit_bias"))
-                openai_max_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_max_tokens"))
-                openai_presence_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_presence_penalty"))
-                openai_frequency_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_frequency_penalty"))
-
-                gemini_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model"))
-                gemini_prompt_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt"))
-                gemini_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_temperature"))
-                gemini_top_p_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_p"))
-                gemini_top_k_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_k"))
-                gemini_candidate_count_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_candidate_count"))
-                gemini_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stream"))
-                gemini_stop_sequences_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stop_sequences"))
-                gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_max_output_tokens"))
-
-                deepl_context = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context"))
-                deepl_split_sentences = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_split_sentences"))
-                deepl_preserve_formatting = bool(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_preserve_formatting"))
-                deepl_formality = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_formality"))
-
-                return_batch = [
-                    prompt_assembly_mode_value,
-                    number_of_lines_per_batch_value,
-                    sentence_fragmenter_mode_value,
-                    je_check_mode_value,
-                    num_malformed_batch_retries_value,
-                    batch_retry_timeout_value,
-                    num_concurrent_batches_value,
-                    openai_model_value,
-                    openai_system_message_value,
-                    openai_temperature_value,
-                    openai_top_p_value,
-                    openai_n_value,
-                    openai_stream_value,
-                    openai_stop_value,
-                    openai_logit_bias_value,
-                    openai_max_tokens_value,
-                    openai_presence_penalty_value,
-                    openai_frequency_penalty_value,
-                    gemini_model_value,
-                    gemini_prompt_value,
-                    gemini_temperature_value,
-                    gemini_top_p_value,
-                    gemini_top_k_value,
-                    gemini_candidate_count_value,
-                    gemini_stream_value,
-                    gemini_stop_sequences_value,
-                    gemini_max_output_tokens_value,
-                    deepl_context,
-                    deepl_split_sentences,
-                    deepl_preserve_formatting,
-                    deepl_formality
+                settings = [
+                    ("base translation settings", "prompt_assembly_mode", int),
+                    ("base translation settings", "number_of_lines_per_batch", str),
+                    ("base translation settings", "sentence_fragmenter_mode", int),
+                    ("base translation settings", "je_check_mode", int),
+                    ("base translation settings", "number_of_malformed_batch_retries", str),
+                    ("base translation settings", "batch_retry_timeout", str),
+                    ("base translation settings", "number_of_concurrent_batches", str),
+                    ("openai settings", "openai_model", str),
+                    ("openai settings", "openai_system_message", str),
+                    ("openai settings", "openai_temperature", float),
+                    ("openai settings", "openai_top_p", float),
+                    ("openai settings", "openai_n", str),
+                    ("openai settings", "openai_stream", str),
+                    ("openai settings", "openai_stop", str),
+                    ("openai settings", "openai_logit_bias", str),
+                    ("openai settings", "openai_max_tokens", str),
+                    ("openai settings", "openai_presence_penalty", float),
+                    ("openai settings", "openai_frequency_penalty", float),
+                    ("gemini settings", "gemini_model", str),
+                    ("gemini settings", "gemini_prompt", str),
+                    ("gemini settings", "gemini_temperature", float),
+                    ("gemini settings", "gemini_top_p", str),
+                    ("gemini settings", "gemini_top_k", str),
+                    ("gemini settings", "gemini_candidate_count", str),
+                    ("gemini settings", "gemini_stream", str),
+                    ("gemini settings", "gemini_stop_sequences", str),
+                    ("gemini settings", "gemini_max_output_tokens", str),
+                    ("deepl settings", "deepl_context", str),
+                    ("deepl settings", "deepl_split_sentences", str),
+                    ("deepl settings", "deepl_preserve_formatting", bool),
+                    ("deepl settings", "deepl_formality", str),
                 ]
+
+                return_batch = [cast(GuiJsonUtil.fetch_translation_settings_key_values(setting, key)) for setting, key, cast in settings]
 
                 gr.Info("Translator Settings Reset to Default. Make sure to press the Apply button to apply the changes.")
 
@@ -1348,83 +1312,47 @@ class KudasaiGUI:
 
                 if(input_translation_rules_file is None):
                     raise gr.Error("No Translation Settings File Selected. Cannot refresh settings.")
-
-                ## assume that the user has uploaded a valid Translation Settings File, if it's not, that's on them
+                
                 try:
                     GuiJsonUtil.current_translation_settings = gui_get_json_from_file(input_translation_rules_file)
-
-                    ## update the default values on the Translator Settings tab manually
-                    prompt_assembly_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","prompt_assembly_mode"))
-                    number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_lines_per_batch"))
-                    sentence_fragmenter_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","sentence_fragmenter_mode"))
-                    je_check_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","je_check_mode"))
-                    num_malformed_batch_retries_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_malformed_batch_retries"))
-                    batch_retry_timeout_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","batch_retry_timeout"))
-                    num_concurrent_batches_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_concurrent_batches"))
-
-                    openai_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model"))
-                    openai_system_message_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message"))
-                    openai_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_temperature"))
-                    openai_top_p_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_top_p"))
-                    openai_n_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_n"))
-                    openai_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stream"))
-                    openai_stop_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_stop"))
-                    openai_logit_bias_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_logit_bias"))
-                    openai_max_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_max_tokens"))
-                    openai_presence_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_presence_penalty"))
-                    openai_frequency_penalty_value = float(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_frequency_penalty"))
-
-                    gemini_model_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model"))
-                    gemini_prompt_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt"))
-                    gemini_temperature_value = float(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_temperature"))
-                    gemini_top_p_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_p"))
-                    gemini_top_k_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_top_k"))
-                    gemini_candidate_count_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_candidate_count"))
-                    gemini_stream_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stream"))
-                    gemini_stop_sequences_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_stop_sequences"))
-                    gemini_max_output_tokens_value = str(GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_max_output_tokens"))
-
-                    deepl_context = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context"))
-                    deepl_split_sentences = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_split_sentences"))
-                    deepl_preserve_formatting = bool(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_preserve_formatting"))
-                    deepl_formality = str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_formality"))
-
-                    return_batch = [
-                        prompt_assembly_mode_value,
-                        number_of_lines_per_batch_value,
-                        sentence_fragmenter_mode_value,
-                        je_check_mode_value,
-                        num_malformed_batch_retries_value,
-                        batch_retry_timeout_value,
-                        num_concurrent_batches_value,
-                        openai_model_value,
-                        openai_system_message_value,
-                        openai_temperature_value,
-                        openai_top_p_value,
-                        openai_n_value,
-                        openai_stream_value,
-                        openai_stop_value,
-                        openai_logit_bias_value,
-                        openai_max_tokens_value,
-                        openai_presence_penalty_value,
-                        openai_frequency_penalty_value,
-                        gemini_model_value,
-                        gemini_prompt_value,
-                        gemini_temperature_value,
-                        gemini_top_p_value,
-                        gemini_top_k_value,
-                        gemini_candidate_count_value,
-                        gemini_stream_value,
-                        gemini_stop_sequences_value,
-                        gemini_max_output_tokens_value,
-                        deepl_context,
-                        deepl_split_sentences,
-                        deepl_preserve_formatting,
-                        deepl_formality
+                
+                    settings = [
+                        ("base translation settings", "prompt_assembly_mode", int),
+                        ("base translation settings", "number_of_lines_per_batch", str),
+                        ("base translation settings", "sentence_fragmenter_mode", int),
+                        ("base translation settings", "je_check_mode", int),
+                        ("base translation settings", "number_of_malformed_batch_retries", str),
+                        ("base translation settings", "batch_retry_timeout", str),
+                        ("base translation settings", "number_of_concurrent_batches", str),
+                        ("openai settings", "openai_model", str),
+                        ("openai settings", "openai_system_message", str),
+                        ("openai settings", "openai_temperature", float),
+                        ("openai settings", "openai_top_p", float),
+                        ("openai settings", "openai_n", str),
+                        ("openai settings", "openai_stream", str),
+                        ("openai settings", "openai_stop", str),
+                        ("openai settings", "openai_logit_bias", str),
+                        ("openai settings", "openai_max_tokens", str),
+                        ("openai settings", "openai_presence_penalty", float),
+                        ("openai settings", "openai_frequency_penalty", float),
+                        ("gemini settings", "gemini_model", str),
+                        ("gemini settings", "gemini_prompt", str),
+                        ("gemini settings", "gemini_temperature", float),
+                        ("gemini settings", "gemini_top_p", str),
+                        ("gemini settings", "gemini_top_k", str),
+                        ("gemini settings", "gemini_candidate_count", str),
+                        ("gemini settings", "gemini_stream", str),
+                        ("gemini settings", "gemini_stop_sequences", str),
+                        ("gemini settings", "gemini_max_output_tokens", str),
+                        ("deepl settings", "deepl_context", str),
+                        ("deepl settings", "deepl_split_sentences", str),
+                        ("deepl settings", "deepl_preserve_formatting", bool),
+                        ("deepl settings", "deepl_formality", str),
                     ]
-
+                
+                    return_batch = [cast(GuiJsonUtil.fetch_translation_settings_key_values(setting, key)) for setting, key, cast in settings]
+                
                 except:
-
                     GuiJsonUtil.current_translation_settings = JsonHandler.current_translation_settings
                     raise gr.Error("Invalid Custom Translation Settings File")
                 
@@ -1441,45 +1369,43 @@ class KudasaiGUI:
                 """
 
 
-                input_translation_rules_file = None
-
-                prompt_assembly_mode_value = None
-                number_of_lines_per_batch_value = None
-                sentence_fragmenter_mode_value = None
-                je_check_mode_value = None
-                num_malformed_batch_retries_value = None
-                batch_retry_timeout_value = None
-                num_concurrent_batches_value = None
+                settings = {
+                    "input_translation_rules_file": None,
+                    "prompt_assembly_mode_value": None,
+                    "number_of_lines_per_batch_value": None,
+                    "sentence_fragmenter_mode_value": None,
+                    "je_check_mode_value": None,
+                    "num_malformed_batch_retries_value": None,
+                    "batch_retry_timeout_value": None,
+                    "num_concurrent_batches_value": None,
+                    "openai_model_value": None,
+                    "openai_system_message_value": None,
+                    "openai_temperature_value": None,
+                    "openai_top_p_value": None,
+                    "openai_n_value": None,
+                    "openai_stream_value": None,
+                    "openai_stop_value": None,
+                    "openai_logit_bias_value": None,
+                    "openai_max_tokens_value": None,
+                    "openai_presence_penalty_value": None,
+                    "openai_frequency_penalty_value": None,
+                    "gemini_model_value": None,
+                    "gemini_prompt_value": None,
+                    "gemini_temperature_value": None,
+                    "gemini_top_p_value": None,
+                    "gemini_top_k_value": None,
+                    "gemini_candidate_count_value": None,
+                    "gemini_stream_value": None,
+                    "gemini_stop_sequences_value": None,
+                    "gemini_max_output_tokens_value": None,
+                    "deepl_context": None,
+                    "deepl_split_sentences": None,
+                    "deepl_preserve_formatting": None,
+                    "deepl_formality": None,
+                }
                 
-                openai_model_value = None
-                openai_system_message_value = None
-                openai_temperature_value = None
-                openai_top_p_value = None
-                openai_n_value = None
-                openai_stream_value = None
-                openai_stop_value = None
-                openai_logit_bias_value = None
-                openai_max_tokens_value = None
-                openai_presence_penalty_value = None
-                openai_frequency_penalty_value = None
-                
-                gemini_model_value = None
-                gemini_prompt_value = None
-                gemini_temperature_value = None
-                gemini_top_p_value = None
-                gemini_top_k_value = None
-                gemini_candidate_count_value = None
-                gemini_stream_value = None
-                gemini_stop_sequences_value = None
-                gemini_max_output_tokens_value = None
-
-                deepl_context = None
-                deepl_split_sentences = None
-                deepl_preserve_formatting = None
-                deepl_formality = None
-
-                return input_translation_rules_file, prompt_assembly_mode_value, number_of_lines_per_batch_value, sentence_fragmenter_mode_value, je_check_mode_value, num_malformed_batch_retries_value, batch_retry_timeout_value, num_concurrent_batches_value, openai_model_value, openai_system_message_value, openai_temperature_value, openai_top_p_value, openai_n_value, openai_stream_value, openai_stop_value, openai_logit_bias_value, openai_max_tokens_value, openai_presence_penalty_value, openai_frequency_penalty_value, gemini_model_value, gemini_prompt_value, gemini_temperature_value, gemini_top_p_value, gemini_top_k_value, gemini_candidate_count_value, gemini_stream_value, gemini_stop_sequences_value, gemini_max_output_tokens_value, deepl_context, deepl_split_sentences, deepl_preserve_formatting, deepl_formality
-
+                return settings
+            
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             def fetch_debug_log_content() -> typing.Tuple[str, str]:
@@ -1549,7 +1475,7 @@ class KudasaiGUI:
                 
 ##-------------------start-of-switch_translator_api_key_type()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def switch_translator_api_key_type(translation_method) -> str:
+            def switch_translator_api_key_type(translation_method:str) -> str:
 
                 """
                 
@@ -1559,18 +1485,11 @@ class KudasaiGUI:
                 translation_method (str) : The translation method
 
                 Returns:
-                translation_method (str) : The translation method
+                api_key (str) : The api key.
 
                 """
 
-                if(translation_method == "OpenAI"):
-                    return get_saved_openai_api_key()
-                
-                elif(translation_method == "Gemini"):
-                    return get_saved_gemini_api_key()
-                
-                else:
-                    return get_saved_deepl_api_key()
+                return get_saved_api_key(translation_method.lower()) ## type: ignore
                 
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

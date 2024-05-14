@@ -449,7 +449,7 @@ class KudasaiGUI:
 
                             gr.Markdown("OpenAI API Settings")
                             gr.Markdown("See https://platform.openai.com/docs/api-reference/chat/create for further details")
-                            gr.Markdown("openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
+                            gr.Markdown("openai_stream, openai_logit_bias, openai_stop and openai_n are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translator_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
 
                             self.openai_model_input_field = gr.Dropdown(label="OpenAI Model",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model")),
@@ -553,7 +553,7 @@ class KudasaiGUI:
 
                             gr.Markdown("Gemini API Settings")
                             gr.Markdown("https://ai.google.dev/docs/concepts#model-parameters for further details")
-                            gr.Markdown("gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
+                            gr.Markdown("gemini_stream, gemini_stop_sequences and gemini_candidate_count are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translator_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
                                 
 
                             self.gemini_model_input_field = gr.Dropdown(label="Gemini Model",
@@ -649,7 +649,7 @@ class KudasaiGUI:
     
                                 gr.Markdown("DeepL API Settings")
                                 gr.Markdown("https://www.deepl.com/docs-api/accessing-the-api/authentication/ for further details")
-                                gr.Markdown("deepl_context, deepl_split_sentences, deepl_preserve_formatting and deepl_formality are included for completion's sake, current versions of Kudasai will hardcode their values when validating the Kijiku_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
+                                gr.Markdown("deepl_context, deepl_split_sentences, deepl_preserve_formatting and deepl_formality are included for completion's sake, current versions of Kudasai will hardcode their values when validating the translator_rule.json to their default values. As different values for these settings do not have a use case in Kudasai's current implementation.")
     
                                 self.deepl_context_input_field = gr.Textbox(label="DeepL Context",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context")),
@@ -862,7 +862,7 @@ class KudasaiGUI:
                 
 ##-------------------start-of-translate_with_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            async def translate_with_translator(input_txt_file:gr.File, input_text:str, api_key:str, llm_type:str, translation_settings_file:gr.File) -> typing.Tuple[str, str, str, str]:
+            async def translate_with_translator(input_txt_file:gr.File, input_text:str, api_key:str, translation_method:str, translation_settings_file:gr.File) -> typing.Tuple[str, str, str, str]:
 
                 """
                 
@@ -908,10 +908,10 @@ class KudasaiGUI:
                 JsonHandler.current_translation_settings = GuiJsonUtil.current_translation_settings
 
                 ## next, set the llm type
-                if(llm_type == "OpenAI"):
+                if(translation_method == "OpenAI"):
                     Translator.TRANSLATION_METHOD = "openai" 
 
-                elif(llm_type == "Gemini"):
+                elif(translation_method == "Gemini"):
                     Translator.TRANSLATION_METHOD = "gemini"
 
                 else:
@@ -950,7 +950,7 @@ class KudasaiGUI:
             
 ##-------------------start-of translator_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            async def translator_calculate_costs_button_click(input_txt_file:str, input_text:str, llm_type:str, api_key:str, translation_settings_file:gr.File) -> str:
+            async def translator_calculate_costs_button_click(input_txt_file:str, input_text:str, translation_method:str, api_key:str, translation_settings_file:gr.File) -> str:
 
 
                 """
@@ -961,7 +961,7 @@ class KudasaiGUI:
                 Parameters:
                 input_txt_file (gr.File) : The input txt file.
                 input_text (str) : The input text.
-                llm_type (str) : The language model type.
+                translation_method (str) : The language model type.
                 api_key (str) : The
 
                 Returns:
@@ -972,10 +972,10 @@ class KudasaiGUI:
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
                 
-                if(api_key == "" and llm_type not in ["OpenAI","DeepL"]):
+                if(api_key == "" and translation_method not in ["OpenAI","DeepL"]):
                     raise gr.Error("No API key provided. Does not charge for cost estimation, but is required for Gemini Cost Calculation")
                 
-                if(Kudasai.connection == False and llm_type != "OpenAI"):
+                if(Kudasai.connection == False and translation_method != "OpenAI"):
                     raise gr.Error("No internet connection detected, please connect to the internet and reload the page to calculate costs for Gemini")
                 
                 if(translation_settings_file is None):
@@ -987,10 +987,10 @@ class KudasaiGUI:
                 cost_estimation = ""
 
                 ## first set the llm type
-                if(llm_type == "OpenAI"):
+                if(translation_method == "OpenAI"):
                     Translator.TRANSLATION_METHOD = "openai"
 
-                elif(llm_type == "Gemini"):
+                elif(translation_method == "Gemini"):
                     Translator.TRANSLATION_METHOD = "gemini"
 
                 else:
@@ -1239,7 +1239,7 @@ class KudasaiGUI:
                 new_key_value_tuple_pairs = create_new_key_value_tuple_pairs(settings_list)
 
                 try:
-                    ## and then have the GuiJsonUtil apply the new kijiku settings
+                    ## and then have the GuiJsonUtil apply the new translator settings
                     GuiJsonUtil.update_translation_settings_with_new_values(input_translation_rules_file, new_key_value_tuple_pairs)
 
                 except:
@@ -1260,7 +1260,7 @@ class KudasaiGUI:
                 if(input_translation_rules_file is None):
                     raise gr.Error("No Translation Settings File Selected. Cannot reset settings.")
 
-                GuiJsonUtil.current_translation_settings = FileEnsurer.DEFAULT_KIJIKU_RULES
+                GuiJsonUtil.current_translation_settings = FileEnsurer.DEFAULT_TRANSLATION_SETTING
 
                 prompt_assembly_mode_value = int(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","prompt_assembly_mode"))
                 number_of_lines_per_batch_value = str(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","number_of_lines_per_batch"))
@@ -1436,12 +1436,10 @@ class KudasaiGUI:
 
                 """
 
-                Resets the kijiku settings input fields to None.
+                Resets the translation settings input fields to None.
 
                 """
 
-
-                ## you need todo the deepl ones
 
                 input_translation_rules_file = None
 
@@ -1475,7 +1473,12 @@ class KudasaiGUI:
                 gemini_stop_sequences_value = None
                 gemini_max_output_tokens_value = None
 
-                return input_translation_rules_file, prompt_assembly_mode_value, number_of_lines_per_batch_value, sentence_fragmenter_mode_value, je_check_mode_value, num_malformed_batch_retries_value, batch_retry_timeout_value, num_concurrent_batches_value, openai_model_value, openai_system_message_value, openai_temperature_value, openai_top_p_value, openai_n_value, openai_stream_value, openai_stop_value, openai_logit_bias_value, openai_max_tokens_value, openai_presence_penalty_value, openai_frequency_penalty_value, gemini_model_value, gemini_prompt_value, gemini_temperature_value, gemini_top_p_value, gemini_top_k_value, gemini_candidate_count_value, gemini_stream_value, gemini_stop_sequences_value, gemini_max_output_tokens_value
+                deepl_context = None
+                deepl_split_sentences = None
+                deepl_preserve_formatting = None
+                deepl_formality = None
+
+                return input_translation_rules_file, prompt_assembly_mode_value, number_of_lines_per_batch_value, sentence_fragmenter_mode_value, je_check_mode_value, num_malformed_batch_retries_value, batch_retry_timeout_value, num_concurrent_batches_value, openai_model_value, openai_system_message_value, openai_temperature_value, openai_top_p_value, openai_n_value, openai_stream_value, openai_stop_value, openai_logit_bias_value, openai_max_tokens_value, openai_presence_penalty_value, openai_frequency_penalty_value, gemini_model_value, gemini_prompt_value, gemini_temperature_value, gemini_top_p_value, gemini_top_k_value, gemini_candidate_count_value, gemini_stream_value, gemini_stop_sequences_value, gemini_max_output_tokens_value, deepl_context, deepl_split_sentences, deepl_preserve_formatting, deepl_formality
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1491,7 +1494,7 @@ class KudasaiGUI:
 
                 """
 
-                log_text = FileEnsurer.standard_read_file(Logger.log_file_path)
+                log_text = FileEnsurer.standard_read_file(FileEnsurer.debug_log_path)
                 logging_tab_error_log_output_field = FileEnsurer.standard_read_file(FileEnsurer.error_log_path)
 
                 return log_text, logging_tab_error_log_output_field
@@ -1513,40 +1516,19 @@ class KudasaiGUI:
                 """
 
                 if(input_text == ""):
-                    gr.Warning("No indexed text to send to Kairyou")
+                    gr.Warning("No indexed text to send to Preprocessor (Kairyou)")
                     return ""
                 
                 else:
-                    gr.Info("Indexed text copied to Kairyou")
-                    return input_text
-                
-##-------------------start-of-send_to_kaiseki_button()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                
-            def send_to_kaiseki_button(input_text:str) -> str:
-
-                """"
-                
-                Sends the preprocessed text to Kaiseki.
-
-                Parameters:
-                input_text (str) : The input text.
-
-                Returns:
-                input_text (str) : The input text.
-
-                """
-
-                if(input_text == ""):
-                    gr.Warning("No preprocessed text to send to Kaiseki")
-                    return ""
-                
-                else:
-                    gr.Info("Preprocessed text copied to Kaiseki")
+                    gr.Info("Indexed text copied to Preprocessor (Kairyou)")
                     return input_text
                 
 ##-------------------start-of-send_to_translator_button()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def send_to_translator_button(input_tTranslator')
+            def send_to_translator_button(input_text:str) -> str:
+
+                """
+
                 Sends the preprocessed text to Translator.
 
                 Parameters:
@@ -1565,27 +1547,30 @@ class KudasaiGUI:
                     gr.Info("Preprocessed text copied to Translator")
                     return input_text
                 
-##-------------------start-of-switch_kijiku_api_key_value()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-switch_translator_api_key_type()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
-            def switch_kijiku_api_key_value(llm_type) -> str:
+            def switch_translator_api_key_type(translation_method) -> str:
 
                 """
                 
-                Switches the LLM type value.
+                Switches the api key type between OpenAI, Gemini, and DeepL.
 
                 Parameters:
-                llm_type (str) : The LLM type.
+                translation_method (str) : The translation method
 
                 Returns:
-                llm_type (str) : The LLM type.
+                translation_method (str) : The translation method
 
                 """
 
-                if(llm_type == "OpenAI"):
+                if(translation_method == "OpenAI"):
                     return get_saved_openai_api_key()
                 
-                else:
+                elif(translation_method == "Gemini"):
                     return get_saved_gemini_api_key()
+                
+                else:
+                    return get_saved_deepl_api_key()
                 
 ##-------------------start-of-Listener-Declaration---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1628,57 +1613,34 @@ class KudasaiGUI:
             
 
             
-##-------------------start-of-kaiseki_translate_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            ## for the actual translation, and the je check text
-            kaiseki_translation_process = self.kaiseki_translate_button.click(translate_with_kaiseki,
-                                                inputs=[
-                                                    self.input_txt_file_kaiseki, ## input txt file to translate
-                                                    self.input_text_kaiseki, ## input text to translate
-                                                    self.kaiseki_api_key_input_field], ## api key input
-                                                
-                                                outputs=[
-                                                    self.kaiseki_translated_text_output_field, ## translated text
-                                                    self.kaiseki_je_check_text_output_field, ## je check text field on kaiseki tab
-                                                    self.logging_tab_debug_log_output_field, ## debug log on log tab
-                                                    self.logging_tab_error_log_output_field]) ## error log on log tab
-            ## for the kaiseki debug log
-            self.kaiseki_translate_button.click(fn=fetch_log_content,
-                                                inputs=[],
-
-                                                outputs=[self.kaiseki_debug_log_output_field], ## debug log on kaiseki tab
-
-                                                every=.1) ## update every 100ms
-            
-
 ##-------------------start-of-translate_with_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             ## for the actual translation, and the je check text
-            kijiku_translation_process = self.translator_translate_button.click(translate_with_translator,
+            translator_translate_process = self.translator_translate_button.click(translate_with_translator,
                                                 inputs=[
                                                     self.input_txt_file_translator, ## input txt file to translate
                                                     self.input_text_translator, ## input text to translate
                                                     self.translator_api_key_input, ## api key input
                                                     self.llm_option_dropdown, ## Translation Method dropdown
-                                                    self.input_translation_rules_file], ## Translation S, "DeepL"ettings File
+                                                    self.input_translation_rules_file], ## Translation Settings File
                                                 
                                                 outputs=[
                                                     self.translator_translated_text_output_field, ## translated text
-                                                    self.translator_je_check_text_output_field, ## je check text field on kijiku tab
+                                                    self.translator_je_check_text_output_field, ## je check text field on translator tab
                                                     self.logging_tab_debug_log_output_field , ## debug log on log tab
                                                     self.logging_tab_error_log_output_field]) ## error log on log tab
-            ## for the kijiku debug log
+            ## for the debug log
             self.translator_translate_button.click(fn=fetch_log_content,
                                                 inputs=[],
 
-                                                outputs=[self.translator_debug_log_output_field], ## debug log on kijiku tab
+                                                outputs=[self.translator_debug_log_output_field], ## debug log on translator tab
 
                                                 every=.1) ## update every 100ms
             
 
 ##-------------------start-of translator_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            self.translator_calculate_cost_button.click translator_calculate_costs_button_click,
+            self.translator_calculate_cost_button.click(translator_calculate_costs_button_click,
                                                         inputs=[
                                                             self.input_txt_file_translator, ## input txt file to calculate costs
                                                             self.input_text_translator,
@@ -1715,20 +1677,7 @@ class KudasaiGUI:
                                                       self.preprocessing_results_output_field, ## preprocessing results output field
                                                       self.debug_log_output_field_preprocess_tab])## debug log on preprocess tab
 
-##-------------------start-of-clear_button_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            self.kaiseki_clear_button.click(clear_kaiseki_tab,
-                                            inputs=[],
-
-                                            outputs=[
-                                                self.input_txt_file_kaiseki, ## input txt file
-                                                self.input_text_kaiseki, ## input text
-                                                self.kaiseki_translated_text_output_field, ## translation output field
-                                                self.kaiseki_je_check_text_output_field, ## je check text field on kaiseki tab
-                                                self.kaiseki_debug_log_output_field], ## debug log on kaiseki tab
-
-                                            cancels=kaiseki_translation_process) ## cancels the translation process
-##-------------------start-of-clear_button_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-clear_button_translator_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.translator_clear_button.click(clear_translator_tab,
                                             inputs=[],
@@ -1738,10 +1687,11 @@ class KudasaiGUI:
                                                 self.input_text_translator, ## input text
                                                 self.input_translation_rules_file, ## Translation Settings File
                                                 self.translator_translated_text_output_field, ## translation output field
-                                                self.translator_je_check_text_output_field, ## je check text field on kijiku tab
-                                                self.translator_debug_log_output_field], ## debug log on kijiku tab
+                                                self.translator_je_check_text_output_field, ## je check text field on translator tab
+                                                self.translator_debug_log_output_field], ## debug log on translator tab
             
-                                            cancels=kijiku_translation_process)
+                                            cancels=translator_translate_process)
+            
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             self.logging_clear_logs_button.click(clear_log_button_click,
@@ -1782,11 +1732,15 @@ class KudasaiGUI:
                                                 self.gemini_candidate_count_input_field, ## gemini candidate count input field
                                                 self.gemini_stream_input_field, ## gemini stream input field
                                                 self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
-                                                self.gemini_max_output_tokens_input_field], ## gemini max output tokens input field
+                                                self.gemini_max_output_tokens_input_field, ## gemini max output tokens input field
+                                                self.deepl_context_input_field, ## deepl context input field
+                                                self.deepl_split_sentences_input_field, ## deepl split sentences input field
+                                                self.deepl_preserve_formatting_input_field, ## deepl preserve formatting input field
+                                                self.deepl_formality_input_field], ## deepl formality input field
                                             
                                             outputs=[])
             
-##-------------------start-of-reset_to_default_kijiku_settings_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-reset_to_default_translation_settings_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.translation_settings_reset_to_default_button.click(reset_to_default_translation_settings,
                                                 inputs=[self.input_translation_rules_file],
@@ -1818,7 +1772,11 @@ class KudasaiGUI:
                                                         self.gemini_candidate_count_input_field, ## gemini candidate count input field
                                                         self.gemini_stream_input_field, ## gemini stream input field
                                                         self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
-                                                        self.gemini_max_output_tokens_input_field])
+                                                        self.gemini_max_output_tokens_input_field, ## gemini max output tokens input field
+                                                        self.deepl_context_input_field, ## deepl context input field
+                                                        self.deepl_split_sentences_input_field, ## deepl split sentences input field
+                                                        self.deepl_preserve_formatting_input_field, ## deepl preserve formatting input field
+                                                        self.deepl_formality_input_field])
 
 ##-------------------start-of-discard_changes_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -1852,10 +1810,13 @@ class KudasaiGUI:
                                                     self.gemini_candidate_count_input_field, ## gemini candidate count input field
                                                     self.gemini_stream_input_field, ## gemini stream input field
                                                     self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
-                                                    self.gemini_max_output_tokens_input_field]) ## gemini max output tokens input field
+                                                    self.gemini_max_output_tokens_input_field, ## gemini max output tokens input field
+                                                    self.deepl_context_input_field, ## deepl context input field
+                                                    self.deepl_split_sentences_input_field, ## deepl split sentences input field
+                                                    self.deepl_preserve_formatting_input_field, ## deepl preserve formatting input field
+                                                    self.deepl_formality_input_field]) ## deepl formality input field
 
-
-##-------------------start-of-input_kijiku_rules_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-input_translator_rules_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.input_translation_rules_file.upload(refresh_translation_settings_fields,
                                                 inputs=[self.input_translation_rules_file],
@@ -1887,7 +1848,11 @@ class KudasaiGUI:
                                                     self.gemini_candidate_count_input_field, ## gemini candidate count input field
                                                     self.gemini_stream_input_field, ## gemini stream input field
                                                     self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
-                                                    self.gemini_max_output_tokens_input_field]) 
+                                                    self.gemini_max_output_tokens_input_field, ## gemini max output tokens input field
+                                                    self.deepl_context_input_field, ## deepl context input field
+                                                    self.deepl_split_sentences_input_field, ## deepl split sentences input field
+                                                    self.deepl_preserve_formatting_input_field, ## deepl preserve formatting input field
+                                                    self.deepl_formality_input_field]) ## deepl formality input field
             
             self.input_translation_rules_file.clear(clear_translation_settings_input_fields,
                                                 inputs=[],
@@ -1920,7 +1885,11 @@ class KudasaiGUI:
                                                     self.gemini_candidate_count_input_field, ## gemini candidate count input field
                                                     self.gemini_stream_input_field, ## gemini stream input field
                                                     self.gemini_stop_sequences_input_field, ## gemini stop sequences input field
-                                                    self.gemini_max_output_tokens_input_field])
+                                                    self.gemini_max_output_tokens_input_field, ## gemini max output tokens input field
+                                                    self.deepl_context_input_field, ## deepl context input field
+                                                    self.deepl_split_sentences_input_field, ## deepl split sentences input field
+                                                    self.deepl_preserve_formatting_input_field, ## deepl preserve formatting input field
+                                                    self.deepl_formality_input_field]) ## deepl formality input field
 
 ##-------------------start-of-logging_tab.select()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1931,7 +1900,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-translator_api_key_input.change()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            self.llm_option_dropdown.change(switch_kijiku_api_key_value,
+            self.llm_option_dropdown.change(switch_translator_api_key_type,
                                              inputs=[self.llm_option_dropdown],
                                             
                                             outputs=[self.translator_api_key_input])
@@ -1944,7 +1913,7 @@ class KudasaiGUI:
                 outputs=[], ## no outputs
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "indexed_text.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "indexed_text.txt")
             )
 
 ##-------------------start-of-save_to_file_indexing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1955,7 +1924,7 @@ class KudasaiGUI:
                 outputs=[], ## no outputs
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "indexing_results.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "indexing_results.txt")
             )
 
 ##-------------------start-of-save_to_file_indexing_debug_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1966,7 +1935,7 @@ class KudasaiGUI:
                 outputs=[], ## no outputs
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "indexing_debug_log.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "indexing_debug_log.txt")
             )
             
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1977,7 +1946,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "preprocessed_text.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "preprocessed_text.txt")
             )
             
 ##-------------------start-of-save_to_file_preprocessing_results_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1988,7 +1957,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "preprocessing_results.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "preprocessing_results.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_processing_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1999,43 +1968,10 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "preprocessing_debug_log_.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "preprocessing_debug_log_.txt")
             )
 
-##-------------------start-of-save_to_file_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            self.save_to_file_kaiseki_translated_text.click(lambda text: text, ## save text as is
-                inputs=[self.kaiseki_translated_text_output_field],
-
-                outputs=[],
-
-                ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text_kaiseki.txt")
-            )
-
-##-------------------start-of-save_to_file_je_check_text_kaiseki_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            self.save_to_file_kaiseki_je_check_text.click(lambda text: text, ## save text as is
-                inputs=[self.kaiseki_je_check_text_output_field],
-
-                outputs=[],
-
-                ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text_kaiseki.txt")
-            )
-
-##-------------------start-of-save_to_file_debug_log_kaiseki_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-            self.save_to_file_debug_log_kaiseki_tab.click(lambda text: text, ## save text as is
-                inputs=[self.kaiseki_debug_log_output_field],
-
-                outputs=[],
-
-                ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_kaiseki.txt")
-            )
-
-##-------------------start-of-save_to_file_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-save_to_file_translator_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.save_to_file_translator_translated_text.click(lambda text: text, ## save text as is
                 inputs=[self.translator_translated_text_output_field],
@@ -2043,10 +1979,10 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "translated_text_kijiku.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "translated_text_translator.txt")
             )
 
-##-------------------start-of-save_to_file_je_check_text_kijiku_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-save_to_file_je_check_text_translator_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.save_to_file_translator_je_check_text.click(lambda text: text, ## save text as is
                 inputs=[self.translator_je_check_text_output_field],
@@ -2054,10 +1990,10 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "je_check_text_kijiku.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "je_check_text_translator.txt")
             )
 
-##-------------------start-of-save_to_file_debug_log_kijiku_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-save_to_file_debug_log_translator_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.save_to_file_debug_log_translator_tab.click(lambda text: text, ## save text as is
                 inputs=[self.translator_debug_log_output_field],
@@ -2065,7 +2001,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_kijiku.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "debug_log_translator.txt")
             )
 
 ##-------------------start-of-save_to_file_debug_log_logging_tab_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2076,7 +2012,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "debug_log_all.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "debug_log_all.txt")
             )
 
 ##-------------------start-of-save_to_file_error_log_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2087,7 +2023,7 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.save_as_js).replace("downloaded_text.txt", "error_log.txt")
+                js=(self.js_save_to_file).replace("downloaded_text.txt", "error_log.txt")
             )
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2095,14 +2031,10 @@ class KudasaiGUI:
             self.send_to_kairyou_button.click(fn=send_to_kairyou_button, 
                                         inputs=[self.indexing_output_field],
                                         outputs=[self.input_text_kairyou])
-                                        
-            self.send_to_kaiseki_button.click(fn=send_to_kaiseki_button,
-                                        inputs=[self.preprocessing_output_field],
-                                        outputs=[self.input_text_kaiseki])
-            
+                                                    
             self.send_to_translator_button.click(fn=send_to_translator_button,
-                                        inputs=[self.preprocessingTranslator')
-                                Translator').input_text_translator])
+                                        inputs=[self.preprocessing_output_field],
+                                        outputs=[self.input_text_translator])
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 
@@ -2129,8 +2061,6 @@ if(__name__ == '__main__'):
 
         kudasai_gui = KudasaiGUI()
         kudasai_gui.launch()
-
-        Logger.push_batch()
 
     except Exception as e:
 

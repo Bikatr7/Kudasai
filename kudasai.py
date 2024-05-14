@@ -54,7 +54,7 @@ class Kudasai:
 
         FileEnsurer.setup_needed_files()
 
-        logging.info(f"Kudasai started; Current version : {Toolkit.CURRENT_VERSION}")
+        logging.debug(f"Kudasai started; Current version : {Toolkit.CURRENT_VERSION}")
 
         try:
 
@@ -336,8 +336,8 @@ if(__name__ == "__main__"):
 
     FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
 
-    ## setup logging
-    
+    ## Setup logging
+
     ## Debug log setup
     debug_log_handler = logging.FileHandler(FileEnsurer.debug_log_path, mode='w+', encoding='utf-8')
     debug_log_handler.setLevel(logging.DEBUG)
@@ -362,5 +362,8 @@ if(__name__ == "__main__"):
     logger.addHandler(debug_log_handler)
     logger.addHandler(error_log_handler)
     logger.addHandler(console)
+
+    ## Ensure only INFO level and above messages are sent to the console
+    console.setLevel(logging.INFO)
 
     asyncio.run(main())

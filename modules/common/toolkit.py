@@ -3,6 +3,7 @@ from datetime import datetime
 
 import os
 import typing
+import logging
 import platform
 import subprocess
 
@@ -209,6 +210,8 @@ class Toolkit():
 
             if(LooseVersion(latest_version) > LooseVersion(Toolkit.CURRENT_VERSION)):
 
+                logging.debug("New update available: " + latest_version)
+
                 update_prompt += "There is a new update for Kudasai (" + latest_version + ")\nIt is recommended that you use the latest version of Kudasai\nYou can download it at https://github.com/Bikatr7/Kudasai/releases/latest \n"
 
                 if(release_notes):
@@ -218,6 +221,8 @@ class Toolkit():
 
         ## used to determine if user lacks an internet connection.
         except:
+
+            logging.debug("No internet connection detected.")
 
             print("You seem to lack an internet connection, this will prevent you from checking from update notification and machine translation.\n")
 

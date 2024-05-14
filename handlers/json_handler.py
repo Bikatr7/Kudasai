@@ -241,7 +241,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
             
             JsonHandler.current_translation_settings = FileEnsurer.INVALID_TRANSLATION_SETTINGS_PLACEHOLDER
 
-        logging.info(f"translation_settings.json is valid, current:"
+        logging.debug(f"translation_settings.json is valid, current:"
                     f"\n{JsonHandler.current_translation_settings}")    
 
 ##-------------------start-of-reset_translation_settings_to_default()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -313,7 +313,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
             for key,value in JsonHandler.current_translation_settings[section].items():
                 log_message = key + " : " + str(value)
-                logging.info(log_message)
+                logging.debug(log_message)
                 if(output_to_console):
                     print(log_message)
 

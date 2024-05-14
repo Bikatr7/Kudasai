@@ -391,7 +391,7 @@ class Translator:
 
         """
 
-        logging.info(f"Translator Activated, Translation Method : {Translator.TRANSLATION_METHOD}"
+        logging.debug(f"Translator Activated, Translation Method : {Translator.TRANSLATION_METHOD}"
                      f"Settings are as follows : ")
         
         JsonHandler.log_translation_settings()
@@ -568,21 +568,21 @@ class Translator:
 
                 if(any(char in sentence for char in ["▼", "△", "◇"])):
                     prompt.append(f'{sentence}\n')
-                    logging.info(f"Sentence : {sentence}, Sentence is a pov change... adding to prompt.")
+                    logging.debug(f"Sentence : {sentence}, Sentence is a pov change... adding to prompt.")
 
                 elif(stripped_sentence == ''):
-                    logging.info(f"Sentence : {sentence} is empty... skipping.")
+                    logging.debug(f"Sentence : {sentence} is empty... skipping.")
 
                 elif(is_part_in_sentence or all(char in ["１","２","３","４","５","６","７","８","９", " "] for char in sentence)):
                     prompt.append(f'{sentence}\n') 
-                    logging.info(f"Sentence : {sentence}, Sentence is part marker... adding to prompt.")
+                    logging.debug(f"Sentence : {sentence}, Sentence is part marker... adding to prompt.")
 
                 elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(stripped_sentence) and not has_quotes):
-                    logging.info(f"Sentence : {sentence}, Sentence is punctuation... skipping.")
+                    logging.debug(f"Sentence : {sentence}, Sentence is punctuation... skipping.")
                     
                 else:
                     prompt.append(f'{sentence}\n')
-                    logging.info(f"Sentence : {sentence}, Sentence is a valid sentence... adding to prompt.")
+                    logging.debug(f"Sentence : {sentence}, Sentence is a valid sentence... adding to prompt.")
 
             else:
                 return prompt, index
@@ -650,7 +650,7 @@ class Translator:
 
             logging_message += message + "\n"
 
-        logging.info(logging_message)
+        logging.debug(logging_message)
 
 ##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -784,7 +784,7 @@ class Translator:
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
 
-                    logging.error(f"Batch {batch_number} of {length_of_batch//2} was not translated due to exceeding the max request duration, returning the untranslated text...")
+                    logging.warning(f"Batch {batch_number} of {length_of_batch//2} was not translated due to exceeding the max request duration, returning the untranslated text...")
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
@@ -802,7 +802,7 @@ class Translator:
 
                 else:
                     num_tries += 1
-                    logging.error(f"Batch {batch_number} of {length_of_batch//2} was malformed, retrying...")
+                    logging.warning(f"Batch {batch_number} of {length_of_batch//2} was malformed, retrying...")
                     Translator.num_occurred_malformed_batches += 1
 
             if(isinstance(text_to_translate, ModelTranslationMessage)):

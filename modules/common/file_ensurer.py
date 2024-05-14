@@ -196,7 +196,10 @@ class FileEnsurer():
         """
 
         if(not FileEnsurer.is_hugging_space()):
+            logging.debug("Not running on Hugging Face, skipping storage purge")
             return
+        
+        logging.debug("Running on Hugging Face, purging storage")
 
         stuff_to_purge = [
             FileEnsurer.secrets_dir,
@@ -247,7 +250,7 @@ class FileEnsurer():
 
         if(os.path.isdir(directory_path) == False):
             os.makedirs(directory_path)
-            logging.info(directory_path + " created due to lack of the folder")
+            logging.debug(directory_path + " created due to lack of the folder")
 
 ##--------------------start-of-standard_create_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -265,7 +268,7 @@ class FileEnsurer():
         """
 
         if(os.path.exists(file_path) == False):
-            logging.info(file_path + " was created due to lack of the file")
+            logging.debug(file_path + " was created due to lack of the file")
             with open(file_path, "w+", encoding="utf-8") as file:
                 file.truncate()
 
@@ -291,7 +294,7 @@ class FileEnsurer():
         did_overwrite = False
 
         if(os.path.exists(file_path) == False or os.path.getsize(file_path) == 0):
-            logging.info(file_path + " was created due to lack of the file or because it is blank")
+            logging.debug(file_path + " was created due to lack of the file or because it is blank")
             with open(file_path, "w+", encoding="utf-8") as file:
                 file.write(content_to_write)
 
@@ -322,7 +325,7 @@ class FileEnsurer():
         if(omit):
             content_to_write = "(Content was omitted)"
         
-        logging.info(file_path + " was overwritten with the following content: " + content_to_write)
+        logging.debug(file_path + " was overwritten with the following content: " + content_to_write)
 
 ##--------------------start-of-clear_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -342,7 +345,7 @@ class FileEnsurer():
         with open(file_path, "w+", encoding="utf-8") as file:
             file.truncate()
 
-        logging.info(file_path + " was cleared")
+        logging.debug(file_path + " was cleared")
 
 ##--------------------start-of-standard_read_file()------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

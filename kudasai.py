@@ -37,6 +37,45 @@ class Kudasai:
 
     need_to_run_kairyou:bool = True
 
+##-------------------start-of-setup_logging()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def setup_logging() -> None:
+
+        """
+
+        Sets up logging for the Kudasai program.
+
+        """
+
+        ## Debug log setup
+        debug_log_handler = logging.FileHandler(FileEnsurer.debug_log_path, mode='w+', encoding='utf-8')
+        debug_log_handler.setLevel(logging.DEBUG)
+        debug_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        debug_log_handler.setFormatter(debug_formatter)
+
+        ## Error log setup
+        error_log_handler = logging.FileHandler(FileEnsurer.error_log_path, mode='w+', encoding='utf-8')
+        error_log_handler.setLevel(logging.WARNING)
+        error_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        error_log_handler.setFormatter(error_formatter)
+
+        ## Console handler setup
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        console_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        console.setFormatter(console_formatter)
+
+        ## Add handlers to the logger
+        logger = logging.getLogger('')
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(debug_log_handler)
+        logger.addHandler(error_log_handler)
+        logger.addHandler(console)
+
+        ## Ensure only INFO level and above messages are sent to the console
+        console.setLevel(logging.INFO)
+
 ##-------------------start-of-boot()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -51,6 +90,11 @@ class Kudasai:
         os.system("title " + "Kudasai")
 
         Toolkit.clear_console()
+
+        ## Need to create the output dir FIRST as logging files are located in the output folder
+        FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
+
+        Kudasai.setup_logging()
 
         FileEnsurer.setup_needed_files()
 
@@ -174,6 +218,9 @@ class Kudasai:
             if(indexing_log != ""):
                 preprocessing_log = indexing_log + "\n\n" + preprocessing_log
 
+            if(preprocessing_log == "Skipped"):
+                preprocessing_log = "Preprocessing skipped."
+
             print(preprocessing_log) 
 
             timestamp = Toolkit.get_timestamp(is_archival=True)
@@ -274,11 +321,11 @@ async def run_console_version():
 
     try:
 
-        path_to_text_to_preprocess = input("Please enter the path to the input file to be processed:\n").strip('"')
+        path_to_text_to_preprocess = input("Please enter the path to the input file to be preprocessed/translated:\n").strip('"')
         Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(path_to_text_to_preprocess)
         Toolkit.clear_console()
 
-        path_to_replacement_json = input("Please enter the path to the replacement json file:\n").strip('"')
+        path_to_replacement_json = input("Please enter the path to the replacement json file (Press enter if skipping to translation):\n").strip('"')
         Kudasai.replacement_json = FileEnsurer.standard_read_json(path_to_replacement_json if path_to_replacement_json else FileEnsurer.blank_rules_path)
         Toolkit.clear_console()
 
@@ -333,37 +380,4 @@ def print_usage_statement():
 
 
 if(__name__ == "__main__"):
-
-    FileEnsurer.standard_create_directory(FileEnsurer.output_dir)
-
-    ## Setup logging
-
-    ## Debug log setup
-    debug_log_handler = logging.FileHandler(FileEnsurer.debug_log_path, mode='w+', encoding='utf-8')
-    debug_log_handler.setLevel(logging.DEBUG)
-    debug_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    debug_log_handler.setFormatter(debug_formatter)
-
-    ## Error log setup
-    error_log_handler = logging.FileHandler(FileEnsurer.error_log_path, mode='w+', encoding='utf-8')
-    error_log_handler.setLevel(logging.WARNING)
-    error_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    error_log_handler.setFormatter(error_formatter)
-
-    ## Console handler setup
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    console_formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(filename)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    console.setFormatter(console_formatter)
-
-    ## Add handlers to the logger
-    logger = logging.getLogger('')
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(debug_log_handler)
-    logger.addHandler(error_log_handler)
-    logger.addHandler(console)
-
-    ## Ensure only INFO level and above messages are sent to the console
-    console.setLevel(logging.INFO)
-
     asyncio.run(main())

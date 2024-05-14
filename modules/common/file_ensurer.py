@@ -66,6 +66,9 @@ class FileEnsurer():
     ## favicon
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
 
+    ## js save to file
+    js_save_to_file_path = os.path.join(gui_lib, "save_to_file.js")
+
     DEFAULT_KIJIKU_RULES = {
     "base translation settings": {
         "prompt_assembly_mode": 1,

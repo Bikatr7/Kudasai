@@ -19,7 +19,7 @@ from handlers.json_handler import JsonHandler
 
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.toolkit import Toolkit
-from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError, DeepLException
+from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthorizationException, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError, DeepLException
 from modules.common.decorators import permission_error_decorator
 
 ##-------------------start-of-Translator--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -269,7 +269,7 @@ class Translator:
                 FileEnsurer.standard_overwrite_file(api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
                 
             ## if invalid key exit
-            except (GoogleAuthError, AuthenticationError):
+            except (GoogleAuthError, AuthenticationError, AuthorizationException):
                     
                 Toolkit.clear_console()
 
@@ -391,7 +391,7 @@ class Translator:
 
         """
 
-        logging.debug(f"Translator Activated, Translation Method : {Translator.TRANSLATION_METHOD}"
+        logging.debug(f"Translator Activated, Translation Method : {Translator.TRANSLATION_METHOD} "
                      f"Settings are as follows : ")
         
         JsonHandler.log_translation_settings()
@@ -526,11 +526,11 @@ class Translator:
 
         else:
 
-            for batch in translation_batches:
+            for i, batch in enumerate(translation_batches):
 
                 assert isinstance(batch, str)
 
-                async_requests.append(Translator.handle_translation(model, 0, len(translation_batches), batch, None))
+                async_requests.append(Translator.handle_translation(model, i, len(translation_batches), batch, None))
 
         return async_requests
 
@@ -738,7 +738,7 @@ class Translator:
 
                 batch_number = (batch_index // 2) + 1
 
-                logging.info(f"Trying translation for batch {batch_number} of {length_of_batch//2}...")
+                logging.info(f"Trying translation for batch {batch_number} of {length_of_batch//2 + 1}...")
 
                 try:
 
@@ -784,20 +784,20 @@ class Translator:
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
 
-                    logging.warning(f"Batch {batch_number} of {length_of_batch//2} was not translated due to exceeding the max request duration, returning the untranslated text...")
+                    logging.error(f"Batch {batch_number} of {length_of_batch//2} was not translated due to exceeding the max request duration, returning the untranslated text...")
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
                 ## since gemini is free, we can just try again if it's malformed
-                if("gpt-4" not in model and Translator.TRANSLATION_METHOD not in ["openai", "deepl"]):
+                ## deepl should produce properly formatted text so we don't need to check
+                if("gpt-4" not in model and Translator.TRANSLATION_METHOD == "openai"):
                     break
 
                 if(await Translator.check_if_translation_is_good(translated_message, text_to_translate)): # type: ignore
-                    logging.info(f"Translation for batch {batch_number} of {length_of_batch//2} successful!")
                     break
 
                 if(num_tries >= Translator.num_of_malform_retries):
-                    logging.info(f"Batch {batch_number} of {length_of_batch//2} was malformed but exceeded the max number of retries ({Translator.num_of_malform_retries}), returning the untranslated text...")
+                    logging.warning(f"Batch {batch_number} of {length_of_batch//2} was malformed but exceeded the max number of retries ({Translator.num_of_malform_retries})")
                     break
 
                 else:
@@ -810,6 +810,8 @@ class Translator:
 
             if(isinstance(translated_message, typing.List)):
                 translated_message = ''.join(translated_message) # type: ignore
+
+            logging.info(f"Translation for batch {batch_number} of {length_of_batch//2} completed.")
 
             return batch_index, text_to_translate, translated_message # type: ignore
     

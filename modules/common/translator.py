@@ -325,9 +325,17 @@ class Translator:
 
         print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
 
+        method_to_section_dict = {
+            "openai": "openai settings",
+            "gemini": "gemini settings",
+            "deepl": "deepl settings"
+        }
+        
+        section_to_target = method_to_section_dict[Translator.TRANSLATION_METHOD]
+
         try:
 
-            JsonHandler.log_translation_settings(output_to_console=True)
+            JsonHandler.log_translation_settings(output_to_console=True, specific_section=section_to_target)
 
         except:
             Toolkit.clear_console()
@@ -338,7 +346,7 @@ class Translator:
                 JsonHandler.load_translation_settings()
 
                 print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
-                JsonHandler.log_translation_settings(output_to_console=True)
+                JsonHandler.log_translation_settings(output_to_console=True, specific_section=section_to_target)
 
             else:
                 FileEnsurer.exit_kudasai()

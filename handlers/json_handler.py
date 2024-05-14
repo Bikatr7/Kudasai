@@ -292,7 +292,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 ##-------------------start-of-log_translation_settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def log_translation_settings(output_to_console:bool=False) -> None:
+    def log_translation_settings(output_to_console:bool=False, specific_section:str | None = None) -> None:
 
         """
 
@@ -305,6 +305,12 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
         """
         
         sections = ["base translation settings", "openai settings", "gemini settings", "deepl settings"]
+
+        if(specific_section is not None):
+            for section in sections:
+                ## remove sections that don't match the specific section except for the base translation settings
+                if(specific_section.lower() != section.lower() and section != "base translation settings"):
+                    sections.remove(section)
 
         for section in sections:
             print("-------------------")

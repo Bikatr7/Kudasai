@@ -255,7 +255,7 @@ deepl_formality : The formality of the text. Possible values are 'default', 'mor
 
         """
 
-        JsonHandler.current_translation_settings = FileEnsurer.DEFAULT_KIJIKU_RULES
+        JsonHandler.current_translation_settings = FileEnsurer.DEFAULT_TRANSLATION_SETTING
         
         JsonHandler.dump_translation_settings()
 

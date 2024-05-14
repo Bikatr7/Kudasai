@@ -69,7 +69,7 @@ class FileEnsurer():
     ## js save to file
     js_save_to_file_path = os.path.join(gui_lib, "save_to_file.js")
 
-    DEFAULT_KIJIKU_RULES = {
+    DEFAULT_TRANSLATION_SETTING = {
     "base translation settings": {
         "prompt_assembly_mode": 1,
         "number_of_lines_per_batch": 36,
@@ -184,7 +184,7 @@ class FileEnsurer():
         ## creates the kijiku rules file if it doesn't exist
         if(os.path.exists(FileEnsurer.config_translation_settings_path) == False):
             with open(FileEnsurer.config_translation_settings_path, 'w+', encoding='utf-8') as file:
-                json.dump(FileEnsurer.DEFAULT_KIJIKU_RULES, file)
+                json.dump(FileEnsurer.DEFAULT_TRANSLATION_SETTING, file)
 
 ##-------------------start-of-purge_storage()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 

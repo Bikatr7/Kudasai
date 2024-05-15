@@ -185,7 +185,12 @@ class Translator:
             "3": ("deepl", FileEnsurer.deepl_api_key_path),
         }
         
-        method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl) : \n")
+        method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl, or any other key to exit) : \n")
+
+        if(method not in translation_methods.keys()):
+            print("\nThank you for using Kudasai, goodbye.")
+            time.sleep(2)
+            FileEnsurer.exit_kudasai()
         
         Translator.TRANSLATION_METHOD, api_key_path = translation_methods.get(method, ("deepl", FileEnsurer.deepl_api_key_path))
         

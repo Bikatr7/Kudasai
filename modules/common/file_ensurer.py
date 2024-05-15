@@ -71,7 +71,7 @@ class FileEnsurer():
     js_save_to_file_path = os.path.join(gui_lib, "save_to_file.js")
 
     ## translation settings description
-    translation_settings_description_path = os.path.join(jsons_dir, "translation_settings_description.txt")
+    translation_settings_description_path = os.path.join(common_lib, "translation_settings_description.txt")
 
     DEFAULT_TRANSLATION_SETTING = {
     "base translation settings": {

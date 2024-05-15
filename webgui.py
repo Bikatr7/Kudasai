@@ -8,6 +8,7 @@ import gradio as gr
 from kairyou import Indexer
 from kairyou import Kairyou
 from kairyou import InvalidReplacementJsonKeys
+from kairyou.util import _validate_replacement_json
 
 from easytl import EasyTL, ALLOWED_GEMINI_MODELS, ALLOWED_OPENAI_MODELS
 
@@ -783,6 +784,13 @@ class KudasaiGUI:
 
                             text_to_index = gui_get_text_from_file(input_txt_file)
                             replacements = gui_get_json_from_file(input_json_file_preprocessing)
+                            
+                            ## DON"T DO THIS, THIS IS BAD PRACTICE, I'M JUST DOING BECAUSE I'M LAZY AND I MADE THE LIBRARY
+                            try:
+                                _validate_replacement_json(replacements)
+
+                            except InvalidReplacementJsonKeys:
+                                raise gr.Error("Invalid JSON file, please ensure that the JSON file contains the correct keys See https://github.com/Bikatr7/Kairyou for more information.")
 
                             if(input_knowledge_base_file is not None):
                                 knowledge_base_paths.append(input_knowledge_base_file)

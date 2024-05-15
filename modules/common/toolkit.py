@@ -181,7 +181,7 @@ class Toolkit():
 ##-------------------start-of-check_update()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def check_update() -> typing.Tuple[bool, str]:
+    def check_update(do_pause:bool=True) -> typing.Tuple[bool, str]:
 
         """
 

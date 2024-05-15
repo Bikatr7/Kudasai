@@ -17,7 +17,7 @@ class GuiJsonUtil:
 ##-------------------start-of-fetch_kijiku_setting_key_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def fetch_kijiku_setting_key_values(header:str, key_name:str) -> str:
+    def fetch_translation_settings_key_values(header:str, key_name:str) -> str:
         
         """
         
@@ -34,10 +34,10 @@ class GuiJsonUtil:
         ## Done this way because if the value is None, it'll be shown as a blank string in the settings tab, which is not what we want.
         return GuiJsonUtil.current_translation_settings[header].get(key_name, "None")
     
-##-------------------start-of-update_kijiku_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-update_translation_settings_with_new_values()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def update_kijiku_settings_with_new_values(gradio_translation_settings:gr.File, new_values:typing.List[typing.Tuple[str,str]]) -> None:
+    def update_translation_settings_with_new_values(gradio_translation_settings:gr.File, new_values:typing.List[typing.Tuple[str,str]]) -> None:
 
         """
         

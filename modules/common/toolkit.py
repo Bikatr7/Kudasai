@@ -226,7 +226,8 @@ class Toolkit():
 
             print("You seem to lack an internet connection, this will prevent you from checking from update notification and machine translation.\n")
 
-            Toolkit.pause_console()
+            if(do_pause):
+                Toolkit.pause_console()
 
             is_connection = False
 

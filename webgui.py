@@ -389,7 +389,8 @@ class KudasaiGUI:
 
                         with gr.Column():
                             gr.Markdown("Base Translation Settings")
-                            gr.Markdown("These settings are used for both OpenAI, Gemini, and DeepL.")
+                            gr.Markdown("These settings are used for OpenAI, Gemini, and DeepL.")
+                            gr.Markdown("Please ensure to thoroughly read and understand these settings before making any modifications. Each setting has a specific impact on the translation methods. Some settings may affect one or two translation methods, but not the others. Incorrect adjustments could lead to unexpected results or errors in the translation process.")
 
 
                             self.prompt_assembly_mode_input_field = gr.Dropdown(label='Prompt Assembly Mode',
@@ -658,6 +659,7 @@ class KudasaiGUI:
                                     
                                 gr.Markdown("DeepL API Settings")
                                 gr.Markdown(str(KudasaiGUI.description_dict.get("deepl_help_link")))
+                                gr.Markdown("DeepL API settings are not as extensive as OpenAI and Gemini, a lot of the settings are simply not included for Kudasai as they do not have a decent use case to warrant their inclusion. Settings may be added in the future if a use case is found or is suggested.")
 
                                 self.deepl_context_input_field = gr.Textbox(label="DeepL Context",
                                                                         value=str(GuiJsonUtil.fetch_translation_settings_key_values("deepl settings","deepl_context")),

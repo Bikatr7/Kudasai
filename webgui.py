@@ -325,19 +325,19 @@ class KudasaiGUI:
 
                         ## output fields
                         with gr.Column():
-                            self.preprocessing_output_field  = gr.Textbox(label='Preprocessed text', lines=44, max_lines=44, show_label=True, interactive=False, show_copy_button=True)
+                            self.preprocessing_output_field  = gr.Textbox(label='Preprocessed text', lines=42, max_lines=42, show_label=True, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessed_text = gr.Button('Save As')
                             
                         with gr.Column():
-                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=44, max_lines=44, interactive=False, show_copy_button=True)
+                            self.preprocessing_results_output_field = gr.Textbox(label='Preprocessing Results', lines=42, max_lines=42, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_preprocessing_results = gr.Button('Save As')
 
                         with gr.Column():
-                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=44, max_lines=44, interactive=False, show_copy_button=True)
+                            self.debug_log_output_field_preprocess_tab = gr.Textbox(label='Debug Log', lines=42, max_lines=42, interactive=False, show_copy_button=True)
 
                             with gr.Row():
                                 self.save_to_file_debug_log_preprocessing_tab = gr.Button('Save As')

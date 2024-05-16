@@ -359,9 +359,25 @@ async def run_cli_version():
 
     try:
 
-        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
-        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"') if(len(sys.argv) >= 3) else FileEnsurer.blank_rules_path)
-        Kudasai.knowledge_base = sys.argv[3].strip('"') if(len(sys.argv) == 4) else ""
+        text_to_preprocess_index = 1
+        replacement_json_index = 2
+        knowledge_base_index = 3
+
+        replacement_json_boundary = 3
+        knowledge_base_boundary = 4
+
+        if(sys.argv[1] == "preprocess"):
+            text_to_preprocess_index = 2
+            replacement_json_index = 3
+            knowledge_base_index = 4
+
+            replacement_json_boundary = 4
+            knowledge_base_boundary = 5
+            
+
+        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[text_to_preprocess_index].strip('"'))
+        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[replacement_json_index].strip('"') if(len(sys.argv) >= replacement_json_boundary) else FileEnsurer.blank_rules_path)
+        Kudasai.knowledge_base = sys.argv[knowledge_base_index].strip('"') if(len(sys.argv) == knowledge_base_boundary) else ""
 
     except Exception as e:
         print_usage_statement()

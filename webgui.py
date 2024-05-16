@@ -1151,10 +1151,8 @@ class KudasaiGUI:
 
                 """
 
-                ## also needs to clear the log and error log files
-                FileEnsurer.standard_overwrite_file(FileEnsurer.debug_log_path, "")
-                FileEnsurer.standard_overwrite_file(FileEnsurer.error_log_path, "")
 
+                ## We don't actually clear the logs as they need to be kept. We just clear the output fields
                 logging_tab_debug_log_output_field = ""
                 logging_tab_error_log_output_field = ""
 

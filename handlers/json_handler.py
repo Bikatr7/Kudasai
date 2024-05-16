@@ -230,15 +230,16 @@ class JsonHandler:
         
         ## if a specific section is provided, only print that section and base translation settings
         if(specific_section is not None):
-            sections = [section for section in sections if section.lower() == specific_section.lower() or section == "base translation settings"]
-        
+            specific_section = specific_section.lower()
+            sections = [section for section in sections if section.lower() == specific_section or section == "base translation settings"]
+
         for section in sections:
             print("-------------------")
             print(f"{section.capitalize()}:")
             print("-------------------")
         
-            for key, value in JsonHandler.current_translation_settings[section].items():
-                log_message = f"{key} : {str(value)}"
+            for key, value in JsonHandler.current_translation_settings.get(section, {}).items():
+                log_message = f"{key} : {value}"
                 logging.debug(log_message)
                 if(output_to_console):
                     print(log_message)

@@ -358,39 +358,28 @@ async def run_cli_version():
     """
 
     try:
-
-        text_to_preprocess_index = 1
-        replacement_json_index = 2
-        knowledge_base_index = 3
-
-        replacement_json_boundary = 3
-        knowledge_base_boundary = 4
-
-        if(sys.argv[1] == "preprocess"):
-            text_to_preprocess_index = 2
-            replacement_json_index = 3
-            knowledge_base_index = 4
-
-            replacement_json_boundary = 4
-            knowledge_base_boundary = 5
-            
-
-        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[text_to_preprocess_index].strip('"'))
-        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[replacement_json_index].strip('"') if(len(sys.argv) >= replacement_json_boundary) else FileEnsurer.blank_rules_path)
-        Kudasai.knowledge_base = sys.argv[knowledge_base_index].strip('"') if(len(sys.argv) == knowledge_base_boundary) else ""
-
+        indices = {
+            "preprocess": {"text_to_preprocess_index": 2, "replacement_json_index": 3, "knowledge_base_index": 4},
+            "default": {"text_to_preprocess_index": 1, "replacement_json_index": 2, "knowledge_base_index": 3}
+        }
+    
+        arg_indices = indices['preprocess'] if sys.argv[1] == "preprocess" else indices['default']
+    
+        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[arg_indices['text_to_preprocess_index']].strip('"'))
+        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[arg_indices['replacement_json_index']].strip('"')) if len(sys.argv) >= arg_indices['replacement_json_index'] + 1 else FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)
+        Kudasai.knowledge_base = sys.argv[arg_indices['knowledge_base_index']].strip('"') if len(sys.argv) == arg_indices['knowledge_base_index'] + 1 else ""
+    
     except Exception as e:
         print_usage_statement()
-
         raise e
-
-    if(len(sys.argv) == 2):
-        Kudasai.need_to_run_kairyou = False
-
-    if(len(sys.argv) == 3):
-        Kudasai.need_to_run_indexer = False
-
-    await Kudasai.run_kudasai()
+    
+    else:
+        if(len(sys.argv) == 2):
+            Kudasai.need_to_run_kairyou = False
+        elif(len(sys.argv) == 3):
+            Kudasai.need_to_run_indexer = False
+    
+        await Kudasai.run_kudasai()
 
 ##-------------------start-of-print_usage_statement()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

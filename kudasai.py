@@ -34,8 +34,10 @@ class Kudasai:
     
     text_to_preprocess:str
     replacement_json:dict
+    knowledge_base:str
 
     need_to_run_kairyou:bool = True
+    need_to_run_indexer:bool = True
 
 ##-------------------start-of-setup_logging()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -83,7 +85,7 @@ class Kudasai:
 
         """
         
-        Does some logging and sets up the console window, regardless of whether the user is running the CLI, WebGUI, or Console version of Kudasai.
+        Does some logging and sets up the console window, and translator settings, regardless of whether the user is running the CLI, WebGUI, or Console version of Kudasai.
 
         """
 
@@ -102,8 +104,8 @@ class Kudasai:
 
         try:
 
-            with open(FileEnsurer.config_translation_settings_path, "r") as kijiku_rules_file:
-                JsonHandler.current_translation_settings = json.load(kijiku_rules_file)
+            with open(FileEnsurer.config_translation_settings_path, "r") as translation_settings:
+                JsonHandler.current_translation_settings = json.load(translation_settings)
 
             JsonHandler.validate_json()
 
@@ -120,7 +122,7 @@ class Kudasai:
 ##-------------------start-of-run_kairyou_indexer()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def run_kairyou_indexer(text_to_index:str, replacement_json:typing.Union[dict,str]) -> typing.Tuple[str, str]:
+    def run_kairyou_indexer(text_to_index:str, replacement_json:typing.Union[dict,str], knowledge_base:str) -> typing.Tuple[str, str]:
 
         """
 
@@ -137,8 +139,6 @@ class Kudasai:
         """
 
         Toolkit.clear_console()
-
-        knowledge_base = input("Please enter the path to the knowledge base you would like to use for the indexer (can be text, a path to a txt file, or a path to a directory of txt files):\n").strip('"')
 
         ## unique names is a list of named tuples, with the fields name and occurrence
         unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base, replacement_json)
@@ -206,8 +206,13 @@ class Kudasai:
 
             indexing_log = ""
 
-            if(Kudasai.replacement_json not in ["", FileEnsurer.blank_rules_path, FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)] and input("Would you like to use Kairyou's Indexer to index the preprocessed text? (1 for yes, 2 for no)\n") == "1"):
-                Kudasai.text_to_preprocess, indexing_log = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json)
+            if(Kudasai.replacement_json not in ["", 
+                                                FileEnsurer.blank_rules_path, 
+                                                FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)] 
+
+               and Kudasai.need_to_run_indexer
+               and Kudasai.knowledge_base != ""):
+                Kudasai.text_to_preprocess, indexing_log = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json, Kudasai.knowledge_base)
 
             preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json)
 
@@ -300,7 +305,7 @@ async def main() -> None:
         if(len(sys.argv) <= 1):
             await run_console_version()
         
-        elif(len(sys.argv) in [2, 3]):
+        elif(len(sys.argv) in [2, 3, 4]):
             await run_cli_version()
 
         else:
@@ -329,10 +334,16 @@ async def run_console_version():
         Kudasai.replacement_json = FileEnsurer.standard_read_json(path_to_replacement_json if path_to_replacement_json else FileEnsurer.blank_rules_path)
         Toolkit.clear_console()
 
+        if(path_to_replacement_json != ""):
+            Kudasai.knowledge_base = input("Please enter the path to the knowledge base you would like to use for the name indexer (can be text, a path to a txt file, or a path to a directory of txt files (Press enter if skipping name indexing):\n").strip('"')
+            Toolkit.clear_console()
+
     except Exception as e:
         print_usage_statement()
 
         raise e
+    
+    print("In progress...")
 
     await Kudasai.run_kudasai()
 
@@ -349,7 +360,8 @@ async def run_cli_version():
     try:
 
         Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[1].strip('"'))
-        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"') if(len(sys.argv) == 3) else FileEnsurer.blank_rules_path)
+        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[2].strip('"') if(len(sys.argv) >= 3) else FileEnsurer.blank_rules_path)
+        Kudasai.knowledge_base = sys.argv[3].strip('"') if(len(sys.argv) == 4) else ""
 
     except Exception as e:
         print_usage_statement()
@@ -358,6 +370,9 @@ async def run_cli_version():
 
     if(len(sys.argv) == 2):
         Kudasai.need_to_run_kairyou = False
+
+    if(len(sys.argv) == 3):
+        Kudasai.need_to_run_indexer = False
 
     await Kudasai.run_kudasai()
 

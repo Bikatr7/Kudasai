@@ -48,7 +48,7 @@ class Translator:
     ## meanwhile for gemini, we just need to send the prompt and the text to be translated concatenated together
     gemini_translation_batches:typing.List[str] = []
 
-    ## same as above, but for deepl
+    ## same as above, but for deepl, just the text to be translated
     deepl_translation_batches:typing.List[str] = []
 
     num_occurred_malformed_batches = 0
@@ -124,6 +124,9 @@ class Translator:
 
         Parameters:
         details (dict) : the details of the failure.
+
+        Raises:
+        MaxBatchDurationExceededException : An exception that is raised when the max batch duration is exceeded.
 
         """
 
@@ -322,6 +325,8 @@ class Translator:
         Translator.num_occurred_malformed_batches = 0
         Translator.translation_print_result = ""
         Translator.TRANSLATION_METHOD = "openai"
+        Translator.pre_provided_api_key = ""
+        Translator.is_cli = False
 
 ##-------------------start-of-check-settings()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -15,7 +15,7 @@ class Toolkit():
 
     """
 
-    CURRENT_VERSION = "v3.4.5-beta"
+    CURRENT_VERSION = "v3.4.5-beta-2"
 
 ##-------------------start-of-clear_console()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,7 +91,6 @@ class Toolkit():
                     termios.tcsetattr(0, termios.TCSANOW, old_settings)
 
         except ImportError:
-
             pass
 
 ##-------------------start-of-maximize_window()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -186,6 +185,9 @@ class Toolkit():
         """
 
         Determines if Kudasai has a new latest release, and confirms if an internet connection is present or not.
+
+        Parameters:
+        do_pause (bool | optional | default=True) : Whether or not to pause the console after displaying the update prompt.
 
         Returns:
         is_connection (bool) : Whether or not the user has an internet connection.

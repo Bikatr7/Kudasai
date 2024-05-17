@@ -1,21 +1,25 @@
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 **Table of Contents**
 
-- [Notes](#notes)
-- [Dependencies](#dependencies)
-- [Quick Start](#quick-start)
-- [Command Line Interface](#cli)
-- [Preprocessor](#preprocessing)
-- [Translator](#translator)
-- [Translator Settings](#translator-settings)
-- [Web GUI](#webgui)
-- [Hugging Face](#huggingface)
-- [License](#license)
-- [Contact](#contact)
-- [Acknowledgements](#acknowledgements)
+- [**Notes**](#notes)
+- [**Dependencies**](#dependencies)
+- [**Quick Start**](#quick-start)
+- [**Command Line Interface (CLI)**](#command-line-interface-cli)
+  - [Usage](#usage)
+    - [Preprocess Mode](#preprocess-mode)
+    - [Translate Mode](#translate-mode)
+  - [Additional Notes](#additional-notes)
+- [**Preprocessing**](#preprocessing)
+- [**Translator**](#translator)
+- [**Translator Settings**](#translator-settings)
+- [**Web GUI**](#web-gui)
+- [**Hugging Face**](#hugging-face)
+- [**License**](#license)
+- [**Contact**](#contact)
+- [**Acknowledgements**](#acknowledgements)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-**Notes**<a name="notes"></a>
+## **Notes**<a name="notes"></a>
 
 Windows 10 and Linux Mint are the only tested operating systems, feel free to test on other operating systems and report back to me. I will do my best to fix any issues that arise.
 
@@ -33,7 +37,7 @@ Kudasai is proud to have been a Backdrop Build v3 Finalist:
 https://backdropbuild.com/builds/v3/kudasai
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-**Dependencies**<a name="dependencies"></a>
+## **Dependencies**<a name="dependencies"></a>
 
 backoff==2.2.1
 
@@ -58,7 +62,7 @@ python3 -m spacy download ja_core_news_lg
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-**Quick Start**<a name="quick-start"></a>
+## **Quick Start**<a name="quick-start"></a>
 
 Windows is assumed for the rest of this README, but the process should be similar for Linux. This is for the console version, for something less linear, see the [Web GUI](#webgui) section.
 
@@ -105,29 +109,68 @@ Old runs are stored in the archive folder in output as well.
 If you have any questions, comments, or concerns, please feel free to open an issue.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-**Command Line Interface**<a name="cli"></a>
+## **Command Line Interface (CLI)**<a name="cli"></a>
 
-Kudasai has a rudimentary CLI, it currently only works for preprocessing. This is planned to be expanded in the future.
+Kudasai provides a Command Line Interface (CLI) for preprocessing and translating text files. This section details how to use the CLI, including the required and optional arguments for each mode.
 
-If you wish to use the CLI, you can do so by opening a command prompt and entering the following:
+### Usage
 
-```python Path to kudasai.py Path to the text you are preprocessing Path to the replacement json file```
+The CLI supports two modes: `preprocess` and `translate`. Each mode requires specific arguments to function properly.
 
-i.e.
+#### Preprocess Mode
 
-    Path to Kudasai.py
+The `preprocess` mode preprocesses the text file using the provided replacement JSON file. 
 
-    Path to the text you are preprocessing
+**Command Structure:**
 
-    Path to the replacement json file
+```bash
+python path_to_kudasai.py preprocess <input_file> <replacement_json> [<knowledge_base>]
+```
 
-See an example of a command line entry below
+**Required Arguments:**
+- `<input_file>`: Path to the text file to preprocess.
+- `<replacement_json>`: Path to the replacement JSON file.
 
-![Example CMD](https://i.imgur.com/eQmVaYY.png)
+**Optional Arguments:**
+- `<knowledge_base>`: Path to the knowledge base file (directory, file, or text).
+
+**Example:**
+
+```bash
+python C:\\path\\to\\kudasai.py preprocess "C:\\path\\to\\input_file.txt" "C:\\path\\to\\replacement_json.json" "C:\\path\\to\\knowledge_base"
+```
+
+#### Translate Mode
+
+The `translate` mode translates the text file using the specified translation method.
+
+**Command Structure:**
+
+```bash
+python path_to_kudasai.py translate <input_file> <translation_method> [<translation_settings_json>] [<api_key>]
+```
+
+**Required Arguments:**
+- `<input_file>`: Path to the text file to translate.
+
+**Optional Arguments:**
+- `<translation_method>`: Translation method to use (`'deepl'`, `'openai'`, or `'gemini'`). Defaults to `'deepl'`.
+- `<translation_settings_json>`: Path to the translation settings JSON file (overrides current settings).
+- `<api_key>`: API key for the translation service. If not provided, it will use the in the settings directory or prompt for it if that's not found.
+
+**Example:**
+
+```bash
+python C:\\path\\to\\kudasai.py translate "C:\\path\\to\\input_file.txt" gemini "C:\\path\\to\\translation_settings.json" "YOUR_API_KEY"
+```
+
+### Additional Notes
+- All arguments should be enclosed in double quotes if they contain spaces. Double quotes are optional and will be stripped. Single quotes are not allowed.
+- For more information, refer to the documentation at `README.md`.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Preprocessing**<a name="preprocessing"></a>
+## **Preprocessing**<a name="preprocessing"></a>
 
 Preprocessing is the act of preparing text for translation by replacing certain words or phrases with their translated counterparts. 
 
@@ -142,7 +185,7 @@ Kudasai/Kairyou works with both Kudasai and Fukuin Json's, the below is a Kudasa
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Translator**<a name="translator"></a>
+## **Translator**<a name="translator"></a>
 
 Kudasai uses EasyTL for translation, which is a versatile translation library that uses several translation APIs to translate text.
 
@@ -158,7 +201,7 @@ The settings are fairly complex, see the below section [Translator Settings](#tr
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Translator Settings**<a name="translator-settings"></a>
+## **Translator Settings**<a name="translator-settings"></a>
 
 (Fairly technical, can be abstracted away by using default settings or someone else's settings file.)
 
@@ -241,7 +284,7 @@ The settings are fairly complex, see the below section [Translator Settings](#tr
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Web GUI**<a name="webgui"></a>
+## **Web GUI**<a name="webgui"></a>
 
 Kudasai also offers a Web GUI. It has all the main functionality of the program but in an easier and non-linear way.
 
@@ -271,7 +314,7 @@ Logging Page:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Hugging Face**<a name="huggingface"></a>
+## **Hugging Face**<a name="huggingface"></a>
 
 For those who are interested, or simply cannot run Kudasai locally, a instance of Kudasai's WebGUI is hosted on Hugging Face's servers. You can find it [here](https://huggingface.co/spaces/Bikatr7/Kudasai).
 
@@ -280,7 +323,7 @@ It's a bit slower than running it locally, but it's a good alternative for those
 To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-**License**<a name="license"></a>
+## **License**<a name="license"></a>
 
 This project (Kudasai) is licensed under the GNU General Public License (GPL). You can find the full text of the license in the [LICENSE](License.md) file.
 
@@ -289,7 +332,7 @@ The GPL is a copyleft license that promotes the principles of open-source softwa
 Please note that this information is a brief summary of the GPL. For a detailed understanding of your rights and obligations under this license, please refer to the full license text.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-**Contact**<a name="contact"></a>
+## **Contact**<a name="contact"></a>
 
 If you have any questions, comments, or concerns, please feel free to contact me at [Bikatr7@proton.me](mailto:Bikatr7@proton.me)
 
@@ -299,7 +342,7 @@ I actively encourage and welcome any feedback on this project.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-**Acknowledgements**<a name="acknowledgements"></a>
+## **Acknowledgements**<a name="acknowledgements"></a>
 
 Kudasai gets it's original name idea from it's inspiration, Atreyagaurav's Onegai. Which also means please. You can find that [here](https://github.com/Atreyagaurav/onegai)
 

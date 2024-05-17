@@ -209,9 +209,10 @@ class Translator:
         Translator.TRANSLATION_METHOD, api_key_path = translation_methods.get(method, ("deepl", FileEnsurer.deepl_api_key_path))
         
         if(Translator.pre_provided_api_key != ""):
+            encoded_key = base64.b64encode(Translator.pre_provided_api_key.encode('utf-8')).decode('utf-8')
             Translator.pre_provided_api_key = ""
             with open(api_key_path, 'w+', encoding='utf-8') as file: 
-                file.write(base64.b64encode(Translator.pre_provided_api_key.encode('utf-8')).decode('utf-8'))
+                file.write(encoded_key)
 
         await Translator.init_api_key(Translator.TRANSLATION_METHOD.capitalize(), api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
         

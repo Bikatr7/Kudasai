@@ -368,44 +368,37 @@ async def run_cli_version():
 
         """
 
-        conditions = {
-            arg in ["deepl", "openai", "gemini"]: "translation_method",
-            os.path.exists(arg) and not ".json" in arg: "text_to_translate",
-            len(arg) > 10 and not os.path.exists(arg): "api_key",
-            arg == "translate": "identifier",
-            os.path.exists(arg) and ".json" in arg: "translation_settings_json"
-        }
+        conditions = [
+            (lambda arg: arg in ["deepl", "openai", "gemini"], "translation_method"),
+            (lambda arg: os.path.exists(arg) and not ".json" in arg, "text_to_translate"),
+            (lambda arg: len(arg) > 10 and not os.path.exists(arg), "api_key"),
+            (lambda arg: arg == "translate", "identifier"),
+            (lambda arg: os.path.exists(arg) and ".json" in arg, "translation_settings_json")
+        ]
 
-        for condition, result in conditions.items():
-            if(condition):
+        for condition, result in conditions:
+            if(condition(arg)):
                 print(result)
                 return result
 
         raise Exception("Invalid argument. Please use 'deepl', 'openai', or 'gemini'.")
         
-
     mode = ""
 
     try:
+
         indices = {
             "preprocess": {"text_to_preprocess_index": 2, "replacement_json_index": 3, "knowledge_base_index": 4},
-            "default": {"text_to_preprocess_index": 1, "replacement_json_index": 2, "knowledge_base_index": 3},
-            "translate": {"text_to_translate_index": 2, "translation method_index": 3, "translation_settings_json_index": 4, "api_key_index": 5} 
+            "translate": {"text_to_translate_index": 2}
         }
 
-        if(sys.argv[1] in ["translate", "preprocess"]):
+        try:
             arg_indices = indices[sys.argv[1]]
             mode = sys.argv[1]
 
-        else:
-            arg_indices = indices['default']    
-            mode = "preprocess"
-
-        method_to_mode = {
-            "openai": "1",
-            "gemini": "2",
-            "deepl": "3"
-        }
+        except KeyError:
+            print_usage_statement()
+            raise Exception("Invalid mode. Please use 'preprocess' or 'translate'. See --help for more information.")
         
         if(mode == "preprocess"):
     
@@ -422,34 +415,31 @@ async def run_cli_version():
 
         else:
 
-            arg_list = []
+            method_to_translation_mode = {
+                "openai": "1",
+                "gemini": "2",
+                "deepl": "3"
+            }
 
             Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[arg_indices['text_to_translate_index']].strip('"'))
             
             sys.argv.pop(0)
 
-            for arg in sys.argv:
-                arg = arg.strip('"')
-                arg_list.append((arg, determine_argument_type(arg)))
+            arg_dict = {arg.strip('"'): determine_argument_type(arg.strip('"')) for arg in sys.argv}
 
-            assert len(arg_list) == len(set(arg_list)), "Invalid arguments. Please use --help for more information."
+            assert len(arg_dict) == len(set(arg_dict)), "Invalid arguments. Please use --help for more information."
 
-            for arg, arg_type in arg_list:
-                if(arg_type == "translation_method"):
-                    Translator.TRANSLATION_METHOD = method_to_mode[arg] # type: ignore
+            arg_type_action_map = {
+                "translation_method": lambda arg: setattr(Translator, 'TRANSLATION_METHOD', method_to_translation_mode[arg]),
+                "translation_settings_json": lambda arg: setattr(JsonHandler, 'current_translation_settings', FileEnsurer.standard_read_json(arg)),
+                "api_key": lambda arg: setattr(Translator, 'pre_provided_api_key', arg),
+                "identifier": lambda arg: None,
+                "text_to_translate": lambda arg: setattr(Kudasai, 'text_to_preprocess', FileEnsurer.standard_read_file(arg))
+            }
 
-                elif(arg_type == "translation_settings_json"):
-                    JsonHandler.current_translation_settings = FileEnsurer.standard_read_json(arg)
-
-                elif("api_key" == arg_type):
-                    Translator.pre_provided_api_key = arg
-
-                elif("identifier" == arg_type):
-                    pass
-
-                elif("text_to_translate" == arg_type):
-                    Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(arg)
-
+            for arg, arg_type in arg_dict.items():
+                if(arg_type in arg_type_action_map):
+                    arg_type_action_map[arg_type](arg)
                 else:
                     raise Exception("Invalid argument type. Please use --help for more information.")
 

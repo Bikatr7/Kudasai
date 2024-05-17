@@ -82,7 +82,7 @@ You can choose between OpenAI, Gemini, and DeepL. Each have their own pros and c
 
 Next, Kudasai will ask you to confirm it's settings. This can be overwhelming, but you can simply enter 1 to confirm and use the default settings. If you wish to change them, you can do so here.
 
-<!--- See the [Kijiku Settings](#kijiku-settings) section for more information on Kijiku's settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them. There is also a demo txt file in the demo folder that you can use to test Kudasai. --->
+See the [**Translator Settings**](#translator-settings) section for more information on Kudasai's Translation settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them. There is also a demo txt file in the demo folder that you can use to test Kudasai.
 
 Kudasai will then ask if you want to change your api key, simply enter 2 for now. 
 

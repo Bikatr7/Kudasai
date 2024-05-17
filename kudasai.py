@@ -389,7 +389,8 @@ async def run_cli_version():
 
         indices = {
             "preprocess": {"text_to_preprocess_index": 2, "replacement_json_index": 3, "knowledge_base_index": 4},
-            "translate": {"text_to_translate_index": 2}
+            "translate": {"text_to_translate_index": 2},
+            "--help": {}
         }
 
         try:
@@ -398,7 +399,7 @@ async def run_cli_version():
 
         except KeyError:
             print_usage_statement()
-            raise Exception("Invalid mode. Please use 'preprocess' or 'translate'. See --help for more information.")
+            raise Exception("Invalid mode. Please use 'preprocess' or 'translate'. Please use --help for more information.")
         
         if(mode == "preprocess"):
     
@@ -413,7 +414,7 @@ async def run_cli_version():
         
             await Kudasai.run_kudasai()
 
-        else:
+        elif(mode == "translate"):
 
             method_to_translation_mode = {
                 "openai": "1",
@@ -445,6 +446,9 @@ async def run_cli_version():
 
             await Kudasai.run_translator(is_cli=True)
 
+        else:
+            print_usage_statement() 
+
     except Exception as e:
         print_usage_statement()
         raise e
@@ -458,11 +462,44 @@ def print_usage_statement():
     Prints the usage statement for the CLI version of Kudasai.
 
     """
-
     python_command = "python" if Toolkit.is_windows() else "python3"
 
-    print(f"Usage: {python_command} Kudasai.py <input_file> <replacement_json>"
-          f" or run Kudasai.py without any arguments to run the console version.\n")
+    print(f"""
+Usage: {python_command} Kudasai.py <mode> <required_arguments> [optional_arguments]
+
+Modes:
+  preprocess
+    Preprocesses the text file using the provided replacement JSON.
+
+    Required arguments:
+      <input_file>              Path to the text file to preprocess. This a path to a text file
+      <replacement_json>        Path to the replacement JSON file. This is a path to a json file.
+
+    Optional arguments:
+      <knowledge_base>          Path to the knowledge base file. This can be either a directory, file, or even text.
+
+    Example:
+      {python_command} Kudasai.py preprocess "C:\\path\\to\\input_file.txt" "C:\\path\\to\\replacement_json.json" "C:\\path\\to\\knowledge_base"
+
+  translate
+    Translates the text file using the specified translation method.
+
+    Required arguments:
+      <input_file>              Path to the text file to translate. This is a txt file.
+
+    Optional arguments:
+      <translation_method>      Translation method to use ('deepl', 'openai', or 'gemini'). This defaults to deepl
+      <translation_settings_json> Path to the translation settings JSON file. This will override the current loaded settings.
+      <api_key>                  API key for the translation service. If not provided, it will use the one on file, otherwise it will ask if not provided
+
+    Example:
+      {python_command} Kudasai.py translate "C:\\path\\to\\input_file.txt" gemini "C:\\path\\to\\translation_settings.json" "YOUR API KEY"
+
+Additional Notes:
+- All arguments should be enclosed in double quotes if they contain spaces. But double quotes are optional and will be striped. Single quotes are not allowed
+- For more information, refer to the documentation at README.md
+""")
+
 
 ##-------------------start-of-submain()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

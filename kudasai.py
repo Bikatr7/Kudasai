@@ -6,6 +6,7 @@ import asyncio
 import re
 import typing
 import logging
+import argparse
 
 ## third-party libraries
 from kairyou import Kairyou
@@ -265,13 +266,15 @@ class Kudasai:
 ##-------------------start-of-run_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    async def run_translator() -> None:
+    async def run_translator(is_cli:bool=False) -> None:
 
         """
         
         If the user is running the CLI or Console version of Kudasai, this function is called to run the Translator module.
 
         """
+
+        Translator.is_cli = is_cli
 
         logging.info("Translator started")
 
@@ -305,7 +308,7 @@ async def main() -> None:
         if(len(sys.argv) <= 1):
             await run_console_version()
         
-        elif(len(sys.argv) in [2, 3, 4]):
+        elif(len(sys.argv) in [2, 3, 4, 5, 6]):
             await run_cli_version()
 
         else:
@@ -357,30 +360,105 @@ async def run_cli_version():
 
     """
 
+    def determine_argument_type(arg:str) -> str:
+
+        """
+
+        Determines the third argument for the CLI version of Kudasai.
+
+        """
+
+        conditions = {
+            arg in ["deepl", "openai", "gemini"]: "translation_method",
+            os.path.exists(arg) and not ".json" in arg: "text_to_translate",
+            len(arg) > 10 and not os.path.exists(arg): "api_key",
+            arg == "translate": "identifier",
+            os.path.exists(arg) and ".json" in arg: "translation_settings_json"
+        }
+
+        for condition, result in conditions.items():
+            if(condition):
+                print(result)
+                return result
+
+        raise Exception("Invalid argument. Please use 'deepl', 'openai', or 'gemini'.")
+        
+
+    mode = ""
+
     try:
         indices = {
             "preprocess": {"text_to_preprocess_index": 2, "replacement_json_index": 3, "knowledge_base_index": 4},
-            "default": {"text_to_preprocess_index": 1, "replacement_json_index": 2, "knowledge_base_index": 3}
+            "default": {"text_to_preprocess_index": 1, "replacement_json_index": 2, "knowledge_base_index": 3},
+            "translate": {"text_to_translate_index": 2, "translation method_index": 3, "translation_settings_json_index": 4, "api_key_index": 5} 
         }
+
+        if(sys.argv[1] in ["translate", "preprocess"]):
+            arg_indices = indices[sys.argv[1]]
+            mode = sys.argv[1]
+
+        else:
+            arg_indices = indices['default']    
+            mode = "preprocess"
+
+        method_to_mode = {
+            "openai": "1",
+            "gemini": "2",
+            "deepl": "3"
+        }
+        
+        if(mode == "preprocess"):
     
-        arg_indices = indices['preprocess'] if sys.argv[1] == "preprocess" else indices['default']
-    
-        Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[arg_indices['text_to_preprocess_index']].strip('"'))
-        Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[arg_indices['replacement_json_index']].strip('"')) if len(sys.argv) >= arg_indices['replacement_json_index'] + 1 else FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)
-        Kudasai.knowledge_base = sys.argv[arg_indices['knowledge_base_index']].strip('"') if len(sys.argv) == arg_indices['knowledge_base_index'] + 1 else ""
-    
+            Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[arg_indices['text_to_preprocess_index']].strip('"'))
+            Kudasai.replacement_json = FileEnsurer.standard_read_json(sys.argv[arg_indices['replacement_json_index']].strip('"')) if len(sys.argv) >= arg_indices['replacement_json_index'] + 1 else FileEnsurer.standard_read_json(FileEnsurer.blank_rules_path)
+            Kudasai.knowledge_base = sys.argv[arg_indices['knowledge_base_index']].strip('"') if len(sys.argv) == arg_indices['knowledge_base_index'] + 1 else ""
+
+            if(len(sys.argv) == 2):
+                Kudasai.need_to_run_kairyou = False
+            elif(len(sys.argv) == 3):
+                Kudasai.need_to_run_indexer = False
+        
+            await Kudasai.run_kudasai()
+
+        else:
+
+            arg_list = []
+
+            Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[arg_indices['text_to_translate_index']].strip('"'))
+            
+            sys.argv.pop(0)
+
+            for arg in sys.argv:
+                arg = arg.strip('"')
+                arg_list.append((arg, determine_argument_type(arg)))
+
+            assert len(arg_list) == len(set(arg_list)), "Invalid arguments. Please use --help for more information."
+
+            for arg, arg_type in arg_list:
+                if(arg_type == "translation_method"):
+                    Translator.TRANSLATION_METHOD = method_to_mode[arg] # type: ignore
+
+                elif(arg_type == "translation_settings_json"):
+                    JsonHandler.current_translation_settings = FileEnsurer.standard_read_json(arg)
+
+                elif("api_key" == arg_type):
+                    Translator.pre_provided_api_key = arg
+
+                elif("identifier" == arg_type):
+                    pass
+
+                elif("text_to_translate" == arg_type):
+                    Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(arg)
+
+                else:
+                    raise Exception("Invalid argument type. Please use --help for more information.")
+
+            await Kudasai.run_translator(is_cli=True)
+
     except Exception as e:
         print_usage_statement()
         raise e
     
-    else:
-        if(len(sys.argv) == 2):
-            Kudasai.need_to_run_kairyou = False
-        elif(len(sys.argv) == 3):
-            Kudasai.need_to_run_indexer = False
-    
-        await Kudasai.run_kudasai()
-
 ##-------------------start-of-print_usage_statement()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def print_usage_statement():
@@ -394,7 +472,7 @@ def print_usage_statement():
     python_command = "python" if Toolkit.is_windows() else "python3"
 
     print(f"Usage: {python_command} Kudasai.py <input_file> <replacement_json>"
-          f"or run Kudasai.py without any arguments to run the console version.\n")
+          f" or run Kudasai.py without any arguments to run the console version.\n")
 
 ##-------------------start-of-submain()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

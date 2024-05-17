@@ -74,6 +74,10 @@ class Translator:
 
     decorator_to_use:typing.Callable
 
+    is_cli = False
+
+    pre_provided_api_key = ""
+
 ##-------------------start-of-get_max_batch_duration()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     @staticmethod
@@ -149,7 +153,8 @@ class Translator:
 
             JsonHandler.validate_json()
 
-            await Translator.check_settings()
+            if(not Translator.is_cli):
+                await Translator.check_settings()
 
             ## set actual start time to the end of the settings configuration
             time_start = time.time()
@@ -168,6 +173,9 @@ class Translator:
 
             Translator.assemble_results(time_start, time_end)
 
+            if(Translator.is_cli):
+                Toolkit.pause_console()
+
 ##-------------------start-of-initialize()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -184,18 +192,27 @@ class Translator:
             "2": ("gemini", FileEnsurer.gemini_api_key_path),
             "3": ("deepl", FileEnsurer.deepl_api_key_path),
         }
-        
-        method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl, or any other key to exit) : \n")
 
-        if(method not in translation_methods.keys()):
-            print("\nThank you for using Kudasai, goodbye.")
-            time.sleep(2)
-            FileEnsurer.exit_kudasai()
-        
+        if(not Translator.is_cli):
+            method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl, or any other key to exit) : \n")
+
+            if(method not in translation_methods.keys()):
+                print("\nThank you for using Kudasai, goodbye.")
+                time.sleep(2)
+                FileEnsurer.exit_kudasai()
+            
+            Toolkit.clear_console()
+
+        else:
+            method = Translator.TRANSLATION_METHOD
+
         Translator.TRANSLATION_METHOD, api_key_path = translation_methods.get(method, ("deepl", FileEnsurer.deepl_api_key_path))
         
-        Toolkit.clear_console()
-        
+        if(Translator.pre_provided_api_key != ""):
+            Translator.pre_provided_api_key = ""
+            with open(api_key_path, 'w+', encoding='utf-8') as file: 
+                file.write(base64.b64encode(Translator.pre_provided_api_key.encode('utf-8')).decode('utf-8'))
+
         await Translator.init_api_key(Translator.TRANSLATION_METHOD.capitalize(), api_key_path, EasyTL.set_credentials, EasyTL.test_credentials)
         
         ## try to load the translation settings
@@ -442,7 +459,7 @@ class Translator:
         
         model = translation_methods[Translator.TRANSLATION_METHOD]
 
-        await Translator.handle_cost_estimate_prompt(model, omit_prompt=is_webgui)
+        await Translator.handle_cost_estimate_prompt(model, omit_prompt=is_webgui or Translator.is_cli)
 
         Toolkit.clear_console()
 

@@ -166,7 +166,6 @@ python C:\\path\\to\\kudasai.py translate "C:\\path\\to\\input_file.txt" gemini 
 
 ### Additional Notes
 - All arguments should be enclosed in double quotes if they contain spaces. Double quotes are optional and will be stripped. Single quotes are not allowed.
-- For more information, refer to the documentation at `README.md`.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

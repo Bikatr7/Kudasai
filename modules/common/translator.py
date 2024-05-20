@@ -19,7 +19,7 @@ from handlers.json_handler import JsonHandler
 
 from modules.common.file_ensurer import FileEnsurer
 from modules.common.toolkit import Toolkit
-from modules.common.exceptions import AuthenticationError, MaxBatchDurationExceededException, AuthorizationException, InternalServerError, RateLimitError, APITimeoutError, GoogleAuthError, APIStatusError, APIConnectionError, DeepLException, GoogleAPIError
+from modules.common.exceptions import OpenAIAuthenticationError, MaxBatchDurationExceededException, DeepLAuthorizationException, OpenAIInternalServerError, OpenAIRateLimitError, OpenAIAPITimeoutError, GoogleAuthError, OpenAIAPIStatusError, OpenAIAPIConnectionError, DeepLException, GoogleAPIError
 from modules.common.decorators import permission_error_decorator
 
 ##-------------------start-of-Translator--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -283,7 +283,7 @@ class Translator:
                 FileEnsurer.standard_overwrite_file(api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
                 
             ## if invalid key exit
-            except (GoogleAuthError, AuthenticationError, AuthorizationException):
+            except (GoogleAuthError, OpenAIAuthenticationError, DeepLAuthorizationException):
                     
                 Toolkit.clear_console()
 
@@ -437,7 +437,7 @@ class Translator:
         Translator.deepl_formality = JsonHandler.current_translation_settings["deepl settings"]["deepl_formality"]
 
         exception_dict = {
-            "openai": (AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError),
+            "openai": (OpenAIAuthenticationError, OpenAIInternalServerError, OpenAIRateLimitError, OpenAIAPITimeoutError, OpenAIAPIConnectionError, OpenAIAPIStatusError),
             "gemini": GoogleAPIError,
             "deepl": DeepLException
         }

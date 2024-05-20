@@ -1,7 +1,7 @@
 ## third-party libraries
 ## for importing, other scripts will use from common.exceptions instead of from the third-party libraries themselves
-from easytl import AuthenticationError, InternalServerError, RateLimitError, APITimeoutError, APIConnectionError, APIStatusError
-from easytl import AuthorizationException, QuotaExceededException, DeepLException
+from easytl import OpenAIAuthenticationError, OpenAIInternalServerError, OpenAIRateLimitError, OpenAIAPITimeoutError, OpenAIAPIConnectionError, OpenAIAPIStatusError
+from easytl import DeepLAuthorizationException, DeepLQuotaExceededException, DeepLException
 from easytl import GoogleAuthError, GoogleAPIError
 
 ##-------------------start-of-KudasaiException--------------------------------------------------------------------------------------------------------------------------------------------------------------------------

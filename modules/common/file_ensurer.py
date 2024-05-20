@@ -86,7 +86,7 @@ class FileEnsurer():
 
     "openai settings": {
         "openai_model": "gpt-4",
-        "openai_system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "openai_system_message": "Translate the text from Japanese to English.",
         "openai_temperature": 0.3,
         "openai_top_p": 1.0,
         "openai_n": 1,
@@ -100,7 +100,7 @@ class FileEnsurer():
 
     "gemini settings": {
         "gemini_model": "gemini-pro",
-        "gemini_prompt": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "gemini_prompt": "Translate the text from Japanese to English",
         "gemini_temperature": 0.3,
         "gemini_top_p": None,
         "gemini_top_k": None,

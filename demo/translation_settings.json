@@ -10,7 +10,7 @@
     },
 
     "openai settings": {
-        "openai_model": "gpt-4-turbo",
+        "openai_model": "gpt-4o",
         "openai_system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
         "openai_temperature": 0.3,
         "openai_top_p": 1.0,

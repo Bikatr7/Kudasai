@@ -63,6 +63,7 @@ class FileEnsurer():
     deepl_api_key_path = os.path.join(secrets_dir, "deepl_api_key.txt")
     openai_api_key_path = os.path.join(secrets_dir,'openai_api_key.txt')
     gemini_api_key_path = os.path.join(secrets_dir,'gemini_api_key.txt')
+    google_translate_service_key_json_path = os.path.join(secrets_dir, "google_translate_service_key.json")
 
     ## favicon
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")

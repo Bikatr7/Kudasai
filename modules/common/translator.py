@@ -29,7 +29,7 @@ class Translator:
     """
     
     Translator is a class that is used to interact with translation methods and translate text.
-    Currently supports OpenAI, Gemini, and DeepL.
+    Currently supports OpenAI, Gemini, DeepL, and Google Translate.
     
     """
     
@@ -51,6 +51,9 @@ class Translator:
     ## same as above, but for deepl, just the text to be translated
     deepl_translation_batches:typing.List[str] = []
 
+    ## also the same for google translate
+    google_translate_translation_batches:typing.List[str] = []
+
     num_occurred_malformed_batches = 0
 
     ## semaphore to limit the number of concurrent batches
@@ -58,7 +61,7 @@ class Translator:
 
     ##--------------------------------------------------------------------------------------------------------------------------
 
-    TRANSLATION_METHOD:typing.Literal["openai", "gemini", "deepl"] = "openai"
+    TRANSLATION_METHOD:typing.Literal["openai", "gemini", "deepl", "google translate"] = "deepl"
 
     translation_print_result = ""
 
@@ -156,7 +159,7 @@ class Translator:
 
             JsonHandler.validate_json()
 
-            if(not Translator.is_cli):
+            if(not Translator.is_cli and Translator.TRANSLATION_METHOD != "google translate"):
                 await Translator.check_settings()
 
             ## set actual start time to the end of the settings configuration
@@ -194,10 +197,11 @@ class Translator:
             "1": ("openai", FileEnsurer.openai_api_key_path),
             "2": ("gemini", FileEnsurer.gemini_api_key_path),
             "3": ("deepl", FileEnsurer.deepl_api_key_path),
+            "4": ("google translate", FileEnsurer.google_translate_service_key_json_path)
         }
 
         if(not Translator.is_cli):
-            method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl, or any other key to exit) : \n")
+            method = input("What method would you like to use for translation? (1 for OpenAI, 2 for Gemini, 3 for Deepl, 4 for Google Translate), or any other key to exit) : \n")
 
             if(method not in translation_methods.keys()):
                 print("\nThank you for using Kudasai, goodbye.")
@@ -246,14 +250,28 @@ class Translator:
 
         """
 
+        def get_api_key_from_file():
+            with open(api_key_path, 'r', encoding='utf-8') as file: 
+                return base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
+
+        def save_api_key(api_key):
+            if(service != "Google translate"):
+                encoded_key = base64.b64encode(api_key.encode('utf-8')).decode('utf-8')
+                FileEnsurer.standard_overwrite_file(api_key_path, encoded_key, omit=True)
+            else:
+                FileEnsurer.standard_overwrite_file(api_key_path, api_key, omit=True)
+
         ## get saved API key if exists
         try:
-            with open(api_key_path, 'r', encoding='utf-8') as file: 
-                api_key = base64.b64decode((file.read()).encode('utf-8')).decode('utf-8')
+
+            if(service != "Google translate"):
+                api_key = get_api_key_from_file()
+            else:
+                api_key = api_key_path
 
             api_key_setter(service.lower(), api_key)
 
-            is_valid, e =  api_key_tester(service.lower())
+            is_valid, e = api_key_tester(service.lower())
 
             ## if not valid, raise the exception that caused the test to fail
             if(not is_valid and e is not None):
@@ -267,20 +285,25 @@ class Translator:
         except:
 
             Toolkit.clear_console()
-                
-            api_key = input(f"DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the {service} API key you have : ")
 
-            ## if valid save the API key
+            input_message = (
+                f"DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the {service} API key you have : " 
+                if(service != "Google translate") 
+                else "DO NOT DELETE YOUR COPY OF THE SERVICE JSON\n\nPlease enter the contents of the service json file : "
+            )
+                
+            api_key = input(input_message)
+
             try: 
 
                 api_key_setter(service.lower(), api_key)
 
-                is_valid, e =  api_key_tester(service.lower())
+                is_valid, e = api_key_tester(service.lower())
 
                 if(not is_valid and e is not None):
                     raise e
-
-                FileEnsurer.standard_overwrite_file(api_key_path, base64.b64encode(api_key.encode('utf-8')).decode('utf-8'), omit=True)
+                
+                save_api_key(api_key)
                 
             ## if invalid key exit
             except (GoogleAuthError, OpenAIAuthenticationError, DeepLAuthorizationException):
@@ -324,7 +347,7 @@ class Translator:
         Translator.gemini_translation_batches = []
         Translator.num_occurred_malformed_batches = 0
         Translator.translation_print_result = ""
-        Translator.TRANSLATION_METHOD = "openai"
+        Translator.TRANSLATION_METHOD = "deepl"
         Translator.pre_provided_api_key = ""
         Translator.is_cli = False
 
@@ -344,7 +367,8 @@ class Translator:
         method_to_section_dict = {
             "openai": ("openai settings", "OpenAI", FileEnsurer.openai_api_key_path),
             "gemini": ("gemini settings", "Gemini", FileEnsurer.gemini_api_key_path),
-            "deepl": ("deepl settings", "DeepL", FileEnsurer.deepl_api_key_path)
+            "deepl": ("deepl settings", "DeepL", FileEnsurer.deepl_api_key_path),
+            "google translate": (None, None, FileEnsurer.google_translate_service_key_json_path)
         }
 
         section_to_target, method_name, api_key_path = method_to_section_dict[Translator.TRANSLATION_METHOD]
@@ -361,7 +385,7 @@ class Translator:
                 JsonHandler.reset_translation_settings_to_default()
                 JsonHandler.load_translation_settings()
 
-                print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
+                print("Are these settings okay? (1 for yes or 2 for no) : \n")
                 JsonHandler.log_translation_settings(output_to_console=True, specific_section=section_to_target)
             else:
                 FileEnsurer.exit_kudasai()
@@ -439,7 +463,8 @@ class Translator:
         exception_dict = {
             "openai": (OpenAIAuthenticationError, OpenAIInternalServerError, OpenAIRateLimitError, OpenAIAPITimeoutError, OpenAIAPIConnectionError, OpenAIAPIStatusError),
             "gemini": GoogleAPIError,
-            "deepl": DeepLException
+            "deepl": DeepLException,
+            "google translate": GoogleAPIError
         }
         
         Translator.decorator_to_use = backoff.on_exception(
@@ -460,7 +485,8 @@ class Translator:
         translation_methods = {
             "openai": JsonHandler.current_translation_settings["openai settings"]["openai_model"],
             "gemini": JsonHandler.current_translation_settings["gemini settings"]["gemini_model"],
-            "deepl": "deepl"
+            "deepl": "deepl",
+            "google translate": "google translate"
         }
         
         model = translation_methods[Translator.TRANSLATION_METHOD]
@@ -516,13 +542,14 @@ class Translator:
         translation_batches_methods = {
             "openai": Translator.openai_translation_batches,
             "gemini": Translator.gemini_translation_batches,
-            "deepl": Translator.deepl_translation_batches
+            "deepl": Translator.deepl_translation_batches,
+            "google translate": Translator.google_translate_translation_batches
         }
         
         translation_batches = translation_batches_methods[Translator.TRANSLATION_METHOD]
         batch_length = len(translation_batches)
         
-        if(Translator.TRANSLATION_METHOD != "deepl"):
+        if(Translator.TRANSLATION_METHOD not in ["deepl", "google translate"]):
 
             for i in range(0, batch_length, 2):
                 instructions = translation_batches[i]
@@ -627,15 +654,19 @@ class Translator:
                 Translator.gemini_translation_batches.append(Translator.gemini_prompt)
                 Translator.gemini_translation_batches.append(batch)
 
-            else:
+            elif(Translator.TRANSLATION_METHOD == 'deepl'):
                 Translator.deepl_translation_batches.append(batch)
+
+            elif(Translator.TRANSLATION_METHOD == 'google translate'):
+                Translator.google_translate_translation_batches.append(batch)
 
         logging_message = "Built Messages: \n\n"
 
         batches_to_iterate = {
             "openai": Translator.openai_translation_batches,
             "gemini": Translator.gemini_translation_batches,
-            "deepl": Translator.deepl_translation_batches
+            "deepl": Translator.deepl_translation_batches,
+            "google translate": Translator.google_translate_translation_batches
         }
 
         i = 0
@@ -648,7 +679,7 @@ class Translator:
 
             message = str(message) if Translator.TRANSLATION_METHOD != 'openai' else message.content # type: ignore
 
-            if(i % 2 == 1 and Translator.TRANSLATION_METHOD != 'deepl'):
+            if(i % 2 == 1 and Translator.TRANSLATION_METHOD not in ['deepl', 'google_translate']):
                 logging_message += "\n" "------------------------" "\n"
 
             logging_message += message + "\n"
@@ -677,6 +708,7 @@ class Translator:
             "openai": Translator.openai_system_message,
             "gemini": Translator.gemini_prompt,
             "deepl": None,
+            "google translate": None
         }
         
         translation_instructions = translation_instructions_methods[Translator.TRANSLATION_METHOD]
@@ -689,6 +721,8 @@ class Translator:
         if(Translator.TRANSLATION_METHOD == "gemini"):
             logging.info(f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 15 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute. Requests correspond to number_of_current_batches in the translation settings.")
         
+        entity_word = "tokens" if Translator.TRANSLATION_METHOD in ["openai", "gemini"] else "characters"
+
         logging.info("Estimated number of tokens : " + str(num_tokens))
         logging.info("Estimated minimum cost : " + str(min_cost) + " USD")
 
@@ -748,7 +782,8 @@ class Translator:
                     translation_methods = {
                         "openai": EasyTL.openai_translate_async,
                         "gemini": EasyTL.gemini_translate_async,
-                        "deepl": EasyTL.deepl_translate_async
+                        "deepl": EasyTL.deepl_translate_async,
+                        "google translate": EasyTL.googletl_translate_async
                     }
                     
                     translation_params = {
@@ -781,6 +816,10 @@ class Translator:
                             "split_sentences": Translator.deepl_split_sentences,
                             "preserve_formatting": Translator.deepl_preserve_formatting,
                             "formality": Translator.deepl_formality
+                        },
+                        "google translate": {
+                            "text": text_to_translate,
+                            "decorator": Translator.decorator_to_use
                         }
                     }
                     
@@ -917,7 +956,7 @@ class Translator:
                     index = patched_sentences.index(Translator.translated_text[i])
                     Translator.translated_text[i] = patched_sentences[index]
 
-        ## mode 2 just assumes the LLM formatted it properly
+        ## mode 2 just assumes the translation method formatted it properly
         elif(Translator.sentence_fragmenter_mode == 2):
             
             Translator.translated_text.append(translated_message + '\n\n')

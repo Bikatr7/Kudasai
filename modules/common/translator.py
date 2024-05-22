@@ -362,7 +362,7 @@ class Translator:
 
         """
 
-        print("Are these settings okay? (1 for yes or 2 for no) : \n\n")
+        print("Are these settings okay? (1 for yes or 2 for no):")
 
         method_to_section_dict = {
             "openai": ("openai settings", "OpenAI", FileEnsurer.openai_api_key_path),
@@ -538,35 +538,36 @@ class Translator:
         """
 
         async_requests = []
-        
+
         translation_batches_methods = {
             "openai": Translator.openai_translation_batches,
             "gemini": Translator.gemini_translation_batches,
             "deepl": Translator.deepl_translation_batches,
             "google translate": Translator.google_translate_translation_batches
         }
-        
+
         translation_batches = translation_batches_methods[Translator.TRANSLATION_METHOD]
         batch_length = len(translation_batches)
-        
-        if(Translator.TRANSLATION_METHOD not in ["deepl", "google translate"]):
+        batch_number = 1  # Initialize batch number
 
+        if(Translator.TRANSLATION_METHOD not in ["deepl", "google translate"]):
             for i in range(0, batch_length, 2):
                 instructions = translation_batches[i]
-                prompt = translation_batches[i+1]
-            
+                prompt = translation_batches[i + 1]
+
                 assert isinstance(instructions, (SystemTranslationMessage, str))
                 assert isinstance(prompt, (ModelTranslationMessage, str))
-            
-                async_requests.append(Translator.handle_translation(model, i, batch_length, prompt, instructions))
+
+                async_requests.append(Translator.handle_translation(model, batch_number, batch_length//2, prompt, instructions))
+                batch_number += 1
 
         else:
             for i, batch in enumerate(translation_batches):
-
                 assert isinstance(batch, str)
-            
-                async_requests.append(Translator.handle_translation(model, i, batch_length, batch, None))
-        
+
+                async_requests.append(Translator.handle_translation(model, batch_number, batch_length, batch, None))
+                batch_number += 1
+
         return async_requests
 
 ##-------------------start-of-generate_text_to_translate_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -606,14 +607,14 @@ class Translator:
             if(len(prompt) < Translator.number_of_lines_per_batch):
                 if(is_special_char or is_part_in_sentence or is_part_char):
                     prompt.append(f'{sentence}\n')
-                    logging.debug(f"Sentence : {sentence}, Sentence is a pov change or part marker... adding to prompt.")
+                    logging.debug(f"Sentence : {sentence} Sentence is a pov change or part marker... adding to prompt.")
 
                 elif(non_word_pattern.match(sentence) or KatakanaUtil.is_punctuation(sentence) and not has_quotes):
-                    logging.debug(f"Sentence : {sentence}, Sentence is punctuation... skipping.")
+                    logging.debug(f"Sentence : {sentence} Sentence is punctuation or spacing... skipping.")
 
                 elif(sentence):
                     prompt.append(f'{sentence}\n')
-                    logging.debug(f"Sentence : {sentence}, Sentence is a valid sentence... adding to prompt.")
+                    logging.debug(f"Sentence : {sentence} Sentence is a valid sentence... adding to prompt.")
             else:
                 return prompt, index
         
@@ -740,7 +741,7 @@ class Translator:
     
     @staticmethod
     async def handle_translation(model:str, 
-                                 batch_index:int,
+                                 batch_number:int,
                                  length_of_batch:int, 
                                  text_to_translate:typing.Union[str, ModelTranslationMessage],
                                  translation_instructions:typing.Union[str, SystemTranslationMessage, None]) -> tuple[int, str, str]: 
@@ -751,13 +752,13 @@ class Translator:
 
         Parameters:
         model (string) : The model of the service used to translate the text.
-        batch_index (int) : Which batch we are currently on.
+        batch_number (int) : Which batch we are currently on.
         length_of_batch (int) : How long the batches are.
         text_to_translate (typing.Union[str, ModelTranslationMessage]) : The text to translate.
         translation_instructions (typing.Union[str, SystemTranslationMessage, None]) : The translation instructions.
 
         Returns:
-        batch_index (int) : The batch index.
+        batch_number (int) : The batch index.
         text_to_translate (str) : The text to translate.
         translated_text (str) : The translated text
 
@@ -772,10 +773,8 @@ class Translator:
                 ## For the webgui
                 if(FileEnsurer.do_interrupt == True):
                     raise Exception("Interrupted by user.")
-
-                batch_number = (batch_index // 2) + 1
-
-                logging.info(f"Trying translation for batch {batch_number} of {length_of_batch//2}...")
+                
+                logging.info(f"Trying translation for batch {batch_number} of {length_of_batch}...")
 
                 try:
 
@@ -830,7 +829,7 @@ class Translator:
                 ## will only occur if the max_batch_duration is exceeded, so we just return the untranslated text
                 except MaxBatchDurationExceededException:
 
-                    logging.error(f"Batch {batch_number} of {length_of_batch//2} was not translated due to exceeding the max request duration, returning the untranslated text...")
+                    logging.error(f"Batch {batch_number} of {length_of_batch} was not translated due to exceeding the max request duration, returning the untranslated text...")
                     break
 
                 ## do not even bother if not a gpt 4 model, because gpt-3 seems unable to format properly
@@ -843,12 +842,12 @@ class Translator:
                     break
 
                 if(num_tries >= Translator.num_of_malform_retries):
-                    logging.warning(f"Batch {batch_number} of {length_of_batch//2} was malformed but exceeded the max number of retries ({Translator.num_of_malform_retries})")
+                    logging.warning(f"Batch {batch_number} of {length_of_batch} was malformed but exceeded the max number of retries ({Translator.num_of_malform_retries})")
                     break
 
                 else:
                     num_tries += 1
-                    logging.warning(f"Batch {batch_number} of {length_of_batch//2} was malformed, retrying...")
+                    logging.warning(f"Batch {batch_number} of {length_of_batch} was malformed, retrying...")
                     Translator.num_occurred_malformed_batches += 1
 
             if(isinstance(text_to_translate, ModelTranslationMessage)):
@@ -857,9 +856,9 @@ class Translator:
             if(isinstance(translated_message, typing.List)):
                 translated_message = ''.join(translated_message) # type: ignore
 
-            logging.info(f"Translation for batch {batch_number} of {length_of_batch//2} completed.")
+            logging.info(f"Translation for batch {batch_number} of {length_of_batch} completed.")
 
-            return batch_index, text_to_translate, translated_message # type: ignore
+            return batch_number, text_to_translate, translated_message # type: ignore
     
 ##-------------------start-of-check_if_translation_is_good()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

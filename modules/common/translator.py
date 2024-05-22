@@ -289,7 +289,7 @@ class Translator:
             input_message = (
                 f"DO NOT DELETE YOUR COPY OF THE API KEY\n\nPlease enter the {service} API key you have : " 
                 if(service != "Google translate") 
-                else "DO NOT DELETE YOUR COPY OF THE SERVICE JSON\n\nPlease enter the contents of the service json file : "
+                else "DO NOT DELETE YOUR COPY OF THE SERVICE JSON\n\nPlease enter the contents of the service json file (on one line): "
             )
                 
             api_key = input(input_message)

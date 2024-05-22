@@ -216,8 +216,14 @@ class Translator:
         Translator.TRANSLATION_METHOD, api_key_path = translation_methods.get(method, ("deepl", FileEnsurer.deepl_api_key_path))
         
         if(Translator.pre_provided_api_key != ""):
-            encoded_key = base64.b64encode(Translator.pre_provided_api_key.encode('utf-8')).decode('utf-8')
+            if(Translator.TRANSLATION_METHOD == "google translate"):
+                encoded_key = base64.b64encode(Translator.pre_provided_api_key.encode('utf-8')).decode('utf-8')
+
+            else:
+                encoded_key = Translator.pre_provided_api_key
+
             Translator.pre_provided_api_key = ""
+            
             with open(api_key_path, 'w+', encoding='utf-8') as file: 
                 file.write(encoded_key)
 
@@ -292,7 +298,13 @@ class Translator:
                 else "DO NOT DELETE YOUR COPY OF THE SERVICE JSON\n\nPlease enter the contents of the service json file (on one line): "
             )
                 
-            api_key = input(input_message)
+            api_key = input(input_message).strip('"').strip("'").strip()
+
+            ## preemptively save the api key for google translate
+            if(service == "Google translate"):
+                save_api_key(api_key)
+                time.sleep(1)
+                api_key = api_key_path
 
             try: 
 

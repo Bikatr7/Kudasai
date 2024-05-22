@@ -6,7 +6,6 @@ import asyncio
 import re
 import typing
 import logging
-import argparse
 
 ## third-party libraries
 from kairyou import Kairyou
@@ -307,11 +306,12 @@ async def main() -> None:
 
         if(len(sys.argv) <= 1):
             await run_console_version()
-        
+
         elif(len(sys.argv) in [2, 3, 4, 5, 6]):
             await run_cli_version()
 
         else:
+            print(f"Invalid number of arguments ({len(sys.argv)}), max of 6. Please use --help for more information.")
             print_usage_statement()
 
     except Exception as e:
@@ -367,7 +367,7 @@ async def run_cli_version():
         """
 
         conditions = [
-            (lambda arg: arg in ["deepl", "openai", "gemini"], "translation_method"),
+            (lambda arg: arg in ["deepl", "openai", "gemini", "google_translate"], "translation_method"),
             (lambda arg: os.path.exists(arg) and not ".json" in arg, "text_to_translate"),
             (lambda arg: len(arg) > 10 and not os.path.exists(arg), "api_key"),
             (lambda arg: arg == "translate", "identifier"),
@@ -376,11 +376,12 @@ async def run_cli_version():
 
         for condition, result in conditions:
             if(condition(arg)):
-                print(result)
+                print(f"Determined argument for '{arg}' as '{result}'")
+                logging.debug(f"Determined argument for '{arg}' as '{result}'")
                 return result
-
-        raise Exception("Invalid argument. Please use 'deepl', 'openai', or 'gemini'.")
-        
+            
+        raise Exception("Invalid argument. Please use 'deepl', 'openai', or 'gemini', or 'google_translate')")
+    
     mode = ""
 
     try:
@@ -417,7 +418,9 @@ async def run_cli_version():
             method_to_translation_mode = {
                 "openai": "1",
                 "gemini": "2",
-                "deepl": "3"
+                "deepl": "3",
+                "google_translate": "4",
+                "google translate": "4"
             }
 
             Kudasai.text_to_preprocess = FileEnsurer.standard_read_file(sys.argv[arg_indices['text_to_translate_index']].strip('"'))
@@ -496,6 +499,7 @@ Modes:
 Additional Notes:
 - All arguments should be enclosed in double quotes if they contain spaces. But double quotes are optional and will be striped. Single quotes are not allowed
 - For more information, refer to the documentation at README.md
+- For google translate, enter the method as 'google_translate', also google_translate doesn't support the api_key argument
 """)
 
 

@@ -1,6 +1,7 @@
 ## built-in libraries
 import typing
 import base64
+import asyncio
 
 ## third-party libraries
 import gradio as gr
@@ -123,7 +124,7 @@ class KudasaiGUI:
 ##-------------------start-of-get_saved_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             @staticmethod
-            def get_saved_api_key(service_name:typing.Literal["openai","gemini","deepl"]) -> str:
+            def get_saved_api_key(service_name:typing.Literal["openai","gemini","deepl","google translate"]) -> str:
 
                 """
                 Gets the saved api key from the config folder, if it exists.
@@ -139,13 +140,16 @@ class KudasaiGUI:
                 service_to_path = {
                     "openai": FileEnsurer.openai_api_key_path,
                     "gemini": FileEnsurer.gemini_api_key_path,
-                    "deepl": FileEnsurer.deepl_api_key_path
+                    "deepl": FileEnsurer.deepl_api_key_path,
+                    "google_translate": FileEnsurer.google_translate_service_key_json_path
                 }
 
                 api_key_path = service_to_path.get(service_name, "")
 
 
                 try:
+                    if(service_name == "google translate"):
+                        return api_key_path
                     ## Api key is encoded in base 64 so we need to decode it before returning
                     return base64.b64decode(FileEnsurer.standard_read_file(api_key_path).encode('utf-8')).decode('utf-8')
                 
@@ -164,6 +168,11 @@ class KudasaiGUI:
                 api_key (str) : The api key.
 
                 """
+
+                if(Translator.TRANSLATION_METHOD == "google translate"):
+                    FileEnsurer.standard_overwrite_file(FileEnsurer.google_translate_service_key_json_path, str(api_key), omit=True)
+                    await asyncio.sleep(2)
+                    api_key = FileEnsurer.google_translate_service_key_json_path
 
                 try:
 
@@ -193,14 +202,18 @@ class KudasaiGUI:
                 method_to_path = {
                     "openai": FileEnsurer.openai_api_key_path,
                     "gemini": FileEnsurer.gemini_api_key_path,
-                    "deepl": FileEnsurer.deepl_api_key_path
+                    "deepl": FileEnsurer.deepl_api_key_path,
+                    "google translate": FileEnsurer.google_translate_service_key_json_path
                 }
 
                 path_to_api_key = method_to_path.get(Translator.TRANSLATION_METHOD, None)
 
                 assert path_to_api_key is not None, "Invalid translation method"
 
-                FileEnsurer.standard_overwrite_file(path_to_api_key, base64.b64encode(str(api_key).encode('utf-8')).decode('utf-8'), omit=True)
+                if(Translator.TRANSLATION_METHOD != "google translate"):
+                    api_key = base64.b64encode(str(api_key).encode('utf-8')).decode('utf-8')
+
+                FileEnsurer.standard_overwrite_file(path_to_api_key, str(api_key), omit=True)
 
 ##-------------------start-of-create_new_key_value_tuple_pairs()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
 
@@ -353,10 +366,10 @@ class KudasaiGUI:
                             self.input_translation_rules_file = gr.File(value = FileEnsurer.config_translation_settings_path, label='Translation Settings File', file_count='single', file_types=['.json'], type='filepath')
 
                             with gr.Row():
-                                self.llm_option_dropdown = gr.Dropdown(label='Translation Method', choices=["OpenAI", "Gemini", "DeepL"], value="OpenAI", show_label=True, interactive=True)
+                                self.llm_option_dropdown = gr.Dropdown(label='Translation Method', choices=["OpenAI", "Gemini", "DeepL", "Google Translate"], value="DeepL", show_label=True, interactive=True)
                             
                             with gr.Row():
-                                self.translator_api_key_input = gr.Textbox(label='API Key', value=get_saved_api_key("openai"), lines=1, max_lines=2, show_label=True, interactive=True, type='password')
+                                self.translator_api_key_input = gr.Textbox(label='API Key', value=get_saved_api_key("deepl"), lines=1, max_lines=1, show_label=True, interactive=True, type='password')
 
                             with gr.Row():
                                 self.translator_translate_button = gr.Button('Translate', variant="primary")
@@ -390,7 +403,7 @@ class KudasaiGUI:
 
                         with gr.Column():
                             gr.Markdown("Base Translation Settings")
-                            gr.Markdown("These settings are used for OpenAI, Gemini, and DeepL.")
+                            gr.Markdown("These settings are used for OpenAI, Gemini, DeepL, and Google Translate")
                             gr.Markdown("Please ensure to thoroughly read and understand these settings before making any modifications. Each setting has a specific impact on the translation methods. Some settings may affect one or two translation methods, but not the others. Incorrect adjustments could lead to unexpected results or errors in the translation process.")
 
 
@@ -931,8 +944,11 @@ class KudasaiGUI:
                 elif(translation_method == "Gemini"):
                     Translator.TRANSLATION_METHOD = "gemini"
 
-                else:
+                elif(translation_method == "DeepL"):
                     Translator.TRANSLATION_METHOD = "deepl"
+
+                elif(translation_method == "Google Translate"):
+                    Translator.TRANSLATION_METHOD = "google translate"
 
                 ## api key as well
                 await set_translator_api_key(api_key)
@@ -988,13 +1004,7 @@ class KudasaiGUI:
 
                 if(input_txt_file is None and input_text == ""):
                     raise gr.Error("No TXT file or text selected")
-                
-                if(api_key == "" and translation_method not in ["OpenAI","DeepL"]):
-                    raise gr.Error("No API key provided. Does not charge for cost estimation, but is required for Gemini Cost Calculation")
-                
-                if(Kudasai.connection == False and translation_method != "OpenAI"):
-                    raise gr.Error("No internet connection detected, please connect to the internet and reload the page to calculate costs for Gemini")
-                
+                                
                 if(translation_settings_file is None):
                     raise gr.Error("No Translation Settings File selected")
                 
@@ -1005,12 +1015,11 @@ class KudasaiGUI:
 
                 Translator.TRANSLATION_METHOD = str(translation_method.lower()) # type: ignore
 
-                await set_translator_api_key(api_key)
-
                 translation_methods = {
                     "openai": GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_model"),
                     "gemini": GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_model"),
-                    "deepl": "deep"
+                    "deepl": "deepl",
+                    "google translate": "google translate"
                 }
 
                 model = translation_methods.get(Translator.TRANSLATION_METHOD) 
@@ -1024,7 +1033,8 @@ class KudasaiGUI:
                 translation_instructions_dict = {
                     "openai": GuiJsonUtil.fetch_translation_settings_key_values("openai settings","openai_system_message"),
                     "gemini": GuiJsonUtil.fetch_translation_settings_key_values("gemini settings","gemini_prompt"),
-                    "deepl": None
+                    "deepl": None,
+                    "google translate": None
                 }
 
                 translation_instructions = translation_instructions_dict.get(Translator.TRANSLATION_METHOD)
@@ -1034,9 +1044,9 @@ class KudasaiGUI:
                 if(Translator.TRANSLATION_METHOD == "gemini"):
                     cost_estimation = f"As of Kudasai {Toolkit.CURRENT_VERSION}, Gemini Pro 1.0 is free to use under 15 requests per minute, Gemini Pro 1.5 is free to use under 2 requests per minute.\nIt is up to you to set these in the settings json.\n"
 
-                token_type = "characters" if Translator.TRANSLATION_METHOD == "deepl" else "tokens"
+                entity_type = "characters" if Translator.TRANSLATION_METHOD in ["deepl", "google translate"] else "tokens"
 
-                cost_estimation += f"Estimated number of {token_type} : {num_tokens}\nEstimated minimum cost : {estimated_cost} USD\nThis is a rough estimate, please remember to check actual cost on the appropriate platform when needed"
+                cost_estimation += f"Estimated number of {entity_type} : {num_tokens}\nEstimated minimum cost : {estimated_cost} USD\nThis is a rough estimate, please remember to check actual cost on the appropriate platform when needed"
                 
                 gr.Info(cost_estimation)
 

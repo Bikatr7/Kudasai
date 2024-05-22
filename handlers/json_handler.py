@@ -25,7 +25,6 @@ class JsonHandler:
     with open(FileEnsurer.translation_settings_description_path, 'r', encoding='utf-8') as file:
         translation_settings_message = file.read()
 
-
 ##-------------------start-of-validate_json()--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -124,6 +123,12 @@ class JsonHandler:
             assert all(key in openai_settings for key in openai_keys), "openai settings keys missing"
             assert all(key in gemini_settings for key in gemini_keys), "gemini settings keys missing"
             assert all(key in deepl_settings for key in deepl_keys), "deepl settings keys missing"
+
+            ## ensure that those sections don't have any extra keys
+            assert all(key in base_translation_keys for key in base_translation_settings), "base translation settings has extra keys"
+            assert all(key in openai_keys for key in openai_settings), "openai settings has extra keys" 
+            assert all(key in gemini_keys for key in gemini_settings), "gemini settings has extra keys"
+            assert all(key in deepl_keys for key in deepl_settings), "deepl settings has extra keys"
 
             ## validate each key using the validation rules
             for key, validate in validation_rules.items():

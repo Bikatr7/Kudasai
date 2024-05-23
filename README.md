@@ -78,9 +78,11 @@ Kudasai will offer to index the text, which is useful for finding new names to a
 
 After preprocessing is completed (if triggered), you will be prompted to choose a translation method.
 
-You can choose between OpenAI, Gemini, and DeepL. Each have their own pros and cons, but OpenAI is the recommended translation method. DeepL and Gemini currently offer free versions, but all three require an api key, you will be prompted to enter this key when you choose to run the translation module.
+You can choose between OpenAI, Gemini, DeepL, and Google Translate. Each have their own pros and cons, but OpenAI is the recommended translation method. DeepL,  Gemini, and Google Translate currently offer free versions, but all four require an api key, you will be prompted to enter this key when you choose to run the translation module.
 
 Next, Kudasai will ask you to confirm it's settings. This can be overwhelming, but you can simply enter 1 to confirm and use the default settings. If you wish to change them, you can do so here.
+
+Note that Google Translate has no settings, and DeepL has very few settings. OpenAI and Gemini have a lot of settings.
 
 See the [**Translator Settings**](#translator-settings) section for more information on Kudasai's Translation settings, but default should run fine. Inside the demo folder is a copy of the settings I use to translate COTE should you wish to use them. There is also a demo txt file in the demo folder that you can use to test Kudasai.
 
@@ -166,6 +168,7 @@ python C:\\path\\to\\kudasai.py translate "C:\\path\\to\\input_file.txt" gemini 
 
 ### Additional Notes
 - All arguments should be enclosed in double quotes if they contain spaces. Double quotes are optional and will be stripped. Single quotes are not allowed.
+- For google translate, enter the method as 'google_translate', also google_translate doesn't support the api_key argument
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -188,11 +191,11 @@ Kudasai/Kairyou works with both Kudasai and Fukuin Json's, the below is a Kudasa
 
 Kudasai uses EasyTL for translation, which is a versatile translation library that uses several translation APIs to translate text.
 
-Kudasai currently supports OpenAI, Gemini, and DeepL for translation. OpenAI is the recommended translation method, but DeepL and Gemini are also good alternatives.
+Kudasai currently supports OpenAI, Gemini, DeepL, and Google Translate for translation. OpenAI is the recommended translation method, but DeepL and Gemini are also good alternatives. DeepL is the default.
 
 You can run the translator by running kudasai.py as instructed in the [Quick Start](#quick-start) section.
 
-Note that you need an API key for OpenAI, Gemini, and DeepL. You will be prompted to enter this key when you choose to run the translation module.
+Note that you need an API key for OpenAI, Gemini, and DeepL. For Google Translate it's a credentials file, you'll enter the contents (on one line). You will be prompted to enter this key when you choose to run the translation module.
 
 The translator has a lot of settings, simply using the default settings is fine or the one provided in the demo folder. You can also change these manually when confirming your settings, as well as loading a custom json as your settings by pressing c at this window, with the settings in the script directory.
 

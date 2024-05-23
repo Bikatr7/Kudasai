@@ -74,7 +74,7 @@ They both have a debug field, but neither module really uses it.
 
 ## **Translator**<a name="translator"></a>
 
-Kudasai supports 3 different translation methods at the moment, OpenAI's GPT, Google's Gemini, and DeepL. 
+Kudasai supports 4 different translation methods at the moment, OpenAI's GPT, Google's Gemini  & Google Translate, and DeepL. 
 
 For OpenAI, you'll need an API key, you can get one [here](https://platform.openai.com/docs/api-reference/authentication). This is a paid service with no free tier.
 
@@ -82,13 +82,15 @@ For Gemini, you'll also need an API key, you can get one [here](https://ai.googl
 
 For DeepL, you'll need an API key too, you can get one [here](https://www.deepl.com/pro#developer). DeepL is also a paid service but is free under 500k characters a month.
 
+And for Google Translate, you'll need a Google Cloud API key, you can get one [here](https://cloud.google.com/translate/docs/setup). Google Translate is a paid service, but is free under 500k characters a month. Kudasai uses v2 of the API so make sure you follow the instructions to get credentials for that.
+
 I'd recommend using GPT for most things, as it's generally better at translation.
 
-Mostly straightforward, choose your translation method, fill in your API key, and select your text. You'll also need to add your settings file if on HuggingFace if you want to tune the output, but the default is generally fine.
+Mostly straightforward, choose your translation method, fill in your API key, and select your text. You'll also need to add your settings file if on HuggingFace if you want to tune the output, but the default is generally fine. Although for google translate this needs to be the contents of your service key json, all one one line too.
 
 You can calculate costs here or just translate. Output will show in the appropriate fields.
 
-For further details on the settings file, see [here](#translation-with-llms-settings).
+For further details on the settings file, see [here](#translation-with-llms-settings). Note that Google Translate has no settings.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -727,7 +727,7 @@ class Translator:
         translation_instructions = translation_instructions_methods[Translator.TRANSLATION_METHOD]
 
         ## get cost estimate and confirm
-        num_tokens, min_cost, model = EasyTL.calculate_cost(text=Translator.text_to_translate, service=Translator.TRANSLATION_METHOD, model=model,translation_instructions=translation_instructions)
+        num_entities, min_cost, model = EasyTL.calculate_cost(text=Translator.text_to_translate, service=Translator.TRANSLATION_METHOD, model=model,translation_instructions=translation_instructions)
 
         print("Note that the cost estimate is not always accurate, and may be higher than the actual cost. However cost calculation now includes output tokens.\n")
 
@@ -736,7 +736,7 @@ class Translator:
         
         entity_word = "tokens" if Translator.TRANSLATION_METHOD in ["openai", "gemini"] else "characters"
 
-        logging.info("Estimated number of tokens : " + str(num_tokens))
+        logging.info(f"Estimated number of {entity_word} : " + str(num_entities))
         logging.info("Estimated minimum cost : " + str(min_cost) + " USD")
 
         if(not omit_prompt):

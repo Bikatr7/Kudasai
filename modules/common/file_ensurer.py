@@ -64,6 +64,9 @@ class FileEnsurer():
     openai_api_key_path = os.path.join(secrets_dir,'openai_api_key.txt')
     gemini_api_key_path = os.path.join(secrets_dir,'gemini_api_key.txt')
     google_translate_service_key_json_path = os.path.join(secrets_dir, "google_translate_service_key.json")
+    
+    ## temp files
+    temp_file_path = os.path.join(script_dir, "temp.txt")
 
     ## favicon
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
@@ -219,9 +222,7 @@ class FileEnsurer():
         logging.debug("Running on Hugging Face, purging storage")
 
         stuff_to_purge = [
-            FileEnsurer.secrets_dir,
-            FileEnsurer.config_dir,
-            FileEnsurer.archive_dir
+            FileEnsurer.temp_file_path
         ]
 
         stuff_to_truncate = [
@@ -452,6 +453,9 @@ class FileEnsurer():
         permission_error_decorator
 
         """
+
+        if(FileEnsurer.is_hugging_space()):
+            return
 
         archival_path = os.path.join(FileEnsurer.archive_dir, f'{module}_run_{timestamp}')
         FileEnsurer.standard_create_directory(archival_path)

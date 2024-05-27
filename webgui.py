@@ -2,6 +2,7 @@
 import typing
 import base64
 import asyncio
+import os
 
 ## third-party libraries
 import gradio as gr
@@ -137,6 +138,9 @@ class KudasaiGUI:
 
                 """
 
+                if(FileEnsurer.is_hugging_space()):
+                    return ""
+
                 service_to_path = {
                     "openai": FileEnsurer.openai_api_key_path,
                     "gemini": FileEnsurer.gemini_api_key_path,
@@ -169,10 +173,14 @@ class KudasaiGUI:
 
                 """
 
+                ## ik this looks really bad
+                ## but the set_credentials for google translate expects a filepath, and normal way isn't working
+                ## so we write the client secrets to a temp file, send that, then clear the file
+                ## even if it fails, purge_storage is set to kill that path too so we should be good.
                 if(Translator.TRANSLATION_METHOD == "google translate"):
-                    FileEnsurer.standard_overwrite_file(FileEnsurer.google_translate_service_key_json_path, str(api_key), omit=True)
-                    await asyncio.sleep(2)
-                    api_key = FileEnsurer.google_translate_service_key_json_path
+                    FileEnsurer.standard_overwrite_file(FileEnsurer.temp_file_path, str(api_key), omit=True)
+                    await asyncio.sleep(1)
+                    api_key = FileEnsurer.temp_file_path
 
                 try:
 
@@ -186,6 +194,13 @@ class KudasaiGUI:
                 except:
                     raise gr.Error("Invalid API key")
                 
+                finally:
+                    try:
+                        os.remove(FileEnsurer.temp_file_path)
+
+                    except:
+                        pass
+                
 ##-------------------start-of-update_translator_api_key()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
             def update_translator_api_key(api_key) -> None:
@@ -198,6 +213,9 @@ class KudasaiGUI:
                 api_key (str) : The api key.
 
                 """
+
+                if(FileEnsurer.is_hugging_space()):
+                    return
 
                 method_to_path = {
                     "openai": FileEnsurer.openai_api_key_path,

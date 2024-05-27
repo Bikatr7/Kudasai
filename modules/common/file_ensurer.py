@@ -226,7 +226,8 @@ class FileEnsurer():
         ]
 
         stuff_to_truncate = [
-            FileEnsurer.output_dir
+            FileEnsurer.output_dir,
+            FileEnsurer.archive_dir
         ]
 
         for thing in stuff_to_purge:

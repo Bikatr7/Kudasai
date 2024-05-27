@@ -357,6 +357,8 @@ class Translator:
         Translator.error_text = []
         Translator.openai_translation_batches = []
         Translator.gemini_translation_batches = []
+        Translator.deepl_translation_batches = []
+        Translator.google_translate_translation_batches = []
         Translator.num_occurred_malformed_batches = 0
         Translator.translation_print_result = ""
         Translator.TRANSLATION_METHOD = "deepl"

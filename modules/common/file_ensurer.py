@@ -58,6 +58,8 @@ class FileEnsurer():
     ## translation settings
     external_translation_settings_path = os.path.join(script_dir,'translation_settings.json')
     config_translation_settings_path = os.path.join(config_dir,'translation_settings.json')
+    
+    external_translation_genders_path = os.path.join(script_dir,'genders.json')
 
     ## api keys
     deepl_api_key_path = os.path.join(secrets_dir, "deepl_api_key.txt")
@@ -85,7 +87,8 @@ class FileEnsurer():
         "je_check_mode": 2,
         "number_of_malformed_batch_retries": 1,
         "batch_retry_timeout": 300,
-        "number_of_concurrent_batches": 5
+        "number_of_concurrent_batches": 5,
+        "gender_context_insertion": False,
     },
 
     "openai settings": {

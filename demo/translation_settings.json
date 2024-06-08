@@ -6,7 +6,8 @@
         "je_check_mode": 2,
         "number_of_malformed_batch_retries": 1,
         "batch_retry_timeout": 700,
-        "number_of_concurrent_batches": 2
+        "number_of_concurrent_batches": 2,
+        "gender_context_insertion": true
     },
 
     "openai settings": {
@@ -24,7 +25,7 @@
     },
 
     "gemini settings": {
-        "gemini_model": "gemini-1.5-pro-latest",
+        "gemini_model": "gemini-pro",
         "gemini_prompt": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
         "gemini_temperature": 0.3,
         "gemini_top_p": null,

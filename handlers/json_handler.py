@@ -43,7 +43,8 @@ class JsonHandler:
             "je_check_mode",
             "number_of_malformed_batch_retries",
             "batch_retry_timeout",
-            "number_of_concurrent_batches"
+            "number_of_concurrent_batches",
+            "gender_context_insertion"
         ]
 
         openai_keys = [
@@ -86,6 +87,7 @@ class JsonHandler:
             "je_check_mode": lambda x: isinstance(x, int) and 1 <= x <= 2,
             "number_of_malformed_batch_retries": lambda x: isinstance(x, int) and x >= 0,
             "batch_retry_timeout": lambda x: isinstance(x, int) and x >= 0,
+            "gender_context_insertion": lambda x: isinstance(x, bool),
             "number_of_concurrent_batches": lambda x: isinstance(x, int) and x >= 0,
             "openai_model": lambda x: isinstance(x, str) and x in ALLOWED_OPENAI_MODELS,
             "openai_system_message": lambda x: x not in ["", "None", None],
@@ -326,6 +328,7 @@ class JsonHandler:
             "number_of_malformed_batch_retries": {"type": int, "constraints": lambda x: x >= 0},
             "batch_retry_timeout": {"type": int, "constraints": lambda x: x >= 0},
             "number_of_concurrent_batches": {"type": int, "constraints": lambda x: x >= 0},
+            "gender_context_insertion": {"type": bool, "constraints": lambda x: isinstance(x, bool)},
             "openai_model": {"type": str, "constraints": lambda x: x in ALLOWED_OPENAI_MODELS},
             "openai_system_message": {"type": str, "constraints": lambda x: x not in ["", "None", None]},
             "openai_temperature": {"type": float, "constraints": lambda x: 0 <= x <= 2},

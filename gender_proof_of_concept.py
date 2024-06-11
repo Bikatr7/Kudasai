@@ -35,49 +35,13 @@ sample = """
 
 from modules.common.gender_util import GenderUtil
 
-def find_english_words(text: str) -> list[tuple[str, int]]:
-    return [(match.group(), match.start()) for match in regex.finditer(r'\p{Latin}+', text)]
+names_with_positions = GenderUtil.find_english_words(sample)
 
-def is_potential_name(word: str) -> bool:
-    # Assuming words with first letter capitalized are potential names and excluding full-width Latin characters
-    return word[0].isupper() and not regex.match(r'[\uFF00-\uFFEF]', word)
+potential_names_with_positions = [(name, pos) for name, pos in names_with_positions if GenderUtil.is_potential_name(name)]
 
-names_with_positions = find_english_words(sample)
-
-# Filter names and potential names
-potential_names_with_positions = [(name, pos) for name, pos in names_with_positions if is_potential_name(name)]
-
-# This function groups names together if they follow one another within a certain distance and are separated by spaces
-def group_names(names_with_positions: list[tuple[str, int]], max_distance: int = 10) -> list[str]:
-    grouped_names = []
-    skip_next = False
-    
-    for i in range(len(names_with_positions) - 1):
-        if skip_next:
-            skip_next = False
-            continue
-        
-        current_name, current_pos = names_with_positions[i]
-        next_name, next_pos = names_with_positions[i + 1]
-        
-        # Check if names are separated by spaces and within max distance
-        separator = sample[current_pos + len(current_name):next_pos]
-        if is_potential_name(next_name) and separator.isspace() and next_pos - current_pos <= max_distance:
-            grouped_names.append(current_name + " " + next_name)
-            skip_next = True
-        else:
-            grouped_names.append(current_name)
-    
-    if not skip_next and names_with_positions:
-        grouped_names.append(names_with_positions[-1][0])
-    
-    return grouped_names
-
-grouped_names = group_names(potential_names_with_positions)
+grouped_names = GenderUtil.group_names(sample, potential_names_with_positions)
 
 actual_names = GenderUtil.discard_non_names(grouped_names)
-
-honorific_stripped_names = [GenderUtil.honorific_stripper(name) for name in actual_names]
 
 print("-----------------")
 print("'Names'")
@@ -99,23 +63,19 @@ print("Actual names")
 print("-----------------")
 print(actual_names)
 
-print("-----------------")
-print("Honorific stripped names")
-print("-----------------")
-print(honorific_stripped_names)
 
 print("-----------------")
 print("Gender prediction")
 print("-----------------")
 
-for name in honorific_stripped_names:
+for name in actual_names:
     print(name, GenderUtil.find_name_gender(name))
 
 print("-----------------")
 print("Determined Gender")
 print("-----------------")
 
-for name in honorific_stripped_names:
+for name in actual_names:
     gender = GenderUtil.find_name_gender(name)
     if gender and len(set(gender)) == 1 and "Unknown" not in gender:
         print(name, gender[0])

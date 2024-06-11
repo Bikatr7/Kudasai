@@ -1,4 +1,4 @@
 backoff==2.2.1
 gradio==4.20.0
-kairyou==1.6.1
+kairyou==1.6.3
 easytl==0.4.0

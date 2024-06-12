@@ -7,7 +7,8 @@
         "number_of_malformed_batch_retries": 1,
         "batch_retry_timeout": 700,
         "number_of_concurrent_batches": 2,
-        "gender_context_insertion": true
+        "gender_context_insertion": true,
+        "is_cote": true
     },
 
     "openai settings": {

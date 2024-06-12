@@ -89,6 +89,7 @@ class FileEnsurer():
         "batch_retry_timeout": 300,
         "number_of_concurrent_batches": 5,
         "gender_context_insertion": False,
+        "is_cote": False,
     },
 
     "openai settings": {

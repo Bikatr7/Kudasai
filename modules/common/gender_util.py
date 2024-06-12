@@ -226,7 +226,7 @@ class GenderUtil:
 
         """
 
-        ## known names that are literally 99% this
+        ## known names that are literally 95% this
         cote_predetermined: typing.Dict[typing.Tuple[str, str], str] = {
             ("Sakayanagi", "san"): "Female",
             ("Horikita", "san"): "Female",
@@ -251,9 +251,21 @@ class GenderUtil:
             GenderUtil.cache[name] = result
             return result
 
+        ## this does an in operation
+        ## so it could return too many (Kei for instance, will trigger Keisei and Kei)
         result = [gender for gender, names in GenderUtil.genders.items() for full_name in names if stripped_name in full_name]
 
-        print(result)
+        ## so we can go through it again and split the full name into first and last name, compare them to the stripped name and set the result
+        if(len(result) > 1):
+            for gender, names in GenderUtil.genders.items():
+                for full_name in names:
+                    first_name = full_name.split(" ")[0]
+                    last_name = full_name.split(" ")[-1]
+
+                    if((first_name == stripped_name or last_name == stripped_name) and gender in result):
+                        ## need to readd, done because this can do for multiple genders
+                        result.remove(gender)
+                        result.append(gender)
 
         if(len(set(result)) > 1 or result == ["Unknown"]):
             if(honorific == "kun"):

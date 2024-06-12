@@ -1,5 +1,3 @@
-import regex
-
 sample = """
 まさに２学期終了寸前,ギリギリのタイミングってことだな.
 それでも,テストまではもう３週間と時間が残されていない.
@@ -69,15 +67,21 @@ print("Gender prediction")
 print("-----------------")
 
 for name in actual_names:
-    print(name, GenderUtil.find_name_gender(name))
+    print(name, GenderUtil.find_name_gender(name, is_cote=True))
 
 print("-----------------")
 print("Determined Gender")
 print("-----------------")
 
+result = ""
+
 for name in actual_names:
-    gender = GenderUtil.find_name_gender(name)
-    if gender and len(set(gender)) == 1 and "Unknown" not in gender:
+    gender = GenderUtil.find_name_gender(name, is_cote=True)
+    if(gender and len(set(gender)) == 1 and "Unknown" not in gender):
         print(name, gender[0])
+        result += f"{name} : {gender[0]}\n"
     else:
-        print(name, "Unknown")
+        result += f"{name} : Unknown\n"
+
+with open("result.txt", "w", encoding="utf-8") as f:
+    f.write(result)

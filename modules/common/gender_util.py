@@ -187,10 +187,32 @@ class GenderUtil:
         
         return name
     
+##-------------------start-of-reverse_honorific_stripper()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def reverse_honorific_stripper(name:str) -> str:
+
+        """
+
+        Removes the name from the honorific. (Gets the honorific)
+
+        Parameters:
+        name (str) : The name to be stripped.
+
+        Returns:
+        (str) : The stripped name.
+
+        """
+
+        if("-" in name):
+            return name.split("-")[1]
+        
+        return ""
+    
 ##-------------------start-of-find_name_gender()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def find_name_gender(name:str) -> list[str]:
+    def find_name_gender(name:str, is_cote:bool = False) -> list[str]:
 
         """
 
@@ -204,15 +226,43 @@ class GenderUtil:
 
         """
 
+        ## known names that are literally 99% this
+        cote_predetermined: typing.Dict[typing.Tuple[str, str], str] = {
+            ("Sakayanagi", "san"): "Female",
+            ("Horikita", "san"): "Female",
+            ("Horikita", ""): "Female",
+            ("Sakayanagi", ""): "Female",
+            ("Sakayanagi", "sama"): "Male",
+            ("Sakayanagi", "sensei"): "Male"
+        }
+
         if(GenderUtil.genders is None):
             GenderUtil.genders = GenderUtil.load_genders(FileEnsurer.external_translation_genders_path)
 
         if(name in GenderUtil.cache):
             return GenderUtil.cache[name]
+        
+        honorific = GenderUtil.reverse_honorific_stripper(name)
+        stripped_name = GenderUtil.honorific_stripper(name)
 
-        result = []
+        ## check if the name is predetermined
+        if((stripped_name, honorific) in cote_predetermined and is_cote):
+            result = [cote_predetermined[(stripped_name, honorific)]]
+            GenderUtil.cache[name] = result
+            return result
 
-        result = [gender for gender, names in GenderUtil.genders.items() for full_name in names if GenderUtil.honorific_stripper(name) in full_name]
+        result = [gender for gender, names in GenderUtil.genders.items() for full_name in names if stripped_name in full_name]
+
+        print(result)
+
+        if(len(set(result)) > 1 or result == ["Unknown"]):
+            if(honorific == "kun"):
+                result = ["Male"]
+            elif(honorific == "chan"):
+                result = ["Female"]
+            
+            else:
+                result = ["Unknown"]
 
         GenderUtil.cache[name] = result
 

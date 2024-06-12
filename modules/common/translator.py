@@ -21,6 +21,7 @@ from modules.common.file_ensurer import FileEnsurer
 from modules.common.toolkit import Toolkit
 from modules.common.exceptions import OpenAIAuthenticationError, MaxBatchDurationExceededException, DeepLAuthorizationException, OpenAIInternalServerError, OpenAIRateLimitError, OpenAIAPITimeoutError, GoogleAuthError, OpenAIAPIStatusError, OpenAIAPIConnectionError, DeepLException, GoogleAPIError
 from modules.common.decorators import permission_error_decorator
+from modules.common.gender_util import GenderUtil
 
 ##-------------------start-of-Translator--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -74,6 +75,8 @@ class Translator:
     number_of_malformed_batch_retries:int
     batch_retry_timeout:float
     num_concurrent_batches:int
+    gender_context_insertion:bool
+    is_cote:bool
 
     decorator_to_use:typing.Callable
 
@@ -444,6 +447,8 @@ class Translator:
         Translator.num_of_malform_retries = int(JsonHandler.current_translation_settings["base translation settings"]["number_of_malformed_batch_retries"])
         Translator.max_batch_duration = float(JsonHandler.current_translation_settings["base translation settings"]["batch_retry_timeout"])
         Translator.num_concurrent_batches = int(JsonHandler.current_translation_settings["base translation settings"]["number_of_concurrent_batches"])
+        Translator.gender_context_insertion = bool(JsonHandler.current_translation_settings["base translation settings"]["gender_context_insertion"])
+        Translator.is_cote = bool(JsonHandler.current_translation_settings["base translation settings"]["is_cote"])
 
         Translator._semaphore = asyncio.Semaphore(Translator.num_concurrent_batches)
 
@@ -514,6 +519,9 @@ class Translator:
         ## requests to run asynchronously
         async_requests = Translator.build_async_requests(model)
 
+        Toolkit.pause_console()
+        FileEnsurer.exit_kudasai()
+
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
 
@@ -562,7 +570,7 @@ class Translator:
 
         translation_batches = translation_batches_methods[Translator.TRANSLATION_METHOD]
         batch_length = len(translation_batches)
-        batch_number = 1  # Initialize batch number
+        batch_number = 1 
 
         if(Translator.TRANSLATION_METHOD not in ["deepl", "google translate"]):
             for i in range(0, batch_length, 2):
@@ -571,6 +579,10 @@ class Translator:
 
                 assert isinstance(instructions, (SystemTranslationMessage, str))
                 assert isinstance(prompt, (ModelTranslationMessage, str))
+                
+                if(Translator.gender_context_insertion):
+                    assumption = GenderUtil.get_gender_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)
+                    print(assumption)
 
                 async_requests.append(Translator.handle_translation(model, batch_number, batch_length//2, prompt, instructions))
                 batch_number += 1

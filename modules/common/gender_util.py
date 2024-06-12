@@ -279,3 +279,39 @@ class GenderUtil:
         GenderUtil.cache[name] = result
 
         return result
+    
+##-------------------start-of-get_gender_assumption_for_system_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def get_gender_assumption_for_system_prompt(sample:str) -> str:
+
+        """
+
+        Gets the gender assumptions for a text sample so it can be used in the system prompt.
+
+        Parameters:
+        sample (str) : The text to be analyzed.
+
+        Returns:
+        assumption (str) : The assumption
+
+        """
+
+        assumption = ""
+
+        names_with_positions = GenderUtil.find_english_words(sample)
+
+        potential_names_with_positions = [(name, pos) for name, pos in names_with_positions if GenderUtil.is_potential_name(name)]
+
+        grouped_names = GenderUtil.group_names(sample, potential_names_with_positions)
+
+        actual_names = GenderUtil.discard_non_names(grouped_names)
+
+        for name in actual_names:
+            gender = GenderUtil.find_name_gender(name, is_cote=True)
+            if(gender and len(set(gender)) == 1 and "Unknown" not in gender):
+                assumption += f"{name} : {gender[0]}\n"
+            else:
+                assumption += f"{name} : Unknown\n"
+
+        return assumption

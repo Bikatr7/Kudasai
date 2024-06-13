@@ -208,7 +208,40 @@ class GenderUtil:
             return name.split("-")[1]
         
         return ""
-    
+
+##-------------------start-of-discard_similar_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def discard_similar_names(names: list[str]) -> list[str]:
+
+        """
+        
+        Discards any names that are similar to each other.
+
+        This totally didn't take me literally 2 hours because I'm a dipshit who overcomplicates things.
+
+        Parameters:
+        names (list[str]) : The names to be filtered.
+
+        Returns:
+        (list[str]) : The filtered names
+
+        """
+
+        seen = set()
+        result = []
+
+        # Sort names by length (shortest first)
+        names.sort(key=len)
+
+        for name in names:
+            base_name = GenderUtil.honorific_stripper(name)
+            if(not any(base_name in seen_name or seen_name in base_name for seen_name in seen)):
+                result.append(name)
+                seen.add(base_name)
+
+        return result
+        
 ##-------------------start-of-find_name_gender()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -308,10 +341,11 @@ class GenderUtil:
         potential_names_with_positions = [(name, pos) for name, pos in names_with_positions if GenderUtil.is_potential_name(name)]
         grouped_names = GenderUtil.group_names(sample, potential_names_with_positions)
         actual_names = GenderUtil.discard_non_names(grouped_names)
+        filtered_names = GenderUtil.discard_similar_names(actual_names)
 
         assumptions = [
             "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and "Unknown" not in gender else "{} : Unknown\n".format(name)
-            for name in actual_names
+            for name in filtered_names
             for gender in [GenderUtil.find_name_gender(name, is_cote=True)]
         ]
 

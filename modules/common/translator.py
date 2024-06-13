@@ -560,40 +560,39 @@ class Translator:
         """
 
         async_requests = []
+        logging_message = "Built Messages: \n\n"
 
         translation_batches_methods = {
-            "openai": Translator.openai_translation_batches,
-            "gemini": Translator.gemini_translation_batches,
-            "deepl": Translator.deepl_translation_batches,
-            "google translate": Translator.google_translate_translation_batches
+            method_name: getattr(Translator, f"{method_name}_translation_batches")
+            for method_name in ["openai", "gemini", "deepl", "google_translate"]
         }
 
         translation_batches = translation_batches_methods[Translator.TRANSLATION_METHOD]
         batch_length = len(translation_batches)
-        batch_number = 1 
 
+        ## if openai/gemini which are llm, they have the instructions/prompt format
         if(Translator.TRANSLATION_METHOD not in ["deepl", "google translate"]):
-            for i in range(0, batch_length, 2):
-                instructions = translation_batches[i]
-                prompt = translation_batches[i + 1]
-
+            for batch_number, (instructions, prompt) in enumerate(zip(translation_batches[::2], translation_batches[1::2]), start=1):
                 assert isinstance(instructions, (SystemTranslationMessage, str))
                 assert isinstance(prompt, (ModelTranslationMessage, str))
-                
+
                 if(Translator.gender_context_insertion):
-                    assumption = GenderUtil.get_gender_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)
-                    print(assumption)
+                    assumption = list(set(GenderUtil.get_pronoun_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)))
+                    assumption_string = "Pronouns to use:\n" + "".join(assumption)
+                    instructions = SystemTranslationMessage(content=f"{instructions.content if isinstance(instructions, Message) else instructions}\n{assumption_string}")
 
+                logging_message += f"\n------------------------\n{instructions.content if isinstance(instructions, Message) else instructions}\n{prompt if isinstance(prompt, str) else prompt.content}"
                 async_requests.append(Translator.handle_translation(model, batch_number, batch_length//2, prompt, instructions))
-                batch_number += 1
-
+        
+        ## if deepl/google translate, they only have the prompt
         else:
-            for i, batch in enumerate(translation_batches):
+            for batch_number, batch in enumerate(translation_batches, start=1):
                 assert isinstance(batch, str)
-
+                logging_message += f"\n------------------------\n{batch}"
                 async_requests.append(Translator.handle_translation(model, batch_number, batch_length, batch, None))
-                batch_number += 1
 
+        logging.debug(logging_message)
+        
         return async_requests
 
 ##-------------------start-of-generate_text_to_translate_batches()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -686,32 +685,6 @@ class Translator:
 
             elif(Translator.TRANSLATION_METHOD == 'google translate'):
                 Translator.google_translate_translation_batches.append(batch)
-
-        logging_message = "Built Messages: \n\n"
-
-        batches_to_iterate = {
-            "openai": Translator.openai_translation_batches,
-            "gemini": Translator.gemini_translation_batches,
-            "deepl": Translator.deepl_translation_batches,
-            "google translate": Translator.google_translate_translation_batches
-        }
-
-        i = 0
-
-        batches = batches_to_iterate[Translator.TRANSLATION_METHOD]
-
-        for message in batches:
-
-            i+=1
-
-            message = str(message) if Translator.TRANSLATION_METHOD != 'openai' else message.content # type: ignore
-
-            if(i % 2 == 1 and Translator.TRANSLATION_METHOD not in ['deepl', 'google_translate']):
-                logging_message += "\n" "------------------------" "\n"
-
-            logging_message += message + "\n"
-
-        logging.debug(logging_message)
 
 ##-------------------start-of-handle_cost_estimate_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

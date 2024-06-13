@@ -233,7 +233,8 @@ class GenderUtil:
             ("Horikita", ""): "Female",
             ("Sakayanagi", ""): "Female",
             ("Sakayanagi", "sama"): "Male",
-            ("Sakayanagi", "sensei"): "Male"
+            ("Sakayanagi", "sensei"): "Male",
+            ("Kei", ""): "Female"
         }
 
         if(GenderUtil.genders is None):
@@ -280,38 +281,44 @@ class GenderUtil:
 
         return result
     
-##-------------------start-of-get_gender_assumption_for_system_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##-------------------start-of-get_pronoun_assumption_for_system_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def get_gender_assumption_for_system_prompt(sample:str) -> str:
+    def get_pronoun_assumption_for_system_prompt(sample:str) -> typing.List[str]:
 
         """
 
-        Gets the gender assumptions for a text sample so it can be used in the system prompt.
+        Gets the pronoun assumptions for a text sample so it can be used in the system prompt.
 
         Parameters:
         sample (str) : The text to be analyzed.
 
         Returns:
-        assumption (str) : The assumption
+        pronoun_assumptions (list[str]) : The pronoun assumptions.
 
         """
 
-        assumption = ""
+        gender_to_pronoun_map = {
+            "Male": "he",
+            "Female": "she",
+            "Unknown": "they"
+        }
 
         names_with_positions = GenderUtil.find_english_words(sample)
-
         potential_names_with_positions = [(name, pos) for name, pos in names_with_positions if GenderUtil.is_potential_name(name)]
-
         grouped_names = GenderUtil.group_names(sample, potential_names_with_positions)
-
         actual_names = GenderUtil.discard_non_names(grouped_names)
 
-        for name in actual_names:
-            gender = GenderUtil.find_name_gender(name, is_cote=True)
-            if(gender and len(set(gender)) == 1 and "Unknown" not in gender):
-                assumption += f"{name} : {gender[0]}\n"
-            else:
-                assumption += f"{name} : Unknown\n"
+        assumptions = [
+            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and "Unknown" not in gender else "{} : Unknown\n".format(name)
+            for name in actual_names
+            for gender in [GenderUtil.find_name_gender(name, is_cote=True)]
+        ]
 
-        return assumption
+        pronoun_assumptions = [
+            "{} : {}\n".format(name.strip(), gender_to_pronoun_map.get(gender.strip(), "they"))
+            for assumption in assumptions
+            for name, gender in [assumption.split(":")]
+        ]
+
+        return pronoun_assumptions

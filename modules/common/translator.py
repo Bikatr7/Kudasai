@@ -519,9 +519,6 @@ class Translator:
         ## requests to run asynchronously
         async_requests = Translator.build_async_requests(model)
 
-        Toolkit.pause_console()
-        FileEnsurer.exit_kudasai()
-
         ## Use asyncio.gather to run tasks concurrently/asynchronously and wait for all of them to complete
         results = await asyncio.gather(*async_requests)
 
@@ -577,8 +574,8 @@ class Translator:
                 assert isinstance(prompt, (ModelTranslationMessage, str))
 
                 if(Translator.gender_context_insertion):
-                    assumption = list(set(GenderUtil.get_pronoun_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)))
-                    assumption_string = "Pronouns to use:\n" + "".join(assumption)
+                    assumption = list(set(GenderUtil.get_gender_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)))
+                    assumption_string = "Additional Information:\nCharacter Genders:\n" + "".join(assumption)
                     instructions = SystemTranslationMessage(content=f"{instructions.content if isinstance(instructions, Message) else instructions}\n{assumption_string}")
 
                 logging_message += f"\n------------------------\n{instructions.content if isinstance(instructions, Message) else instructions}\n{prompt if isinstance(prompt, str) else prompt.content}"

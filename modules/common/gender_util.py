@@ -301,14 +301,14 @@ class GenderUtil:
                         result.remove(gender)
                         result.append(gender)
 
-        if(len(set(result)) > 1 or result == ["Unknown"]):
+        if(len(set(result)) > 1 or result == ["Undetermined"]):
             if(honorific == "kun"):
                 result = ["Male"]
             elif(honorific == "chan"):
                 result = ["Female"]
             
             else:
-                result = ["Unknown"]
+                result = ["Undetermined"]
 
         GenderUtil.cache[name] = result
 
@@ -334,7 +334,7 @@ class GenderUtil:
         gender_to_pronoun_map = {
             "Male": "he",
             "Female": "she",
-            "Unknown": "they"
+            "Undetermined": "they"
         }
 
         names_with_positions = GenderUtil.find_english_words(sample)
@@ -344,7 +344,7 @@ class GenderUtil:
         filtered_names = GenderUtil.discard_similar_names(actual_names)
 
         assumptions = [
-            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and "Unknown" not in gender else "{} : Unknown\n".format(name)
+            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and "Undetermined" not in gender else "{} : Undetermined\n".format(name)
             for name in filtered_names
             for gender in [GenderUtil.find_name_gender(name, is_cote=True)]
         ]
@@ -356,3 +356,40 @@ class GenderUtil:
         ]
 
         return pronoun_assumptions
+    
+##----------------start-of-get_gender_assumption_for_system_prompt()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    @staticmethod
+    def get_gender_assumption_for_system_prompt(sample:str) -> typing.List[str]:
+
+        """
+
+        Gets the gender assumptions for a text sample.
+
+        Parameters:
+        sample (str) : The text to be analyzed.
+
+        Returns:
+        genders (list[str]) : The gender assumptions.
+        
+        """
+
+        names_with_positions = GenderUtil.find_english_words(sample)
+        potential_names_with_positions = [(name, pos) for name, pos in names_with_positions if GenderUtil.is_potential_name(name)]
+        grouped_names = GenderUtil.group_names(sample, potential_names_with_positions)
+        actual_names = GenderUtil.discard_non_names(grouped_names)
+        filtered_names = GenderUtil.discard_similar_names(actual_names)
+
+        assumptions = [
+            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and "Undetermined" not in gender else "{} : Undetermined\n".format(name)
+            for name in filtered_names
+            for gender in [GenderUtil.find_name_gender(name, is_cote=True)]
+        ]
+
+        gender_assumptions = [
+            "{} : {}\n".format(name.strip(), gender.strip())
+            for assumption in assumptions
+            for name, gender in [assumption.split(":")]
+        ]
+
+        return gender_assumptions

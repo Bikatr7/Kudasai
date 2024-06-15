@@ -2,6 +2,7 @@
 import typing
 import base64
 import re
+import shutil
 import time
 import typing
 import asyncio
@@ -435,6 +436,10 @@ class Translator:
 
         """
 
+        if(os.path.exists(FileEnsurer.external_translation_genders_path) and not is_webgui):
+            logging.info("External genders.json file found, overriding config...")
+            shutil.copy2(FileEnsurer.external_translation_genders_path, FileEnsurer.config_translation_genders_path)
+
         logging.debug(f"Translator Activated, Translation Method : {Translator.TRANSLATION_METHOD} "
                      f"Settings are as follows : ")
         
@@ -574,7 +579,6 @@ class Translator:
                 assert isinstance(prompt, (ModelTranslationMessage, str))
 
                 if(Translator.gender_context_insertion):
-                    assert os.path.exists(FileEnsurer.external_translation_genders_path), "There must be a genders.json file in the root Kudasai directory to use gender context insertion."
                     assumption = list(set(GenderUtil.get_gender_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)))
                     assumption_string = "Additional Information:\nCharacter Genders:\n" + "".join(assumption) if len(assumption) > 0 else ""
                     instructions = SystemTranslationMessage(content=f"{instructions.content if isinstance(instructions, Message) else instructions}\n{assumption_string}")

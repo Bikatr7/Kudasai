@@ -3,6 +3,7 @@ import typing
 import base64
 import asyncio
 import os
+import json
 
 ## third-party libraries
 import gradio as gr
@@ -98,7 +99,7 @@ class KudasaiGUI:
 
         """
 
-        with gr.Blocks(title="Kudasai") as self.gui:
+        with gr.Blocks(title="Kudasai", delete_cache=(300, 300)) as self.gui:
 
 ##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -261,30 +262,32 @@ class KudasaiGUI:
                     4: "number_of_malformed_batch_retries",
                     5: "batch_retry_timeout",
                     6: "number_of_concurrent_batches",
-                    7: "openai_model",
-                    8: "openai_system_message",
-                    9: "openai_temperature",
-                    10: "openai_top_p",
-                    11: "openai_n",
-                    12: "openai_stream",
-                    13: "openai_stop",
-                    14: "openai_logit_bias",
-                    15: "openai_max_tokens",
-                    16: "openai_presence_penalty",
-                    17: "openai_frequency_penalty",
-                    18: "gemini_model",
-                    19: "gemini_prompt",
-                    20: "gemini_temperature",
-                    21: "gemini_top_p",
-                    22: "gemini_top_k",
-                    23: "gemini_candidate_count",
-                    24: "gemini_stream",
-                    25: "gemini_stop_sequences",
-                    26: "gemini_max_output_tokens",
-                    27: "deepl_context",
-                    28: "deepl_split_sentences",
-                    29: "deepl_preserve_formatting",
-                    30: "deepl_formality",
+                    7: "gender_context_insertion",
+                    8: "is_cote",
+                    9: "openai_model",
+                    10: "openai_system_message",
+                    11: "openai_temperature",
+                    12: "openai_top_p",
+                    13: "openai_n",
+                    14: "openai_stream",
+                    15: "openai_stop",
+                    16: "openai_logit_bias",
+                    17: "openai_max_tokens",
+                    18: "openai_presence_penalty",
+                    19: "openai_frequency_penalty",
+                    20: "gemini_model",
+                    21: "gemini_prompt",
+                    22: "gemini_temperature",
+                    23: "gemini_top_p",
+                    24: "gemini_top_k",
+                    25: "gemini_candidate_count",
+                    26: "gemini_stream",
+                    27: "gemini_stop_sequences",
+                    28: "gemini_max_output_tokens",
+                    29: "deepl_context",
+                    30: "deepl_split_sentences",
+                    31: "deepl_preserve_formatting",
+                    32: "deepl_formality",
                 }
 
                 for index, setting in enumerate(translation_settings):
@@ -383,7 +386,8 @@ class KudasaiGUI:
                         with gr.Column():
                             self.input_txt_file_translator = gr.File(label='TXT file with Japanese Text', file_count='single', file_types=['.txt'], type='filepath', interactive=True)
                             self.input_text_translator = gr.Textbox(label='Japanese Text', placeholder='Use this or the text file input, if you provide both, Kudasai will use the file input.', lines=10, show_label=True, interactive=True, type='text')
-                            self.input_translation_rules_file = gr.File(value = FileEnsurer.config_translation_settings_path, label='Translation Settings File', file_count='single', file_types=['.json'], type='filepath')
+                            self.input_translation_rules_file = gr.File(value = FileEnsurer.config_translation_settings_path, label='Translation Settings File', file_count='single', file_types=['.json'], type='filepath', interactive=True)
+                            self.input_genders_file = gr.File(value=FileEnsurer.config_translation_genders_path, label='Genders.json File', file_count='single', file_types=['.json'], type='filepath', interactive=True)
 
                             with gr.Row():
                                 self.llm_option_dropdown = gr.Dropdown(label='Translation Method', choices=["OpenAI", "Gemini", "DeepL", "Google Translate"], value="DeepL", show_label=True, interactive=True)
@@ -490,6 +494,20 @@ class KudasaiGUI:
                                                                                         interactive=True,
                                                                                         elem_id="number_of_concurrent_batches",
                                                                                         show_copy_button=True)
+                            
+                            self.gender_context_insertion_input_field = gr.Checkbox(label="Gender Context Insertion",
+                                                                                    value=bool(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","gender_context_insertion")),
+                                                                                    info=KudasaiGUI.description_dict.get("gender_context_insertion"),
+                                                                                    show_label=True,
+                                                                                    interactive=True,
+                                                                                    elem_id="number_of_concurrent_batches")
+                            
+                            self.is_cote_input_field = gr.Checkbox(label="Is Cote",
+                                                                    value=bool(GuiJsonUtil.fetch_translation_settings_key_values("base translation settings","is_cote")),
+                                                                    info=KudasaiGUI.description_dict.get("is_cote"),
+                                                                    show_label=True,
+                                                                    interactive=True,
+                                                                    elem_id="is_cote")
 
                         with gr.Column(): 
 
@@ -958,17 +976,14 @@ class KudasaiGUI:
                 JsonHandler.current_translation_settings = GuiJsonUtil.current_translation_settings
 
                 ## next, set the llm type
-                if(translation_method == "OpenAI"):
-                    Translator.TRANSLATION_METHOD = "openai" 
-
-                elif(translation_method == "Gemini"):
-                    Translator.TRANSLATION_METHOD = "gemini"
-
-                elif(translation_method == "DeepL"):
-                    Translator.TRANSLATION_METHOD = "deepl"
-
-                elif(translation_method == "Google Translate"):
-                    Translator.TRANSLATION_METHOD = "google translate"
+                translation_methods = {
+                    "OpenAI": "openai",
+                    "Gemini": "gemini",
+                    "DeepL": "deepl",
+                    "Google Translate": "google translate"
+                }
+                
+                Translator.TRANSLATION_METHOD = translation_methods.get(translation_method, "") # type: ignore
 
                 ## api key as well
                 await set_translator_api_key(api_key)
@@ -1133,7 +1148,7 @@ class KudasaiGUI:
             
 ##-------------------start-of-clear_translator_tab()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            def clear_translator_tab() -> typing.Tuple[None, str, gr.File, str, str, str]:
+            def clear_translator_tab() -> typing.Tuple[None, str, gr.File, gr.File, str, str, str]:
 
                 """
                 
@@ -1142,6 +1157,8 @@ class KudasaiGUI:
                 Returns:
                 input_txt_file_translator (gr.File) : An empty file.
                 input_text_translator (str) : An empty string.
+                input_translation_rules_file (gr.File) : An empty file.
+                input_genders_file (gr.File) : An empty file.
                 translator_translated_text_output_field (str) : An empty string.
                 je_check_text_field_translator (str) : An empty string.
                 translator_debug_log_output_field (str) : An empty string.
@@ -1159,13 +1176,16 @@ class KudasaiGUI:
                 input_text_translator = ""
 
                 ## Also gonna want to reset the json input field to the default json file
-                input_translation_rules_file = gr.File(value = FileEnsurer.config_translation_settings_path, label='Translation Settings File', file_count='single', file_types=['.json'], type='filepath')
+                input_translation_rules_file = gr.File(value = FileEnsurer.config_translation_settings_path, label='Translation Settings File', file_count='single', file_types=['.json'], type='filepath', interactive=True)
+
+                ## same for genders shit
+                input_genders_file = gr.File(value=(FileEnsurer.config_translation_genders_path), label='Genders.json File', file_count='single', file_types=['.json'], type='filepath', interactive=True)
 
                 translator_translated_text_output_field = ""
                 je_check_text_field_translator = ""
                 translator_debug_log_output_field = ""
 
-                return input_file_translator, input_text_translator, input_translation_rules_file, translator_translated_text_output_field, je_check_text_field_translator, translator_debug_log_output_field
+                return input_file_translator, input_text_translator, input_translation_rules_file, input_genders_file, translator_translated_text_output_field, je_check_text_field_translator, translator_debug_log_output_field
             
 ##-------------------start-of-clear_log_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -1199,6 +1219,8 @@ class KudasaiGUI:
                                         num_malformed_batch_retries:int,
                                         batch_retry_timeout:int,
                                         num_concurrent_batches:int,
+                                        gender_context_insertion:bool,
+                                        is_cote:bool,
                                         openai_model:str,
                                         openai_system_message:str,
                                         openai_temperature:float,
@@ -1243,6 +1265,8 @@ class KudasaiGUI:
                     num_malformed_batch_retries,
                     batch_retry_timeout,
                     num_concurrent_batches,
+                    gender_context_insertion,
+                    is_cote,
                     openai_model,
                     openai_system_message,
                     openai_temperature,
@@ -1272,9 +1296,9 @@ class KudasaiGUI:
 
                 ## create the new key-value pair list
                 new_key_value_tuple_pairs = create_new_key_value_tuple_pairs(settings_list)
-
+                
                 try:
-                    ## and then have the GuiJsonUtil apply the new translator settings
+                    ## and then have the GuiJsonUtil apply the new translator settings 
                     GuiJsonUtil.update_translation_settings_with_new_values(input_translation_rules_file, new_key_value_tuple_pairs)
 
                 except:
@@ -1305,6 +1329,8 @@ class KudasaiGUI:
                     ("base translation settings", "number_of_malformed_batch_retries", str),
                     ("base translation settings", "batch_retry_timeout", str),
                     ("base translation settings", "number_of_concurrent_batches", str),
+                    ("base translation settings", "gender_context_insertion", bool),
+                    ("base translation settings", "is_cote", bool),
                     ("openai settings", "openai_model", str),
                     ("openai settings", "openai_system_message", str),
                     ("openai settings", "openai_temperature", float),
@@ -1362,6 +1388,8 @@ class KudasaiGUI:
                         ("base translation settings", "number_of_malformed_batch_retries", str),
                         ("base translation settings", "batch_retry_timeout", str),
                         ("base translation settings", "number_of_concurrent_batches", str),
+                        ("base translation settings", "gender_context_insertion", bool),
+                        ("base translation settings", "is_cote", bool),
                         ("openai settings", "openai_model", str),
                         ("openai settings", "openai_system_message", str),
                         ("openai settings", "openai_temperature", float),
@@ -1395,6 +1423,51 @@ class KudasaiGUI:
                     raise gr.Error("Invalid Custom Translation Settings File")
                 
                 return return_batch
+            
+##-------------------start-of-set_genders_file()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            
+            def set_genders_file(input_gender_file:gr.File):
+
+                """
+
+                Sets the genders file.
+
+                """
+
+                try:
+
+                    contents = gui_get_json_from_file(input_gender_file)
+
+                    with open(FileEnsurer.config_translation_genders_path, "w", encoding="utf-8") as f:
+                        json.dump(contents, f, indent=4)
+
+                except Exception as e:
+                    raise gr.Error(f"Error {e} occurred while setting genders file.")
+            
+##----------------start-of-clear_genders_file()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+            def clear_genders_file(temp_file) -> None:
+
+                """
+
+                Clears the genders file.
+
+                """
+
+                try:
+
+                    with open(FileEnsurer.config_translation_genders_path, "w", encoding="utf-8") as f:
+                        json.dump(FileEnsurer.DEFAULT_GENDER_SETTINGS, f, indent=4)
+
+                    with open(temp_file, "w", encoding="utf-8") as f:
+                        json.dump(FileEnsurer.DEFAULT_GENDER_SETTINGS, f, indent=4)
+
+                except:
+
+                    pass
+
+                return None
 
 ##-------------------start-of-clear_translation_settings_input_fields()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -1416,6 +1489,8 @@ class KudasaiGUI:
                     "num_malformed_batch_retries_value": None,
                     "batch_retry_timeout_value": None,
                     "num_concurrent_batches_value": None,
+                    "gender_context_insertion_value": None,
+                    "is_cote_value": None,
                     "openai_model_value": None,
                     "openai_system_message_value": None,
                     "openai_temperature_value": None,
@@ -1568,8 +1643,6 @@ class KudasaiGUI:
                                                     self.logging_tab_debug_log_output_field, ## debug log on log tab
                                                     self.logging_tab_error_log_output_field]) ## error log on log tab
             
-
-            
 ##-------------------start-of-translate_with_translator()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             ## for the actual translation, and the je check text
@@ -1594,7 +1667,6 @@ class KudasaiGUI:
 
                                                 every=.1) ## update every 100ms
             
-
 ##-------------------start-of translator_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
             self.translator_calculate_cost_button.click(translator_calculate_costs_button_click,
@@ -1643,6 +1715,7 @@ class KudasaiGUI:
                                                 self.input_txt_file_translator, ## input txt file
                                                 self.input_text_translator, ## input text
                                                 self.input_translation_rules_file, ## Translation Settings File
+                                                self.input_genders_file, ## Gender File
                                                 self.translator_translated_text_output_field, ## translation output field
                                                 self.translator_je_check_text_output_field, ## je check text field on translator tab
                                                 self.translator_debug_log_output_field], ## debug log on translator tab
@@ -1670,6 +1743,8 @@ class KudasaiGUI:
                                                 self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                 self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                 self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                self.gender_context_insertion_input_field, ## gender context insertion input field
+                                                self.is_cote_input_field, ## is cote input field
                                                 self.openai_model_input_field, ## openai model input field
                                                 self.openai_system_message_input_field, ## openai system message input field
                                                 self.openai_temperature_input_field, ## openai temperature input field
@@ -1710,6 +1785,8 @@ class KudasaiGUI:
                                                         self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                         self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                         self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                        self.gender_context_insertion_input_field, ## gender context insertion input field
+                                                        self.is_cote_input_field, ## is cote input field
                                                         self.openai_model_input_field, ## openai model input field
                                                         self.openai_system_message_input_field, ## openai system message input field
                                                         self.openai_temperature_input_field, ## openai temperature input field
@@ -1748,6 +1825,8 @@ class KudasaiGUI:
                                                     self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                     self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                    self.gender_context_insertion_input_field, ## gender context insertion input field
+                                                    self.is_cote_input_field, ## is cote input field
                                                     self.openai_model_input_field, ## openai model input field
                                                     self.openai_system_message_input_field, ## openai system message input field
                                                     self.openai_temperature_input_field, ## openai temperature input field
@@ -1786,6 +1865,8 @@ class KudasaiGUI:
                                                     self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                     self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                    self.gender_context_insertion_input_field, ## gender context insertion input field
+                                                    self.is_cote_input_field, ## is cote input field
                                                     self.openai_model_input_field, ## openai model input field
                                                     self.openai_system_message_input_field, ## openai system message input field
                                                     self.openai_temperature_input_field, ## openai temperature input field
@@ -1823,6 +1904,8 @@ class KudasaiGUI:
                                                     self.number_of_malformed_batch_retries_input_field, ## num malformed batch retries input field
                                                     self.batch_retry_timeout_input_field, ## batch retry timeout input field
                                                     self.number_of_concurrent_batches_input_field, ## num concurrent batches input field
+                                                    self.gender_context_insertion_input_field, ## gender context insertion input field
+                                                    self.is_cote_input_field, ## is cote input field
                                                     self.openai_model_input_field, ## openai model input field
                                                     self.openai_system_message_input_field, ## openai system message input field
                                                     self.openai_temperature_input_field, ## openai temperature input field
@@ -1847,6 +1930,19 @@ class KudasaiGUI:
                                                     self.deepl_split_sentences_input_field, ## deepl split sentences input field
                                                     self.deepl_preserve_formatting_input_field, ## deepl preserve formatting input field
                                                     self.deepl_formality_input_field]) ## deepl formality input field
+            
+
+##----------------start-of-input_genders_file_upload()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.input_genders_file.upload(set_genders_file,
+                                        inputs=[self.input_genders_file],
+                                        outputs=[]
+            )
+
+            self.input_genders_file.clear(clear_genders_file,
+                                        inputs=[self.input_genders_file],
+                                        outputs=[self.input_genders_file]
+            )
 
 ##-------------------start-of-logging_tab.select()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

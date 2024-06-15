@@ -56,7 +56,8 @@ class GuiJsonUtil:
 
             for header in new_rules.keys():
                 for key, value in new_values:
-                    new_rules[header][key] = JsonHandler.convert_to_correct_type(key, str(value))
+                    if(key in new_rules[header]):
+                        new_rules[header][key] = JsonHandler.convert_to_correct_type(key, str(value))
 
             JsonHandler.current_translation_settings = new_rules
             JsonHandler.validate_json()

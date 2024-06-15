@@ -122,7 +122,7 @@ class GenderUtil:
 ##-------------------start-of-load_genders()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def load_genders(file_path:str) -> dict:
+    def load_genders() -> dict:
 
         """
         
@@ -138,7 +138,7 @@ class GenderUtil:
 
         GenderUtil.cache = {}
 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(FileEnsurer.config_translation_genders_path, 'r', encoding='utf-8') as file:
             return json.load(file)
         
 ##-------------------start-of-discard_non_names()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ class GenderUtil:
         """
 
         if(GenderUtil.genders is None):
-            GenderUtil.genders = GenderUtil.load_genders(FileEnsurer.external_translation_genders_path)
+            GenderUtil.genders = GenderUtil.load_genders()
 
         new_names = [name for name in names if any(GenderUtil.honorific_stripper(name) in full_name for gender, gender_names in GenderUtil.genders.items() for full_name, _ in gender_names.items())]
 
@@ -271,7 +271,7 @@ class GenderUtil:
         }
 
         if(GenderUtil.genders is None):
-            GenderUtil.genders = GenderUtil.load_genders(FileEnsurer.external_translation_genders_path)
+            GenderUtil.genders = GenderUtil.load_genders()
 
         if(name in GenderUtil.cache):
             return GenderUtil.cache[name]

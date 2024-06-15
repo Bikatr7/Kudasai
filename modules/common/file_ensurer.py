@@ -60,6 +60,7 @@ class FileEnsurer():
     config_translation_settings_path = os.path.join(config_dir,'translation_settings.json')
     
     external_translation_genders_path = os.path.join(script_dir,'genders.json')
+    config_translation_genders_path = os.path.join(config_dir, 'genders.json')
 
     ## api keys
     deepl_api_key_path = os.path.join(secrets_dir, "deepl_api_key.txt")
@@ -125,7 +126,21 @@ class FileEnsurer():
         "deepl_formality": "default"
     }
 }
+    
+    DEFAULT_GENDER_SETTINGS = {
+    "Male": {},
+    "Female": {},
+    "Unknown": {}
+    }
+    
     INVALID_TRANSLATION_SETTINGS_PLACEHOLDER = {
+    "INVALID JSON": 
+    {
+        "INVALID JSON":"INVALID JSON"
+    }
+    }
+
+    INVALID_GENDER_SETTINGS_PLACEHOLDER = {
     "INVALID JSON": 
     {
         "INVALID JSON":"INVALID JSON"
@@ -203,6 +218,11 @@ class FileEnsurer():
         if(os.path.exists(FileEnsurer.config_translation_settings_path) == False):
             with open(FileEnsurer.config_translation_settings_path, 'w+', encoding='utf-8') as file:
                 json.dump(FileEnsurer.DEFAULT_TRANSLATION_SETTING, file)
+
+        ## creates the genders file if it doesn't exist
+        if(os.path.exists(FileEnsurer.config_translation_genders_path) == False):
+            with open(FileEnsurer.config_translation_genders_path, 'w+', encoding='utf-8') as file:
+                json.dump(FileEnsurer.DEFAULT_GENDER_SETTINGS, file)
 
 ##-------------------start-of-purge_storage()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 

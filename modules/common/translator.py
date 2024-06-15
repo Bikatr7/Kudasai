@@ -574,6 +574,7 @@ class Translator:
                 assert isinstance(prompt, (ModelTranslationMessage, str))
 
                 if(Translator.gender_context_insertion):
+                    assert os.path.exists(FileEnsurer.external_translation_genders_path), "There must be a genders.json file in the root Kudasai directory to use gender context insertion."
                     assumption = list(set(GenderUtil.get_gender_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)))
                     assumption_string = "Additional Information:\nCharacter Genders:\n" + "".join(assumption)
                     instructions = SystemTranslationMessage(content=f"{instructions.content if isinstance(instructions, Message) else instructions}\n{assumption_string}")

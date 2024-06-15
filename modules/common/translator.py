@@ -560,8 +560,8 @@ class Translator:
         logging_message = "Built Messages: \n\n"
 
         translation_batches_methods = {
-            method_name: getattr(Translator, f"{method_name}_translation_batches")
-            for method_name in ["openai", "gemini", "deepl", "google_translate"]
+            method_name: getattr(Translator, f"{method_name}_translation_batches" if method_name != "google translate" else "google_translate_translation_batches")
+            for method_name in ["openai", "gemini", "deepl", "google translate"]
         }
 
         translation_batches = translation_batches_methods[Translator.TRANSLATION_METHOD]
@@ -576,7 +576,7 @@ class Translator:
                 if(Translator.gender_context_insertion):
                     assert os.path.exists(FileEnsurer.external_translation_genders_path), "There must be a genders.json file in the root Kudasai directory to use gender context insertion."
                     assumption = list(set(GenderUtil.get_gender_assumption_for_system_prompt(prompt if isinstance(prompt, str) else prompt.content)))
-                    assumption_string = "Additional Information:\nCharacter Genders:\n" + "".join(assumption)
+                    assumption_string = "Additional Information:\nCharacter Genders:\n" + "".join(assumption) if len(assumption) > 0 else ""
                     instructions = SystemTranslationMessage(content=f"{instructions.content if isinstance(instructions, Message) else instructions}\n{assumption_string}")
 
                 logging_message += f"\n------------------------\n{instructions.content if isinstance(instructions, Message) else instructions}\n{prompt if isinstance(prompt, str) else prompt.content}"

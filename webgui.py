@@ -1447,7 +1447,7 @@ class KudasaiGUI:
 ##----------------start-of-clear_genders_file()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-            def clear_genders_file(temp_file) -> None:
+            def clear_genders_file(temp_file:gr.File) -> None:
 
                 """
 
@@ -1460,7 +1460,7 @@ class KudasaiGUI:
                     with open(FileEnsurer.config_translation_genders_path, "w", encoding="utf-8") as f:
                         json.dump(FileEnsurer.DEFAULT_GENDER_SETTINGS, f, indent=4)
 
-                    with open(temp_file, "w", encoding="utf-8") as f:
+                    with open(temp_file.name, "w", encoding="utf-8") as f: #   type: ignore
                         json.dump(FileEnsurer.DEFAULT_GENDER_SETTINGS, f, indent=4)
 
                 except:

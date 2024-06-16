@@ -1,4 +1,4 @@
 backoff==2.2.1
-gradio==4.20.0
+gradio==4.36.1
 kairyou==1.6.5
 easytl==0.4.3

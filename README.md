@@ -43,9 +43,9 @@ backoff==2.2.1
 
 gradio==4.20.0
 
-kairyou==1.6.1
+kairyou==1.6.5
 
-easytl==0.4.0
+easytl==0.4.3
 
 or see requirements.txt
 
@@ -222,6 +222,11 @@ The settings are fairly complex, see the below section [Translator Settings](#tr
     batch_retry_timeout : How long Kudasai will try to translate a batch in seconds, if a requests exceeds this duration, Kudasai will leave it untranslated.
 
     number_of_concurrent_batches : How many translations batches Kudasai will send to the translation API at a time. For OpenAI, be conservative as rate-limiting is aggressive, I'd suggest 3-5. For Gemini, do not exceed 15 for 1.0 or 2 for 1.5. This setting more or less doesn't matter for DeepL.
+
+    gender_context_insertion : true or false - Whether to insert gender info into system prompts when translating text. Kudasai will look for a "gender.json" (exactly) in the root directory and scan each text to translate for the names in the file. If a name is found, Kudasai will insert the gender info into the system prompt. For more info look at the README.md.
+
+    is_cote: true or false - Whether you are translating COTE (Classroom of the Elite), Kudasai has specialized functions for COTE that will be enabled if this is set to true. 
+
     ----------------------------------------------------------------------------------
     Open AI Settings:
     See https://platform.openai.com/docs/api-reference/chat/create for further details

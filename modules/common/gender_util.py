@@ -158,10 +158,9 @@ class GenderUtil:
 
         """
 
-        if(GenderUtil.genders is None):
-            GenderUtil.genders = GenderUtil.load_genders()
+        GenderUtil.genders = GenderUtil.load_genders()
 
-        new_names = [name for name in names if any(GenderUtil.honorific_stripper(name) in full_name for gender, gender_names in GenderUtil.genders.items() for full_name, _ in gender_names.items())]
+        new_names = [name for name in names if any(any(part in full_name for part in GenderUtil.honorific_stripper(name).split(' ')) for gender, gender_names in GenderUtil.genders.items() for full_name, _ in gender_names.items())]
 
         return new_names
             
@@ -270,8 +269,7 @@ class GenderUtil:
             ("Kei", ""): "Female"
         }
 
-        if(GenderUtil.genders is None):
-            GenderUtil.genders = GenderUtil.load_genders()
+        GenderUtil.genders = GenderUtil.load_genders()
 
         if(name in GenderUtil.cache):
             return GenderUtil.cache[name]

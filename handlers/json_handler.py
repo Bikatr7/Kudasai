@@ -418,26 +418,14 @@ class SettingsChanger:
         menu = """
 Current settings:
 ----------------------------------------------------------------
-
 """
 
-        for key,value in JsonHandler.current_translation_settings["base translation settings"].items():
-            menu += key + " : " + str(value) + "\n"
+        settings = ["base translation settings", "openai settings", "gemini settings", "deepl settings"]
 
-        print("\n")
-
-        for key,value in JsonHandler.current_translation_settings["openai settings"].items():
-            menu += key + " : " + str(value) + "\n"
-
-        print("\n")
-
-        for key,value in JsonHandler.current_translation_settings["gemini settings"].items():
-            menu += key + " : " + str(value) + "\n"
-            
-        print("\n")
-
-        for key,value in JsonHandler.current_translation_settings["deepl settings"].items():
-            menu += key + " : " + str(value) + "\n"
+        for setting in settings:
+            for key, value in JsonHandler.current_translation_settings[setting].items():
+                menu += key + " : " + str(value) + "\n"
+            menu += "\n"
 
         menu += """
 It is recommended that you maximize the console window for this. You will have to to see the settings above.

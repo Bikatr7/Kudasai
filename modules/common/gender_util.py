@@ -13,6 +13,8 @@ class GenderUtil:
     genders:typing.Optional[dict] = None
     cache = {}
 
+    is_cote:bool = False
+
 ##-------------------start-of-find_english_words()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -162,6 +164,10 @@ class GenderUtil:
 
         new_names = [name for name in names if any(any(part in full_name for part in GenderUtil.honorific_stripper(name).split(' ')) for gender, gender_names in GenderUtil.genders.items() for full_name, _ in gender_names.items())]
 
+        if(GenderUtil.is_cote):
+            ## known issues with cote
+            new_names = [name for name in new_names if name not in ["king"] and len(name) > 1]
+
         return new_names
             
 ##-------------------start-of-honorific_stripper()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -244,7 +250,7 @@ class GenderUtil:
 ##-------------------start-of-find_name_gender()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
-    def find_name_gender(name:str, is_cote:bool = False) -> list[str]:
+    def find_name_gender(name:str) -> list[str]:
 
         """
 
@@ -278,7 +284,7 @@ class GenderUtil:
         stripped_name = GenderUtil.honorific_stripper(name)
 
         ## check if the name is predetermined
-        if((stripped_name, honorific) in cote_predetermined and is_cote):
+        if((stripped_name, honorific) in cote_predetermined and GenderUtil.is_cote):
             result = [cote_predetermined[(stripped_name, honorific)]]
             GenderUtil.cache[name] = result
             return result
@@ -299,7 +305,7 @@ class GenderUtil:
                         result.remove(gender)
                         result.append(gender)
 
-        if(len(set(result)) > 1 or result == ["Undetermined"]):
+        if(len(set(result)) > 1 or result in ["Undetermined", "Unknown"]):
             if(honorific == "kun"):
                 result = ["Male"]
             elif(honorific == "chan"):
@@ -332,7 +338,9 @@ class GenderUtil:
         gender_to_pronoun_map = {
             "Male": "he",
             "Female": "she",
-            "Undetermined": "they"
+            ## we used unknown in the json file, but we should use undetermined and no im not changing the json file
+            "Undetermined": "they",
+            "Unknown": "they"
         }
 
         names_with_positions = GenderUtil.find_english_words(sample)
@@ -342,9 +350,9 @@ class GenderUtil:
         filtered_names = GenderUtil.discard_similar_names(actual_names)
 
         assumptions = [
-            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and "Undetermined" not in gender else "{} : Undetermined\n".format(name)
+            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and gender not in ["Undetermined", "Unknown"] else "{} : Undetermined\n".format(name)
             for name in filtered_names
-            for gender in [GenderUtil.find_name_gender(name, is_cote=True)]
+            for gender in [GenderUtil.find_name_gender(name)]
         ]
 
         pronoun_assumptions = [
@@ -379,13 +387,13 @@ class GenderUtil:
         filtered_names = GenderUtil.discard_similar_names(actual_names)
 
         assumptions = [
-            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and "Undetermined" not in gender else "{} : Undetermined\n".format(name)
+            "{} : {}\n".format(name, gender[0]) if gender and len(set(gender)) == 1 and gender not in ["Undetermined", "Unknown"] else "{} : Undetermined\n".format(name)
             for name in filtered_names
-            for gender in [GenderUtil.find_name_gender(name, is_cote=True)]
+            for gender in [GenderUtil.find_name_gender(name)]
         ]
 
         gender_assumptions = [
-            "{} : {}\n".format(name.strip(), gender.strip())
+            "{} : {}\n".format(name.strip(), gender.strip().replace("Unknown", "Undetermined"))
             for assumption in assumptions
             for name, gender in [assumption.split(":")]
         ]

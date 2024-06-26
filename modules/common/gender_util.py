@@ -86,6 +86,10 @@ class GenderUtil:
             "ue"
         ]
 
+        blacklist = [
+            "contents",
+        ]
+
         grouped_names = []
         i = 0
         skip_next = False
@@ -99,6 +103,10 @@ class GenderUtil:
             else:
                 current_name, current_pos = names_with_positions[i]
                 next_name, next_pos = names_with_positions[i + 1]
+
+                if(current_name in blacklist):
+                    i += 1
+                    continue
                 
                 ## Check if names are separated by spaces and are within the maximum distance.
                 separator = text[current_pos + len(current_name):next_pos]
@@ -162,7 +170,18 @@ class GenderUtil:
 
         GenderUtil.genders = GenderUtil.load_genders()
 
-        new_names = [name for name in names if any(any(part in full_name for part in GenderUtil.honorific_stripper(name).split(' ')) for gender, gender_names in GenderUtil.genders.items() for full_name, _ in gender_names.items())]
+        new_names = [
+            name for name in names
+            if any(
+                any(
+                    part == full_part
+                    for part in GenderUtil.honorific_stripper(name).split(' ')
+                    for full_part in full_name.split(' ')
+                )
+                for gender, gender_names in GenderUtil.genders.items()
+                for full_name, _ in gender_names.items()
+            )
+        ]
 
         if(GenderUtil.is_cote):
             ## known issues with cote

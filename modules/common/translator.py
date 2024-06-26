@@ -440,6 +440,11 @@ class Translator:
             logging.info("External genders.json file found, overriding config...")
             shutil.copy2(FileEnsurer.external_translation_genders_path, FileEnsurer.config_translation_genders_path)
 
+        if(not os.path.exists(FileEnsurer.external_translation_settings_path) and not is_webgui):
+            logging.info("External translation_settings.json file not found, using config...")
+            print("External translation_settings.json file not found, using config...")
+            time.sleep(2)
+
         logging.debug(f"Translator Activated, Translation Method : {Translator.TRANSLATION_METHOD} "
                      f"Settings are as follows : ")
         
@@ -454,6 +459,8 @@ class Translator:
         Translator.num_concurrent_batches = int(JsonHandler.current_translation_settings["base translation settings"]["number_of_concurrent_batches"])
         Translator.gender_context_insertion = bool(JsonHandler.current_translation_settings["base translation settings"]["gender_context_insertion"])
         Translator.is_cote = bool(JsonHandler.current_translation_settings["base translation settings"]["is_cote"])
+
+        GenderUtil.is_cote = Translator.is_cote
 
         Translator._semaphore = asyncio.Semaphore(Translator.num_concurrent_batches)
 

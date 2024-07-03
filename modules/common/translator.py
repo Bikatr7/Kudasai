@@ -966,7 +966,7 @@ class Translator:
         ## mode 2 just assumes the translation method formatted it properly
         elif(Translator.sentence_fragmenter_mode == 2):
             
-            Translator.translated_text.append(translated_message + '\n\n')
+            Translator.translated_text.append(translated_message)
         
 ##-------------------start-of-fix_je()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

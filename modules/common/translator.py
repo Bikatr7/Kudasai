@@ -217,7 +217,7 @@ class Translator:
         else:
             method = Translator.TRANSLATION_METHOD
 
-        Translator.TRANSLATION_METHOD, api_key_path = translation_methods.get(method, ("deepl", FileEnsurer.deepl_api_key_path))
+        Translator.TRANSLATION_METHOD, api_key_path = translation_methods.get(method, ("deepl", FileEnsurer.deepl_api_key_path)) # type: ignore
         
         if(Translator.pre_provided_api_key != ""):
             if(Translator.TRANSLATION_METHOD == "google translate"):

@@ -7,14 +7,14 @@
         "number_of_malformed_batch_retries": 1,
         "batch_retry_timeout": 700,
         "number_of_concurrent_batches": 2,
-        "gender_context_insertion": true,
-        "is_cote": true
+        "gender_context_insertion": false,
+        "is_cote": false
     },
 
     "openai settings": {
         "openai_model": "gpt-4-turbo",
-        "openai_system_message": "As a Japanese to English translator, translate narration into first person and simple past tense, everything else should remain in its original tense and point of view. Maintain original formatting, spacing, punctuation, paragraph structure, and overall style of text. Keep pre-translated terms and anticipate names not replaced. Calls and text messages should be enclosed in brackets. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note that 〇 indicates chapter changes. Do not use dialogue tags.",
-        "openai_temperature": 0.1,
+        "openai_system_message": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "openai_temperature": 0.3,
         "openai_top_p": 1.0,
         "openai_n": 1,
         "openai_stream": false,
@@ -27,8 +27,8 @@
 
     "gemini settings": {
         "gemini_model": "gemini-pro",
-        "gemini_prompt": "As a Japanese to English translator, translate narration into first person and simple past tense, everything else should remain in its original tense and point of view. Maintain original formatting, spacing, punctuation, paragraph structure, and overall style of text. Keep pre-translated terms and anticipate names not replaced. Calls and text messages should be enclosed in brackets. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note that 〇 indicates chapter changes. Do not use dialogue tags.",
-        "gemini_temperature": 0.1,
+        "gemini_prompt": "As a Japanese to English translator, translate narration into English simple past, everything else should remain in its original tense. Maintain original formatting, punctuation, and paragraph structure. Keep pre-translated terms and anticipate names not replaced. Preserve terms and markers marked with >>><<< and match the output's line count to the input's. Note: 〇 indicates chapter changes.",
+        "gemini_temperature": 0.3,
         "gemini_top_p": null,
         "gemini_top_k": null,
         "gemini_candidate_count": 1,

@@ -41,11 +41,11 @@ https://backdropbuild.com/builds/v3/kudasai
 
 backoff==2.2.1
 
-gradio==4.20.0
+gradio==4.44.0
 
 kairyou==1.6.5
 
-easytl==0.4.6
+easytl==0.4.10
 
 or see requirements.txt
 

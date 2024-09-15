@@ -2,6 +2,7 @@
 import typing
 import base64
 import asyncio
+import time
 import os
 import json
 
@@ -89,6 +90,9 @@ class KudasaiGUI:
         "deepl_formality": lines[81-1].strip(),
     }
 
+    last_text_change = 0
+    debounce_delay = 2 ## 2 seconds
+    
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def build_gui(self) -> None:
@@ -2088,6 +2092,58 @@ class KudasaiGUI:
             self.send_to_translator_button.click(fn=send_to_translator_button,
                                         inputs=[self.preprocessing_output_field],
                                         outputs=[self.input_text_translator])
+            
+##-------------------start-of-toggle_inputs()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            def toggle_knowledge_base_inputs(file_input, dir_input):
+                return gr.update(interactive=not bool(file_input)), gr.update(interactive=not bool(dir_input))
+
+            self.input_knowledge_base_file.change(
+                toggle_knowledge_base_inputs,
+                inputs=[self.input_knowledge_base_file, self.input_knowledge_base_directory],
+                outputs=[self.input_knowledge_base_directory, self.input_knowledge_base_file]
+            )
+
+            self.input_knowledge_base_directory.change(
+                toggle_knowledge_base_inputs,
+                inputs=[self.input_knowledge_base_file, self.input_knowledge_base_directory],
+                outputs=[self.input_knowledge_base_directory, self.input_knowledge_base_file]
+            )
+
+            def toggle_text_inputs(file_input, text_input):
+                current_time = time.time()
+                if current_time - KudasaiGUI.last_text_change < KudasaiGUI.debounce_delay:
+                    # If it's a text change and we're within the debounce period, don't update
+                    return gr.update(), gr.update()
+                self.last_text_change = current_time
+                return gr.update(interactive=not bool(file_input)), gr.update(interactive=not bool(text_input))
+
+
+            ## For preprocessor
+            self.input_txt_file_preprocessing.change(
+                toggle_text_inputs,
+                inputs=[self.input_txt_file_preprocessing, self.input_text_kairyou],
+                outputs=[self.input_text_kairyou, self.input_txt_file_preprocessing]
+            )
+
+            self.input_text_kairyou.change(
+                toggle_text_inputs,
+                inputs=[self.input_txt_file_preprocessing, self.input_text_kairyou],
+                outputs=[self.input_text_kairyou, self.input_txt_file_preprocessing]
+            )
+
+            ## For translator
+            self.input_txt_file_translator.change(
+                toggle_text_inputs,
+                inputs=[self.input_txt_file_translator, self.input_text_translator],
+                outputs=[self.input_text_translator, self.input_txt_file_translator]
+            )
+
+            self.input_text_translator.change(
+                toggle_text_inputs,
+                inputs=[self.input_txt_file_translator, self.input_text_translator],
+                outputs=[self.input_text_translator, self.input_txt_file_translator]
+            )
 
 ##-------------------start-of-launch()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
 

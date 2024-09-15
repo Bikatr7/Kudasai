@@ -106,7 +106,7 @@ class KudasaiGUI:
 
         """
 
-        with gr.Blocks(title="Kudasai", delete_cache=(300, 300)) as self.gui:
+        with gr.Blocks(title="Kudasai", delete_cache=(300, 300), analytics_enabled=False) as self.gui:
 ##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2158,7 +2158,7 @@ class KudasaiGUI:
                     # If it's a text change and we're within the debounce period, don't update
                     return gr.update(), gr.update()
                 self.last_text_change = current_time
-                return gr.update(interactive=not bool(file_input)), gr.update(interactive=not bool(text_input))
+                return gr.update(placeholder=""), gr.update(interactive=not bool(file_input)), gr.update(interactive=not bool(text_input))
 
 
             ## For preprocessor

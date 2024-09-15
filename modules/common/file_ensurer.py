@@ -74,8 +74,9 @@ class FileEnsurer():
     ## favicon
     favicon_path = os.path.join(gui_lib, "Kudasai_Logo.png")
 
-    ## js save to file
+    ## js
     js_save_to_file_path = os.path.join(gui_lib, "save_to_file.js")
+    js_save_to_zip_path = os.path.join(gui_lib, "save_to_zip.js")
 
     ## translation settings description
     translation_settings_description_path = os.path.join(common_lib, "translation_settings_description.txt")

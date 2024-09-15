@@ -43,6 +43,9 @@ class KudasaiGUI:
     with open(FileEnsurer.js_save_to_file_path, 'r', encoding='utf-8') as f:
         js_save_to_file = f.read()
 
+    with open(FileEnsurer.js_save_to_zip_path, 'r', encoding='utf-8') as f:
+        js_save_to_zip = f.read()
+
     ## used for whether the debug log tab for Translator should be actively refreshing based of Logger.current_batch
     is_translation_ongoing = False
 
@@ -92,7 +95,7 @@ class KudasaiGUI:
 
     last_text_change = 0
     debounce_delay = 2 ## 2 seconds
-    
+
 ##-------------------start-of-build_gui()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def build_gui(self) -> None:
@@ -104,7 +107,6 @@ class KudasaiGUI:
         """
 
         with gr.Blocks(title="Kudasai", delete_cache=(300, 300)) as self.gui:
-
 ##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -776,6 +778,11 @@ class KudasaiGUI:
                     with gr.Row():
                         self.logging_clear_logs_button = gr.Button('Clear Logs', variant='stop')
 
+                with gr.Tab("Output"):
+
+                    with gr.Row():
+                        self.download_all_outputs_button = gr.Button('Download All Outputs', elem_id="download-all-outputs-button")
+                        
 ##-------------------start-of-Listener-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             def webgui_update_check() -> None:
@@ -2080,7 +2087,42 @@ class KudasaiGUI:
                 outputs=[],
 
                 ## javascript code that allows us to save textbox contents to a file
-                js=(self.js_save_to_file).replace("downloaded_text.txt", "error_log.txt")
+                js=(self.js_save_to_zip).replace("downloaded_text.txt", "error_log.txt")
+            )
+
+##-------------------start-of-download_all_outputs_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            self.download_all_outputs_button.click(
+                lambda indexed_text, indexing_results, indexing_debug, 
+                       preprocessed_text, preprocessing_results, preprocessing_debug,
+                       translated_text, je_check_text, translator_debug,
+                       logging_debug, logging_error: 
+                f"Indexed Text:\n{indexed_text}\n\n"
+                f"Indexing Results:\n{indexing_results}\n\n"
+                f"Indexing Debug Log:\n{indexing_debug}\n\n"
+                f"Preprocessed Text:\n{preprocessed_text}\n\n"
+                f"Preprocessing Results:\n{preprocessing_results}\n\n"
+                f"Preprocessing Debug Log:\n{preprocessing_debug}\n\n"
+                f"Translated Text:\n{translated_text}\n\n"
+                f"JE Check Text:\n{je_check_text}\n\n"
+                f"Translator Debug Log:\n{translator_debug}\n\n"
+                f"Overall Debug Log:\n{logging_debug}\n\n"
+                f"Error Log:\n{logging_error}",
+                inputs=[
+                    self.indexing_output_field,
+                    self.indexing_results_output_field,
+                    self.debug_log_output_field_indexing_tab,
+                    self.preprocessing_output_field,
+                    self.preprocessing_results_output_field,
+                    self.debug_log_output_field_preprocess_tab,
+                    self.translator_translated_text_output_field,
+                    self.translator_je_check_text_output_field,
+                    self.translator_debug_log_output_field,
+                    self.logging_tab_debug_log_output_field,
+                    self.logging_tab_error_log_output_field
+                ],
+                outputs=[],
+                js=(self.js_save_to_zip)
             )
 
 ##-------------------start-of-send_to_x_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -293,11 +293,11 @@ The settings are fairly complex, see the below section [Translator Settings](#tr
 
 ## **Web GUI**<a name="webgui"></a>
 
-Kudasai also offers a Web GUI. It has all the main functionality of the program but in an easier and non-linear way.
+Kudasai also offers a Web GUI. It has all the main functionality of the program but in an easier and non-linear way for those who may not want to use the CLI.
 
 To run the Web GUI, simply run webgui.py which is in the same directory as kudasai.py
 
-Below are some images of the Web GUI.
+Below are some images of the Web GUI (a bit outdated, but still relevant).
 
 Detailed Documentation for this can be found on the Hugging Face hosted version of Kudasai [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
 

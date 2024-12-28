@@ -14,6 +14,7 @@
 - [**Translator Settings**](#translator-settings)
 - [**Web GUI**](#web-gui)
 - [**Hugging Face**](#hugging-face)
+- [**Utility Scripts**](#utility-scripts)
 - [**License**](#license)
 - [**Contact**](#contact)
 - [**Acknowledgements**](#acknowledgements)
@@ -328,6 +329,15 @@ For those who are interested, or simply cannot run Kudasai locally, a instance o
 It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally. The webgui on huggingface does not save anything through runs, so you will need to download the output files or copy the text out of the webgui. API keys are not saved, and the output folder is overwritten every time it loads. Archives deleted every run as well.
 
 To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+## **Utility Scripts**<a name="utility-scripts"></a>
+
+There are a few utility scripts included in the util folder, these are not required for Kudasai to run, but they can be useful for certain tasks.
+
+splitter.py : Splits a translated text file into chapters based on 〇 markers and additional rules. (Mostly made for COTE only.)
+
+token_counter.py : Counts the number of tokens in a text file, as well as estimating the cost of translation.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 ## **License**<a name="license"></a>

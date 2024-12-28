@@ -335,9 +335,11 @@ To see the README for the Hugging Face hosted version of Kudasai, please see [he
 
 There are a few utility scripts included in the util folder, these are not required for Kudasai to run, but they can be useful for certain tasks.
 
-splitter.py : Splits a translated text file into chapters based on 〇 markers and additional rules. (Mostly made for COTE only.)
+`splitter.py` : Splits a translated text file into chapters based on 〇 markers and additional rules. (Mostly made for COTE only.)
 
-token_counter.py : Counts the number of tokens in a text file, as well as estimating the cost of translation.
+`docs_creator.py` : Creates Google Docs from chapter files and returns their links. (Designed to be used with splitter.py, requires a credentials.json file in the util folder.)
+
+`token_counter.py` : Counts the number of tokens in a text file, as well as estimating the cost of translation.
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 ## **License**<a name="license"></a>

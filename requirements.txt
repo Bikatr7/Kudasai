@@ -1,5 +1,5 @@
 backoff==2.2.1
-gradio==4.44.0
-kairyou==1.6.5
-easytl==0.4.10
+gradio==5.5.0
+kairyou==1.6.7
+easytl==0.5.1
 python-dotenv

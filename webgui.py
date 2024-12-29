@@ -29,6 +29,8 @@ from modules.common.translator import Translator
 
 from kudasai import Kudasai
 
+## since debug log doesn't update periodically, we need to somehow show progress updates in the gui for the translation tab, should get the info from backend somehow idk
+
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -106,7 +108,24 @@ class KudasaiGUI:
 
         """
 
-        with gr.Blocks(title="Kudasai", delete_cache=(300, 300), analytics_enabled=False) as self.gui:
+        with gr.Blocks(
+            title="Kudasai", 
+            delete_cache=(300, 300), 
+            analytics_enabled=False,
+        ) as self.gui:
+            self.gui.load(
+                None,
+                None,
+                js="""
+                () => {
+                    const params = new URLSearchParams(window.location.search);
+                    if (!params.has('__theme')) {
+                        params.set('__theme', 'dark');
+                        window.location.search = params.toString();
+                    }
+                }"""
+            )
+            
 ##-------------------start-of-Utility-Functions---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##-------------------start-of-fetch_log_content()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -860,12 +879,13 @@ class KudasaiGUI:
                             else:
                                 knowledge_base_paths = [file for file in input_knowledge_base_directory]
 
+
                             for file in knowledge_base_paths:
                                 knowledge_base_string += gui_get_text_from_file(file)
 
                             gr.Info("Indexing may take a while, please be patient.")
 
-                            unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base_string, replacements)
+                            unique_names, indexing_log = Indexer.index(text_to_index, knowledge_base_string, replacements, discard_ner_objects=False)
 
                             ## Indexer does not directly log anything, in case of anything else touching it, we will grab the log from the log file
                             log_text = FileEnsurer.standard_read_file(FileEnsurer.debug_log_path)
@@ -922,7 +942,7 @@ class KudasaiGUI:
 
                     try:
 
-                        preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements)
+                        preprocessed_text, preprocessing_log, error_log =  Kairyou.preprocess(text_to_preprocess, replacements, discard_ner_objects=False)
 
                     except InvalidReplacementJsonKeys:
                         ## link needs to be updated later
@@ -1674,9 +1694,7 @@ class KudasaiGUI:
             self.translator_translate_button.click(fn=fetch_log_content,
                                                 inputs=[],
 
-                                                outputs=[self.translator_debug_log_output_field], ## debug log on translator tab
-
-                                                every=.1) ## update every 100ms
+                                                outputs=[self.translator_debug_log_output_field])
             
 ##-------------------start-of translator_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             
@@ -2157,8 +2175,12 @@ class KudasaiGUI:
                 if current_time - KudasaiGUI.last_text_change < KudasaiGUI.debounce_delay:
                     # If it's a text change and we're within the debounce period, don't update
                     return gr.update(), gr.update()
-                self.last_text_change = current_time
-                return gr.update(placeholder=""), gr.update(interactive=not bool(file_input)), gr.update(interactive=not bool(text_input))
+                KudasaiGUI.last_text_change = current_time
+                
+                return (
+                    gr.update(placeholder="", interactive=not bool(file_input)),  # text input update
+                    gr.update(interactive=not bool(text_input))  # file input update
+                )
 
 
             ## For preprocessor

@@ -214,7 +214,7 @@ class Kudasai:
                and Kudasai.knowledge_base != ""):
                 Kudasai.text_to_preprocess, indexing_log = Kudasai.run_kairyou_indexer(Kudasai.text_to_preprocess, Kudasai.replacement_json, Kudasai.knowledge_base)
 
-            preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json)
+            preprocessed_text, preprocessing_log, error_log = Kairyou.preprocess(Kudasai.text_to_preprocess, Kudasai.replacement_json, add_closing_period=True)
 
             ## Need to set this so auto-translation can use the preprocessed text
             Kudasai.text_to_preprocess = preprocessed_text

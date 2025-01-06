@@ -32,8 +32,6 @@ Streamlining Japanese-English Translation with Advanced Preprocessing and Integr
 
 Preprocessor and Translation logic is sourced from external packages, which I also designed, see [Kairyou](https://github.com/Bikatr7/Kairyou) and [EasyTL](https://github.com/Bikatr7/easytl) for more information.
 
-Kudasai has a public trello board, you can find it [here](https://trello.com/b/Wsuwr24S/kudasai) to see what I'm working on and what's coming up.
-
 Kudasai is proud to have been a Backdrop Build v3 Finalist:
 https://backdropbuild.com/builds/v3/kudasai
 
@@ -295,6 +293,10 @@ The settings are fairly complex, see the below section [Translator Settings](#tr
 ## **Web GUI**<a name="webgui"></a>
 
 Kudasai also offers a Web GUI. It has all the main functionality of the program but in an easier and non-linear way for those who may not want to use the CLI.
+
+It must be noted that the WebGUI has been deprecated, and will not be updated. I will be focusing on the CLI/Console version of Kudasai. I will try to keep the WebGUI functional, but I will not be updating it with new features.
+
+This is due to Gradio being a bit of a pain to work with, and I'm not sure how much I'll be able to do with it, and cannot afford to invest time into making a replacement.
 
 To run the Web GUI, simply run webgui.py which is in the same directory as kudasai.py
 

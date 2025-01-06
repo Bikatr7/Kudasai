@@ -29,8 +29,6 @@ from modules.common.translator import Translator
 
 from kudasai import Kudasai
 
-## since debug log doesn't update periodically, we need to somehow show progress updates in the gui for the translation tab, should get the info from backend somehow idk
-
 ##-------------------start-of-KudasaiGUI---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class KudasaiGUI:
@@ -1690,11 +1688,11 @@ class KudasaiGUI:
                                                     self.translator_je_check_text_output_field, ## je check text field on translator tab
                                                     self.logging_tab_debug_log_output_field , ## debug log on log tab
                                                     self.logging_tab_error_log_output_field]) ## error log on log tab
-            ## for the debug log
-            self.translator_translate_button.click(fn=fetch_log_content,
-                                                inputs=[],
-
-                                                outputs=[self.translator_debug_log_output_field])
+            ## for the debug log updater
+            timer = gr.Timer(1)
+            timer.tick(fn=fetch_log_content, 
+                      inputs=[], 
+                      outputs=[self.translator_debug_log_output_field])
             
 ##-------------------start-of translator_calculate_costs_button_click()---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
             

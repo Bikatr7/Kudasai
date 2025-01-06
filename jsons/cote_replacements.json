@@ -76,7 +76,6 @@
     "Iki": ["井木"],
     "Ishida": ["石田"],
     "Isoyama": ["磯山"],
-    "Jima": ["島"],
     "Keisei": ["啓誠"],
     "Kijima": ["鬼島"],
     "Kisarazu": ["木更津"],
@@ -125,7 +124,6 @@
     "Hamaguchi Tetsuya": ["浜口","哲也"],
     "Hagiwara Chihaya": ["萩原","千颯"],
     "Hasebe Haruka": ["長谷部","波瑠加"],
-    "Hashimoto Masayoshi": ["橋本","正義"],
     "Hatsukawa Maho": ["初川","舞峰"],
     "Hatate Kaoru": ["旗手","薫"],
     "Himeno Yuki":["姫野","ユキ"],
@@ -252,6 +250,6 @@
   "enhanced_check_whitelist": {
     "Eikura Mami": ["榮倉","まみ"],
     "Hoshinomiya Chie": ["星之宮","知恵"],
-    "Kijima": ["鬼島"]
+    "Hashimoto Masayoshi": ["橋本","正義"]
   }
 }

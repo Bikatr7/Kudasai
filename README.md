@@ -24,6 +24,8 @@
 
 Windows 10 and Linux Mint are the only tested operating systems, feel free to test on other operating systems and report back to me. I will do my best to fix any issues that arise.
 
+Please note that the WebGUI is deprecated, and will not be updated. I will be focusing on the CLI/Console version of Kudasai. I will try to keep the WebGUI functional, but I will not be updating it with new features. Note that the Hugging Face hosted version of Kudasai is considerably out of date. Please download the latest version from the releases tab.
+
 To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://github.com/Bikatr7/Kudasai/blob/main/lib/gui/HUGGING_FACE_README.md). Further WebGUI documentation can be found there as well.
 
 Python version: 3.10+
@@ -40,11 +42,13 @@ https://backdropbuild.com/builds/v3/kudasai
 
 backoff==2.2.1
 
-gradio==4.44.0
+gradio==5.5.11
 
-kairyou==1.6.5
+kairyou==1.6.8
 
-easytl==0.4.10
+easytl==0.5.1
+
+python-dotenv
 
 or see requirements.txt
 

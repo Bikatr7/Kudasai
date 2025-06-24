@@ -261,5 +261,14 @@
     "Eikura Mami": ["榮倉","まみ"],
     "Hoshinomiya Chie": ["星之宮","知恵"],
     "Hashimoto Masayoshi": ["橋本","正義"]
+  },
+
+  "postprocess": {
+    "class points": "Class Points",
+    "private points": "Private Points",
+    "Class points": "Class Points",
+    "Private points": "Private Points",
+    "class Points": "Class Points",
+    "private Points": "Private Points"
   }
 }

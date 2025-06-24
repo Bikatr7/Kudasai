@@ -12,8 +12,6 @@
 - [**Preprocessing**](#preprocessing)
 - [**Translator**](#translator)
 - [**Translator Settings**](#translator-settings)
-- [**Web GUI**](#web-gui)
-- [**Hugging Face**](#hugging-face)
 - [**Utility Scripts**](#utility-scripts)
 - [**License**](#license)
 - [**Contact**](#contact)
@@ -23,10 +21,6 @@
 ## **Notes**<a name="notes"></a>
 
 Windows 10 and Linux Mint are the only tested operating systems, feel free to test on other operating systems and report back to me. I will do my best to fix any issues that arise.
-
-Please note that the WebGUI is deprecated, and will not be updated. I will be focusing on the CLI/Console version of Kudasai. I will try to keep the WebGUI functional, but I will not be updating it with new features. Note that the Hugging Face hosted version of Kudasai is considerably out of date. Please download the latest version from the releases tab.
-
-To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://github.com/Bikatr7/Kudasai/blob/main/lib/gui/HUGGING_FACE_README.md). Further WebGUI documentation can be found there as well.
 
 Python version: 3.10+
 
@@ -67,7 +61,7 @@ python3 -m spacy download ja_core_news_lg
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 ## **Quick Start**<a name="quick-start"></a>
 
-Windows is assumed for the rest of this README, but the process should be similar for Linux. This is for the console version, for something less linear, see the [Web GUI](#webgui) section.
+Windows is assumed for the rest of this README, but the process should be similar for Linux. This is for the console version.
 
 Due to PyPi limitations, you need to install SpaCy's JP Model, which can not be included automatically due to it being a direct dependency link which PyPi does not support. Make sure you do this after installing the requirements.txt file as it requires Kairyou/SpaCy to be installed first.
 
@@ -294,49 +288,6 @@ The settings are fairly complex, see the below section [Translator Settings](#tr
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-## **Web GUI**<a name="webgui"></a>
-
-Kudasai also offers a Web GUI. It has all the main functionality of the program but in an easier and non-linear way for those who may not want to use the CLI.
-
-It must be noted that the WebGUI has been deprecated, and will not be updated. I will be focusing on the CLI/Console version of Kudasai. I will try to keep the WebGUI functional, but I will not be updating it with new features.
-
-This is due to Gradio being a bit of a pain to work with, and I'm not sure how much I'll be able to do with it, and cannot afford to invest time into making a replacement.
-
-To run the Web GUI, simply run webgui.py which is in the same directory as kudasai.py
-
-Below are some images of the Web GUI (a bit outdated, but still relevant).
-
-Detailed Documentation for this can be found on the Hugging Face hosted version of Kudasai [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
-
-Name Indexing | Kairyou:
-![Name Indexing Screen | Kairyou](https://i.imgur.com/QCPqjrw.jpeg)
-
-Text Preprocessing | Kairyou:
-![Text Preprocessing Screen | Kairyou](https://i.imgur.com/r8nHEvw.jpeg)
-
-Text Translation | Translator:
-![Text Translation Screen | Translator](https://i.imgur.com/0E9q2eh.jpeg)
-
-Translation Settings Page 1:
-![Translation Settings Page 1](https://i.imgur.com/0E9q2eh.jpeg)
-
-Translation Settings Page 2:
-![Translation Settings Page 2](https://i.imgur.com/8MQk6pL.jpeg)
-
-Logging Page:
-![Logging Page](https://i.imgur.com/vDPCUQC.jpeg)
-
----------------------------------------------------------------------------------------------------------------------------------------------------
-
-## **Hugging Face**<a name="huggingface"></a>
-
-For those who are interested, or simply cannot run Kudasai locally, a instance of Kudasai's WebGUI is hosted on Hugging Face's servers. You can find it [here](https://huggingface.co/spaces/Bikatr7/Kudasai).
-
-It's a bit slower than running it locally, but it's a good alternative for those who cannot run it locally. The webgui on huggingface does not save anything through runs, so you will need to download the output files or copy the text out of the webgui. API keys are not saved, and the output folder is overwritten every time it loads. Archives deleted every run as well.
-
-To see the README for the Hugging Face hosted version of Kudasai, please see [here](https://huggingface.co/spaces/Bikatr7/Kudasai/blob/main/README.md).
-
----------------------------------------------------------------------------------------------------------------------------------------------------
 ## **Utility Scripts**<a name="utility-scripts"></a>
 
 There are a few utility scripts included in the util folder, these are not required for Kudasai to run, but they can be useful for certain tasks.
